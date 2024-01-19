@@ -61,3 +61,15 @@ func NotSupportedError(message string, details map[string]any) *ConnectorError {
 func UnauthorizeError(message string, details map[string]any) *ConnectorError {
 	return &ConnectorError{http.StatusUnauthorized, message, details}
 }
+
+// UnprocessableContentError returns an error when the request could not be handled because, while the request was well-formed, it was not semantically correct.
+// For example, a value for a custom scalar type was provided, but with an incorrect type.
+func UnprocessableContentError(message string, details map[string]any) *ConnectorError {
+	return &ConnectorError{http.StatusUnprocessableEntity, message, details}
+}
+
+// BadGatewayError returns an error when the request could not be handled because an upstream service was unavailable or returned an unexpected response,
+// e.g., a connection to a database server failed
+func BadGatewayError(message string, details map[string]any) *ConnectorError {
+	return &ConnectorError{http.StatusBadGateway, message, details}
+}

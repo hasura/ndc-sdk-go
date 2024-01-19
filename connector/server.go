@@ -63,7 +63,10 @@ func NewServer[RawConfiguration any, Configuration any, State any](connector Con
 		return nil, err
 	}
 
-	state := connector.TryInitState(configuration, nil)
+	state, err := connector.TryInitState(configuration, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Server[RawConfiguration, Configuration, State]{
 		connector:     connector,
@@ -84,12 +87,8 @@ func (s *Server[RawConfiguration, Configuration, State]) authorize(r *http.Reque
 }
 
 func (s *Server[RawConfiguration, Configuration, State]) GetCapabilities(w http.ResponseWriter, r *http.Request) {
-	capacities, err := s.connector.GetCapabilities(s.configuration)
-	if err != nil {
-		writeError(w, err)
-	} else {
-		internal.WriteJson(w, http.StatusOK, capacities)
-	}
+	capacities := s.connector.GetCapabilities(s.configuration)
+	internal.WriteJson(w, http.StatusOK, capacities)
 }
 
 func (s *Server[RawConfiguration, Configuration, State]) Health(w http.ResponseWriter, r *http.Request) {
@@ -201,6 +200,8 @@ func (cs *Server[RawConfiguration, Configuration, State]) ListenAndServe(port ui
 		Addr:    fmt.Sprintf(":%d", port),
 		Handler: router.Build(),
 	}
+
+	cs.options.Logger.Info().Msgf("Listening server on %s", server.Addr)
 	if err := server.ListenAndServe(); err != http.ErrServerClosed {
 		return err
 	}

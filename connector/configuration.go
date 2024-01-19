@@ -101,12 +101,7 @@ func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) Validate(
 		return
 	}
 
-	capabilities, err := cs.connector.GetCapabilities(resolvedConfiguration)
-	if err != nil {
-		writeError(w, err)
-		return
-	}
-
+	capabilities := cs.connector.GetCapabilities(resolvedConfiguration)
 	configurationBytes, err := json.Marshal(resolvedConfiguration)
 	if err != nil {
 		writeError(w, InternalServerError(err.Error(), nil))

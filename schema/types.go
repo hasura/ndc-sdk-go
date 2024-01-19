@@ -49,3 +49,25 @@ var (
 	ErrorResponseSchema        = schemaForType("ErrorResponse")
 	ValidateResponseSchema     = schemaForType("ValidateResponse")
 )
+
+func getStringValueByKey(collection map[string]any, key string) string {
+	if collection == nil {
+		return ""
+	}
+
+	anyValue, ok := collection[key]
+	if !ok || anyValue == nil {
+		return ""
+	}
+
+	if arg, ok := anyValue.(string); ok {
+		return arg
+	}
+
+	return ""
+}
+
+// ToPtr converts a value to its pointer
+func ToPtr[V any](value V) *V {
+	return &value
+}

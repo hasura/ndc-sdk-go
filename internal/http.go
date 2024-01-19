@@ -149,18 +149,20 @@ func (rt *router) Build() *http.ServeMux {
 
 // WriteJson writes response data with json encode
 func WriteJson(w http.ResponseWriter, statusCode int, body any) {
-	w.WriteHeader(statusCode)
-	if body != nil {
-		w.Header().Add(headerContentType, contentTypeJson)
-		jsonBytes, err := json.Marshal(body)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf(`{"message": "%s"}`, http.StatusText(http.StatusInternalServerError))))
-			return
-		}
-
-		w.Write(jsonBytes)
+	if body == nil {
+		w.WriteHeader(statusCode)
+		return
 	}
+
+	w.Header().Set(headerContentType, contentTypeJson)
+	jsonBytes, err := json.Marshal(body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf(`{"message": "%s"}`, http.StatusText(http.StatusInternalServerError))))
+		return
+	}
+	w.WriteHeader(statusCode)
+	w.Write(jsonBytes)
 }
 
 // GetLogger gets the logger instance from http request context

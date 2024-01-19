@@ -14,7 +14,7 @@ type AggregateFunctionDefinition struct {
 	ResultType interface{} `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
 }
 
-type Argument interface{}
+
 
 type ArgumentInfo struct {
 	// Argument description
@@ -310,7 +310,7 @@ type QueryRequest struct {
 }
 
 // Values to be provided to any collection arguments
-type QueryRequestArguments map[string]interface{}
+type QueryRequestArguments map[string]Argument
 
 // Any relationships between collections involved in the query request
 type QueryRequestCollectionRelationships map[string]Relationship

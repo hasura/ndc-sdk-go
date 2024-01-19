@@ -43,7 +43,7 @@ type Connector[RawConfiguration any, Configuration any, State any] interface {
 	//
 	// In addition, this function should register any
 	// connector-specific metrics with the metrics registry.
-	TryInitState(configuration *Configuration, metrics any) *State
+	TryInitState(configuration *Configuration, metrics any) (*State, error)
 
 	// Update any metrics from the state.
 	//
@@ -69,7 +69,7 @@ type Connector[RawConfiguration any, Configuration any, State any] interface {
 	// This function should be synchronous.
 	//
 	// [capabilities endpoint]: https://hasura.github.io/ndc-spec/specification/capabilities.html
-	GetCapabilities(configuration *Configuration) (*schema.CapabilitiesResponse, error)
+	GetCapabilities(configuration *Configuration) *schema.CapabilitiesResponse
 
 	// Get the connector's schema.
 	//
