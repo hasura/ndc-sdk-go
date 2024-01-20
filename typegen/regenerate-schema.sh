@@ -17,6 +17,15 @@ wget https://raw.githubusercontent.com/hasura/ndc-sdk-typescript/main/src/schema
 # finally move that json file to schema folder
 mv schema.generated.json ../schema/schema.generated.json
 
-# patch some custom types
+# patch some custom types because of the limitation of the generation tool
+sed -i 's/type Field interface{}//g' ../schema/schema.generated.go
 sed -i 's/type Argument interface{}//g' ../schema/schema.generated.go
+sed -i 's/type RelationshipArgument interface{}//g' ../schema/schema.generated.go
+sed -i 's/type MutationOperation interface{}//g' ../schema/schema.generated.go
+sed -i 's/type MutationRequestOperationsElem interface{}//g' ../schema/schema.generated.go
+sed -i 's/MutationRequestOperationsElem/MutationOperation/g' ../schema/schema.generated.go
 sed -i 's/QueryRequestArguments map\[string\]interface{}/QueryRequestArguments map[string]Argument/g' ../schema/schema.generated.go
+sed -i 's/RowSetRowsElem map\[string\]interface{}/Row any/g' ../schema/schema.generated.go
+sed -i 's/RowSetRowsElem/Row/g' ../schema/schema.generated.go
+sed -i 's/type MutationOperationResultsReturningElem map\[string\]interface{}//g' ../schema/schema.generated.go
+sed -i 's/MutationOperationResultsReturningElem/Row/g' ../schema/schema.generated.go

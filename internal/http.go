@@ -165,9 +165,9 @@ func WriteJson(w http.ResponseWriter, statusCode int, body any) {
 	w.Write(jsonBytes)
 }
 
-// GetLogger gets the logger instance from http request context
-func GetLogger(r *http.Request) zerolog.Logger {
-	value := r.Context().Value(logContextKey)
+// GetLogger gets the logger instance from context
+func GetLogger(ctx context.Context) zerolog.Logger {
+	value := ctx.Value(logContextKey)
 	if value != nil {
 		if logger, ok := value.(zerolog.Logger); ok {
 			return logger

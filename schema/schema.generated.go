@@ -118,7 +118,7 @@ type ExplainResponseDetails map[string]string
 
 type Expression interface{}
 
-type Field interface{}
+
 
 type ForeignKeyConstraint struct {
 	// The columns on which you want want to define the foreign key.
@@ -152,30 +152,30 @@ type FunctionInfoArguments map[string]ArgumentInfo
 // empty struct to allow for future sub-capabilities.
 type LeafCapability map[string]interface{}
 
-type MutationOperation interface{}
+
 
 type MutationOperationResults struct {
 	// The number of rows affected by the mutation operation
 	AffectedRows int `json:"affected_rows" yaml:"affected_rows" mapstructure:"affected_rows"`
 
 	// The rows affected by the mutation operation
-	Returning []MutationOperationResultsReturningElem `json:"returning,omitempty" yaml:"returning,omitempty" mapstructure:"returning,omitempty"`
+	Returning []Row `json:"returning,omitempty" yaml:"returning,omitempty" mapstructure:"returning,omitempty"`
 }
 
-type MutationOperationResultsReturningElem map[string]interface{}
+
 
 type MutationRequest struct {
 	// The relationships between collections involved in the entire mutation request
 	CollectionRelationships MutationRequestCollectionRelationships `json:"collection_relationships" yaml:"collection_relationships" mapstructure:"collection_relationships"`
 
 	// The mutation operations to perform
-	Operations []MutationRequestOperationsElem `json:"operations" yaml:"operations" mapstructure:"operations"`
+	Operations []MutationOperation `json:"operations" yaml:"operations" mapstructure:"operations"`
 }
 
 // The relationships between collections involved in the entire mutation request
 type MutationRequestCollectionRelationships map[string]Relationship
 
-type MutationRequestOperationsElem interface{}
+
 
 type MutationResponse struct {
 	// The results of each mutation operation, in the same order as they were received
@@ -336,7 +336,7 @@ type Relationship struct {
 	TargetCollection string `json:"target_collection" yaml:"target_collection" mapstructure:"target_collection"`
 }
 
-type RelationshipArgument interface{}
+
 
 // Values to be provided to any collection arguments
 type RelationshipArguments map[string]interface{}
@@ -366,13 +366,13 @@ type RowSet struct {
 	Aggregates RowSetAggregates `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
 
 	// The rows returned by the query, corresponding to the query's fields
-	Rows []RowSetRowsElem `json:"rows,omitempty" yaml:"rows,omitempty" mapstructure:"rows,omitempty"`
+	Rows []Row `json:"rows,omitempty" yaml:"rows,omitempty" mapstructure:"rows,omitempty"`
 }
 
 // The results of the aggregates returned by the query
 type RowSetAggregates map[string]interface{}
 
-type RowSetRowsElem map[string]interface{}
+type Row any
 
 // The definition of a scalar type, i.e. types that can be used as the types of
 // columns.

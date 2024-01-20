@@ -3,13 +3,9 @@ package main
 import (
 	"context"
 	_ "embed"
-	"encoding/csv"
+	"encoding/json"
 	"fmt"
-	"io"
-	"strconv"
-	"strings"
 
-	"github.com/hasura/ndc-sdk-go/connector"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/swaggest/jsonschema-go"
 )
@@ -23,9 +19,31 @@ var csvAuthors string
 type RawConfiguration struct{}
 type Configuration struct{}
 
+type Article struct {
+	ID       int    `json:"id"`
+	Title    string `json:"title"`
+	AuthorID int    `json:"author_id"`
+}
+
+type Author struct {
+	ID        int    `json:"id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+}
+
 type State struct {
-	Authors  []schema.RowSetRowsElem
-	Articles []schema.RowSetRowsElem
+	Authors  map[int]Author
+	Articles map[int]Article
+}
+
+func (s State) GetLatestArticle() *Article {
+	if len(s.Articles) == 0 {
+		return nil
+	}
+
+	articles := sortArticles(s.Articles, "id", true)
+
+	return &articles[0]
 }
 
 type Connector struct{}
@@ -47,14 +65,14 @@ func (mc *Connector) TryInitState(configuration *Configuration, metrics any) (*S
 	articles, err := readArticles()
 
 	if err != nil {
-		return nil, connector.InternalServerError("failed to read articles from csv", map[string]any{
+		return nil, schema.InternalServerError("failed to read articles from csv", map[string]any{
 			"cause": err.Error(),
 		})
 	}
 
 	authors, err := readAuthors()
 	if err != nil {
-		return nil, connector.InternalServerError("failed to read authors from csv", map[string]any{
+		return nil, schema.InternalServerError("failed to read authors from csv", map[string]any{
 			"cause": err.Error(),
 		})
 	}
@@ -219,47 +237,46 @@ func (mc *Connector) Explain(ctx context.Context, configuration *Configuration, 
 		Details: schema.ExplainResponseDetails{},
 	}, nil
 }
-func (mc *Connector) Mutation(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
-	return &schema.MutationResponse{
-		OperationResults: []schema.MutationOperationResults{},
-	}, nil
-}
 
 func (mc *Connector) Query(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (*schema.QueryResponse, error) {
-
-	var rows []schema.RowSetRowsElem
+	var rows []schema.Row
 	switch request.Collection {
 	case "articles":
-		rows = state.Articles
+		rows = schema.ToRows(getMapValues(state.Articles))
 		break
 	case "authors":
-		rows = state.Authors
+		rows = schema.ToRows(getMapValues(state.Authors))
 		break
 	case "articles_by_author":
 		authorIdArg, ok := request.Arguments["author_id"]
 		if !ok {
-			return nil, connector.BadGatewayError("missing argument author_id", nil)
+			return nil, schema.BadGatewayError("missing argument author_id", nil)
 		}
 
 		for _, row := range state.Articles {
 			switch authorIdArg.Type {
-			case schema.ArgumentLiteral:
-				// if row["author_id"] == authorIdArg.Value {
-				rows = append(rows, row)
-				// }
+			case schema.ArgumentTypeLiteral:
+				if fmt.Sprint(row.AuthorID) == fmt.Sprint(authorIdArg.Value) {
+					rows = append(rows, row)
+				}
 				break
 			}
 		}
 		break
 	case "latest_article_id":
-		rows = []schema.RowSetRowsElem{
-			{
-				"__value": state.Articles[len(state.Articles)-1]["id"],
+		latestArticle := state.GetLatestArticle()
+		if latestArticle == nil {
+			return nil, schema.BadRequestError("No available article", nil)
+		}
+
+		rows = []schema.Row{
+			map[string]any{
+				"__value": latestArticle.ID,
 			},
 		}
 		break
 	default:
-		return nil, connector.BadRequestError(fmt.Sprintf("invalid collection name %s", request.Collection), nil)
+		return nil, schema.BadRequestError(fmt.Sprintf("invalid collection name %s", request.Collection), nil)
 	}
 
 	return &schema.QueryResponse{
@@ -270,76 +287,58 @@ func (mc *Connector) Query(ctx context.Context, configuration *Configuration, st
 	}, nil
 }
 
-func readArticles() ([]schema.RowSetRowsElem, error) {
-	r := csv.NewReader(strings.NewReader(csvArticles))
-	var results []schema.RowSetRowsElem
-	// skip the title row
-	_, err := r.Read()
-	if err == io.EOF {
-		return results, nil
-	}
-	if err != nil {
-		return nil, err
-	}
+func (mc *Connector) Mutation(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
 
-	for {
-		record, err := r.Read()
-		if err == io.EOF {
-			break
-		}
+	operationResults := []schema.MutationOperationResults{}
+	for _, operation := range request.Operations {
+		results, err := executeMutationOperation(ctx, state, request.CollectionRelationships, &operation)
 		if err != nil {
 			return nil, err
 		}
-
-		id, err := strconv.ParseInt(record[0], 10, 32)
-		if err != nil {
-			return nil, err
-		}
-		authorID, err := strconv.ParseInt(record[2], 10, 32)
-		if err != nil {
-			return nil, err
-		}
-		results = append(results, map[string]any{
-			"id":        int(id),
-			"title":     record[1],
-			"author_id": int(authorID),
-		})
+		operationResults = append(operationResults, *results)
 	}
 
-	return results, nil
+	return &schema.MutationResponse{
+		OperationResults: operationResults,
+	}, nil
 }
 
-func readAuthors() ([]schema.RowSetRowsElem, error) {
-	r := csv.NewReader(strings.NewReader(csvArticles))
-	var results []schema.RowSetRowsElem
-	// skip the title row
-	_, err := r.Read()
-	if err == io.EOF {
-		return results, nil
-	}
-	if err != nil {
-		return nil, err
+func executeMutationOperation(ctx context.Context, state *State, collectionRelationship schema.MutationRequestCollectionRelationships, operation *schema.MutationOperation) (*schema.MutationOperationResults, error) {
+	switch operation.Type {
+	case schema.MutationOperationProcedure:
+		return executeProcedure(ctx, state, collectionRelationship, operation)
 	}
 
-	for {
-		record, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return nil, err
+	return nil, schema.NotSupportedError(fmt.Sprintf("Unsupported operation type: %s", operation.Type), nil)
+}
+
+type UpsertArticleArguments struct {
+	Article Article `json:"article"`
+}
+
+func executeProcedure(ctx context.Context, state *State, collectionRelationship schema.MutationRequestCollectionRelationships, operation *schema.MutationOperation) (*schema.MutationOperationResults, error) {
+	switch operation.Name {
+	case "upsert_article":
+		var args UpsertArticleArguments
+		if err := json.Unmarshal(operation.Arguments, &args); err != nil {
+			return nil, schema.BadRequestError(err.Error(), nil)
 		}
 
-		id, err := strconv.ParseInt(record[0], 10, 32)
-		if err != nil {
-			return nil, err
+		latestArticle := state.GetLatestArticle()
+		if args.Article.ID <= 0 {
+			if latestArticle == nil {
+				args.Article.ID = 1
+			} else {
+				args.Article.ID = latestArticle.ID + 1
+			}
 		}
-		results = append(results, map[string]any{
-			"id":         int(id),
-			"first_name": record[1],
-			"last_name":  record[2],
-		})
+		state.Articles[args.Article.ID] = args.Article
+
+		return &schema.MutationOperationResults{
+			AffectedRows: 1,
+			Returning:    []schema.Row{args.Article},
+		}, nil
+	default:
+		return nil, schema.BadRequestError("unknown procedure", nil)
 	}
-
-	return results, nil
 }

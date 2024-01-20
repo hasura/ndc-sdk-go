@@ -55,7 +55,7 @@ func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) PostIndex
 
 	var rawConfig RawConfiguration
 	if err := json.NewDecoder(r.Body).Decode(&rawConfig); err != nil {
-		internal.WriteJson(w, http.StatusBadRequest, BadRequestError(err.Error(), nil))
+		internal.WriteJson(w, http.StatusBadRequest, schema.BadRequestError(err.Error(), nil))
 		return
 	}
 
@@ -104,7 +104,7 @@ func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) Validate(
 	capabilities := cs.connector.GetCapabilities(resolvedConfiguration)
 	configurationBytes, err := json.Marshal(resolvedConfiguration)
 	if err != nil {
-		writeError(w, InternalServerError(err.Error(), nil))
+		writeError(w, schema.InternalServerError(err.Error(), nil))
 		return
 	}
 

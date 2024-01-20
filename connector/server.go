@@ -78,7 +78,7 @@ func NewServer[RawConfiguration any, Configuration any, State any](connector Con
 
 func (s *Server[RawConfiguration, Configuration, State]) authorize(r *http.Request) error {
 	if s.options.ServiceTokenSecret != "" && r.Header.Get("authorization") != fmt.Sprintf("Bearer %s", s.options.ServiceTokenSecret) {
-		return UnauthorizeError("Unauthorized", map[string]any{
+		return schema.UnauthorizeError("Unauthorized", map[string]any{
 			"cause": "Bearer token does not match.",
 		})
 	}
@@ -210,7 +210,7 @@ func (cs *Server[RawConfiguration, Configuration, State]) ListenAndServe(port ui
 
 func writeError(w http.ResponseWriter, err error) {
 	w.Header().Add("Content-Type", "application/json")
-	var connectorError ConnectorError
+	var connectorError schema.ConnectorError
 	if errors.As(err, &connectorError) {
 		internal.WriteJson(w, connectorError.StatusCode(), connectorError)
 		return

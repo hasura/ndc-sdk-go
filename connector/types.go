@@ -2,7 +2,6 @@ package connector
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
@@ -120,7 +119,7 @@ func WithLogger(logger zerolog.Logger) ServeOption {
 	}
 }
 
-// GetLogger gets the logger instance from http request context
-func GetLogger(r *http.Request) zerolog.Logger {
-	return internal.GetLogger(r)
+// GetLogger gets the logger instance from context
+func GetLogger(ctx context.Context) zerolog.Logger {
+	return internal.GetLogger(ctx)
 }

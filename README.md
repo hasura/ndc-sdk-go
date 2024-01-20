@@ -31,7 +31,7 @@ func main() {
 }
 ```
 
-Please refer to the [NDC Spec](https://hasura.github.io/ndc-spec/) for details on implementing the Connector interface.
+Please refer to the [NDC Spec](https://hasura.github.io/ndc-spec/) for details on implementing the Connector interface, or see [examples](./examples).  
 
 ## Regenerating Schema Types
 
