@@ -42,16 +42,7 @@ type Connector[RawConfiguration any, Configuration any, State any] interface {
 	//
 	// In addition, this function should register any
 	// connector-specific metrics with the metrics registry.
-	TryInitState(configuration *Configuration, metrics any) (*State, error)
-
-	// Update any metrics from the state.
-	//
-	// Note: some metrics can be updated directly, and do not
-	// need to be updated here. This function can be useful to
-	// query metrics which cannot be updated directly, e.g.
-	// the number of idle connections in a connection pool
-	// can be polled but not updated directly.
-	FetchMetrics(ctx context.Context, configuration *Configuration, state *State) error
+	TryInitState(configuration *Configuration, metrics *TelemetryState) (*State, error)
 
 	// Check the health of the connector.
 	//
@@ -100,7 +91,9 @@ type Connector[RawConfiguration any, Configuration any, State any] interface {
 
 // the common serve options for the server
 type serveOptions struct {
-	logger zerolog.Logger
+	logger        zerolog.Logger
+	metricsPrefix string
+	version       string
 }
 
 func defaultServeOptions() *serveOptions {
@@ -122,4 +115,18 @@ func WithLogger(logger zerolog.Logger) ServeOption {
 // GetLogger gets the logger instance from context
 func GetLogger(ctx context.Context) zerolog.Logger {
 	return internal.GetLogger(ctx)
+}
+
+// WithMetricsPrefix sets the custom metrics prefix option
+func WithMetricsPrefix(prefix string) ServeOption {
+	return func(so *serveOptions) {
+		so.metricsPrefix = prefix
+	}
+}
+
+// WithVersion sets the custom version option
+func WithVersion(version string) ServeOption {
+	return func(so *serveOptions) {
+		so.version = version
+	}
 }

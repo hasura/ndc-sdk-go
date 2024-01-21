@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/hasura/ndc-sdk-go/connector"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/swaggest/jsonschema-go"
 )
@@ -32,8 +33,9 @@ type Author struct {
 }
 
 type State struct {
-	Authors  map[int]Author
-	Articles map[int]Article
+	Authors   map[int]Author
+	Articles  map[int]Article
+	Telemetry *connector.TelemetryState
 }
 
 func (s State) GetLatestArticle() *Article {
@@ -61,7 +63,7 @@ func (mc *Connector) UpdateConfiguration(ctx context.Context, rawConfiguration *
 func (mc *Connector) ValidateRawConfiguration(rawConfiguration *RawConfiguration) (*Configuration, error) {
 	return &Configuration{}, nil
 }
-func (mc *Connector) TryInitState(configuration *Configuration, metrics any) (*State, error) {
+func (mc *Connector) TryInitState(configuration *Configuration, metrics *connector.TelemetryState) (*State, error) {
 	articles, err := readArticles()
 
 	if err != nil {
@@ -78,13 +80,10 @@ func (mc *Connector) TryInitState(configuration *Configuration, metrics any) (*S
 	}
 
 	return &State{
-		Authors:  authors,
-		Articles: articles,
+		Authors:   authors,
+		Articles:  articles,
+		Telemetry: metrics,
 	}, nil
-}
-
-func (mc *Connector) FetchMetrics(ctx context.Context, configuration *Configuration, state *State) error {
-	return nil
 }
 
 func (mc *Connector) HealthCheck(ctx context.Context, configuration *Configuration, state *State) error {

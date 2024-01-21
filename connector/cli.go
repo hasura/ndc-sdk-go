@@ -10,8 +10,8 @@ import (
 
 var cli struct {
 	Serve struct {
-		Configuration      string `help:"Configuration file path." env:"CONFIGURATION_FILE"`
-		ConfigurationJson  string `help:"Inline configuration JSON string." env:"CONFIGURATION_JSON"`
+		Configuration      string `help:"Configuration file path." env:"CONFIGURATION"`
+		InlineConfig       bool   `help:"Inline JSON string or configuration file?" env:"INLINE_CONFIG"`
 		Port               uint   `help:"Serve Port." env:"PORT" default:"8100"`
 		ServiceTokenSecret string `help:"Service token secret." env:"SERVICE_TOKEN_SECRET"`
 		OltpEndpoint       string `help:"OpenTelemetry receiver endpoint." env:"OTLP_ENDPOINT"`
@@ -31,7 +31,7 @@ var cli struct {
 // Will read runtime flags or environment variables to determine startup mode.
 //
 // This should be the entrypoint of your connector
-func Start[RawConfiguration any, Configuration any, State any](connector Connector[RawConfiguration, Configuration, State]) error {
+func Start[RawConfiguration any, Configuration any, State any](connector Connector[RawConfiguration, Configuration, State], options ...ServeOption) error {
 	cmd := kong.Parse(&cli)
 	switch cmd.Command() {
 	case "serve":
@@ -42,12 +42,11 @@ func Start[RawConfiguration any, Configuration any, State any](connector Connect
 
 		server, err := NewServer[RawConfiguration, Configuration, State](connector, &ServerOptions{
 			Configuration:      cli.Serve.Configuration,
-			ConfigurationJSON:  cli.Serve.ConfigurationJson,
+			InlineConfig:       cli.Serve.InlineConfig,
 			ServiceTokenSecret: cli.Serve.ServiceTokenSecret,
 			OTLPEndpoint:       cli.Serve.OltpEndpoint,
 			ServiceName:        cli.Serve.ServiceName,
-			Logger:             *logger,
-		})
+		}, append(options, WithLogger(*logger))...)
 		if err != nil {
 			return err
 		}
