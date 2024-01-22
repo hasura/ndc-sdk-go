@@ -16,6 +16,7 @@ var cli struct {
 		ServiceTokenSecret  string `help:"Service token secret." env:"SERVICE_TOKEN_SECRET"`
 		OtlpEndpoint        string `help:"OpenTelemetry receiver endpoint that is set as default for all types." env:"OTLP_ENDPOINT"`
 		OtlpTracesEndpoint  string `help:"OpenTelemetry endpoint for traces." env:"OTLP_TRACES_ENDPOINT"`
+		OtlpInsecure        bool   `help:"Disable LTS for OpenTelemetry gRPC exporters." env:"OTLP_INSECURE"`
 		OtlpMetricsEndpoint string `help:"OpenTelemetry endpoint for metrics." env:"OTLP_METRICS_ENDPOINT"`
 		ServiceName         string `help:"OpenTelemetry service name." env:"OTEL_SERVICE_NAME"`
 		LogLevel            string `help:"Log level." env:"LOG_LEVEL" enum:"trace,debug,info,warn,error" default:"info"`
@@ -47,6 +48,7 @@ func Start[RawConfiguration any, Configuration any, State any](connector Connect
 			InlineConfig:        cli.Serve.InlineConfig,
 			ServiceTokenSecret:  cli.Serve.ServiceTokenSecret,
 			OTLPEndpoint:        cli.Serve.OtlpEndpoint,
+			OTLPInsecure:        cli.Serve.OtlpInsecure,
 			OTLPTracesEndpoint:  cli.Serve.OtlpTracesEndpoint,
 			OTLPMetricsEndpoint: cli.Serve.OtlpMetricsEndpoint,
 			ServiceName:         cli.Serve.ServiceName,

@@ -29,6 +29,7 @@ type ServerOptions struct {
 	InlineConfig        bool
 	ServiceTokenSecret  string
 	OTLPEndpoint        string
+	OTLPInsecure        bool
 	OTLPTracesEndpoint  string
 	OTLPMetricsEndpoint string
 	ServiceName         string

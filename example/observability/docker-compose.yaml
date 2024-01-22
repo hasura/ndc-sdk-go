@@ -5,6 +5,7 @@ services:
     image: jaegertracing/all-in-one:latest
     restart: always
     ports:
+      - "14317:4317" # OTLP gRPC receiver
       - "14318:4318" # OTLP http receiver
       - 16686:16686
     environment:

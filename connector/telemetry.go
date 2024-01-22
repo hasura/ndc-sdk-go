@@ -5,12 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	otelPrometheus "go.opentelemetry.io/otel/exporters/prometheus"
 	metricapi "go.opentelemetry.io/otel/metric"
@@ -36,19 +40,19 @@ type TelemetryState struct {
 
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.
 // If it does not return an error, make sure to call shutdown for proper cleanup.
-func setupOTelSDK(ctx context.Context, options *ServerOptions, serviceVersion, metricsPrefix string) (*TelemetryState, error) {
+func setupOTelSDK(ctx context.Context, serverOptions *ServerOptions, serviceVersion, metricsPrefix string) (*TelemetryState, error) {
 
-	tracesEndpoint := options.OTLPTracesEndpoint
+	tracesEndpoint := serverOptions.OTLPTracesEndpoint
 	if tracesEndpoint == "" {
-		tracesEndpoint = options.OTLPEndpoint
+		tracesEndpoint = serverOptions.OTLPEndpoint
 	}
-	metricsEndpoint := options.OTLPMetricsEndpoint
+	metricsEndpoint := serverOptions.OTLPMetricsEndpoint
 	if metricsEndpoint == "" {
-		metricsEndpoint = options.OTLPEndpoint
+		metricsEndpoint = serverOptions.OTLPEndpoint
 	}
 
 	// Set up resource.
-	res, err := newResource(options.ServiceName, serviceVersion)
+	res, err := newResource(serverOptions.ServiceName, serviceVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -59,20 +63,37 @@ func setupOTelSDK(ctx context.Context, options *ServerOptions, serviceVersion, m
 		prop := newPropagator()
 		otel.SetTextMapPropagator(prop)
 
-		// Set up trace exporter.
-		endpointURL, err := url.Parse(tracesEndpoint)
-		if err != nil {
-			return nil, err
-		}
-		options := []otlptracehttp.Option{
-			otlptracehttp.WithEndpoint(endpointURL.Host),
-			otlptracehttp.WithCompression(otlptracehttp.GzipCompression),
-		}
-		if endpointURL.Scheme == "http" {
-			options = append(options, otlptracehttp.WithInsecure())
-		}
+		var traceExporter *otlptrace.Exporter
 
-		traceExporter, err := otlptracehttp.New(ctx, options...)
+		// use grpc protocol by default if the scheme is empty
+		if !strings.HasPrefix(tracesEndpoint, "http://") && !strings.HasPrefix(tracesEndpoint, "https://") {
+			options := []otlptracegrpc.Option{
+				otlptracegrpc.WithEndpoint(tracesEndpoint),
+				otlptracegrpc.WithCompressor("gzip"),
+			}
+
+			if serverOptions.OTLPInsecure {
+				options = append(options, otlptracegrpc.WithInsecure())
+			}
+
+			traceExporter, err = otlptracegrpc.New(ctx, options...)
+		} else {
+			// Set up trace exporter.
+			endpointURL, err := url.Parse(tracesEndpoint)
+			if err != nil {
+				return nil, err
+			}
+
+			options := []otlptracehttp.Option{
+				otlptracehttp.WithEndpoint(endpointURL.Host),
+				otlptracehttp.WithCompression(otlptracehttp.GzipCompression),
+			}
+			if endpointURL.Scheme == "http" {
+				options = append(options, otlptracehttp.WithInsecure())
+			}
+
+			traceExporter, err = otlptracehttp.New(ctx, options...)
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -93,34 +114,53 @@ func setupOTelSDK(ctx context.Context, options *ServerOptions, serviceVersion, m
 	// The exporter embeds a default OpenTelemetry Reader and
 	// implements prometheus.Collector, allowing it to be used as
 	// both a Reader and Collector.
-	metricExporter, err := otelPrometheus.New()
+	prometheusExporter, err := otelPrometheus.New()
 	if err != nil {
 		return nil, err
 	}
 
 	metricOptions := []metric.Option{
 		metric.WithResource(res),
-		metric.WithReader(metricExporter),
+		metric.WithReader(prometheusExporter),
 	}
 
 	if metricsEndpoint != "" {
-		endpointURL, err := url.Parse(metricsEndpoint)
-		if err != nil {
-			return nil, err
-		}
-		options := []otlpmetrichttp.Option{
-			otlpmetrichttp.WithEndpoint(endpointURL.Host),
-			otlpmetrichttp.WithCompression(otlpmetrichttp.GzipCompression),
-		}
-		if endpointURL.Scheme == "http" {
-			options = append(options, otlpmetrichttp.WithInsecure())
-		}
+		// use grpc protocol by default if the scheme is empty
+		if !strings.HasPrefix(metricsEndpoint, "http://") && !strings.HasPrefix(metricsEndpoint, "https://") {
+			options := []otlpmetricgrpc.Option{
+				otlpmetricgrpc.WithEndpoint(metricsEndpoint),
+				otlpmetricgrpc.WithCompressor("gzip"),
+			}
 
-		httpMetricExporter, err := otlpmetrichttp.New(ctx, options...)
-		if err != nil {
-			return nil, err
+			if serverOptions.OTLPInsecure {
+				options = append(options, otlpmetricgrpc.WithInsecure())
+			}
+
+			metricExporter, err := otlpmetricgrpc.New(ctx, options...)
+			if err != nil {
+				return nil, err
+			}
+			metricOptions = append(metricOptions, metric.WithReader(metric.NewPeriodicReader(metricExporter)))
+		} else {
+
+			endpointURL, err := url.Parse(metricsEndpoint)
+			if err != nil {
+				return nil, err
+			}
+			options := []otlpmetrichttp.Option{
+				otlpmetrichttp.WithEndpoint(endpointURL.Host),
+				otlpmetrichttp.WithCompression(otlpmetrichttp.GzipCompression),
+			}
+			if endpointURL.Scheme == "http" {
+				options = append(options, otlpmetrichttp.WithInsecure())
+			}
+
+			metricExporter, err := otlpmetrichttp.New(ctx, options...)
+			if err != nil {
+				return nil, err
+			}
+			metricOptions = append(metricOptions, metric.WithReader(metric.NewPeriodicReader(metricExporter)))
 		}
-		metricOptions = append(metricOptions, metric.WithReader(metric.NewPeriodicReader(httpMetricExporter)))
 	}
 
 	meterProvider := metric.NewMeterProvider(metricOptions...)
@@ -134,8 +174,8 @@ func setupOTelSDK(ctx context.Context, options *ServerOptions, serviceVersion, m
 	}
 
 	state := &TelemetryState{
-		Tracer:   traceProvider.Tracer(options.ServiceName),
-		Meter:    meterProvider.Meter(options.ServiceName),
+		Tracer:   traceProvider.Tracer(serverOptions.ServiceName),
+		Meter:    meterProvider.Meter(serverOptions.ServiceName),
 		Shutdown: shutdownFunc,
 	}
 
