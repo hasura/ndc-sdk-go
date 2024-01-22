@@ -5,7 +5,7 @@ The connector is ported from [NDC Reference Connector](https://github.com/hasura
 ## Getting Started
 
 ```bash
-go run . serve --configuration-json {}
+go run . serve --service-name ndc-csv --inline-config --configuration {}
 ```
 
 ## Using the reference connector

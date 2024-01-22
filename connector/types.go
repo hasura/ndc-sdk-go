@@ -94,11 +94,14 @@ type serveOptions struct {
 	logger        zerolog.Logger
 	metricsPrefix string
 	version       string
+	serviceName   string
 }
 
 func defaultServeOptions() *serveOptions {
 	return &serveOptions{
-		logger: log.Level(zerolog.GlobalLevel()),
+		logger:      log.Level(zerolog.GlobalLevel()),
+		serviceName: "ndc-go",
+		version:     "0.1.0",
 	}
 }
 
@@ -128,5 +131,12 @@ func WithMetricsPrefix(prefix string) ServeOption {
 func WithVersion(version string) ServeOption {
 	return func(so *serveOptions) {
 		so.version = version
+	}
+}
+
+// WithDefaultServiceName sets the default service name option
+func WithDefaultServiceName(name string) ServeOption {
+	return func(so *serveOptions) {
+		so.serviceName = name
 	}
 }

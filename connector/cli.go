@@ -10,13 +10,15 @@ import (
 
 var cli struct {
 	Serve struct {
-		Configuration      string `help:"Configuration file path." env:"CONFIGURATION"`
-		InlineConfig       bool   `help:"Inline JSON string or configuration file?" env:"INLINE_CONFIG"`
-		Port               uint   `help:"Serve Port." env:"PORT" default:"8100"`
-		ServiceTokenSecret string `help:"Service token secret." env:"SERVICE_TOKEN_SECRET"`
-		OltpEndpoint       string `help:"OpenTelemetry receiver endpoint." env:"OTLP_ENDPOINT"`
-		ServiceName        string `help:"OpenTelemetry service name." env:"OTEL_SERVICE_NAME"`
-		LogLevel           string `help:"Log level." env:"LOG_LEVEL" enum:"trace,debug,info,warn,error" default:"info"`
+		Configuration       string `help:"Configuration file path." env:"CONFIGURATION"`
+		InlineConfig        bool   `help:"Inline JSON string or configuration file?" env:"INLINE_CONFIG"`
+		Port                uint   `help:"Serve Port." env:"PORT" default:"8100"`
+		ServiceTokenSecret  string `help:"Service token secret." env:"SERVICE_TOKEN_SECRET"`
+		OtlpEndpoint        string `help:"OpenTelemetry receiver endpoint that is set as default for all types." env:"OTLP_ENDPOINT"`
+		OtlpTracesEndpoint  string `help:"OpenTelemetry endpoint for traces." env:"OTLP_TRACES_ENDPOINT"`
+		OtlpMetricsEndpoint string `help:"OpenTelemetry endpoint for metrics." env:"OTLP_METRICS_ENDPOINT"`
+		ServiceName         string `help:"OpenTelemetry service name." env:"OTEL_SERVICE_NAME"`
+		LogLevel            string `help:"Log level." env:"LOG_LEVEL" enum:"trace,debug,info,warn,error" default:"info"`
 	} `cmd:"" help:"Serve the NDC connector."`
 
 	Configuration struct {
@@ -41,11 +43,13 @@ func Start[RawConfiguration any, Configuration any, State any](connector Connect
 		}
 
 		server, err := NewServer[RawConfiguration, Configuration, State](connector, &ServerOptions{
-			Configuration:      cli.Serve.Configuration,
-			InlineConfig:       cli.Serve.InlineConfig,
-			ServiceTokenSecret: cli.Serve.ServiceTokenSecret,
-			OTLPEndpoint:       cli.Serve.OltpEndpoint,
-			ServiceName:        cli.Serve.ServiceName,
+			Configuration:       cli.Serve.Configuration,
+			InlineConfig:        cli.Serve.InlineConfig,
+			ServiceTokenSecret:  cli.Serve.ServiceTokenSecret,
+			OTLPEndpoint:        cli.Serve.OtlpEndpoint,
+			OTLPTracesEndpoint:  cli.Serve.OtlpTracesEndpoint,
+			OTLPMetricsEndpoint: cli.Serve.OtlpMetricsEndpoint,
+			ServiceName:         cli.Serve.ServiceName,
 		}, append(options, WithLogger(*logger))...)
 		if err != nil {
 			return err

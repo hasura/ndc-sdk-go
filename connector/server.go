@@ -17,6 +17,7 @@ import (
 	"github.com/rs/zerolog"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var (
@@ -24,11 +25,13 @@ var (
 )
 
 type ServerOptions struct {
-	Configuration      string
-	InlineConfig       bool
-	ServiceTokenSecret string
-	OTLPEndpoint       string
-	ServiceName        string
+	Configuration       string
+	InlineConfig        bool
+	ServiceTokenSecret  string
+	OTLPEndpoint        string
+	OTLPTracesEndpoint  string
+	OTLPMetricsEndpoint string
+	ServiceName         string
 }
 
 // Server implements the [NDC API specification] for the connector
@@ -87,7 +90,20 @@ func NewServer[RawConfiguration any, Configuration any, State any](connector Con
 		return nil, err
 	}
 
-	telemetry, err := setupOTelSDK(ctx, options.OTLPEndpoint, options.ServiceName, defaultOptions.version, defaultOptions.metricsPrefix)
+	defaultOptions.logger.Debug().
+		Str("endpoint", options.OTLPEndpoint).
+		Str("traces_endpoint", options.OTLPTracesEndpoint).
+		Str("metrics_endpoint", options.OTLPMetricsEndpoint).
+		Str("service_name", options.ServiceName).
+		Str("version", defaultOptions.version).
+		Str("metrics_prefix", defaultOptions.metricsPrefix).
+		Msg("initialize OpenTelemetry")
+
+	if options.ServiceName == "" {
+		options.ServiceName = defaultOptions.serviceName
+	}
+
+	telemetry, err := setupOTelSDK(ctx, options, defaultOptions.version, defaultOptions.metricsPrefix)
 	if err != nil {
 		return nil, err
 	}
@@ -104,14 +120,26 @@ func NewServer[RawConfiguration any, Configuration any, State any](connector Con
 	}, nil
 }
 
-func (s *Server[RawConfiguration, Configuration, State]) authorize(r *http.Request) error {
-	if s.options.ServiceTokenSecret != "" && r.Header.Get("authorization") != fmt.Sprintf("Bearer %s", s.options.ServiceTokenSecret) {
-		return schema.UnauthorizeError("Unauthorized", map[string]any{
-			"cause": "Bearer token does not match.",
-		})
-	}
+func (s *Server[RawConfiguration, Configuration, State]) withAuth(handler http.HandlerFunc) http.HandlerFunc {
 
-	return nil
+	return func(w http.ResponseWriter, r *http.Request) {
+		if s.options.ServiceTokenSecret != "" && r.Header.Get("authorization") != fmt.Sprintf("Bearer %s", s.options.ServiceTokenSecret) {
+			internal.WriteJson(w, http.StatusUnauthorized, schema.ErrorResponse{
+				Message: "Unauthorized",
+				Details: map[string]any{
+					"cause": "Bearer token does not match.",
+				},
+			})
+
+			s.telemetry.queryCounter.Add(r.Context(), 1, metric.WithAttributes(
+				attribute.String("status", "failed"),
+				attribute.String("reason", "unauthorized"),
+			))
+			return
+		}
+
+		handler(w, r)
+	}
 }
 
 func (s *Server[RawConfiguration, Configuration, State]) GetCapabilities(w http.ResponseWriter, r *http.Request) {
@@ -129,8 +157,8 @@ func (s *Server[RawConfiguration, Configuration, State]) Health(w http.ResponseW
 }
 
 // GetSchema implements a handler for the /schema endpoint, GET method.
-func (cs *Server[RawConfiguration, Configuration, State]) GetSchema(w http.ResponseWriter, r *http.Request) {
-	schemaResult, err := cs.connector.GetSchema(cs.configuration)
+func (s *Server[RawConfiguration, Configuration, State]) GetSchema(w http.ResponseWriter, r *http.Request) {
+	schemaResult, err := s.connector.GetSchema(s.configuration)
 	if err != nil {
 		writeError(w, err)
 		return
@@ -139,10 +167,14 @@ func (cs *Server[RawConfiguration, Configuration, State]) GetSchema(w http.Respo
 	internal.WriteJson(w, http.StatusOK, schemaResult)
 }
 
-func (cs *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseWriter, r *http.Request) {
+func (s *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
-	ctx, span := cs.telemetry.Tracer.Start(r.Context(), "Query")
+	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Query", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
+
+	attributes := []attribute.KeyValue{}
+	_, decodeSpan := s.telemetry.Tracer.Start(ctx, "Decode JSON Body")
+	defer decodeSpan.End()
 	var body schema.QueryRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		internal.WriteJson(w, http.StatusBadRequest, schema.ErrorResponse{
@@ -157,35 +189,50 @@ func (cs *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseW
 			attribute.String("reason", "json_decode"),
 		}
 		span.SetAttributes(attributes...)
-		cs.telemetry.queryCounter.Add(ctx, 1, metric.WithAttributes(attributes...))
+		s.telemetry.queryCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
 		return
 	}
+	decodeSpan.End()
 
-	response, err := cs.connector.Query(ctx, cs.configuration, cs.state, &body)
+	collectionAttr := attribute.String("collection", body.Collection)
+	attributes = append(attributes, collectionAttr)
+	span.SetAttributes(attributes...)
+	execQueryCtx, execQuerySpan := s.telemetry.Tracer.Start(ctx, "Execute Query")
+	defer execQuerySpan.End()
+
+	response, err := s.connector.Query(execQueryCtx, s.configuration, s.state, &body)
+
 	if err != nil {
 		status := writeError(w, err)
-		attributes := []attribute.KeyValue{
+		statusAttributes := []attribute.KeyValue{
 			attribute.String("status", "failed"),
 			attribute.String("reason", fmt.Sprintf("%d", status)),
 		}
-		span.SetAttributes(attributes...)
-		cs.telemetry.queryCounter.Add(ctx, 1, metric.WithAttributes(attributes...))
+		span.SetAttributes(statusAttributes...)
+		s.telemetry.queryCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttributes...)...))
 		return
 	}
+	execQuerySpan.End()
 
+	statusAttribute := attribute.String("status", "success")
+	span.SetAttributes(statusAttribute)
+	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
 	internal.WriteJson(w, http.StatusOK, response)
-	attributes := attribute.String("status", "success")
-	span.SetAttributes(attributes)
-	cs.telemetry.queryCounter.Add(ctx, 1, metric.WithAttributes(attributes))
+	responseSpan.End()
 
+	s.telemetry.queryCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
 	// record latency for success requests only
-	cs.telemetry.queryLatencyHistogram.Record(ctx, time.Since(startTime).Seconds())
+	s.telemetry.queryLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
 }
 
-func (cs *Server[RawConfiguration, Configuration, State]) Explain(w http.ResponseWriter, r *http.Request) {
+func (s *Server[RawConfiguration, Configuration, State]) Explain(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
-	ctx, span := cs.telemetry.Tracer.Start(r.Context(), "Explain")
+	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Explain", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
+
+	attributes := []attribute.KeyValue{}
+	_, decodeSpan := s.telemetry.Tracer.Start(ctx, "Decode JSON Body")
+	defer decodeSpan.End()
 	var body schema.QueryRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		internal.WriteJson(w, http.StatusBadRequest, schema.ErrorResponse{
@@ -200,36 +247,48 @@ func (cs *Server[RawConfiguration, Configuration, State]) Explain(w http.Respons
 			attribute.String("reason", "json_decode"),
 		}
 		span.SetAttributes(attributes...)
-		cs.telemetry.explainCounter.Add(ctx, 1, metric.WithAttributes(attributes...))
+		s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
 		return
 	}
+	decodeSpan.End()
 
-	response, err := cs.connector.Explain(ctx, cs.configuration, cs.state, &body)
+	collectionAttr := attribute.String("collection", body.Collection)
+	attributes = append(attributes, collectionAttr)
+	span.SetAttributes(attributes...)
+	execCtx, execSpan := s.telemetry.Tracer.Start(ctx, "Execute Explain")
+	defer execSpan.End()
+
+	response, err := s.connector.Explain(execCtx, s.configuration, s.state, &body)
 	if err != nil {
 		status := writeError(w, err)
-		attributes := []attribute.KeyValue{
+		statusAttributes := []attribute.KeyValue{
 			attribute.String("status", "failed"),
 			attribute.String("reason", fmt.Sprintf("%d", status)),
 		}
 		span.SetAttributes(attributes...)
-		cs.telemetry.explainCounter.Add(ctx, 1, metric.WithAttributes(attributes...))
+		s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttributes...)...))
 		return
 	}
+	execSpan.End()
 
+	statusAttribute := attribute.String("status", "success")
+	span.SetAttributes(statusAttribute)
+	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
 	internal.WriteJson(w, http.StatusOK, response)
-	attributes := attribute.String("status", "success")
-	span.SetAttributes(attributes)
-	cs.telemetry.explainCounter.Add(ctx, 1, metric.WithAttributes(attributes))
+	responseSpan.End()
+	s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
 
 	// record latency for success requests only
-	cs.telemetry.explainLatencyHistogram.Record(ctx, time.Since(startTime).Seconds())
+	s.telemetry.explainLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
 }
 
-func (cs *Server[RawConfiguration, Configuration, State]) Mutation(w http.ResponseWriter, r *http.Request) {
+func (s *Server[RawConfiguration, Configuration, State]) Mutation(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
-	ctx, span := cs.telemetry.Tracer.Start(r.Context(), "Mutation")
+	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Mutation", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 
+	_, decodeSpan := s.telemetry.Tracer.Start(ctx, "Decode JSON Body")
+	defer decodeSpan.End()
 	var body schema.MutationRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		internal.WriteJson(w, http.StatusBadRequest, schema.ErrorResponse{
@@ -244,11 +303,14 @@ func (cs *Server[RawConfiguration, Configuration, State]) Mutation(w http.Respon
 			attribute.String("reason", "json_decode"),
 		}
 		span.SetAttributes(attributes...)
-		cs.telemetry.mutationCounter.Add(ctx, 1, metric.WithAttributes(attributes...))
+		s.telemetry.mutationCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
 		return
 	}
+	decodeSpan.End()
 
-	response, err := cs.connector.Mutation(ctx, cs.configuration, cs.state, &body)
+	execCtx, execSpan := s.telemetry.Tracer.Start(ctx, "Execute Mutation")
+	defer execSpan.End()
+	response, err := s.connector.Mutation(execCtx, s.configuration, s.state, &body)
 	if err != nil {
 		status := writeError(w, err)
 		attributes := []attribute.KeyValue{
@@ -256,45 +318,49 @@ func (cs *Server[RawConfiguration, Configuration, State]) Mutation(w http.Respon
 			attribute.String("reason", fmt.Sprintf("%d", status)),
 		}
 		span.SetAttributes(attributes...)
-		cs.telemetry.mutationCounter.Add(ctx, 1, metric.WithAttributes(attributes...))
+		s.telemetry.mutationCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
 		return
 	}
+	execSpan.End()
 
-	internal.WriteJson(w, http.StatusOK, response)
 	attributes := attribute.String("status", "success")
 	span.SetAttributes(attributes)
-	cs.telemetry.mutationCounter.Add(ctx, 1, metric.WithAttributes(attributes))
+	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
+	internal.WriteJson(w, http.StatusOK, response)
+	responseSpan.End()
+
+	s.telemetry.mutationCounter.Add(r.Context(), 1, metric.WithAttributes(attributes))
 
 	// record latency for success requests only
-	cs.telemetry.mutationLatencyHistogram.Record(ctx, time.Since(startTime).Seconds())
+	s.telemetry.mutationLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds())
 }
 
 // ListenAndServe serves the configuration server with the standard http server.
 // You can also replace this method with any router or web framework that is compatible with net/http.
-func (cs *Server[RawConfiguration, Configuration, State]) ListenAndServe(port uint) error {
-	defer cs.stop()
-	defer cs.telemetry.Shutdown(context.Background())
+func (s *Server[RawConfiguration, Configuration, State]) ListenAndServe(port uint) error {
+	defer s.stop()
+	defer s.telemetry.Shutdown(context.Background())
 
-	router := internal.NewRouter(cs.logger)
-	router.Use("/capabilities", http.MethodGet, cs.GetCapabilities)
-	router.Use("/schema", http.MethodGet, cs.GetSchema)
-	router.Use("/query", http.MethodPost, cs.Query)
-	router.Use("/explain", http.MethodPost, cs.Explain)
-	router.Use("/mutation", http.MethodPost, cs.Mutation)
-	router.Use("/healthz", http.MethodGet, cs.Health)
-	router.Use("/metrics", http.MethodGet, promhttp.Handler().ServeHTTP)
+	router := internal.NewRouter(s.logger)
+	router.Use("/capabilities", http.MethodGet, s.withAuth(s.GetCapabilities))
+	router.Use("/schema", http.MethodGet, s.withAuth(s.GetSchema))
+	router.Use("/query", http.MethodPost, s.withAuth(s.Query))
+	router.Use("/explain", http.MethodPost, s.withAuth(s.Explain))
+	router.Use("/mutation", http.MethodPost, s.withAuth(s.Mutation))
+	router.Use("/healthz", http.MethodGet, s.withAuth(s.Health))
+	router.Use("/metrics", http.MethodGet, s.withAuth(promhttp.Handler().ServeHTTP))
 
 	server := http.Server{
 		Addr: fmt.Sprintf(":%d", port),
 		BaseContext: func(_ net.Listener) context.Context {
-			return cs.context
+			return s.context
 		},
 		Handler: router.Build(),
 	}
 
 	serverErr := make(chan error, 1)
 	go func() {
-		cs.logger.Info().Msgf("Listening server on %s", server.Addr)
+		s.logger.Info().Msgf("Listening server on %s", server.Addr)
 		if err := server.ListenAndServe(); err != http.ErrServerClosed {
 			serverErr <- err
 		}
@@ -305,11 +371,11 @@ func (cs *Server[RawConfiguration, Configuration, State]) ListenAndServe(port ui
 	case err := <-serverErr:
 		// Error when starting HTTP server.
 		return err
-	case <-cs.context.Done():
+	case <-s.context.Done():
 		// Wait for first CTRL+C.
-		cs.logger.Info().Msg("received the quit signal, exiting...")
+		s.logger.Info().Msg("received the quit signal, exiting...")
 		// Stop receiving signal notifications as soon as possible.
-		cs.stop()
+		s.stop()
 		// When Shutdown is called, ListenAndServe immediately returns ErrServerClosed.
 		return server.Shutdown(context.Background())
 	}

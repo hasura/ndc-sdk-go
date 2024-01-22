@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -17,7 +18,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 	traceapi "go.opentelemetry.io/otel/trace"
 )
 
@@ -35,31 +36,50 @@ type TelemetryState struct {
 
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.
 // If it does not return an error, make sure to call shutdown for proper cleanup.
-func setupOTelSDK(ctx context.Context, endpoint, serviceName, serviceVersion, metricsPrefix string) (*TelemetryState, error) {
+func setupOTelSDK(ctx context.Context, options *ServerOptions, serviceVersion, metricsPrefix string) (*TelemetryState, error) {
+
+	tracesEndpoint := options.OTLPTracesEndpoint
+	if tracesEndpoint == "" {
+		tracesEndpoint = options.OTLPEndpoint
+	}
+	metricsEndpoint := options.OTLPMetricsEndpoint
+	if metricsEndpoint == "" {
+		metricsEndpoint = options.OTLPEndpoint
+	}
+
+	// Set up resource.
+	res, err := newResource(options.ServiceName, serviceVersion)
+	if err != nil {
+		return nil, err
+	}
 
 	var traceProvider *trace.TracerProvider
-	if endpoint != "" {
-		// Set up resource.
-		res, err := newResource(serviceName, serviceVersion)
-		if err != nil {
-			return nil, err
-		}
-
+	if tracesEndpoint != "" {
 		// Set up propagator.
 		prop := newPropagator()
 		otel.SetTextMapPropagator(prop)
 
 		// Set up trace exporter.
-		traceExporter, err := otlptracehttp.New(ctx, otlptracehttp.WithEndpoint(endpoint))
+		endpointURL, err := url.Parse(tracesEndpoint)
+		if err != nil {
+			return nil, err
+		}
+		options := []otlptracehttp.Option{
+			otlptracehttp.WithEndpoint(endpointURL.Host),
+			otlptracehttp.WithCompression(otlptracehttp.GzipCompression),
+		}
+		if endpointURL.Scheme == "http" {
+			options = append(options, otlptracehttp.WithInsecure())
+		}
+
+		traceExporter, err := otlptracehttp.New(ctx, options...)
 		if err != nil {
 			return nil, err
 		}
 
-		bsp := trace.NewBatchSpanProcessor(traceExporter)
 		traceProvider = trace.NewTracerProvider(
-			trace.WithBatcher(traceExporter, trace.WithBatchTimeout(5*time.Second)),
 			trace.WithResource(res),
-			trace.WithSpanProcessor(bsp),
+			trace.WithBatcher(traceExporter, trace.WithBatchTimeout(5*time.Second)),
 		)
 	} else {
 		traceProvider = trace.NewTracerProvider()
@@ -79,11 +99,24 @@ func setupOTelSDK(ctx context.Context, endpoint, serviceName, serviceVersion, me
 	}
 
 	metricOptions := []metric.Option{
+		metric.WithResource(res),
 		metric.WithReader(metricExporter),
 	}
 
-	if endpoint != "" {
-		httpMetricExporter, err := otlpmetrichttp.New(ctx, otlpmetrichttp.WithEndpoint(endpoint))
+	if metricsEndpoint != "" {
+		endpointURL, err := url.Parse(metricsEndpoint)
+		if err != nil {
+			return nil, err
+		}
+		options := []otlpmetrichttp.Option{
+			otlpmetrichttp.WithEndpoint(endpointURL.Host),
+			otlpmetrichttp.WithCompression(otlpmetrichttp.GzipCompression),
+		}
+		if endpointURL.Scheme == "http" {
+			options = append(options, otlpmetrichttp.WithInsecure())
+		}
+
+		httpMetricExporter, err := otlpmetrichttp.New(ctx, options...)
 		if err != nil {
 			return nil, err
 		}
@@ -101,8 +134,8 @@ func setupOTelSDK(ctx context.Context, endpoint, serviceName, serviceVersion, me
 	}
 
 	state := &TelemetryState{
-		Tracer:   traceProvider.Tracer(serviceName),
-		Meter:    meterProvider.Meter(serviceName),
+		Tracer:   traceProvider.Tracer(options.ServiceName),
+		Meter:    meterProvider.Meter(options.ServiceName),
 		Shutdown: shutdownFunc,
 	}
 
