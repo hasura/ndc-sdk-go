@@ -29,3 +29,10 @@ sed -i 's/RowSetRowsElem map\[string\]interface{}/Row any/g' ../schema/schema.ge
 sed -i 's/RowSetRowsElem/Row/g' ../schema/schema.generated.go
 sed -i 's/type MutationOperationResultsReturningElem map\[string\]interface{}//g' ../schema/schema.generated.go
 sed -i 's/MutationOperationResultsReturningElem/Row/g' ../schema/schema.generated.go
+sed -i 's/Query interface{}/Query Query/g' ../schema/schema.generated.go
+sed -i 's/OrderBy interface{}/OrderBy *OrderBy/g' ../schema/schema.generated.go
+sed -i 's/type Expression interface{}//g' ../schema/schema.generated.go
+sed -i 's/type ComparisonTarget interface{}//g' ../schema/schema.generated.go
+sed -i 's/type BinaryComparisonOperator interface{}//g' ../schema/schema.generated.go
+sed -i 's/Where interface{}/Where Expression/g' ../schema/schema.generated.go
+

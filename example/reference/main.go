@@ -7,6 +7,7 @@ func main() {
 		&Connector{},
 		connector.WithMetricsPrefix("ndc_ref"),
 		connector.WithDefaultServiceName("ndc_ref"),
+		connector.WithoutConfig(),
 	); err != nil {
 		panic(err)
 	}

@@ -28,7 +28,7 @@ type BinaryArrayComparisonOperator string
 
 const BinaryArrayComparisonOperatorIn BinaryArrayComparisonOperator = "in"
 
-type BinaryComparisonOperator interface{}
+
 
 // Describes the features of the specification which a data connector implements.
 type Capabilities struct {
@@ -88,7 +88,7 @@ type ComparisonOperatorDefinition struct {
 	ArgumentType interface{} `json:"argument_type" yaml:"argument_type" mapstructure:"argument_type"`
 }
 
-type ComparisonTarget interface{}
+
 
 type ComparisonValue interface{}
 
@@ -116,7 +116,7 @@ type ExplainResponse struct {
 // a list of statically-known API calls which would be made.
 type ExplainResponseDetails map[string]string
 
-type Expression interface{}
+
 
 
 
@@ -270,10 +270,10 @@ type Query struct {
 	Offset *int `json:"offset,omitempty" yaml:"offset,omitempty" mapstructure:"offset,omitempty"`
 
 	// OrderBy corresponds to the JSON schema field "order_by".
-	OrderBy interface{} `json:"order_by,omitempty" yaml:"order_by,omitempty" mapstructure:"order_by,omitempty"`
+	OrderBy *OrderBy `json:"order_by,omitempty" yaml:"order_by,omitempty" mapstructure:"order_by,omitempty"`
 
 	// Where corresponds to the JSON schema field "where".
-	Where interface{} `json:"where,omitempty" yaml:"where,omitempty" mapstructure:"where,omitempty"`
+	Where Expression `json:"where,omitempty" yaml:"where,omitempty" mapstructure:"where,omitempty"`
 }
 
 // Aggregate fields of the query
@@ -302,7 +302,7 @@ type QueryRequest struct {
 	CollectionRelationships QueryRequestCollectionRelationships `json:"collection_relationships" yaml:"collection_relationships" mapstructure:"collection_relationships"`
 
 	// The query syntax tree
-	Query interface{} `json:"query" yaml:"query" mapstructure:"query"`
+	Query Query `json:"query" yaml:"query" mapstructure:"query"`
 
 	// One set of named variables for each rowset to fetch. Each variable set should
 	// be subtituted in turn, and a fresh set of rows returned.

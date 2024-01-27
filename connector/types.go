@@ -95,13 +95,15 @@ type serveOptions struct {
 	metricsPrefix string
 	version       string
 	serviceName   string
+	withoutConfig bool
 }
 
 func defaultServeOptions() *serveOptions {
 	return &serveOptions{
-		logger:      log.Level(zerolog.GlobalLevel()),
-		serviceName: "ndc-go",
-		version:     "0.1.0",
+		logger:        log.Level(zerolog.GlobalLevel()),
+		serviceName:   "ndc-go",
+		version:       "0.1.0",
+		withoutConfig: false,
 	}
 }
 
@@ -138,5 +140,12 @@ func WithVersion(version string) ServeOption {
 func WithDefaultServiceName(name string) ServeOption {
 	return func(so *serveOptions) {
 		so.serviceName = name
+	}
+}
+
+// WithoutConfig makes the configuration flag optional
+func WithoutConfig() ServeOption {
+	return func(so *serveOptions) {
+		so.withoutConfig = true
 	}
 }

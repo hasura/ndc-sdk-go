@@ -57,29 +57,28 @@ func NewServer[RawConfiguration any, Configuration any, State any](connector Con
 	}
 
 	var rawConfiguration RawConfiguration
-	if options.Configuration == "" {
-		return nil, errConfigurationRequired
-	}
-
-	configBytes := []byte(options.Configuration)
-	if !options.InlineConfig {
-		var err error
-		configBytes, err = os.ReadFile(options.Configuration)
-		if err != nil {
-			return nil, fmt.Errorf("Invalid configuration provided: %s", err)
-		}
-
-		if len(configBytes) == 0 {
+	if !defaultOptions.withoutConfig {
+		if options.Configuration == "" {
 			return nil, errConfigurationRequired
 		}
-	}
 
-	if err := json.Unmarshal(configBytes, &rawConfiguration); err != nil {
-		return nil, fmt.Errorf("Invalid configuration provided: %s", err)
-	}
+		configBytes := []byte(options.Configuration)
+		if !options.InlineConfig {
+			var err error
+			configBytes, err = os.ReadFile(options.Configuration)
+			if err != nil {
+				return nil, fmt.Errorf("Invalid configuration provided: %s", err)
+			}
 
-	// Handle SIGINT (CTRL+C) gracefully.
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+			if len(configBytes) == 0 {
+				return nil, errConfigurationRequired
+			}
+		}
+
+		if err := json.Unmarshal(configBytes, &rawConfiguration); err != nil {
+			return nil, fmt.Errorf("Invalid configuration provided: %s", err)
+		}
+	}
 
 	configuration, err := connector.ValidateRawConfiguration(&rawConfiguration)
 	if err != nil {
@@ -90,6 +89,9 @@ func NewServer[RawConfiguration any, Configuration any, State any](connector Con
 	if err != nil {
 		return nil, err
 	}
+
+	// Handle SIGINT (CTRL+C) gracefully.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 
 	defaultOptions.logger.Debug().
 		Str("endpoint", options.OTLPEndpoint).
@@ -144,8 +146,8 @@ func (s *Server[RawConfiguration, Configuration, State]) withAuth(handler http.H
 }
 
 func (s *Server[RawConfiguration, Configuration, State]) GetCapabilities(w http.ResponseWriter, r *http.Request) {
-	capacities := s.connector.GetCapabilities(s.configuration)
-	internal.WriteJson(w, http.StatusOK, capacities)
+	capabilities := s.connector.GetCapabilities(s.configuration)
+	internal.WriteJson(w, http.StatusOK, capabilities)
 }
 
 func (s *Server[RawConfiguration, Configuration, State]) Health(w http.ResponseWriter, r *http.Request) {
@@ -336,12 +338,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Mutation(w http.Respons
 	s.telemetry.mutationLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds())
 }
 
-// ListenAndServe serves the configuration server with the standard http server.
-// You can also replace this method with any router or web framework that is compatible with net/http.
-func (s *Server[RawConfiguration, Configuration, State]) ListenAndServe(port uint) error {
-	defer s.stop()
-	defer s.telemetry.Shutdown(context.Background())
-
+func (s *Server[RawConfiguration, Configuration, State]) buildHandler() *http.ServeMux {
 	router := internal.NewRouter(s.logger)
 	router.Use("/capabilities", http.MethodGet, s.withAuth(s.GetCapabilities))
 	router.Use("/schema", http.MethodGet, s.withAuth(s.GetSchema))
@@ -351,12 +348,21 @@ func (s *Server[RawConfiguration, Configuration, State]) ListenAndServe(port uin
 	router.Use("/healthz", http.MethodGet, s.withAuth(s.Health))
 	router.Use("/metrics", http.MethodGet, s.withAuth(promhttp.Handler().ServeHTTP))
 
+	return router.Build()
+}
+
+// ListenAndServe serves the configuration server with the standard http server.
+// You can also replace this method with any router or web framework that is compatible with net/http.
+func (s *Server[RawConfiguration, Configuration, State]) ListenAndServe(port uint) error {
+	defer s.stop()
+	defer s.telemetry.Shutdown(context.Background())
+
 	server := http.Server{
 		Addr: fmt.Sprintf(":%d", port),
 		BaseContext: func(_ net.Listener) context.Context {
 			return s.context
 		},
-		Handler: router.Build(),
+		Handler: s.buildHandler(),
 	}
 
 	serverErr := make(chan error, 1)
@@ -384,10 +390,23 @@ func (s *Server[RawConfiguration, Configuration, State]) ListenAndServe(port uin
 
 func writeError(w http.ResponseWriter, err error) int {
 	w.Header().Add("Content-Type", "application/json")
-	var connectorError schema.ConnectorError
-	if errors.As(err, &connectorError) {
-		internal.WriteJson(w, connectorError.StatusCode(), connectorError)
-		return connectorError.StatusCode()
+
+	var connectorErrorPtr *schema.ConnectorError
+	if errors.As(err, &connectorErrorPtr) {
+		internal.WriteJson(w, connectorErrorPtr.StatusCode(), connectorErrorPtr)
+		return connectorErrorPtr.StatusCode()
+	}
+
+	var errorResponse schema.ErrorResponse
+	if errors.As(err, &errorResponse) {
+		internal.WriteJson(w, http.StatusBadRequest, errorResponse)
+		return http.StatusBadRequest
+	}
+
+	var errorResponsePtr *schema.ErrorResponse
+	if errors.As(err, &errorResponsePtr) {
+		internal.WriteJson(w, http.StatusBadRequest, errorResponsePtr)
+		return http.StatusBadRequest
 	}
 
 	internal.WriteJson(w, http.StatusBadRequest, schema.ErrorResponse{

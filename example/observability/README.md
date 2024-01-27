@@ -23,5 +23,5 @@ docker-compose up -d
 Add the `--otlp-traces-endpoint localhost:14317 --otlp-metrics-endpoint localhost:4317 --otlp-insecure` flag when running connector serve. For example:
 
 ```sh
-go run ./example/reference serve --otlp-traces-endpoint localhost:14317 --otlp-metrics-endpoint localhost:4317 --otlp-insecure --inline-config --configuration {}
+go run ./example/reference serve --otlp-traces-endpoint localhost:14317 --otlp-metrics-endpoint localhost:4317 --otlp-insecure
 ```
