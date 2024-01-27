@@ -6,12 +6,12 @@ import "encoding/json"
 import "fmt"
 import "reflect"
 
-type Aggregate interface{}
+
 
 // The definition of an aggregation function on a scalar type
 type AggregateFunctionDefinition struct {
 	// The scalar or object type of the result of this function
-	ResultType interface{} `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType Type `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
 }
 
 
@@ -21,7 +21,7 @@ type ArgumentInfo struct {
 	Description *string `json:"description,omitempty" yaml:"description,omitempty" mapstructure:"description,omitempty"`
 
 	// The name of the type of this argument
-	Type interface{} `json:"type" yaml:"type" mapstructure:"type"`
+	Type Type `json:"type" yaml:"type" mapstructure:"type"`
 }
 
 type BinaryArrayComparisonOperator string
@@ -85,12 +85,12 @@ type CollectionInfoUniquenessConstraints map[string]UniquenessConstraint
 // The definition of a comparison operator on a scalar type
 type ComparisonOperatorDefinition struct {
 	// The type of the argument to this operator
-	ArgumentType interface{} `json:"argument_type" yaml:"argument_type" mapstructure:"argument_type"`
+	ArgumentType Type `json:"argument_type" yaml:"argument_type" mapstructure:"argument_type"`
 }
 
 
 
-type ComparisonValue interface{}
+
 
 type ErrorResponse struct {
 	// Any additional structured information about the error
@@ -100,7 +100,7 @@ type ErrorResponse struct {
 	Message string `json:"message" yaml:"message" mapstructure:"message"`
 }
 
-type ExistsInCollection interface{}
+
 
 type ExplainResponse struct {
 	// A list of human-readable key-value pairs describing a query execution plan. For
@@ -142,7 +142,7 @@ type FunctionInfo struct {
 	Name string `json:"name" yaml:"name" mapstructure:"name"`
 
 	// The name of the function's result type
-	ResultType interface{} `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType Type `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
 }
 
 // Any arguments that this collection requires
@@ -188,7 +188,7 @@ type ObjectField struct {
 	Description *string `json:"description,omitempty" yaml:"description,omitempty" mapstructure:"description,omitempty"`
 
 	// The type of this field
-	Type interface{} `json:"type" yaml:"type" mapstructure:"type"`
+	Type Type `json:"type" yaml:"type" mapstructure:"type"`
 }
 
 // The definition of an object type
@@ -213,12 +213,12 @@ type OrderByElement struct {
 	OrderDirection OrderDirection `json:"order_direction" yaml:"order_direction" mapstructure:"order_direction"`
 
 	// Target corresponds to the JSON schema field "target".
-	Target OrderByElementTarget `json:"target" yaml:"target" mapstructure:"target"`
+	Target OrderByTarget `json:"target" yaml:"target" mapstructure:"target"`
 }
 
-type OrderByElementTarget interface{}
 
-type OrderByTarget interface{}
+
+
 
 type OrderDirection string
 
@@ -230,14 +230,14 @@ type PathElement struct {
 	Arguments PathElementArguments `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 
 	// A predicate expression to apply to the target collection
-	Predicate interface{} `json:"predicate" yaml:"predicate" mapstructure:"predicate"`
+	Predicate Expression `json:"predicate" yaml:"predicate" mapstructure:"predicate"`
 
 	// The name of the relationship to follow
 	Relationship string `json:"relationship" yaml:"relationship" mapstructure:"relationship"`
 }
 
 // Values to be provided to any collection arguments
-type PathElementArguments map[string]interface{}
+type PathElementArguments map[string]RelationshipArgument
 
 type ProcedureInfo struct {
 	// Any arguments that this collection requires
@@ -250,7 +250,7 @@ type ProcedureInfo struct {
 	Name string `json:"name" yaml:"name" mapstructure:"name"`
 
 	// The name of the result type
-	ResultType interface{} `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType Type `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
 }
 
 // Any arguments that this collection requires
@@ -277,7 +277,7 @@ type Query struct {
 }
 
 // Aggregate fields of the query
-type QueryAggregates map[string]interface{}
+type QueryAggregates map[string]Aggregate
 
 type QueryCapabilities struct {
 	// Does the connector support aggregate queries
@@ -288,7 +288,7 @@ type QueryCapabilities struct {
 }
 
 // Fields of the query
-type QueryFields map[string]interface{}
+type QueryFields map[string]Field
 
 // This is the request body of the query POST endpoint
 type QueryRequest struct {
@@ -1009,7 +1009,7 @@ func (j *SchemaResponse) UnmarshalJSON(b []byte) error {
 }
 
 // Types track the valid representations of values as JSON
-type Type interface{}
+
 
 type UnaryComparisonOperator string
 

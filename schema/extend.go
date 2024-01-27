@@ -10,55 +10,83 @@ import (
  * Types track the valid representations of values as JSON
  */
 
+type TypeEnum string
+
+const (
+	TypeNamed    TypeEnum = "named"
+	TypeNullable TypeEnum = "nullable"
+	TypeArray    TypeEnum = "array"
+)
+
+// Types track the valid representations of values as JSON
+type Type interface {
+	GetType() TypeEnum
+}
+
 // NamedType represents a named type
 type NamedType struct {
-	Type string `json:"type"`
+	Type TypeEnum `json:"type" mapstructure:"type"`
 	// The name can refer to a primitive type or a scalar type
-	Name string `json:"name"`
+	Name string `json:"name" mapstructure:"name"`
+}
+
+// GetType get the type of type
+func (ty NamedType) GetType() TypeEnum {
+	return ty.Type
 }
 
 // NewNamedType creates a new NamedType instance
 func NewNamedType(name string) *NamedType {
 	return &NamedType{
-		Type: "named",
+		Type: TypeNamed,
 		Name: name,
 	}
 }
 
 // NullableType represents a nullable type
 type NullableType struct {
-	Type string `json:"type"`
+	Type TypeEnum `json:"type" mapstructure:"type"`
 	// The type of the non-null inhabitants of this type
-	UnderlyingType any `json:"underlying_type"`
+	UnderlyingType Type `json:"underlying_type" mapstructure:"underlying_type"`
 }
 
 // NewNullableNamedType creates a new NullableType instance with underlying named type
 func NewNullableNamedType(name string) *NullableType {
 	return &NullableType{
-		Type:           "nullable",
+		Type:           TypeNullable,
 		UnderlyingType: NewNamedType(name),
 	}
 }
 
+// GetType get the type of type
+func (ty NullableType) GetType() TypeEnum {
+	return ty.Type
+}
+
 // NewNullableArrayType creates a new NullableType instance with underlying array type
-func NewNullableArrayType(elementType any) *NullableType {
+func NewNullableArrayType(elementType *ArrayType) *NullableType {
 	return &NullableType{
-		Type:           "nullable",
-		UnderlyingType: NewArrayType(elementType),
+		Type:           TypeNullable,
+		UnderlyingType: elementType,
 	}
 }
 
 // ArrayType represents an array type
 type ArrayType struct {
-	Type string `json:"type"`
+	Type TypeEnum `json:"type" mapstructure:"type"`
 	// The type of the elements of the array
-	ElementType any `json:"element_type"`
+	ElementType Type `json:"element_type" mapstructure:"element_type"`
+}
+
+// GetType get the type of type
+func (ty ArrayType) GetType() TypeEnum {
+	return ty.Type
 }
 
 // NewArrayType creates a new ArrayType instance
-func NewArrayType(elementType any) *ArrayType {
+func NewArrayType(elementType Type) *ArrayType {
 	return &ArrayType{
-		Type:        "array",
+		Type:        TypeArray,
 		ElementType: elementType,
 	}
 }
@@ -567,6 +595,154 @@ func (j *BinaryComparisonOperatorType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// ComparisonValueType represents a comparison value type enum
+type ComparisonValueType string
+
+const (
+	ComparisonValueTypeColumn   ComparisonValueType = "column"
+	ComparisonValueTypeScalar   ComparisonValueType = "scalar"
+	ComparisonValueTypeVariable ComparisonValueType = "variable"
+)
+
+var enumValues_ComparisonValueType = []ComparisonValueType{
+	ComparisonValueTypeColumn,
+	ComparisonValueTypeScalar,
+	ComparisonValueTypeVariable,
+}
+
+// ParseComparisonValueType parses a comparison value type from string
+func ParseComparisonValueType(input string) (*ComparisonValueType, error) {
+	if !Contains(enumValues_ComparisonValueType, ComparisonValueType(input)) {
+		return nil, fmt.Errorf("failed to parse ComparisonValueType, expect one of %v", enumValues_ComparisonValueType)
+	}
+	result := ComparisonValueType(input)
+
+	return &result, nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *ComparisonValueType) UnmarshalJSON(b []byte) error {
+	var rawValue string
+	if err := json.Unmarshal(b, &rawValue); err != nil {
+		return err
+	}
+
+	value, err := ParseComparisonValueType(rawValue)
+	if err != nil {
+		return err
+	}
+
+	*j = *value
+	return nil
+}
+
+// ComparisonValue represents a comparison value
+type ComparisonValue interface {
+	GetType() ComparisonValueType
+}
+
+// ComparisonValueColumn represents a comparison value with column type
+type ComparisonValueColumn struct {
+	Type   ComparisonValueType `json:"type" mapstructure:"type"`
+	Column ComparisonTarget    `json:"column" mapstructure:"column"`
+}
+
+// ComparisonValueColumn gets the type of comparison value
+func (cv ComparisonValueColumn) GetType() ComparisonValueType {
+	return cv.Type
+}
+
+// ComparisonValueScalar represents a comparison value with scalar type
+type ComparisonValueScalar struct {
+	Type  ComparisonValueType `json:"type" mapstructure:"type"`
+	Value any                 `json:"value" mapstructure:"value"`
+}
+
+// ComparisonValueScalar gets the type of comparison value
+func (cv ComparisonValueScalar) GetType() ComparisonValueType {
+	return cv.Type
+}
+
+// ComparisonValueVariable represents a comparison value with variable type
+type ComparisonValueVariable struct {
+	Type ComparisonValueType `json:"type" mapstructure:"type"`
+	Name string              `json:"name" mapstructure:"name"`
+}
+
+// ComparisonValueVariable gets the type of comparison value
+func (cv ComparisonValueVariable) GetType() ComparisonValueType {
+	return cv.Type
+}
+
+// ExistsInCollectionType represents an exists in collection type enum
+type ExistsInCollectionType string
+
+const (
+	ExistsInCollectionTypeRelated   ExistsInCollectionType = "related"
+	ExistsInCollectionTypeUnrelated ExistsInCollectionType = "unrelated"
+)
+
+var enumValues_ExistsInCollectionType = []ExistsInCollectionType{
+	ExistsInCollectionTypeRelated,
+	ExistsInCollectionTypeUnrelated,
+}
+
+// ParseExistsInCollectionType parses a comparison value type from string
+func ParseExistsInCollectionType(input string) (*ExistsInCollectionType, error) {
+	if !Contains(enumValues_ExistsInCollectionType, ExistsInCollectionType(input)) {
+		return nil, fmt.Errorf("failed to parse ExistsInCollectionType, expect one of %v", enumValues_ExistsInCollectionType)
+	}
+	result := ExistsInCollectionType(input)
+
+	return &result, nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *ExistsInCollectionType) UnmarshalJSON(b []byte) error {
+	var rawValue string
+	if err := json.Unmarshal(b, &rawValue); err != nil {
+		return err
+	}
+
+	value, err := ParseExistsInCollectionType(rawValue)
+	if err != nil {
+		return err
+	}
+
+	*j = *value
+	return nil
+}
+
+// ExistsInCollection represents an Exists In Collection object
+type ExistsInCollection interface {
+	GetType() ExistsInCollectionType
+}
+
+type ExistsInCollectionRelated struct {
+	Type         ExistsInCollectionType `json:"type" mapstructure:"type"`
+	Relationship string                 `json:"relationship" mapstructure:"relationship"`
+	// Values to be provided to any collection arguments
+	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments"`
+}
+
+// GetType get the type of ExistsInCollection
+func (ei ExistsInCollectionRelated) GetType() ExistsInCollectionType {
+	return ei.Type
+}
+
+type ExistsInCollectionUnrelated struct {
+	Type ExistsInCollectionType `json:"type" mapstructure:"type"`
+	// The name of a collection
+	Collection string `json:"collection" mapstructure:"collection"`
+	// Values to be provided to any collection arguments
+	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments"`
+}
+
+// GetType get the type of ExistsInCollection
+func (ei ExistsInCollectionUnrelated) GetType() ExistsInCollectionType {
+	return ei.Type
+}
+
 // BinaryComparisonOperator represents a binary comparison operator object
 type BinaryComparisonOperator struct {
 	Type BinaryComparisonOperatorType `json:"type" mapstructure:"type"`
@@ -673,4 +849,191 @@ type ExpressionExists struct {
 // GetType returns the expression type. Implement the Expression interface
 func (exp ExpressionExists) GetType() ExpressionType {
 	return exp.Type
+}
+
+// AggregateType represents an aggregate type
+type AggregateType string
+
+const (
+	// AggregateTypeColumnCount aggregates count the number of rows with non-null values in the specified columns.
+	// If the distinct flag is set, then the count should only count unique non-null values of those columns,
+	AggregateTypeColumnCount AggregateType = "column_count"
+	// AggregateTypeSingleColumn aggregates apply an aggregation function (as defined by the column's scalar type in the schema response) to a column
+	AggregateTypeSingleColumn AggregateType = "single_column"
+	// AggregateTypeStarCount aggregates count all matched rows
+	AggregateTypeStarCount AggregateType = "star_count"
+)
+
+var enumValues_AggregateType = []AggregateType{
+	AggregateTypeColumnCount,
+	AggregateTypeSingleColumn,
+	AggregateTypeStarCount,
+}
+
+// ParseAggregateType parses an aggregate type argument type from string
+func ParseAggregateType(input string) (*AggregateType, error) {
+	if !Contains(enumValues_AggregateType, AggregateType(input)) {
+		return nil, fmt.Errorf("failed to parse AggregateType, expect one of %v", enumValues_AggregateType)
+	}
+	result := AggregateType(input)
+
+	return &result, nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *AggregateType) UnmarshalJSON(b []byte) error {
+	var rawValue string
+	if err := json.Unmarshal(b, &rawValue); err != nil {
+		return err
+	}
+
+	value, err := ParseAggregateType(rawValue)
+	if err != nil {
+		return err
+	}
+
+	*j = *value
+	return nil
+}
+
+// Aggregate represents an [aggregated query] object
+//
+// [aggregated query]: https://hasura.github.io/ndc-spec/specification/queries/aggregates.html
+type Aggregate interface {
+	GetType() AggregateType
+}
+
+// AggregateStarCount represents an aggregate object which counts all matched rows
+type AggregateStarCount struct {
+	Type AggregateType `json:"type" mapstructure:"type"`
+}
+
+// GetType gets the type of aggregate object
+func (ag AggregateStarCount) GetType() AggregateType {
+	return ag.Type
+}
+
+// AggregateSingleColumn represents an aggregate object which applies an aggregation function (as defined by the column's scalar type in the schema response) to a column.
+type AggregateSingleColumn struct {
+	Type AggregateType `json:"type" mapstructure:"type"`
+	// The column to apply the aggregation function to
+	Column string `json:"column" mapstructure:"column"`
+	// Single column aggregate function name.
+	Function string `json:"function" mapstructure:"function"`
+}
+
+// GetType gets the type of aggregate object
+func (ag AggregateSingleColumn) GetType() AggregateType {
+	return ag.Type
+}
+
+// AggregateColumnCount represents an aggregate object which count the number of rows with non-null values in the specified columns.
+// If the distinct flag is set, then the count should only count unique non-null values of those columns.
+type AggregateColumnCount struct {
+	Type AggregateType `json:"type" mapstructure:"type"`
+	// The column to apply the aggregation function to
+	Column string `json:"column" mapstructure:"column"`
+	// Whether or not only distinct items should be counted.
+	Distinct bool `json:"distinct" mapstructure:"distinct"`
+}
+
+// GetType gets the type of aggregate object
+func (ag AggregateColumnCount) GetType() AggregateType {
+	return ag.Type
+}
+
+// OrderByTargetType represents a ordering target type
+type OrderByTargetType string
+
+const (
+	OrderByTargetTypeColumn                OrderByTargetType = "column"
+	OrderByTargetTypeSingleColumnAggregate OrderByTargetType = "single_column_aggregate"
+	OrderByTargetTypeStarCountAggregate    OrderByTargetType = "star_count_aggregate"
+)
+
+var enumValues_OrderByTargetType = []OrderByTargetType{
+	OrderByTargetTypeColumn,
+	OrderByTargetTypeSingleColumnAggregate,
+	OrderByTargetTypeStarCountAggregate,
+}
+
+// ParseOrderByTargetType parses a ordering target type argument type from string
+func ParseOrderByTargetType(input string) (*OrderByTargetType, error) {
+	if !Contains(enumValues_OrderByTargetType, OrderByTargetType(input)) {
+		return nil, fmt.Errorf("failed to parse OrderByTargetType, expect one of %v", enumValues_OrderByTargetType)
+	}
+	result := OrderByTargetType(input)
+
+	return &result, nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *OrderByTargetType) UnmarshalJSON(b []byte) error {
+	var rawValue string
+	if err := json.Unmarshal(b, &rawValue); err != nil {
+		return err
+	}
+
+	value, err := ParseOrderByTargetType(rawValue)
+	if err != nil {
+		return err
+	}
+
+	*j = *value
+	return nil
+}
+
+// OrderByTarget represents an [order_by field] of the Query object
+//
+// [order_by field]: https://hasura.github.io/ndc-spec/specification/queries/sorting.html
+type OrderByTarget interface {
+	GetType() OrderByTargetType
+}
+
+// OrderByColumn represents an ordering object which compares the value in the selected column
+type OrderByColumn struct {
+	Type OrderByTargetType `json:"type" mapstructure:"type"`
+	// The name of the column
+	Column string `json:"column" mapstructure:"column"`
+	// Any relationships to traverse to reach this column
+	Path []PathElement `json:"path" mapstructure:"path"`
+}
+
+// GetType gets the type of order by
+func (ob OrderByColumn) GetType() OrderByTargetType {
+	return ob.Type
+}
+
+// OrderBySingleColumnAggregate An ordering of type [single_column_aggregate] orders rows by an aggregate computed over rows in some related collection.
+// If the respective aggregates are incomparable, the ordering should continue to the next OrderByElement.
+//
+// [single_column_aggregate]: https://hasura.github.io/ndc-spec/specification/queries/sorting.html#type-single_column_aggregate
+type OrderBySingleColumnAggregate struct {
+	Type OrderByTargetType `json:"type" mapstructure:"type"`
+	// The column to apply the aggregation function to
+	Column string `json:"column" mapstructure:"column"`
+	// Single column aggregate function name.
+	Function string `json:"function" mapstructure:"function"`
+	// Non-empty collection of relationships to traverse
+	Path []PathElement `json:"path" mapstructure:"path"`
+}
+
+// GetType gets the type of order by
+func (ob OrderBySingleColumnAggregate) GetType() OrderByTargetType {
+	return ob.Type
+}
+
+// OrderByStarCountAggregate An ordering of type [star_count_aggregate] orders rows by a count of rows in some related collection.
+// If the respective aggregates are incomparable, the ordering should continue to the next OrderByElement.
+//
+// [star_count_aggregate]: https://hasura.github.io/ndc-spec/specification/queries/sorting.html#type-star_count_aggregate
+type OrderByStarCountAggregate struct {
+	Type OrderByTargetType `json:"type" mapstructure:"type"`
+	// Non-empty collection of relationships to traverse
+	Path []PathElement `json:"path" mapstructure:"path"`
+}
+
+// GetType gets the type of order by
+func (ob OrderByStarCountAggregate) GetType() OrderByTargetType {
+	return ob.Type
 }

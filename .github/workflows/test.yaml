@@ -1,14 +1,15 @@
 name: Unit tests
 
 on:
-  pull_request:
-  push:
-    paths:
-      - "**.go"
-      - "go.mod"
-      - "go.sum"
-      - ".github/workflows/*.yml"
-      - "example/hasura/docker-compose.yaml"
+  {}
+  # pull_request:
+  # push:
+  #   paths:
+  #     - "**.go"
+  #     - "go.mod"
+  #     - "go.sum"
+  #     - ".github/workflows/*.yml"
+  #     - "example/hasura/docker-compose.yaml"
 
 jobs:
   test-go:

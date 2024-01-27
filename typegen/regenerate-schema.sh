@@ -35,4 +35,16 @@ sed -i 's/type Expression interface{}//g' ../schema/schema.generated.go
 sed -i 's/type ComparisonTarget interface{}//g' ../schema/schema.generated.go
 sed -i 's/type BinaryComparisonOperator interface{}//g' ../schema/schema.generated.go
 sed -i 's/Where interface{}/Where Expression/g' ../schema/schema.generated.go
-
+sed -i 's/type Aggregate interface{}//g' ../schema/schema.generated.go
+sed -i 's/type OrderByTarget interface{}//g' ../schema/schema.generated.go
+sed -i 's/QueryAggregates map\[string\]interface{}/QueryAggregates map[string]Aggregate/g' ../schema/schema.generated.go
+sed -i 's/Predicate interface{}/Predicate Expression/g' ../schema/schema.generated.go
+sed -i 's/type OrderByElementTarget interface{}//g' ../schema/schema.generated.go
+sed -i 's/OrderByElementTarget/OrderByTarget/g' ../schema/schema.generated.go
+sed -i 's/PathElementArguments map\[string\]interface{}/PathElementArguments map[string]RelationshipArgument/g' ../schema/schema.generated.go
+sed -i 's/type Type interface{}//g' ../schema/schema.generated.go
+sed -i 's/ResultType interface{}/ResultType Type/g' ../schema/schema.generated.go
+sed -i 's/Type interface{}/Type Type/g' ../schema/schema.generated.go
+sed -i 's/QueryFields map\[string\]interface{}/QueryFields map[string]Field/g' ../schema/schema.generated.go
+sed -i 's/type ComparisonValue interface{}//g' ../schema/schema.generated.go
+sed -i 's/type ExistsInCollection interface{}//g' ../schema/schema.generated.go
