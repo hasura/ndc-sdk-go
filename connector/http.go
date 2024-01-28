@@ -1,12 +1,15 @@
-package internal
+package connector
 
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"runtime/debug"
 	"time"
 
+	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -41,7 +44,7 @@ type router struct {
 	logger zerolog.Logger
 }
 
-func NewRouter(logger zerolog.Logger) *router {
+func newRouter(logger zerolog.Logger) *router {
 	return &router{
 		routes: make(map[string]map[string]http.HandlerFunc),
 		logger: logger,
@@ -73,6 +76,26 @@ func (rt *router) Build() *http.ServeMux {
 				requestLogData["headers"] = r.Header
 			}
 
+			// recover from panic
+			defer func() {
+				if err := recover(); err != nil {
+					rt.logger.Error().
+						Str("request_id", requestID).
+						Dur("latency", time.Since(startTime)).
+						Interface("request", requestLogData).
+						Interface("error", err).
+						Str("stacktrace", string(debug.Stack())).
+						Msg("internal server error")
+
+					writeJson(w, http.StatusInternalServerError, schema.ErrorResponse{
+						Message: "internal server error",
+						Details: map[string]any{
+							"cause": err,
+						},
+					})
+				}
+			}()
+
 			h, ok := handlers[r.Method]
 			if !ok {
 				http.NotFound(w, r)
@@ -95,7 +118,7 @@ func (rt *router) Build() *http.ServeMux {
 					err := schema.ErrorResponse{
 						Message: fmt.Sprintf("Invalid content type %s, accept %s only", contentType, contentTypeJson),
 					}
-					WriteJson(w, http.StatusBadRequest, err)
+					writeJson(w, http.StatusBadRequest, err)
 
 					rt.logger.Error().
 						Str("request_id", requestID).
@@ -147,8 +170,16 @@ func (rt *router) Build() *http.ServeMux {
 	return mux
 }
 
-// WriteJson writes response data with json encode
-func WriteJson(w http.ResponseWriter, statusCode int, body any) {
+func getRequestID(r *http.Request) string {
+	requestID := r.Header.Get("x-request-id")
+	if requestID == "" {
+		requestID = internal.GenRandomString(16)
+	}
+	return requestID
+}
+
+// writeJson writes response data with json encode
+func writeJson(w http.ResponseWriter, statusCode int, body any) {
 	if body == nil {
 		w.WriteHeader(statusCode)
 		return
@@ -177,10 +208,30 @@ func GetLogger(ctx context.Context) zerolog.Logger {
 	return log.Level(zerolog.GlobalLevel())
 }
 
-func getRequestID(r *http.Request) string {
-	requestID := r.Header.Get("x-request-id")
-	if requestID == "" {
-		requestID = genRandomString(16)
+func writeError(w http.ResponseWriter, err error) int {
+	w.Header().Add("Content-Type", "application/json")
+
+	var connectorErrorPtr *schema.ConnectorError
+	if errors.As(err, &connectorErrorPtr) {
+		writeJson(w, connectorErrorPtr.StatusCode(), connectorErrorPtr)
+		return connectorErrorPtr.StatusCode()
 	}
-	return requestID
+
+	var errorResponse schema.ErrorResponse
+	if errors.As(err, &errorResponse) {
+		writeJson(w, http.StatusBadRequest, errorResponse)
+		return http.StatusBadRequest
+	}
+
+	var errorResponsePtr *schema.ErrorResponse
+	if errors.As(err, &errorResponsePtr) {
+		writeJson(w, http.StatusBadRequest, errorResponsePtr)
+		return http.StatusBadRequest
+	}
+
+	writeJson(w, http.StatusBadRequest, schema.ErrorResponse{
+		Message: err.Error(),
+	})
+
+	return http.StatusBadRequest
 }

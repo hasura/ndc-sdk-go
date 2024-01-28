@@ -6,18 +6,26 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
+	"os"
+	"strings"
 	"testing"
 
+	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/rs/zerolog"
 	"github.com/swaggest/jsonschema-go"
 )
 
-type mockRawConfiguration struct{}
-type mockConfiguration struct{}
+type mockRawConfiguration struct {
+	Version string `json:"version"`
+}
+
+type mockConfiguration struct {
+	Version int `json:"version"`
+}
 type mockState struct{}
 type mockConnector struct{}
 
@@ -41,17 +49,17 @@ var mockSchema = schema.SchemaResponse{
 			AggregateFunctions: schema.ScalarTypeAggregateFunctions{},
 			ComparisonOperators: schema.ScalarTypeComparisonOperators{
 				"like": schema.ComparisonOperatorDefinition{
-					ArgumentType: schema.NewNamedType("String"),
+					ArgumentType: schema.NewNamedType("String").Serialize(),
 				},
 			},
 		},
 		"Int": schema.ScalarType{
 			AggregateFunctions: schema.ScalarTypeAggregateFunctions{
 				"max": schema.AggregateFunctionDefinition{
-					ResultType: schema.NewNullableNamedType("Int"),
+					ResultType: schema.NewNullableNamedType("Int").Serialize(),
 				},
 				"min": schema.AggregateFunctionDefinition{
-					ResultType: schema.NewNullableNamedType("Int"),
+					ResultType: schema.NewNullableNamedType("Int").Serialize(),
 				},
 			},
 			ComparisonOperators: schema.ScalarTypeComparisonOperators{},
@@ -63,15 +71,15 @@ var mockSchema = schema.SchemaResponse{
 			Fields: schema.ObjectTypeFields{
 				"id": schema.ObjectField{
 					Description: schema.ToPtr("The article's primary key"),
-					Type:        schema.NewNamedType("Int"),
+					Type:        schema.NewNamedType("Int").Serialize(),
 				},
 				"title": schema.ObjectField{
 					Description: schema.ToPtr("The article's title"),
-					Type:        schema.NewNamedType("String"),
+					Type:        schema.NewNamedType("String").Serialize(),
 				},
 				"author_id": schema.ObjectField{
 					Description: schema.ToPtr("The article's author ID"),
-					Type:        schema.NewNamedType("Int"),
+					Type:        schema.NewNamedType("Int").Serialize(),
 				},
 			},
 		},
@@ -93,7 +101,7 @@ var mockSchema = schema.SchemaResponse{
 		{
 			Name:        "latest_article_id",
 			Description: schema.ToPtr("Get the ID of the most recent article"),
-			ResultType:  schema.NewNullableNamedType("Int"),
+			ResultType:  schema.NewNullableNamedType("Int").Serialize(),
 			Arguments:   schema.FunctionInfoArguments{},
 		},
 	},
@@ -104,10 +112,10 @@ var mockSchema = schema.SchemaResponse{
 			Arguments: schema.ProcedureInfoArguments{
 				"article": schema.ArgumentInfo{
 					Description: schema.ToPtr("The article to insert or update"),
-					Type:        schema.NewNamedType("article"),
+					Type:        schema.NewNamedType("article").Serialize(),
 				},
 			},
-			ResultType: schema.NewNullableNamedType("article"),
+			ResultType: schema.NewNullableNamedType("article").Serialize(),
 		},
 	},
 }
@@ -116,14 +124,20 @@ func (mc *mockConnector) GetRawConfigurationSchema() *jsonschema.Schema {
 	return nil
 }
 func (mc *mockConnector) MakeEmptyConfiguration() *mockRawConfiguration {
-	return &mockRawConfiguration{}
+	return &mockRawConfiguration{
+		Version: "1",
+	}
 }
 
 func (mc *mockConnector) UpdateConfiguration(ctx context.Context, rawConfiguration *mockRawConfiguration) (*mockRawConfiguration, error) {
-	return &mockRawConfiguration{}, nil
+	return &mockRawConfiguration{
+		Version: "1",
+	}, nil
 }
 func (mc *mockConnector) ValidateRawConfiguration(rawConfiguration *mockRawConfiguration) (*mockConfiguration, error) {
-	return &mockConfiguration{}, nil
+	return &mockConfiguration{
+		Version: 1,
+	}, nil
 }
 func (mc *mockConnector) TryInitState(configuration *mockConfiguration, metrics *TelemetryState) (*mockState, error) {
 	return &mockState{}, nil
@@ -183,22 +197,6 @@ func buildTestServer(s *Server[mockRawConfiguration, mockConfiguration, mockStat
 	return httptest.NewServer(s.buildHandler())
 }
 
-func deepEqual(v1, v2 any) bool {
-	if reflect.DeepEqual(v1, v2) {
-		return true
-	}
-	var x1 interface{}
-	bytesA, _ := json.Marshal(v1)
-	_ = json.Unmarshal(bytesA, &x1)
-	var x2 interface{}
-	bytesB, _ := json.Marshal(v2)
-	_ = json.Unmarshal(bytesB, &x2)
-	if reflect.DeepEqual(x1, x2) {
-		return true
-	}
-	return false
-}
-
 func httpPostJSON(url string, body any) (*http.Response, error) {
 	bodyBytes, err := json.Marshal(body)
 	if err != nil {
@@ -233,7 +231,7 @@ func assertHTTPResponse[B any](t *testing.T, name string, res *http.Response, st
 		t.FailNow()
 	}
 
-	if !deepEqual(body, expectedBody) {
+	if !internal.DeepEqual(body, expectedBody) {
 		t.Errorf("%s: expect body: %+v, got: %+v", name, body, expectedBody)
 		t.FailNow()
 	}
@@ -247,6 +245,54 @@ func TestNewServer(t *testing.T) {
 	}
 	if errConfigurationRequired != err {
 		t.Errorf("NewServerEmptyConfig: expected error %s, got %s", errConfigurationRequired, err)
+		t.FailNow()
+	}
+
+	_, err = NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
+		Configuration: "/tmp/any-file",
+	}, WithLogger(zerolog.Nop()))
+	if err == nil {
+		t.Errorf("NewServerWithConfigFile: expected error, got nil")
+		t.FailNow()
+	}
+	if !strings.Contains(err.Error(), "Invalid configuration provided: open /tmp/any-file: no such file or directory") {
+		t.Errorf("NewServerWithConfigFile: expected file not found error, got %s", err)
+		t.FailNow()
+	}
+
+	randomFilePath := fmt.Sprintf("%s/test-%d", os.TempDir(), rand.Int())
+	if err := os.WriteFile(randomFilePath, []byte{}, 0666); err != nil {
+		t.Errorf("NewServerWithEmptyConfigFile: expected no error, got %s", err)
+		t.FailNow()
+	}
+
+	_, err = NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
+		Configuration: randomFilePath,
+	}, WithLogger(zerolog.Nop()))
+	if err == nil {
+		t.Errorf("NewServerWithEmptyConfigFile: expected error, got nil")
+		t.FailNow()
+	}
+	if err != errConfigurationRequired {
+		t.Errorf("NewServerWithEmptyConfigFile: expected required file error, got %s", err)
+		t.FailNow()
+	}
+
+	randomFilePath = fmt.Sprintf("%s/test-%d", os.TempDir(), rand.Int())
+	if err := os.WriteFile(randomFilePath, []byte("{"), 0666); err != nil {
+		t.Errorf("NewServerWithInvalidConfigFile: expected no error, got %s", err)
+		t.FailNow()
+	}
+
+	_, err = NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
+		Configuration: randomFilePath,
+	}, WithLogger(zerolog.Nop()))
+	if err == nil {
+		t.Errorf("NewServerWithInvalidConfigFile: expected error, got nil")
+		t.FailNow()
+	}
+	if !strings.Contains(err.Error(), "Invalid configuration provided: unexpected end of JSON input") {
+		t.Errorf("NewServerWithInvalidConfigFile: expected invalid json error, got %s", err)
 		t.FailNow()
 	}
 

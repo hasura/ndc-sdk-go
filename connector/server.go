@@ -11,7 +11,6 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
@@ -127,7 +126,7 @@ func (s *Server[RawConfiguration, Configuration, State]) withAuth(handler http.H
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if s.options.ServiceTokenSecret != "" && r.Header.Get("authorization") != fmt.Sprintf("Bearer %s", s.options.ServiceTokenSecret) {
-			internal.WriteJson(w, http.StatusUnauthorized, schema.ErrorResponse{
+			writeJson(w, http.StatusUnauthorized, schema.ErrorResponse{
 				Message: "Unauthorized",
 				Details: map[string]any{
 					"cause": "Bearer token does not match.",
@@ -147,7 +146,7 @@ func (s *Server[RawConfiguration, Configuration, State]) withAuth(handler http.H
 
 func (s *Server[RawConfiguration, Configuration, State]) GetCapabilities(w http.ResponseWriter, r *http.Request) {
 	capabilities := s.connector.GetCapabilities(s.configuration)
-	internal.WriteJson(w, http.StatusOK, capabilities)
+	writeJson(w, http.StatusOK, capabilities)
 }
 
 func (s *Server[RawConfiguration, Configuration, State]) Health(w http.ResponseWriter, r *http.Request) {
@@ -167,7 +166,7 @@ func (s *Server[RawConfiguration, Configuration, State]) GetSchema(w http.Respon
 		return
 	}
 
-	internal.WriteJson(w, http.StatusOK, schemaResult)
+	writeJson(w, http.StatusOK, schemaResult)
 }
 
 func (s *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseWriter, r *http.Request) {
@@ -180,7 +179,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseWr
 	defer decodeSpan.End()
 	var body schema.QueryRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		internal.WriteJson(w, http.StatusBadRequest, schema.ErrorResponse{
+		writeJson(w, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": err.Error(),
@@ -220,7 +219,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseWr
 	statusAttribute := attribute.String("status", "success")
 	span.SetAttributes(statusAttribute)
 	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
-	internal.WriteJson(w, http.StatusOK, response)
+	writeJson(w, http.StatusOK, response)
 	responseSpan.End()
 
 	s.telemetry.queryCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
@@ -238,7 +237,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Explain(w http.Response
 	defer decodeSpan.End()
 	var body schema.QueryRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		internal.WriteJson(w, http.StatusBadRequest, schema.ErrorResponse{
+		writeJson(w, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": err.Error(),
@@ -277,7 +276,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Explain(w http.Response
 	statusAttribute := attribute.String("status", "success")
 	span.SetAttributes(statusAttribute)
 	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
-	internal.WriteJson(w, http.StatusOK, response)
+	writeJson(w, http.StatusOK, response)
 	responseSpan.End()
 	s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
 
@@ -294,7 +293,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Mutation(w http.Respons
 	defer decodeSpan.End()
 	var body schema.MutationRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		internal.WriteJson(w, http.StatusBadRequest, schema.ErrorResponse{
+		writeJson(w, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": err.Error(),
@@ -329,7 +328,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Mutation(w http.Respons
 	attributes := attribute.String("status", "success")
 	span.SetAttributes(attributes)
 	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
-	internal.WriteJson(w, http.StatusOK, response)
+	writeJson(w, http.StatusOK, response)
 	responseSpan.End()
 
 	s.telemetry.mutationCounter.Add(r.Context(), 1, metric.WithAttributes(attributes))
@@ -339,7 +338,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Mutation(w http.Respons
 }
 
 func (s *Server[RawConfiguration, Configuration, State]) buildHandler() *http.ServeMux {
-	router := internal.NewRouter(s.logger)
+	router := newRouter(s.logger)
 	router.Use("/capabilities", http.MethodGet, s.withAuth(s.GetCapabilities))
 	router.Use("/schema", http.MethodGet, s.withAuth(s.GetSchema))
 	router.Use("/query", http.MethodPost, s.withAuth(s.Query))
@@ -386,32 +385,4 @@ func (s *Server[RawConfiguration, Configuration, State]) ListenAndServe(port uin
 		// When Shutdown is called, ListenAndServe immediately returns ErrServerClosed.
 		return server.Shutdown(context.Background())
 	}
-}
-
-func writeError(w http.ResponseWriter, err error) int {
-	w.Header().Add("Content-Type", "application/json")
-
-	var connectorErrorPtr *schema.ConnectorError
-	if errors.As(err, &connectorErrorPtr) {
-		internal.WriteJson(w, connectorErrorPtr.StatusCode(), connectorErrorPtr)
-		return connectorErrorPtr.StatusCode()
-	}
-
-	var errorResponse schema.ErrorResponse
-	if errors.As(err, &errorResponse) {
-		internal.WriteJson(w, http.StatusBadRequest, errorResponse)
-		return http.StatusBadRequest
-	}
-
-	var errorResponsePtr *schema.ErrorResponse
-	if errors.As(err, &errorResponsePtr) {
-		internal.WriteJson(w, http.StatusBadRequest, errorResponsePtr)
-		return http.StatusBadRequest
-	}
-
-	internal.WriteJson(w, http.StatusBadRequest, schema.ErrorResponse{
-		Message: err.Error(),
-	})
-
-	return http.StatusBadRequest
 }

@@ -1,7 +1,9 @@
 package internal
 
 import (
+	"encoding/json"
 	"math/rand"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -15,8 +17,8 @@ const (
 
 var src = rand.NewSource(time.Now().UnixNano())
 
-// genRandomString generate random string with fixed length
-func genRandomString(n int) string {
+// GenRandomString generate random string with fixed length
+func GenRandomString(n int) string {
 	allowedChars := alphaDigits
 	sb := strings.Builder{}
 	sb.Grow(n)
@@ -34,4 +36,20 @@ func genRandomString(n int) string {
 	}
 
 	return sb.String()
+}
+
+func DeepEqual(v1, v2 any) bool {
+	if reflect.DeepEqual(v1, v2) {
+		return true
+	}
+	var x1 interface{}
+	bytesA, _ := json.Marshal(v1)
+	_ = json.Unmarshal(bytesA, &x1)
+	var x2 interface{}
+	bytesB, _ := json.Marshal(v2)
+	_ = json.Unmarshal(bytesB, &x2)
+	if reflect.DeepEqual(x1, x2) {
+		return true
+	}
+	return false
 }

@@ -3,7 +3,6 @@ package connector
 import (
 	"context"
 
-	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -115,11 +114,6 @@ func WithLogger(logger zerolog.Logger) ServeOption {
 	return func(so *serveOptions) {
 		so.logger = logger
 	}
-}
-
-// GetLogger gets the logger instance from context
-func GetLogger(ctx context.Context) zerolog.Logger {
-	return internal.GetLogger(ctx)
 }
 
 // WithMetricsPrefix sets the custom metrics prefix option

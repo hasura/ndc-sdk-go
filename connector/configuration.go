@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/rs/zerolog"
 )
@@ -33,29 +32,15 @@ func NewConfigurationServer[RawConfiguration any, Configuration any, State any](
 // GetIndex implements a handler for the index endpoint, GET method.
 // Returns an empty configuration of the connector
 func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) GetIndex(w http.ResponseWriter, r *http.Request) {
-	// The "/" pattern matches everything, so we need to check
-	// that we're at the root here.
-	if r.URL.Path != "" && r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
-
-	internal.WriteJson(w, http.StatusOK, cs.connector.MakeEmptyConfiguration())
+	writeJson(w, http.StatusOK, cs.connector.MakeEmptyConfiguration())
 }
 
 // PostIndex implements a handler for the index endpoint, POST method.
 // Take a raw configuration, update it where appropriate by connecting to the underlying data source, and otherwise return it as-is
 func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) PostIndex(w http.ResponseWriter, r *http.Request) {
-	// The "/" pattern matches everything, so we need to check
-	// that we're at the root here.
-	if r.URL.Path != "" && r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
-
 	var rawConfig RawConfiguration
 	if err := json.NewDecoder(r.Body).Decode(&rawConfig); err != nil {
-		internal.WriteJson(w, http.StatusBadRequest, schema.BadRequestError(err.Error(), nil))
+		writeJson(w, http.StatusBadRequest, schema.BadRequestError(err.Error(), nil))
 		return
 	}
 
@@ -64,13 +49,13 @@ func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) PostIndex
 		writeError(w, err)
 		return
 	}
-	internal.WriteJson(w, http.StatusOK, conf)
+	writeJson(w, http.StatusOK, conf)
 }
 
 // GetSchema implements a handler for the /schema endpoint, GET method.
 // Return jsonschema for the raw configuration for this connector
 func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) GetSchema(w http.ResponseWriter, r *http.Request) {
-	internal.WriteJson(w, http.StatusOK, cs.connector.GetRawConfigurationSchema())
+	writeJson(w, http.StatusOK, cs.connector.GetRawConfigurationSchema())
 }
 
 // Validate implements a handler for the /validate endpoint, POST method.
@@ -78,7 +63,7 @@ func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) GetSchema
 func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) Validate(w http.ResponseWriter, r *http.Request) {
 	var rawConfig RawConfiguration
 	if err := json.NewDecoder(r.Body).Decode(&rawConfig); err != nil {
-		internal.WriteJson(w, http.StatusBadRequest, schema.ErrorResponse{
+		writeJson(w, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": err.Error(),
@@ -108,7 +93,7 @@ func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) Validate(
 		return
 	}
 
-	internal.WriteJson(w, http.StatusOK, &schema.ValidateResponse{
+	writeJson(w, http.StatusOK, &schema.ValidateResponse{
 		Schema:                *connectorSchema,
 		Capabilities:          *capabilities,
 		ResolvedConfiguration: string(configurationBytes),
@@ -125,7 +110,7 @@ func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) Health(w 
 // ListenAndServe serves the configuration server with the standard http server.
 // You can also replace this method with any router or web framework that is compatible with net/http.
 func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) ListenAndServe(port uint) error {
-	router := internal.NewRouter(cs.logger)
+	router := newRouter(cs.logger)
 	router.Use("/", http.MethodGet, cs.GetIndex)
 	router.Use("/", http.MethodPost, cs.PostIndex)
 	router.Use("/schema", http.MethodGet, cs.GetSchema)
