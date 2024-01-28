@@ -38,18 +38,37 @@ func GenRandomString(n int) string {
 	return sb.String()
 }
 
+// DeepEqual checks if both values are recursively equal
+// used for testing purpose only
 func DeepEqual(v1, v2 any) bool {
 	if reflect.DeepEqual(v1, v2) {
 		return true
 	}
-	var x1 interface{}
+
 	bytesA, _ := json.Marshal(v1)
-	_ = json.Unmarshal(bytesA, &x1)
-	var x2 interface{}
 	bytesB, _ := json.Marshal(v2)
+	if string(bytesA) == string(bytesB) {
+		return true
+	}
+	var x1 any
+	var x2 any
+	_ = json.Unmarshal(bytesA, &x1)
 	_ = json.Unmarshal(bytesB, &x2)
 	if reflect.DeepEqual(x1, x2) {
 		return true
 	}
-	return false
+
+	map1, ok1 := x1.(map[string]any)
+	map2, ok2 := x2.(map[string]any)
+	if !ok1 || !ok2 {
+		return false
+	}
+
+	for k, v1 := range map1 {
+		v2, ok := map2[k]
+		if !ok || !DeepEqual(v1, v2) {
+			return false
+		}
+	}
+	return true
 }

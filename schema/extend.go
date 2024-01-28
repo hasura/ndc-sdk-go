@@ -496,18 +496,11 @@ func (j *FieldType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Field represents a fielded
-type Field struct {
-	Type FieldType `json:"type" mapstructure:"type"`
-	// Column name, only available for column type
-	Column string `json:"column" mapstructure:"column"`
+// Field represents a field
+type Field map[string]any
 
-	// The relationship query, only available for relationship type
-	Query *Query `json:"query" mapstructure:"query"`
-	// The name of the relationship to follow for the subquery
-	Relationship string `json:"relationship" mapstructure:"relationship"`
-	// Values to be provided to any collection arguments, only available for relationship type
-	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments"`
+type FieldSerializer interface {
+	Serialize() Field
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -528,11 +521,11 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 		return fmt.Errorf("field type in Field: %s", err)
 	}
 
-	value := Field{
-		Type: fieldType,
+	results := map[string]any{
+		"type": fieldType,
 	}
 
-	switch value.Type {
+	switch fieldType {
 	case FieldTypeColumn:
 		column, err := unmarshalStringFromJsonMap(raw, "column", true)
 
@@ -540,13 +533,13 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 			return fmt.Errorf("field column in Field: %s", err)
 		}
 
-		value.Column = column
+		results["column"] = column
 	case FieldTypeRelationship:
 		relationship, err := unmarshalStringFromJsonMap(raw, "relationship", true)
 		if err != nil {
 			return fmt.Errorf("field relationship in Field: %s", err)
 		}
-		value.Relationship = relationship
+		results["relationship"] = relationship
 
 		rawQuery, ok := raw["query"]
 		if !ok {
@@ -556,7 +549,7 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 		if err = json.Unmarshal(rawQuery, &query); err != nil {
 			return fmt.Errorf("field query in Field: %s", err)
 		}
-		value.Query = &query
+		results["query"] = query
 
 		rawArguments, ok := raw["arguments"]
 		if !ok {
@@ -567,11 +560,161 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 		if err = json.Unmarshal(rawArguments, &arguments); err != nil {
 			return fmt.Errorf("field arguments in Field: %s", err)
 		}
-		value.Arguments = arguments
+		results["arguments"] = arguments
 	}
 
-	*j = value
+	*j = results
 	return nil
+}
+
+// Type gets the type enum of the current type
+func (j Field) Type() (FieldType, error) {
+	t, ok := j["type"]
+	if !ok {
+		return FieldType(""), errTypeRequired
+	}
+	switch raw := t.(type) {
+	case string:
+		v, err := ParseFieldType(raw)
+		if err != nil {
+			return FieldType(""), err
+		}
+		return *v, nil
+	case FieldType:
+		return raw, nil
+	default:
+		return FieldType(""), fmt.Errorf("invalid type: %+v", t)
+	}
+}
+
+// AsColumn tries to convert the current type to ColumnField
+func (j Field) AsColumn() (*ColumnField, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != FieldTypeColumn {
+		return nil, fmt.Errorf("invalid type; expected %s, got %s", FieldTypeColumn, t)
+	}
+	column := getStringValueByKey(j, "column")
+	if column == "" {
+		return nil, errors.New("ColumnField.column is required")
+	}
+	return &ColumnField{
+		Type:   t,
+		Column: column,
+	}, nil
+}
+
+// AsRelationship tries to convert the current type to RelationshipField
+func (j Field) AsRelationship() (*RelationshipField, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != FieldTypeRelationship {
+		return nil, fmt.Errorf("invalid type; expected %s, got %s", FieldTypeRelationship, t)
+	}
+	relationship := getStringValueByKey(j, "relationship")
+	if relationship == "" {
+		return nil, errors.New("RelationshipField.relationship is required")
+	}
+
+	rawQuery, ok := j["query"]
+	if !ok {
+		return nil, errors.New("RelationshipField.query is required")
+	}
+	query, ok := rawQuery.(Query)
+	if !ok {
+		return nil, fmt.Errorf("invalid RelationshipField.query type; expected Query, got %+v", rawQuery)
+	}
+
+	rawArguments, ok := j["arguments"]
+	if !ok {
+		return nil, errors.New("RelationshipField.arguments is required")
+	}
+	arguments, ok := rawArguments.(map[string]RelationshipArgument)
+	if !ok {
+		return nil, fmt.Errorf("invalid RelationshipField.arguments type; expected map[string]RelationshipArgument, got %+v", rawArguments)
+	}
+
+	return &RelationshipField{
+		Type:         t,
+		Query:        query,
+		Relationship: relationship,
+		Arguments:    arguments,
+	}, nil
+}
+
+// Interface converts the comparison value to its generic interface
+func (j Field) Interface() (FieldSerializer, error) {
+	ty, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+
+	switch ty {
+	case FieldTypeColumn:
+		return j.AsColumn()
+	case FieldTypeRelationship:
+		return j.AsRelationship()
+	default:
+		return nil, fmt.Errorf("invalid type: %s", ty)
+	}
+}
+
+// ColumnField represents a column field
+type ColumnField struct {
+	Type FieldType `json:"type" mapstructure:"type"`
+	// Column name
+	Column string `json:"column" mapstructure:"column"`
+}
+
+// Serialize converts the instance to raw Field
+func (f ColumnField) Serialize() Field {
+	return Field{
+		"type":   f.Type,
+		"column": f.Column,
+	}
+}
+
+// NewColumnField creates a new ColumnField instance
+func NewColumnField(column string) *ColumnField {
+	return &ColumnField{
+		Type:   FieldTypeColumn,
+		Column: column,
+	}
+}
+
+// RelationshipField represents a relationship field
+type RelationshipField struct {
+	Type FieldType `json:"type" mapstructure:"type"`
+	// The relationship query
+	Query Query `json:"query" mapstructure:"query"`
+	// The name of the relationship to follow for the subquery
+	Relationship string `json:"relationship" mapstructure:"relationship"`
+	// Values to be provided to any collection arguments
+	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments"`
+}
+
+// Serialize converts the instance to raw Field
+func (f RelationshipField) Serialize() Field {
+	return Field{
+		"type":         f.Type,
+		"query":        f.Query,
+		"relationship": f.Relationship,
+		"arguments":    f.Arguments,
+	}
+}
+
+// NewRelationshipField creates a new RelationshipField instance
+func NewRelationshipField(query Query, relationship string, arguments map[string]RelationshipArgument) *RelationshipField {
+	return &RelationshipField{
+		Type:         FieldTypeRelationship,
+		Query:        query,
+		Relationship: relationship,
+		Arguments:    arguments,
+	}
 }
 
 // MutationOperationType represents the mutation operation type enum
@@ -2115,6 +2258,13 @@ func (ag AggregateStarCount) Serialize() Aggregate {
 	}
 }
 
+// NewAggregateStarCount creates a new AggregateStarCount instance
+func NewAggregateStarCount() *AggregateStarCount {
+	return &AggregateStarCount{
+		Type: AggregateTypeStarCount,
+	}
+}
+
 // AggregateSingleColumn represents an aggregate object which applies an aggregation function (as defined by the column's scalar type in the schema response) to a column.
 type AggregateSingleColumn struct {
 	Type AggregateType `json:"type" mapstructure:"type"`
@@ -2130,6 +2280,15 @@ func (ag AggregateSingleColumn) Serialize() Aggregate {
 		"type":     ag.Type,
 		"column":   ag.Column,
 		"function": ag.Function,
+	}
+}
+
+// NewAggregateSingleColumn creates a new AggregateSingleColumn instance
+func NewAggregateSingleColumn(column string, function string) *AggregateSingleColumn {
+	return &AggregateSingleColumn{
+		Type:     AggregateTypeSingleColumn,
+		Column:   column,
+		Function: function,
 	}
 }
 
@@ -2149,6 +2308,15 @@ func (ag AggregateColumnCount) Serialize() Aggregate {
 		"type":     ag.Type,
 		"column":   ag.Column,
 		"distinct": ag.Distinct,
+	}
+}
+
+// NewAggregateColumnCount creates a new AggregateColumnCount instance
+func NewAggregateColumnCount(column string, distinct bool) *AggregateColumnCount {
+	return &AggregateColumnCount{
+		Type:     AggregateTypeColumnCount,
+		Column:   column,
+		Distinct: distinct,
 	}
 }
 

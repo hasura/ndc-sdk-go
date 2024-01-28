@@ -231,3 +231,123 @@ func TestSchemaResponse(t *testing.T) {
 		t.FailNow()
 	}
 }
+
+func TestQueryRequest(t *testing.T) {
+	testCases := []struct {
+		name     string
+		rawJson  []byte
+		expected QueryRequest
+	}{
+		{
+			"aggregate_gunction",
+			[]byte(`{
+				"collection": "articles",
+				"arguments": {},
+				"query": {
+						"aggregates": {
+								"min_id": {
+										"type": "single_column",
+										"column": "id",
+										"function": "min"
+								},
+								"max_id": {
+										"type": "single_column",
+										"column": "id",
+										"function": "max"
+								}
+						}
+				},
+				"collection_relationships": {}
+		}`),
+			QueryRequest{
+				Collection: "articles",
+				Query: Query{
+					Aggregates: QueryAggregates{
+						"min_id": NewAggregateSingleColumn("id", "min").Serialize(),
+						"max_id": NewAggregateSingleColumn("id", "max").Serialize(),
+					},
+				},
+			},
+		},
+		{
+			"authors_with_article_aggregate",
+			[]byte(`{
+				"collection": "authors",
+				"arguments": {},
+				"query": {
+						"fields": {
+								"first_name": {
+										"type": "column",
+										"column": "first_name"
+								},
+								"last_name": {
+										"type": "column",
+										"column": "last_name"
+								},
+								"articles": {
+										"type": "relationship",
+										"arguments": {},
+										"relationship": "author_articles",
+										"query": {
+												"aggregates": {
+														"count": {
+																"type": "star_count"
+														}
+												}
+										}
+								}
+						}
+				},
+				"collection_relationships": {
+						"author_articles": {
+								"arguments": {},
+								"column_mapping": {
+										"id": "author_id"
+								},
+								"relationship_type": "array",
+								"source_collection_or_type": "author",
+								"target_collection": "articles"
+						}
+				}
+		}`),
+			QueryRequest{
+				Collection: "authors",
+				Query: Query{
+					Fields: QueryFields{
+						"first_name": NewColumnField("first_name").Serialize(),
+						"last_name":  NewColumnField("last_name").Serialize(),
+						"articles": NewRelationshipField(
+							Query{
+								Aggregates: QueryAggregates{
+									"count": NewAggregateStarCount().Serialize(),
+								},
+							},
+							"author_articles",
+							map[string]RelationshipArgument{},
+						).Serialize(),
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var q QueryRequest
+			if err := json.Unmarshal(tc.rawJson, &q); err != nil {
+				t.Errorf("failed to decode: %s", err)
+				t.FailNow()
+			}
+
+			if !internal.DeepEqual(tc.expected.Collection, q.Collection) {
+				t.Errorf("unexpected equal collection; expected: %+v, got: %+v", tc.expected.Collection, q.Collection)
+				t.FailNow()
+			}
+
+			if !internal.DeepEqual(tc.expected.Query, q.Query) {
+				t.Errorf("unexpected equal Query;\n expected: %+v,\n got: %+v\n", tc.expected.Query.Fields, q.Query.Fields)
+				t.FailNow()
+			}
+		})
+	}
+}
