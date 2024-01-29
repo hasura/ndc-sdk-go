@@ -17,5 +17,12 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
+# Typegen third-party files
+typegen/*
+!typegen/regenerate-schema.sh
+
 # Go workspace file
 go.work
+
+.idea/
+coverage.out

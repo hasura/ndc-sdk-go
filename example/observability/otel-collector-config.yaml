@@ -1,0 +1,43 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+  # Data sources: traces, metrics, logs
+  logging:
+    verbosity: detailed
+
+processors:
+  batch:
+    send_batch_max_size: 100
+    send_batch_size: 10
+    timeout: 10s
+
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 65
+    spike_limit_percentage: 20
+
+service:
+  pipelines:
+    ## enable traces to DataDogs if require
+    ##
+    # traces:
+    #   receivers: [otlp]
+    #   processors: [memory_limiter, batch]
+    #   exporters: []
+
+    # logs:
+    #   receivers: [otlp]
+    #   processors: [memory_limiter, batch]
+    #   exporters: [logging, loki]
+
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [prometheus]
