@@ -6,15 +6,11 @@ import "encoding/json"
 import "fmt"
 import "reflect"
 
-
-
 // The definition of an aggregation function on a scalar type
 type AggregateFunctionDefinition struct {
 	// The scalar or object type of the result of this function
 	ResultType Type `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
 }
-
-
 
 type ArgumentInfo struct {
 	// Argument description
@@ -27,8 +23,6 @@ type ArgumentInfo struct {
 type BinaryArrayComparisonOperator string
 
 const BinaryArrayComparisonOperatorIn BinaryArrayComparisonOperator = "in"
-
-
 
 // Describes the features of the specification which a data connector implements.
 type Capabilities struct {
@@ -88,10 +82,6 @@ type ComparisonOperatorDefinition struct {
 	ArgumentType Type `json:"argument_type" yaml:"argument_type" mapstructure:"argument_type"`
 }
 
-
-
-
-
 type ErrorResponse struct {
 	// Any additional structured information about the error
 	Details interface{} `json:"details" yaml:"details" mapstructure:"details"`
@@ -99,8 +89,6 @@ type ErrorResponse struct {
 	// A human-readable summary of the error
 	Message string `json:"message" yaml:"message" mapstructure:"message"`
 }
-
-
 
 type ExplainResponse struct {
 	// A list of human-readable key-value pairs describing a query execution plan. For
@@ -115,10 +103,6 @@ type ExplainResponse struct {
 // and/or the output of the `EXPLAIN` command. An API-based connector might encode
 // a list of statically-known API calls which would be made.
 type ExplainResponseDetails map[string]string
-
-
-
-
 
 type ForeignKeyConstraint struct {
 	// The columns on which you want want to define the foreign key.
@@ -152,8 +136,6 @@ type FunctionInfoArguments map[string]ArgumentInfo
 // empty struct to allow for future sub-capabilities.
 type LeafCapability map[string]interface{}
 
-
-
 type MutationOperationResults struct {
 	// The number of rows affected by the mutation operation
 	AffectedRows int `json:"affected_rows" yaml:"affected_rows" mapstructure:"affected_rows"`
@@ -161,8 +143,6 @@ type MutationOperationResults struct {
 	// The rows affected by the mutation operation
 	Returning []Row `json:"returning,omitempty" yaml:"returning,omitempty" mapstructure:"returning,omitempty"`
 }
-
-
 
 type MutationRequest struct {
 	// The relationships between collections involved in the entire mutation request
@@ -174,8 +154,6 @@ type MutationRequest struct {
 
 // The relationships between collections involved in the entire mutation request
 type MutationRequestCollectionRelationships map[string]Relationship
-
-
 
 type MutationResponse struct {
 	// The results of each mutation operation, in the same order as they were received
@@ -215,10 +193,6 @@ type OrderByElement struct {
 	// Target corresponds to the JSON schema field "target".
 	Target OrderByTarget `json:"target" yaml:"target" mapstructure:"target"`
 }
-
-
-
-
 
 type OrderDirection string
 
@@ -335,8 +309,6 @@ type Relationship struct {
 	// The name of a collection
 	TargetCollection string `json:"target_collection" yaml:"target_collection" mapstructure:"target_collection"`
 }
-
-
 
 // Values to be provided to any collection arguments
 type RelationshipArguments map[string]interface{}
@@ -1009,7 +981,6 @@ func (j *SchemaResponse) UnmarshalJSON(b []byte) error {
 }
 
 // Types track the valid representations of values as JSON
-
 
 type UnaryComparisonOperator string
 
