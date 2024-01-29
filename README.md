@@ -64,7 +64,7 @@ Commands:
       --log-level="info"    Log level ($LOG_LEVEL).
 ```
 
-Please refer to the [NDC Spec](https://hasura.github.io/ndc-spec/) for details on implementing the Connector interface, or see [examples](./examples).  
+Please refer to the [NDC Spec](https://hasura.github.io/ndc-spec/) for details on implementing the Connector interface, or see [examples](./example).  
 
 ## Observability
 
