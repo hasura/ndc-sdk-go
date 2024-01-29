@@ -121,7 +121,9 @@ var mockSchema = schema.SchemaResponse{
 }
 
 func (mc *mockConnector) GetRawConfigurationSchema() *jsonschema.Schema {
-	return nil
+	return &jsonschema.Schema{
+		ID: schema.ToPtr("test"),
+	}
 }
 func (mc *mockConnector) MakeEmptyConfiguration() *mockRawConfiguration {
 	return &mockRawConfiguration{
@@ -232,13 +234,13 @@ func assertHTTPResponse[B any](t *testing.T, name string, res *http.Response, st
 	}
 
 	if !internal.DeepEqual(body, expectedBody) {
-		t.Errorf("%s: expect body: %+v, got: %+v", name, body, expectedBody)
+		t.Errorf("%s.\nexpect: %+v\ngot: %+v", name, body, expectedBody)
 		t.FailNow()
 	}
 }
 
 func TestNewServer(t *testing.T) {
-	_, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{}, WithLogger(zerolog.Nop()))
+	_, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{}, WithLogger(zerolog.Nop()), WithVersion("0.1.0"), WithDefaultServiceName("ndc-test"), WithMetricsPrefix("ndc_test"))
 	if err == nil {
 		t.Error("NewServerEmptyConfig: expect error, got nil")
 		t.FailNow()

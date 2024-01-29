@@ -230,6 +230,130 @@ func TestSchemaResponse(t *testing.T) {
 		t.Errorf("String scalar in SchemaResponse: expected equal comparison operators; %+v", stringScalar.ComparisonOperators)
 		t.FailNow()
 	}
+
+	expected := SchemaResponse{
+		ObjectTypes: SchemaResponseObjectTypes{
+			"article": ObjectType{
+				Description: ToPtr("An article"),
+				Fields: ObjectTypeFields{
+					"author_id": ObjectField{
+						Description: ToPtr("The article's author ID"),
+						Type:        NewNamedType("Int").Encode(),
+					},
+					"id": ObjectField{
+						Description: ToPtr("The article's primary key"),
+						Type:        NewNamedType("Int").Encode(),
+					},
+					"title": ObjectField{
+						Description: ToPtr("The article's title"),
+						Type:        NewNamedType("String").Encode(),
+					},
+				},
+			},
+			"author": ObjectType{
+				Description: ToPtr("An author"),
+				Fields: ObjectTypeFields{
+					"first_name": ObjectField{
+						Description: ToPtr("The author's first name"),
+						Type:        NewNamedType("String").Encode(),
+					},
+					"id": ObjectField{
+						Description: ToPtr("The author's primary key"),
+						Type:        NewNamedType("Int").Encode(),
+					},
+					"last_name": ObjectField{
+						Description: ToPtr("The author's last name"),
+						Type:        NewNamedType("String").Encode(),
+					},
+				},
+			},
+		},
+		Collections: []CollectionInfo{
+			{
+				Name:        "articles",
+				Description: ToPtr("A collection of articles"),
+				Arguments:   CollectionInfoArguments{},
+				Type:        "article",
+				UniquenessConstraints: CollectionInfoUniquenessConstraints{
+					"ArticleByID": UniquenessConstraint{
+						UniqueColumns: []string{"id"},
+					},
+				},
+				ForeignKeys: CollectionInfoForeignKeys{
+					"Article_AuthorID": ForeignKeyConstraint{
+						ColumnMapping: ForeignKeyConstraintColumnMapping{
+							"author_id": "id",
+						},
+						ForeignCollection: "authors",
+					},
+				},
+			},
+			{
+				Name:        "authors",
+				Description: ToPtr("A collection of authors"),
+				Arguments:   CollectionInfoArguments{},
+				Type:        "author",
+				UniquenessConstraints: CollectionInfoUniquenessConstraints{
+					"AuthorByID": UniquenessConstraint{
+						UniqueColumns: []string{"id"},
+					},
+				},
+				ForeignKeys: CollectionInfoForeignKeys{},
+			},
+			{
+				Name:        "articles_by_author",
+				Description: ToPtr("Articles parameterized by author"),
+				Arguments: CollectionInfoArguments{
+					"author_id": ArgumentInfo{
+						Type: NewNamedType("Int").Encode(),
+					},
+				},
+				Type:                  "article",
+				UniquenessConstraints: CollectionInfoUniquenessConstraints{},
+				ForeignKeys:           CollectionInfoForeignKeys{},
+			},
+		},
+		Functions: []FunctionInfo{
+			{
+				Name:        "latest_article_id",
+				Description: ToPtr("Get the ID of the most recent article"),
+				Arguments:   FunctionInfoArguments{},
+				ResultType:  NewNullableNamedType("Int").Encode(),
+			},
+		},
+		Procedures: []ProcedureInfo{
+			{
+				Name:        "upsert_article",
+				Description: ToPtr("Insert or update an article"),
+				Arguments: ProcedureInfoArguments{
+					"article": ArgumentInfo{
+						Description: ToPtr("The article to insert or update"),
+						Type:        NewNamedType("article").Encode(),
+					},
+				},
+				ResultType: NewNullableNamedType("article").Encode(),
+			},
+		},
+	}
+	if !internal.DeepEqual(expected.ObjectTypes, resp.ObjectTypes) {
+		t.Errorf("object_types in SchemaResponse: unexpected equality;\nexpected:	%+v,\n got:	%+v\n", expected.ObjectTypes, resp.ObjectTypes)
+		t.FailNow()
+	}
+
+	if !internal.DeepEqual(expected.Collections, resp.Collections) {
+		t.Errorf("collections in SchemaResponse: unexpected equality;\nexpected:	%+v,\n got:	%+v\n", expected.Collections, resp.Collections)
+		t.FailNow()
+	}
+
+	if !internal.DeepEqual(expected.Functions, resp.Functions) {
+		t.Errorf("functions in SchemaResponse: unexpected equality;\nexpected:	%+v,\n got:	%+v\n", expected.Functions, resp.Functions)
+		t.FailNow()
+	}
+
+	if !internal.DeepEqual(expected.Procedures, resp.Procedures) {
+		t.Errorf("procedures in SchemaResponse: unexpected equality;\nexpected:	%+v,\n got:	%+v\n", expected.Procedures, resp.Procedures)
+		t.FailNow()
+	}
 }
 
 func TestQueryRequest(t *testing.T) {
