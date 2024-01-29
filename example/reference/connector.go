@@ -113,17 +113,17 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 				AggregateFunctions: schema.ScalarTypeAggregateFunctions{},
 				ComparisonOperators: schema.ScalarTypeComparisonOperators{
 					"like": schema.ComparisonOperatorDefinition{
-						ArgumentType: schema.NewNamedType("String").Serialize(),
+						ArgumentType: schema.NewNamedType("String").Encode(),
 					},
 				},
 			},
 			"Int": schema.ScalarType{
 				AggregateFunctions: schema.ScalarTypeAggregateFunctions{
 					"max": schema.AggregateFunctionDefinition{
-						ResultType: schema.NewNullableNamedType("Int").Serialize(),
+						ResultType: schema.NewNullableNamedType("Int").Encode(),
 					},
 					"min": schema.AggregateFunctionDefinition{
-						ResultType: schema.NewNullableNamedType("Int").Serialize(),
+						ResultType: schema.NewNullableNamedType("Int").Encode(),
 					},
 				},
 			},
@@ -134,15 +134,15 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 				Fields: schema.ObjectTypeFields{
 					"id": schema.ObjectField{
 						Description: schema.ToPtr("The article's primary key"),
-						Type:        schema.NewNamedType("Int").Serialize(),
+						Type:        schema.NewNamedType("Int").Encode(),
 					},
 					"title": schema.ObjectField{
 						Description: schema.ToPtr("The article's title"),
-						Type:        schema.NewNamedType("String").Serialize(),
+						Type:        schema.NewNamedType("String").Encode(),
 					},
 					"author_id": schema.ObjectField{
 						Description: schema.ToPtr("The article's author ID"),
-						Type:        schema.NewNamedType("Int").Serialize(),
+						Type:        schema.NewNamedType("Int").Encode(),
 					},
 				},
 			},
@@ -151,15 +151,15 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 				Fields: schema.ObjectTypeFields{
 					"id": schema.ObjectField{
 						Description: schema.ToPtr("The author's primary key"),
-						Type:        schema.NewNamedType("Int").Serialize(),
+						Type:        schema.NewNamedType("Int").Encode(),
 					},
 					"first_name": schema.ObjectField{
 						Description: schema.ToPtr("The author's first name"),
-						Type:        schema.NewNamedType("String").Serialize(),
+						Type:        schema.NewNamedType("String").Encode(),
 					},
 					"last_name": schema.ObjectField{
 						Description: schema.ToPtr("The author's last name"),
-						Type:        schema.NewNamedType("String").Serialize(),
+						Type:        schema.NewNamedType("String").Encode(),
 					},
 				},
 			},
@@ -197,7 +197,7 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 				Description: schema.ToPtr("Articles parameterized by author"),
 				Arguments: schema.CollectionInfoArguments{
 					"author_id": schema.ArgumentInfo{
-						Type: schema.NewNamedType("Int").Serialize(),
+						Type: schema.NewNamedType("Int").Encode(),
 					},
 				},
 				ForeignKeys: schema.CollectionInfoForeignKeys{},
@@ -212,7 +212,7 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 			{
 				Name:        "latest_article_id",
 				Description: schema.ToPtr("Get the ID of the most recent article"),
-				ResultType:  schema.NewNullableNamedType("Int").Serialize(),
+				ResultType:  schema.NewNullableNamedType("Int").Encode(),
 			},
 		},
 		Procedures: []schema.ProcedureInfo{
@@ -222,10 +222,10 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 				Arguments: schema.ProcedureInfoArguments{
 					"article": schema.ArgumentInfo{
 						Description: schema.ToPtr("The article to insert or update"),
-						Type:        schema.NewNamedType("article").Serialize(),
+						Type:        schema.NewNamedType("article").Encode(),
 					},
 				},
-				ResultType: schema.NewNullableNamedType("article").Serialize(),
+				ResultType: schema.NewNullableNamedType("article").Encode(),
 			},
 		},
 	}, nil

@@ -201,8 +201,8 @@ func (ty Type) AsArray() (*ArrayType, error) {
 	}, nil
 }
 
-// Interface returns the TypeSerializer interface
-func (ty Type) Interface() (TypeSerializer, error) {
+// Interface returns the TypeEncoder interface
+func (ty Type) Interface() (TypeEncoder, error) {
 	t, err := ty.Type()
 	if err != nil {
 		return nil, err
@@ -220,9 +220,9 @@ func (ty Type) Interface() (TypeSerializer, error) {
 	}
 }
 
-// TypeSerializer abstracts the Type interface
-type TypeSerializer interface {
-	Serialize() Type
+// TypeEncoder abstracts the Type interface
+type TypeEncoder interface {
+	Encode() Type
 }
 
 // NamedType represents a named type
@@ -240,8 +240,8 @@ func NewNamedType(name string) *NamedType {
 	}
 }
 
-// Serialize returns the raw Type instance
-func (ty NamedType) Serialize() Type {
+// Encode returns the raw Type instance
+func (ty NamedType) Encode() Type {
 	return map[string]any{
 		"type": ty.Type,
 		"name": ty.Name,
@@ -259,12 +259,12 @@ type NullableType struct {
 func NewNullableNamedType(name string) *NullableType {
 	return &NullableType{
 		Type:           TypeNullable,
-		UnderlyingType: NewNamedType(name).Serialize(),
+		UnderlyingType: NewNamedType(name).Encode(),
 	}
 }
 
-// Serialize returns the raw Type instance
-func (ty NullableType) Serialize() Type {
+// Encode returns the raw Type instance
+func (ty NullableType) Encode() Type {
 	return map[string]any{
 		"type":            ty.Type,
 		"underlying_type": ty.UnderlyingType,
@@ -272,10 +272,10 @@ func (ty NullableType) Serialize() Type {
 }
 
 // NewNullableArrayType creates a new NullableType instance with underlying array type
-func NewNullableArrayType(elementType TypeSerializer) *NullableType {
+func NewNullableArrayType(elementType TypeEncoder) *NullableType {
 	return &NullableType{
 		Type:           TypeNullable,
-		UnderlyingType: elementType.Serialize(),
+		UnderlyingType: elementType.Encode(),
 	}
 }
 
@@ -286,8 +286,8 @@ type ArrayType struct {
 	ElementType Type `json:"element_type" mapstructure:"element_type"`
 }
 
-// Serialize returns the raw Type instance
-func (ty ArrayType) Serialize() Type {
+// Encode returns the raw Type instance
+func (ty ArrayType) Encode() Type {
 	return map[string]any{
 		"type":         ty.Type,
 		"element_type": ty.ElementType,
@@ -295,10 +295,10 @@ func (ty ArrayType) Serialize() Type {
 }
 
 // NewArrayType creates a new ArrayType instance
-func NewArrayType(elementType TypeSerializer) *ArrayType {
+func NewArrayType(elementType TypeEncoder) *ArrayType {
 	return &ArrayType{
 		Type:        TypeArray,
-		ElementType: elementType.Serialize(),
+		ElementType: elementType.Encode(),
 	}
 }
 
@@ -499,8 +499,8 @@ func (j *FieldType) UnmarshalJSON(b []byte) error {
 // Field represents a field
 type Field map[string]any
 
-type FieldSerializer interface {
-	Serialize() Field
+type FieldEncoder interface {
+	Encode() Field
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -647,7 +647,7 @@ func (j Field) AsRelationship() (*RelationshipField, error) {
 }
 
 // Interface converts the comparison value to its generic interface
-func (j Field) Interface() (FieldSerializer, error) {
+func (j Field) Interface() (FieldEncoder, error) {
 	ty, err := j.Type()
 	if err != nil {
 		return nil, err
@@ -670,8 +670,8 @@ type ColumnField struct {
 	Column string `json:"column" mapstructure:"column"`
 }
 
-// Serialize converts the instance to raw Field
-func (f ColumnField) Serialize() Field {
+// Encode converts the instance to raw Field
+func (f ColumnField) Encode() Field {
 	return Field{
 		"type":   f.Type,
 		"column": f.Column,
@@ -697,8 +697,8 @@ type RelationshipField struct {
 	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments"`
 }
 
-// Serialize converts the instance to raw Field
-func (f RelationshipField) Serialize() Field {
+// Encode converts the instance to raw Field
+func (f RelationshipField) Encode() Field {
 	return Field{
 		"type":         f.Type,
 		"query":        f.Query,
@@ -1128,7 +1128,7 @@ func (cv ComparisonValue) AsVariable() (*ComparisonValueVariable, error) {
 }
 
 // Interface converts the comparison value to its generic interface
-func (cv ComparisonValue) Interface() (ComparisonValueSerializer, error) {
+func (cv ComparisonValue) Interface() (ComparisonValueEncoder, error) {
 	ty, err := cv.Type()
 	if err != nil {
 		return nil, err
@@ -1146,9 +1146,9 @@ func (cv ComparisonValue) Interface() (ComparisonValueSerializer, error) {
 	}
 }
 
-// ComparisonValueSerializer represents a comparison value serializer interface
-type ComparisonValueSerializer interface {
-	Serialize() ComparisonValue
+// ComparisonValueEncoder represents a comparison value encoder interface
+type ComparisonValueEncoder interface {
+	Encode() ComparisonValue
 }
 
 // ComparisonValueColumn represents a comparison value with column type
@@ -1157,8 +1157,8 @@ type ComparisonValueColumn struct {
 	Column ComparisonTarget    `json:"column" mapstructure:"column"`
 }
 
-// Serialize converts to the raw comparison value
-func (cv ComparisonValueColumn) Serialize() ComparisonValue {
+// Encode converts to the raw comparison value
+func (cv ComparisonValueColumn) Encode() ComparisonValue {
 	return map[string]any{
 		"type":   cv.Type,
 		"column": cv.Column,
@@ -1171,8 +1171,8 @@ type ComparisonValueScalar struct {
 	Value any                 `json:"value" mapstructure:"value"`
 }
 
-// Serialize converts to the raw comparison value
-func (cv ComparisonValueScalar) Serialize() ComparisonValue {
+// Encode converts to the raw comparison value
+func (cv ComparisonValueScalar) Encode() ComparisonValue {
 	return map[string]any{
 		"type":  cv.Type,
 		"value": cv.Value,
@@ -1185,8 +1185,8 @@ type ComparisonValueVariable struct {
 	Name string              `json:"name" mapstructure:"name"`
 }
 
-// Serialize converts to the raw comparison value
-func (cv ComparisonValueVariable) Serialize() ComparisonValue {
+// Encode converts to the raw comparison value
+func (cv ComparisonValueVariable) Encode() ComparisonValue {
 	return map[string]any{
 		"type": cv.Type,
 		"name": cv.Name,
@@ -1381,8 +1381,8 @@ func (j ExistsInCollection) AsUnrelated() (*ExistsInCollectionUnrelated, error) 
 	}, nil
 }
 
-// Interface tries to convert the instance to the ExistsInCollectionSerializer interface
-func (j ExistsInCollection) Interface() (ExistsInCollectionSerializer, error) {
+// Interface tries to convert the instance to the ExistsInCollectionEncoder interface
+func (j ExistsInCollection) Interface() (ExistsInCollectionEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
 		return nil, err
@@ -1398,9 +1398,9 @@ func (j ExistsInCollection) Interface() (ExistsInCollectionSerializer, error) {
 	}
 }
 
-// ExistsInCollectionSerializer abstracts the ExistsInCollection serialization interface
-type ExistsInCollectionSerializer interface {
-	Serialize() ExistsInCollection
+// ExistsInCollectionEncoder abstracts the ExistsInCollection serialization interface
+type ExistsInCollectionEncoder interface {
+	Encode() ExistsInCollection
 }
 
 // ExistsInCollectionRelated represents [Related collections] that are related to the original collection by a relationship in the collection_relationships field of the top-level QueryRequest.
@@ -1413,8 +1413,8 @@ type ExistsInCollectionRelated struct {
 	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments"`
 }
 
-// Serialize converts the instance to its raw type
-func (ei ExistsInCollectionRelated) Serialize() ExistsInCollection {
+// Encode converts the instance to its raw type
+func (ei ExistsInCollectionRelated) Encode() ExistsInCollection {
 	return ExistsInCollection{
 		"type":         ei.Type,
 		"relationship": ei.Relationship,
@@ -1433,8 +1433,8 @@ type ExistsInCollectionUnrelated struct {
 	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments"`
 }
 
-// Serialize converts the instance to its raw type
-func (ei ExistsInCollectionUnrelated) Serialize() ExistsInCollection {
+// Encode converts the instance to its raw type
+func (ei ExistsInCollectionUnrelated) Encode() ExistsInCollection {
 	return ExistsInCollection{
 		"type":       ei.Type,
 		"collection": ei.Collection,
@@ -1858,8 +1858,8 @@ func (j Expression) AsExists() (*ExpressionExists, error) {
 	}, nil
 }
 
-// Interface tries to convert the instance to the ExpressionSerializer interface
-func (j Expression) Interface() (ExpressionSerializer, error) {
+// Interface tries to convert the instance to the ExpressionEncoder interface
+func (j Expression) Interface() (ExpressionEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
 		return nil, err
@@ -1884,9 +1884,9 @@ func (j Expression) Interface() (ExpressionSerializer, error) {
 	}
 }
 
-// ExpressionSerializer abstracts the expression serializer interface
-type ExpressionSerializer interface {
-	Serialize() Expression
+// ExpressionEncoder abstracts the expression encoder interface
+type ExpressionEncoder interface {
+	Encode() Expression
 }
 
 // ExpressionAnd is an object which represents the [conjunction of expressions]
@@ -1897,8 +1897,8 @@ type ExpressionAnd struct {
 	Expressions []Expression   `json:"expressions" mapstructure:"expressions"`
 }
 
-// Serialize converts the instance to a raw Expression
-func (exp ExpressionAnd) Serialize() Expression {
+// Encode converts the instance to a raw Expression
+func (exp ExpressionAnd) Encode() Expression {
 	return Expression{
 		"type":        exp.Type,
 		"expressions": exp.Expressions,
@@ -1913,8 +1913,8 @@ type ExpressionOr struct {
 	Expressions []Expression   `json:"expressions" mapstructure:"expressions"`
 }
 
-// Serialize converts the instance to a raw Expression
-func (exp ExpressionOr) Serialize() Expression {
+// Encode converts the instance to a raw Expression
+func (exp ExpressionOr) Encode() Expression {
 	return Expression{
 		"type":        exp.Type,
 		"expressions": exp.Expressions,
@@ -1929,8 +1929,8 @@ type ExpressionNot struct {
 	Expression Expression     `json:"expression" mapstructure:"expression"`
 }
 
-// Serialize converts the instance to a raw Expression
-func (exp ExpressionNot) Serialize() Expression {
+// Encode converts the instance to a raw Expression
+func (exp ExpressionNot) Encode() Expression {
 	return Expression{
 		"type":       exp.Type,
 		"expression": exp.Expression,
@@ -1946,8 +1946,8 @@ type ExpressionUnaryComparisonOperator struct {
 	Column   ComparisonTarget        `json:"column" mapstructure:"column"`
 }
 
-// Serialize converts the instance to a raw Expression
-func (exp ExpressionUnaryComparisonOperator) Serialize() Expression {
+// Encode converts the instance to a raw Expression
+func (exp ExpressionUnaryComparisonOperator) Encode() Expression {
 	return Expression{
 		"type":     exp.Type,
 		"operator": exp.Operator,
@@ -1965,8 +1965,8 @@ type ExpressionBinaryComparisonOperator struct {
 	Value    ComparisonValue          `json:"value" mapstructure:"value"`
 }
 
-// Serialize converts the instance to a raw Expression
-func (exp ExpressionBinaryComparisonOperator) Serialize() Expression {
+// Encode converts the instance to a raw Expression
+func (exp ExpressionBinaryComparisonOperator) Encode() Expression {
 	return Expression{
 		"type":     exp.Type,
 		"operator": exp.Operator,
@@ -1985,8 +1985,8 @@ type ExpressionBinaryArrayComparisonOperator struct {
 	Values   []ComparisonValue             `json:"values" mapstructure:"values"`
 }
 
-// Serialize converts the instance to a raw Expression
-func (exp ExpressionBinaryArrayComparisonOperator) Serialize() Expression {
+// Encode converts the instance to a raw Expression
+func (exp ExpressionBinaryArrayComparisonOperator) Encode() Expression {
 	return Expression{
 		"type":     exp.Type,
 		"operator": exp.Operator,
@@ -2004,8 +2004,8 @@ type ExpressionExists struct {
 	InCollection ExistsInCollection `json:"in_collection" mapstructure:"in_collection"`
 }
 
-// Serialize converts the instance to a raw Expression
-func (exp ExpressionExists) Serialize() Expression {
+// Encode converts the instance to a raw Expression
+func (exp ExpressionExists) Encode() Expression {
 	return Expression{
 		"type":          exp.Type,
 		"where":         exp.Where,
@@ -2222,8 +2222,8 @@ func (j Aggregate) AsColumnCount() (*AggregateColumnCount, error) {
 	}, nil
 }
 
-// Interface tries to convert the instance to AggregateSerializer interface
-func (j Aggregate) Interface() (AggregateSerializer, error) {
+// Interface tries to convert the instance to AggregateEncoder interface
+func (j Aggregate) Interface() (AggregateEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
 		return nil, err
@@ -2241,9 +2241,9 @@ func (j Aggregate) Interface() (AggregateSerializer, error) {
 	}
 }
 
-// AggregateSerializer abstracts the serialization interface for Aggregate
-type AggregateSerializer interface {
-	Serialize() Aggregate
+// AggregateEncoder abstracts the serialization interface for Aggregate
+type AggregateEncoder interface {
+	Encode() Aggregate
 }
 
 // AggregateStarCount represents an aggregate object which counts all matched rows
@@ -2251,8 +2251,8 @@ type AggregateStarCount struct {
 	Type AggregateType `json:"type" mapstructure:"type"`
 }
 
-// Serialize converts the instance to raw Aggregate
-func (ag AggregateStarCount) Serialize() Aggregate {
+// Encode converts the instance to raw Aggregate
+func (ag AggregateStarCount) Encode() Aggregate {
 	return Aggregate{
 		"type": ag.Type,
 	}
@@ -2274,8 +2274,8 @@ type AggregateSingleColumn struct {
 	Function string `json:"function" mapstructure:"function"`
 }
 
-// Serialize converts the instance to raw Aggregate
-func (ag AggregateSingleColumn) Serialize() Aggregate {
+// Encode converts the instance to raw Aggregate
+func (ag AggregateSingleColumn) Encode() Aggregate {
 	return Aggregate{
 		"type":     ag.Type,
 		"column":   ag.Column,
@@ -2302,8 +2302,8 @@ type AggregateColumnCount struct {
 	Distinct bool `json:"distinct" mapstructure:"distinct"`
 }
 
-// Serialize converts the instance to raw Aggregate
-func (ag AggregateColumnCount) Serialize() Aggregate {
+// Encode converts the instance to raw Aggregate
+func (ag AggregateColumnCount) Encode() Aggregate {
 	return Aggregate{
 		"type":     ag.Type,
 		"column":   ag.Column,
@@ -2560,8 +2560,8 @@ func (j OrderByTarget) AsStarCountAggregate() (*OrderByStarCountAggregate, error
 	}, nil
 }
 
-// Interface tries to convert the instance to OrderByTargetSerializer interface
-func (j OrderByTarget) Interface() (OrderByTargetSerializer, error) {
+// Interface tries to convert the instance to OrderByTargetEncoder interface
+func (j OrderByTarget) Interface() (OrderByTargetEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
 		return nil, err
@@ -2579,9 +2579,9 @@ func (j OrderByTarget) Interface() (OrderByTargetSerializer, error) {
 	}
 }
 
-// OrderByTargetSerializer abstracts the serialization interface for OrderByTarget
-type OrderByTargetSerializer interface {
-	Serialize() OrderByTarget
+// OrderByTargetEncoder abstracts the serialization interface for OrderByTarget
+type OrderByTargetEncoder interface {
+	Encode() OrderByTarget
 }
 
 // OrderByColumn represents an ordering object which compares the value in the selected column
@@ -2593,8 +2593,8 @@ type OrderByColumn struct {
 	Path []PathElement `json:"path" mapstructure:"path"`
 }
 
-// Serialize converts the instance to raw OrderByTarget
-func (ob OrderByColumn) Serialize() OrderByTarget {
+// Encode converts the instance to raw OrderByTarget
+func (ob OrderByColumn) Encode() OrderByTarget {
 	return OrderByTarget{
 		"type":   ob.Type,
 		"column": ob.Column,
@@ -2616,8 +2616,8 @@ type OrderBySingleColumnAggregate struct {
 	Path []PathElement `json:"path" mapstructure:"path"`
 }
 
-// Serialize converts the instance to raw OrderByTarget
-func (ob OrderBySingleColumnAggregate) Serialize() OrderByTarget {
+// Encode converts the instance to raw OrderByTarget
+func (ob OrderBySingleColumnAggregate) Encode() OrderByTarget {
 	return OrderByTarget{
 		"type":     ob.Type,
 		"column":   ob.Column,
@@ -2636,8 +2636,8 @@ type OrderByStarCountAggregate struct {
 	Path []PathElement `json:"path" mapstructure:"path"`
 }
 
-// Serialize converts the instance to raw OrderByTarget
-func (ob OrderByStarCountAggregate) Serialize() OrderByTarget {
+// Encode converts the instance to raw OrderByTarget
+func (ob OrderByStarCountAggregate) Encode() OrderByTarget {
 	return OrderByTarget{
 		"type": ob.Type,
 		"path": ob.Path,

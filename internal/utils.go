@@ -50,25 +50,28 @@ func DeepEqual(v1, v2 any) bool {
 	if string(bytesA) == string(bytesB) {
 		return true
 	}
+
+	var map1 map[string]any
+	var map2 map[string]any
+	if err := json.Unmarshal(bytesA, &map1); err == nil {
+		if err2 := json.Unmarshal(bytesB, &map2); err2 != nil {
+			return false
+		}
+		if len(map1) == 0 && len(map2) == 0 {
+			return true
+		}
+		for k, v1 := range map1 {
+			v2, ok := map2[k]
+			if !ok || !DeepEqual(v1, v2) {
+				return false
+			}
+		}
+		return true
+	}
+
 	var x1 any
 	var x2 any
 	_ = json.Unmarshal(bytesA, &x1)
 	_ = json.Unmarshal(bytesB, &x2)
-	if reflect.DeepEqual(x1, x2) {
-		return true
-	}
-
-	map1, ok1 := x1.(map[string]any)
-	map2, ok2 := x2.(map[string]any)
-	if !ok1 || !ok2 {
-		return false
-	}
-
-	for k, v1 := range map1 {
-		v2, ok := map2[k]
-		if !ok || !DeepEqual(v1, v2) {
-			return false
-		}
-	}
-	return true
+	return reflect.DeepEqual(x1, x2)
 }

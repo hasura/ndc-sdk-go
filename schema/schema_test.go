@@ -203,10 +203,10 @@ func TestSchemaResponse(t *testing.T) {
 		t.FailNow()
 	} else if !internal.DeepEqual(intScalar.AggregateFunctions, ScalarTypeAggregateFunctions{
 		"max": AggregateFunctionDefinition{
-			ResultType: NewNullableNamedType("Int").Serialize(),
+			ResultType: NewNullableNamedType("Int").Encode(),
 		},
 		"min": AggregateFunctionDefinition{
-			ResultType: NewNullableNamedType("Int").Serialize(),
+			ResultType: NewNullableNamedType("Int").Encode(),
 		},
 	}) {
 		t.Errorf("Int scalar in SchemaResponse: expected equal aggregate functions; %+v", intScalar.AggregateFunctions)
@@ -224,7 +224,7 @@ func TestSchemaResponse(t *testing.T) {
 		t.FailNow()
 	} else if !internal.DeepEqual(stringScalar.ComparisonOperators, ScalarTypeComparisonOperators{
 		"like": ComparisonOperatorDefinition{
-			ArgumentType: NewNamedType("String").Serialize(),
+			ArgumentType: NewNamedType("String").Encode(),
 		},
 	}) {
 		t.Errorf("String scalar in SchemaResponse: expected equal comparison operators; %+v", stringScalar.ComparisonOperators)
@@ -239,7 +239,7 @@ func TestQueryRequest(t *testing.T) {
 		expected QueryRequest
 	}{
 		{
-			"aggregate_gunction",
+			"aggregate_function",
 			[]byte(`{
 				"collection": "articles",
 				"arguments": {},
@@ -263,8 +263,8 @@ func TestQueryRequest(t *testing.T) {
 				Collection: "articles",
 				Query: Query{
 					Aggregates: QueryAggregates{
-						"min_id": NewAggregateSingleColumn("id", "min").Serialize(),
-						"max_id": NewAggregateSingleColumn("id", "max").Serialize(),
+						"min_id": NewAggregateSingleColumn("id", "min").Encode(),
+						"max_id": NewAggregateSingleColumn("id", "max").Encode(),
 					},
 				},
 			},
@@ -305,7 +305,6 @@ func TestQueryRequest(t *testing.T) {
 										"id": "author_id"
 								},
 								"relationship_type": "array",
-								"source_collection_or_type": "author",
 								"target_collection": "articles"
 						}
 				}
@@ -314,17 +313,26 @@ func TestQueryRequest(t *testing.T) {
 				Collection: "authors",
 				Query: Query{
 					Fields: QueryFields{
-						"first_name": NewColumnField("first_name").Serialize(),
-						"last_name":  NewColumnField("last_name").Serialize(),
+						"first_name": NewColumnField("first_name").Encode(),
+						"last_name":  NewColumnField("last_name").Encode(),
 						"articles": NewRelationshipField(
 							Query{
 								Aggregates: QueryAggregates{
-									"count": NewAggregateStarCount().Serialize(),
+									"count": NewAggregateStarCount().Encode(),
 								},
 							},
 							"author_articles",
 							map[string]RelationshipArgument{},
-						).Serialize(),
+						).Encode(),
+					},
+				},
+				CollectionRelationships: QueryRequestCollectionRelationships{
+					"author_articles": Relationship{
+						ColumnMapping: RelationshipColumnMapping{
+							"id": "author_id",
+						},
+						RelationshipType: RelationshipTypeArray,
+						TargetCollection: "articles",
 					},
 				},
 			},
@@ -340,12 +348,17 @@ func TestQueryRequest(t *testing.T) {
 			}
 
 			if !internal.DeepEqual(tc.expected.Collection, q.Collection) {
-				t.Errorf("unexpected equal collection; expected: %+v, got: %+v", tc.expected.Collection, q.Collection)
+				t.Errorf("unexpected collection equality; expected: %+v, got: %+v", tc.expected.Collection, q.Collection)
 				t.FailNow()
 			}
 
 			if !internal.DeepEqual(tc.expected.Query, q.Query) {
-				t.Errorf("unexpected equal Query;\n expected: %+v,\n got: %+v\n", tc.expected.Query.Fields, q.Query.Fields)
+				t.Errorf("unexpected Query equality;\n expected: %+v,\n got: %+v\n", tc.expected.Query, q.Query)
+				t.FailNow()
+			}
+
+			if !internal.DeepEqual(tc.expected.CollectionRelationships, q.CollectionRelationships) {
+				t.Errorf("unexpected CollectionRelationships equality;\n expected: %+v,\n got: %+v\n", tc.expected.CollectionRelationships, q.CollectionRelationships)
 				t.FailNow()
 			}
 		})

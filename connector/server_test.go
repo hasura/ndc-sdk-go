@@ -49,17 +49,17 @@ var mockSchema = schema.SchemaResponse{
 			AggregateFunctions: schema.ScalarTypeAggregateFunctions{},
 			ComparisonOperators: schema.ScalarTypeComparisonOperators{
 				"like": schema.ComparisonOperatorDefinition{
-					ArgumentType: schema.NewNamedType("String").Serialize(),
+					ArgumentType: schema.NewNamedType("String").Encode(),
 				},
 			},
 		},
 		"Int": schema.ScalarType{
 			AggregateFunctions: schema.ScalarTypeAggregateFunctions{
 				"max": schema.AggregateFunctionDefinition{
-					ResultType: schema.NewNullableNamedType("Int").Serialize(),
+					ResultType: schema.NewNullableNamedType("Int").Encode(),
 				},
 				"min": schema.AggregateFunctionDefinition{
-					ResultType: schema.NewNullableNamedType("Int").Serialize(),
+					ResultType: schema.NewNullableNamedType("Int").Encode(),
 				},
 			},
 			ComparisonOperators: schema.ScalarTypeComparisonOperators{},
@@ -71,15 +71,15 @@ var mockSchema = schema.SchemaResponse{
 			Fields: schema.ObjectTypeFields{
 				"id": schema.ObjectField{
 					Description: schema.ToPtr("The article's primary key"),
-					Type:        schema.NewNamedType("Int").Serialize(),
+					Type:        schema.NewNamedType("Int").Encode(),
 				},
 				"title": schema.ObjectField{
 					Description: schema.ToPtr("The article's title"),
-					Type:        schema.NewNamedType("String").Serialize(),
+					Type:        schema.NewNamedType("String").Encode(),
 				},
 				"author_id": schema.ObjectField{
 					Description: schema.ToPtr("The article's author ID"),
-					Type:        schema.NewNamedType("Int").Serialize(),
+					Type:        schema.NewNamedType("Int").Encode(),
 				},
 			},
 		},
@@ -101,7 +101,7 @@ var mockSchema = schema.SchemaResponse{
 		{
 			Name:        "latest_article_id",
 			Description: schema.ToPtr("Get the ID of the most recent article"),
-			ResultType:  schema.NewNullableNamedType("Int").Serialize(),
+			ResultType:  schema.NewNullableNamedType("Int").Encode(),
 			Arguments:   schema.FunctionInfoArguments{},
 		},
 	},
@@ -112,10 +112,10 @@ var mockSchema = schema.SchemaResponse{
 			Arguments: schema.ProcedureInfoArguments{
 				"article": schema.ArgumentInfo{
 					Description: schema.ToPtr("The article to insert or update"),
-					Type:        schema.NewNamedType("article").Serialize(),
+					Type:        schema.NewNamedType("article").Encode(),
 				},
 			},
-			ResultType: schema.NewNullableNamedType("article").Serialize(),
+			ResultType: schema.NewNullableNamedType("article").Encode(),
 		},
 	},
 }
