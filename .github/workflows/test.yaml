@@ -7,7 +7,7 @@ on:
       - "**.go"
       - "go.mod"
       - "go.sum"
-      - ".github/workflows/*.yml"
+      - ".github/workflows/*.yaml"
       - "example/**"
 
 jobs:
