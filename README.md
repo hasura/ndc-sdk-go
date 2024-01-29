@@ -4,6 +4,12 @@ This SDK is mostly analogous to the Rust SDK, except where necessary.
 
 All functions of the Connector interface are analogous to their Rust counterparts, with the addition of `GetRawConfigurationSchema` which does exactly what it sounds like.
 
+## Components
+
+- Connector HTTP server 
+- Configuration server
+- Authentication
+- Observability with OpenTelemetry and Prometheus
 
 ## Using this SDK
 
@@ -59,6 +65,21 @@ Commands:
 ```
 
 Please refer to the [NDC Spec](https://hasura.github.io/ndc-spec/) for details on implementing the Connector interface, or see [examples](./examples).  
+
+## Observability
+
+### OpenTelemetry
+
+OpenTelemetry exporter is disabled by default unless one of `--otlp-endpoint`, `--otlp-traces-endpoint` or `--otlp-metrics-endpoint` argument is set. The SDK automatically detects either HTTP or gRPC protocol by the URL scheme. For example:
+
+- `http://localhost:4318`: HTTP
+- `localhost:4317`: gRPC
+
+The SDK can also detect TLS connections via http(s). However, if you want to disable TLS for gRPC, you must add `--otlp-insecure` the flag.
+
+### Prometheus
+
+Prometheus metrics are exported via the `/metrics` endpoint.
 
 ## Regenerating Schema Types
 
