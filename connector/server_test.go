@@ -12,6 +12,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
@@ -157,7 +158,9 @@ func (mc *mockConnector) GetSchema(configuration *mockConfiguration) (*schema.Sc
 	return &mockSchema, nil
 }
 func (mc *mockConnector) Explain(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.QueryRequest) (*schema.ExplainResponse, error) {
-	return &schema.ExplainResponse{}, nil
+	return &schema.ExplainResponse{
+		Details: schema.ExplainResponseDetails{},
+	}, nil
 }
 func (mc *mockConnector) Mutation(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.MutationRequest) (*schema.MutationResponse, error) {
 	results := []schema.MutationOperationResults{}
@@ -234,75 +237,112 @@ func assertHTTPResponse[B any](t *testing.T, name string, res *http.Response, st
 	}
 
 	if !internal.DeepEqual(body, expectedBody) {
-		t.Errorf("%s.\nexpect: %+v\ngot: %+v", name, body, expectedBody)
+		expectedBytes, _ := json.Marshal(expectedBody)
+		t.Errorf("%s.\nexpect: %+v\ngot: %+v", name, string(expectedBytes), string(bodyBytes))
 		t.FailNow()
 	}
 }
 
 func TestNewServer(t *testing.T) {
-	_, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{}, WithLogger(zerolog.Nop()), WithVersion("0.1.0"), WithDefaultServiceName("ndc-test"), WithMetricsPrefix("ndc_test"))
-	if err == nil {
-		t.Error("NewServerEmptyConfig: expect error, got nil")
-		t.FailNow()
-	}
-	if errConfigurationRequired != err {
-		t.Errorf("NewServerEmptyConfig: expected error %s, got %s", errConfigurationRequired, err)
-		t.FailNow()
-	}
+	t.Run("new server with empty config", func(t *testing.T) {
+		_, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{}, WithLogger(zerolog.Nop()), WithVersion("0.1.0"), WithDefaultServiceName("ndc-test"), WithMetricsPrefix("ndc_test"))
+		if err == nil {
+			t.Error("expect error, got nil")
+			t.FailNow()
+		}
+		if errConfigurationRequired != err {
+			t.Errorf("expected error %s, got %s", errConfigurationRequired, err)
+			t.FailNow()
+		}
+	})
 
-	_, err = NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
-		Configuration: "/tmp/any-file",
-	}, WithLogger(zerolog.Nop()))
-	if err == nil {
-		t.Errorf("NewServerWithConfigFile: expected error, got nil")
-		t.FailNow()
-	}
-	if !strings.Contains(err.Error(), "Invalid configuration provided: open /tmp/any-file: no such file or directory") {
-		t.Errorf("NewServerWithConfigFile: expected file not found error, got %s", err)
-		t.FailNow()
-	}
+	t.Run("new server with file not found", func(t *testing.T) {
+		_, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
+			Configuration: "/tmp/any-file",
+		}, WithLogger(zerolog.Nop()))
+		if err == nil {
+			t.Errorf("expected error, got nil")
+			t.FailNow()
+		}
+		if !strings.Contains(err.Error(), "Invalid configuration provided: open /tmp/any-file: no such file or directory") {
+			t.Errorf("expected file not found error, got %s", err)
+			t.FailNow()
+		}
+	})
 
-	randomFilePath := fmt.Sprintf("%s/test-%d", os.TempDir(), rand.Int())
-	if err := os.WriteFile(randomFilePath, []byte{}, 0666); err != nil {
-		t.Errorf("NewServerWithEmptyConfigFile: expected no error, got %s", err)
-		t.FailNow()
-	}
+	t.Run("new server with empty file content", func(t *testing.T) {
+		randomFilePath := fmt.Sprintf("%s/test-%d", os.TempDir(), rand.Int())
+		if err := os.WriteFile(randomFilePath, []byte{}, 0666); err != nil {
+			t.Errorf("NewServerWithEmptyConfigFile: expected no error, got %s", err)
+			t.FailNow()
+		}
 
-	_, err = NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
-		Configuration: randomFilePath,
-	}, WithLogger(zerolog.Nop()))
-	if err == nil {
-		t.Errorf("NewServerWithEmptyConfigFile: expected error, got nil")
-		t.FailNow()
-	}
-	if err != errConfigurationRequired {
-		t.Errorf("NewServerWithEmptyConfigFile: expected required file error, got %s", err)
-		t.FailNow()
-	}
+		_, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
+			Configuration: randomFilePath,
+		}, WithLogger(zerolog.Nop()))
+		if err == nil {
+			t.Errorf("NewServerWithEmptyConfigFile: expected error, got nil")
+			t.FailNow()
+		}
+		if err != errConfigurationRequired {
+			t.Errorf("NewServerWithEmptyConfigFile: expected required file error, got %s", err)
+			t.FailNow()
+		}
+	})
 
-	randomFilePath = fmt.Sprintf("%s/test-%d", os.TempDir(), rand.Int())
-	if err := os.WriteFile(randomFilePath, []byte("{"), 0666); err != nil {
-		t.Errorf("NewServerWithInvalidConfigFile: expected no error, got %s", err)
-		t.FailNow()
-	}
+	t.Run("new server with invalid config file", func(t *testing.T) {
 
-	_, err = NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
-		Configuration: randomFilePath,
-	}, WithLogger(zerolog.Nop()))
-	if err == nil {
-		t.Errorf("NewServerWithInvalidConfigFile: expected error, got nil")
-		t.FailNow()
-	}
-	if !strings.Contains(err.Error(), "Invalid configuration provided: unexpected end of JSON input") {
-		t.Errorf("NewServerWithInvalidConfigFile: expected invalid json error, got %s", err)
-		t.FailNow()
-	}
+		randomFilePath := fmt.Sprintf("%s/test-%d", os.TempDir(), rand.Int())
+		if err := os.WriteFile(randomFilePath, []byte("{"), 0666); err != nil {
+			t.Errorf("NewServerWithInvalidConfigFile: expected no error, got %s", err)
+			t.FailNow()
+		}
 
-	_, err = NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{}, WithoutConfig(), WithLogger(zerolog.Nop()))
-	if err != nil {
-		t.Errorf("NewServerWithoutConfig: expected no error, got %s", err)
-		t.FailNow()
-	}
+		_, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
+			Configuration: randomFilePath,
+		}, WithLogger(zerolog.Nop()))
+		if err == nil {
+			t.Errorf("NewServerWithInvalidConfigFile: expected error, got nil")
+			t.FailNow()
+		}
+		if !strings.Contains(err.Error(), "Invalid configuration provided: unexpected end of JSON input") {
+			t.Errorf("NewServerWithInvalidConfigFile: expected invalid json error, got %s", err)
+			t.FailNow()
+		}
+	})
+
+	t.Run("new server without config", func(t *testing.T) {
+		_, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{}, WithoutConfig(), WithLogger(zerolog.Nop()))
+		if err != nil {
+			t.Errorf("NewServerWithoutConfig: expected no error, got %s", err)
+			t.FailNow()
+		}
+	})
+
+	t.Run("start server", func(t *testing.T) {
+		s, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{}, WithoutConfig(), WithLogger(zerolog.Nop()))
+		if err != nil {
+			t.Errorf("NewServerWithoutConfig: expected no error, got %s", err)
+			t.FailNow()
+		}
+
+		go s.ListenAndServe(18080)
+		time.Sleep(2 * time.Second)
+		s.stop()
+	})
+
+	t.Run("start server failure", func(t *testing.T) {
+		s, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{}, WithoutConfig(), WithLogger(zerolog.Nop()))
+		if err != nil {
+			t.Errorf("NewServerWithoutConfig: expected no error, got %s", err)
+			t.FailNow()
+		}
+
+		if err = s.ListenAndServe(100000); err == nil {
+			t.Errorf("expected server returned error, got %+v", err)
+			t.FailNow()
+		}
+	})
 }
 
 func TestServerAuth(t *testing.T) {
@@ -362,103 +402,176 @@ func TestServerConnector(t *testing.T) {
 	httpServer := buildTestServer(server)
 	defer httpServer.Close()
 
-	res, err := http.Get(fmt.Sprintf("%s/capabilities", httpServer.URL))
-	if err != nil {
-		t.Errorf("GET /capabilities: expected no error, got %s", err)
-		t.FailNow()
-	}
-	assertHTTPResponse(t, "GET /capabilities", res, http.StatusOK, mockCapabilities)
-
-	res, err = http.Get(fmt.Sprintf("%s/healthz", httpServer.URL))
-	if err != nil {
-		t.Errorf("GET /healthz: expected no error, got %s", err)
-		t.FailNow()
-	}
-	assertHTTPResponseStatus(t, "GET /healthz", res, http.StatusNoContent)
-
-	res, err = http.Get(fmt.Sprintf("%s/metrics", httpServer.URL))
-	if err != nil {
-		t.Errorf("GET /metrics: expected no error, got %s", err)
-		t.FailNow()
-	}
-	assertHTTPResponseStatus(t, "GET /metrics", res, http.StatusOK)
-
-	res, err = httpPostJSON(fmt.Sprintf("%s/query", httpServer.URL), schema.QueryRequest{
-		Collection:              "articles",
-		Arguments:               schema.QueryRequestArguments{},
-		CollectionRelationships: schema.QueryRequestCollectionRelationships{},
-		Query:                   schema.Query{},
-		Variables:               []schema.QueryRequestVariablesElem{},
+	t.Run("GET /capabilities", func(t *testing.T) {
+		res, err := http.Get(fmt.Sprintf("%s/capabilities", httpServer.URL))
+		if err != nil {
+			t.Errorf("GET /capabilities: expected no error, got %s", err)
+			t.FailNow()
+		}
+		assertHTTPResponse(t, "GET /capabilities", res, http.StatusOK, mockCapabilities)
 	})
-	if err != nil {
-		t.Errorf("POST /query: expected no error, got %s", err)
-		t.FailNow()
-	}
-	assertHTTPResponse(t, "POST /query", res, http.StatusOK, schema.QueryResponse{
-		{
-			Aggregates: schema.RowSetAggregates{},
-			Rows: []schema.Row{
-				map[string]any{
-					"id":        1,
-					"title":     "Hello world",
-					"author_id": 1,
+
+	t.Run("GET /healthz", func(t *testing.T) {
+		res, err := http.Get(fmt.Sprintf("%s/healthz", httpServer.URL))
+		if err != nil {
+			t.Errorf("GET /healthz: expected no error, got %s", err)
+			t.FailNow()
+		}
+		assertHTTPResponseStatus(t, "GET /healthz", res, http.StatusNoContent)
+	})
+
+	t.Run("GET /metrics", func(t *testing.T) {
+		res, err := http.Get(fmt.Sprintf("%s/metrics", httpServer.URL))
+		if err != nil {
+			t.Errorf("GET /metrics: expected no error, got %s", err)
+			t.FailNow()
+		}
+		assertHTTPResponseStatus(t, "GET /metrics", res, http.StatusOK)
+	})
+
+	t.Run("POST /query", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/query", httpServer.URL), schema.QueryRequest{
+			Collection:              "articles",
+			Arguments:               schema.QueryRequestArguments{},
+			CollectionRelationships: schema.QueryRequestCollectionRelationships{},
+			Query:                   schema.Query{},
+			Variables:               []schema.QueryRequestVariablesElem{},
+		})
+		if err != nil {
+			t.Errorf("POST /query: expected no error, got %s", err)
+			t.FailNow()
+		}
+		assertHTTPResponse(t, "POST /query", res, http.StatusOK, schema.QueryResponse{
+			{
+				Aggregates: schema.RowSetAggregates{},
+				Rows: []schema.Row{
+					map[string]any{
+						"id":        1,
+						"title":     "Hello world",
+						"author_id": 1,
+					},
 				},
 			},
-		},
+		})
 	})
 
-	res, err = httpPostJSON(fmt.Sprintf("%s/query", httpServer.URL), schema.QueryRequest{
-		Collection:              "test",
-		Arguments:               schema.QueryRequestArguments{},
-		CollectionRelationships: schema.QueryRequestCollectionRelationships{},
-		Query:                   schema.Query{},
-		Variables:               []schema.QueryRequestVariablesElem{},
-	})
-	if err != nil {
-		t.Errorf("POST /query: expected no error, got %s", err)
-		t.FailNow()
-	}
-	assertHTTPResponse(t, "POST /query", res, http.StatusBadRequest, schema.ErrorResponse{
-		Message: "collection not found: test",
-		Details: map[string]any{},
+	t.Run("POST /query - json decode failure", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/query", httpServer.URL), "")
+		if err != nil {
+			t.Errorf("POST /query: expected no error, got %s", err)
+			t.FailNow()
+		}
+		assertHTTPResponse(t, "POST /query", res, http.StatusBadRequest, schema.ErrorResponse{
+			Message: "failed to decode json request body",
+			Details: map[string]any{
+				"cause": "json: cannot unmarshal string into Go value of type map[string]interface {}",
+			},
+		})
 	})
 
-	res, err = httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), schema.MutationRequest{
-		Operations: []schema.MutationOperation{
-			{
-				Type: "procedure",
-				Name: "upsert_article",
-			},
-		},
-		CollectionRelationships: schema.MutationRequestCollectionRelationships{},
-	})
-	if err != nil {
-		t.Errorf("POST /mutation: expected no error, got %s", err)
-		t.FailNow()
-	}
-	assertHTTPResponse(t, "POST /mutation", res, http.StatusOK, schema.MutationResponse{
-		OperationResults: []schema.MutationOperationResults{
-			{
-				AffectedRows: 1,
-			},
-		},
+	t.Run("POST /query - collection not found", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/query", httpServer.URL), schema.QueryRequest{
+			Collection:              "test",
+			Arguments:               schema.QueryRequestArguments{},
+			CollectionRelationships: schema.QueryRequestCollectionRelationships{},
+			Query:                   schema.Query{},
+			Variables:               []schema.QueryRequestVariablesElem{},
+		})
+		if err != nil {
+			t.Errorf("POST /query: expected no error, got %s", err)
+			t.FailNow()
+		}
+		assertHTTPResponse(t, "POST /query", res, http.StatusBadRequest, schema.ErrorResponse{
+			Message: "collection not found: test",
+			Details: map[string]any{},
+		})
 	})
 
-	res, err = httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), schema.MutationRequest{
-		Operations: []schema.MutationOperation{
-			{
-				Type: "procedure",
-				Name: "test",
+	t.Run("POST /mutation", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), schema.MutationRequest{
+			Operations: []schema.MutationOperation{
+				{
+					Type: "procedure",
+					Name: "upsert_article",
+				},
 			},
-		},
-		CollectionRelationships: schema.MutationRequestCollectionRelationships{},
+			CollectionRelationships: schema.MutationRequestCollectionRelationships{},
+		})
+		if err != nil {
+			t.Errorf("POST /mutation: expected no error, got %s", err)
+			t.FailNow()
+		}
+		assertHTTPResponse(t, "POST /mutation", res, http.StatusOK, schema.MutationResponse{
+			OperationResults: []schema.MutationOperationResults{
+				{
+					AffectedRows: 1,
+				},
+			},
+		})
 	})
-	if err != nil {
-		t.Errorf("POST /mutation: expected no error, got %s", err)
-		t.FailNow()
-	}
-	assertHTTPResponse(t, "POST /mutation", res, http.StatusBadRequest, schema.ErrorResponse{
-		Message: "operation not found: test",
-		Details: map[string]any{},
+
+	t.Run("POST /mutation - json decode failure", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), "")
+		if err != nil {
+			t.Errorf("POST /mutation: expected no error, got %s", err)
+			t.FailNow()
+		}
+		assertHTTPResponse(t, "POST /mutation", res, http.StatusBadRequest, schema.ErrorResponse{
+			Message: "failed to decode json request body",
+			Details: map[string]any{
+				"cause": "json: cannot unmarshal string into Go value of type map[string]interface {}",
+			},
+		})
+	})
+
+	t.Run("POST /mutation - operation not found", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), schema.MutationRequest{
+			Operations: []schema.MutationOperation{
+				{
+					Type: "procedure",
+					Name: "test",
+				},
+			},
+			CollectionRelationships: schema.MutationRequestCollectionRelationships{},
+		})
+		if err != nil {
+			t.Errorf("POST /mutation: expected no error, got %s", err)
+			t.FailNow()
+		}
+		assertHTTPResponse(t, "POST /mutation", res, http.StatusBadRequest, schema.ErrorResponse{
+			Message: "operation not found: test",
+			Details: map[string]any{},
+		})
+	})
+
+	t.Run("POST /explain", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/explain", httpServer.URL), schema.QueryRequest{
+			Collection:              "articles",
+			Arguments:               schema.QueryRequestArguments{},
+			CollectionRelationships: schema.QueryRequestCollectionRelationships{},
+			Query:                   schema.Query{},
+			Variables:               []schema.QueryRequestVariablesElem{},
+		})
+		if err != nil {
+			t.Errorf("POST /explain: expected no error, got %s", err)
+			t.FailNow()
+		}
+		assertHTTPResponse(t, "POST /explain", res, http.StatusOK, schema.ExplainResponse{
+			Details: schema.ExplainResponseDetails{},
+		})
+	})
+
+	t.Run("POST /explain - json decode failure", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/explain", httpServer.URL), schema.QueryRequest{})
+		if err != nil {
+			t.Errorf("POST /mutation: expected no error, got %s", err)
+			t.FailNow()
+		}
+		assertHTTPResponse(t, "POST /explain", res, http.StatusBadRequest, schema.ErrorResponse{
+			Message: "failed to decode json request body",
+			Details: map[string]any{
+				"cause": "field arguments in QueryRequest: required",
+			},
+		})
 	})
 }
