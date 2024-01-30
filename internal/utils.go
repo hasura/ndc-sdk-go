@@ -60,6 +60,9 @@ func DeepEqual(v1, v2 any) bool {
 		if len(map1) == 0 && len(map2) == 0 {
 			return true
 		}
+		if len(map1) != len(map2) {
+			return false
+		}
 		for k, v1 := range map1 {
 			v2, ok := map2[k]
 			if !ok || !DeepEqual(v1, v2) {

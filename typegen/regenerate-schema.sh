@@ -48,3 +48,6 @@ sed -i 's/Type interface{}/Type Type/g' ../schema/schema.generated.go
 sed -i 's/QueryFields map\[string\]interface{}/QueryFields map[string]Field/g' ../schema/schema.generated.go
 sed -i 's/type ComparisonValue interface{}//g' ../schema/schema.generated.go
 sed -i 's/type ExistsInCollection interface{}//g' ../schema/schema.generated.go
+
+# format codes
+gofmt -w -s ../

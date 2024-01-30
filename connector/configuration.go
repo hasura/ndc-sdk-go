@@ -40,7 +40,12 @@ func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) GetIndex(
 func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) PostIndex(w http.ResponseWriter, r *http.Request) {
 	var rawConfig RawConfiguration
 	if err := json.NewDecoder(r.Body).Decode(&rawConfig); err != nil {
-		writeJson(w, http.StatusBadRequest, schema.BadRequestError(err.Error(), nil))
+		writeJson(w, http.StatusBadRequest, schema.ErrorResponse{
+			Message: "failed to decode json request body",
+			Details: map[string]any{
+				"cause": err.Error(),
+			},
+		})
 		return
 	}
 
@@ -107,9 +112,7 @@ func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) Health(w 
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// ListenAndServe serves the configuration server with the standard http server.
-// You can also replace this method with any router or web framework that is compatible with net/http.
-func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) ListenAndServe(port uint) error {
+func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) buildHandler() *http.ServeMux {
 	router := newRouter(cs.logger)
 	router.Use("/", http.MethodGet, cs.GetIndex)
 	router.Use("/", http.MethodPost, cs.PostIndex)
@@ -117,9 +120,15 @@ func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) ListenAnd
 	router.Use("/validate", http.MethodPost, cs.Validate)
 	router.Use("/healthz", http.MethodGet, cs.Health)
 
+	return router.Build()
+}
+
+// ListenAndServe serves the configuration server with the standard http server.
+// You can also replace this method with any router or web framework that is compatible with net/http.
+func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) ListenAndServe(port uint) error {
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
-		Handler: router.Build(),
+		Handler: cs.buildHandler(),
 	}
 
 	cs.logger.Info().Msgf("Listening server on %s", server.Addr)
