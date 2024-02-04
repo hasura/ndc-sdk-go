@@ -7,7 +7,8 @@ format:
 	gofmt -w -s .
 
 
+# Install golangci-lint tool to run lint locally
+# https://golangci-lint.run/usage/install
 .PHONY: lint
 lint:
-	@(./scripts/check_installed.sh golangci-lint "golangci-lint: https://golangci-lint.run/usage/install/" && \
-	golangci-lint run )
+	golangci-lint run
