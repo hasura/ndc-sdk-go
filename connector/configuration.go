@@ -32,15 +32,16 @@ func NewConfigurationServer[RawConfiguration any, Configuration any, State any](
 // GetIndex implements a handler for the index endpoint, GET method.
 // Returns an empty configuration of the connector
 func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) GetIndex(w http.ResponseWriter, r *http.Request) {
-	writeJson(w, http.StatusOK, cs.connector.MakeEmptyConfiguration())
+	writeJson(w, GetLogger(r.Context()), http.StatusOK, cs.connector.MakeEmptyConfiguration())
 }
 
 // PostIndex implements a handler for the index endpoint, POST method.
 // Take a raw configuration, update it where appropriate by connecting to the underlying data source, and otherwise return it as-is
 func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) PostIndex(w http.ResponseWriter, r *http.Request) {
+	logger := GetLogger(r.Context())
 	var rawConfig RawConfiguration
 	if err := json.NewDecoder(r.Body).Decode(&rawConfig); err != nil {
-		writeJson(w, http.StatusBadRequest, schema.ErrorResponse{
+		writeJson(w, logger, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": err.Error(),
@@ -51,24 +52,26 @@ func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) PostIndex
 
 	conf, err := cs.connector.UpdateConfiguration(r.Context(), &rawConfig)
 	if err != nil {
-		writeError(w, err)
+		writeError(w, logger, err)
 		return
 	}
-	writeJson(w, http.StatusOK, conf)
+	writeJson(w, logger, http.StatusOK, conf)
 }
 
 // GetSchema implements a handler for the /schema endpoint, GET method.
 // Return jsonschema for the raw configuration for this connector
 func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) GetSchema(w http.ResponseWriter, r *http.Request) {
-	writeJson(w, http.StatusOK, cs.connector.GetRawConfigurationSchema())
+	writeJson(w, GetLogger(r.Context()), http.StatusOK, cs.connector.GetRawConfigurationSchema())
 }
 
 // Validate implements a handler for the /validate endpoint, POST method.
 // that validates the raw configuration provided by the user
 func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) Validate(w http.ResponseWriter, r *http.Request) {
+	logger := GetLogger(r.Context())
+
 	var rawConfig RawConfiguration
 	if err := json.NewDecoder(r.Body).Decode(&rawConfig); err != nil {
-		writeJson(w, http.StatusBadRequest, schema.ErrorResponse{
+		writeJson(w, logger, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": err.Error(),
@@ -81,24 +84,24 @@ func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) Validate(
 		&rawConfig,
 	)
 	if err != nil {
-		writeError(w, err)
+		writeError(w, logger, err)
 		return
 	}
 
 	connectorSchema, err := cs.connector.GetSchema(resolvedConfiguration)
 	if err != nil {
-		writeError(w, err)
+		writeError(w, logger, err)
 		return
 	}
 
 	capabilities := cs.connector.GetCapabilities(resolvedConfiguration)
 	configurationBytes, err := json.Marshal(resolvedConfiguration)
 	if err != nil {
-		writeError(w, schema.InternalServerError(err.Error(), nil))
+		writeError(w, logger, schema.InternalServerError(err.Error(), nil))
 		return
 	}
 
-	writeJson(w, http.StatusOK, &schema.ValidateResponse{
+	writeJson(w, logger, http.StatusOK, &schema.ValidateResponse{
 		Schema:                *connectorSchema,
 		Capabilities:          *capabilities,
 		ResolvedConfiguration: string(configurationBytes),

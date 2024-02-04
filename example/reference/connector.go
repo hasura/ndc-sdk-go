@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	_ "embed"
 	"encoding/json"
 	"fmt"
 
@@ -10,12 +9,6 @@ import (
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/swaggest/jsonschema-go"
 )
-
-//go:embed articles.csv
-var csvArticles string
-
-//go:embed authors.csv
-var csvAuthors string
 
 type RawConfiguration struct{}
 type Configuration struct{}
@@ -242,10 +235,8 @@ func (mc *Connector) Query(ctx context.Context, configuration *Configuration, st
 	switch request.Collection {
 	case "articles":
 		rows = schema.ToRows(getMapValues(state.Articles))
-		break
 	case "authors":
 		rows = schema.ToRows(getMapValues(state.Authors))
-		break
 	case "articles_by_author":
 		authorIdArg, ok := request.Arguments["author_id"]
 		if !ok {
@@ -258,10 +249,8 @@ func (mc *Connector) Query(ctx context.Context, configuration *Configuration, st
 				if fmt.Sprint(row.AuthorID) == fmt.Sprint(authorIdArg.Value) {
 					rows = append(rows, row)
 				}
-				break
 			}
 		}
-		break
 	case "latest_article_id":
 		latestArticle := state.GetLatestArticle()
 		if latestArticle == nil {
@@ -273,7 +262,6 @@ func (mc *Connector) Query(ctx context.Context, configuration *Configuration, st
 				"__value": latestArticle.ID,
 			},
 		}
-		break
 	default:
 		return nil, schema.BadRequestError(fmt.Sprintf("invalid collection name %s", request.Collection), nil)
 	}

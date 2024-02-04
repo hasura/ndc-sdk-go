@@ -125,8 +125,9 @@ func NewServer[RawConfiguration any, Configuration any, State any](connector Con
 func (s *Server[RawConfiguration, Configuration, State]) withAuth(handler http.HandlerFunc) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		logger := GetLogger(r.Context())
 		if s.options.ServiceTokenSecret != "" && r.Header.Get("authorization") != fmt.Sprintf("Bearer %s", s.options.ServiceTokenSecret) {
-			writeJson(w, http.StatusUnauthorized, schema.ErrorResponse{
+			writeJson(w, logger, http.StatusUnauthorized, schema.ErrorResponse{
 				Message: "Unauthorized",
 				Details: map[string]any{
 					"cause": "Bearer token does not match.",
@@ -145,13 +146,15 @@ func (s *Server[RawConfiguration, Configuration, State]) withAuth(handler http.H
 }
 
 func (s *Server[RawConfiguration, Configuration, State]) GetCapabilities(w http.ResponseWriter, r *http.Request) {
+	logger := GetLogger(r.Context())
 	capabilities := s.connector.GetCapabilities(s.configuration)
-	writeJson(w, http.StatusOK, capabilities)
+	writeJson(w, logger, http.StatusOK, capabilities)
 }
 
 func (s *Server[RawConfiguration, Configuration, State]) Health(w http.ResponseWriter, r *http.Request) {
+	logger := GetLogger(r.Context())
 	if err := s.connector.HealthCheck(r.Context(), s.configuration, s.state); err != nil {
-		writeError(w, err)
+		writeError(w, logger, err)
 		return
 	}
 
@@ -160,17 +163,19 @@ func (s *Server[RawConfiguration, Configuration, State]) Health(w http.ResponseW
 
 // GetSchema implements a handler for the /schema endpoint, GET method.
 func (s *Server[RawConfiguration, Configuration, State]) GetSchema(w http.ResponseWriter, r *http.Request) {
+	logger := GetLogger(r.Context())
 	schemaResult, err := s.connector.GetSchema(s.configuration)
 	if err != nil {
-		writeError(w, err)
+		writeError(w, logger, err)
 		return
 	}
 
-	writeJson(w, http.StatusOK, schemaResult)
+	writeJson(w, logger, http.StatusOK, schemaResult)
 }
 
 func (s *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
+	logger := GetLogger(r.Context())
 	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Query", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 
@@ -179,7 +184,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseWr
 	defer decodeSpan.End()
 	var body schema.QueryRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		writeJson(w, http.StatusBadRequest, schema.ErrorResponse{
+		writeJson(w, logger, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": err.Error(),
@@ -205,7 +210,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseWr
 	response, err := s.connector.Query(execQueryCtx, s.configuration, s.state, &body)
 
 	if err != nil {
-		status := writeError(w, err)
+		status := writeError(w, logger, err)
 		statusAttributes := []attribute.KeyValue{
 			attribute.String("status", "failed"),
 			attribute.String("reason", fmt.Sprintf("%d", status)),
@@ -219,7 +224,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseWr
 	statusAttribute := attribute.String("status", "success")
 	span.SetAttributes(statusAttribute)
 	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
-	writeJson(w, http.StatusOK, response)
+	writeJson(w, logger, http.StatusOK, response)
 	responseSpan.End()
 
 	s.telemetry.queryCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
@@ -229,6 +234,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseWr
 
 func (s *Server[RawConfiguration, Configuration, State]) Explain(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
+	logger := GetLogger(r.Context())
 	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Explain", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 
@@ -237,7 +243,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Explain(w http.Response
 	defer decodeSpan.End()
 	var body schema.QueryRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		writeJson(w, http.StatusBadRequest, schema.ErrorResponse{
+		writeJson(w, logger, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": err.Error(),
@@ -262,7 +268,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Explain(w http.Response
 
 	response, err := s.connector.Explain(execCtx, s.configuration, s.state, &body)
 	if err != nil {
-		status := writeError(w, err)
+		status := writeError(w, logger, err)
 		statusAttributes := []attribute.KeyValue{
 			attribute.String("status", "failed"),
 			attribute.String("reason", fmt.Sprintf("%d", status)),
@@ -276,7 +282,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Explain(w http.Response
 	statusAttribute := attribute.String("status", "success")
 	span.SetAttributes(statusAttribute)
 	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
-	writeJson(w, http.StatusOK, response)
+	writeJson(w, logger, http.StatusOK, response)
 	responseSpan.End()
 	s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
 
@@ -286,6 +292,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Explain(w http.Response
 
 func (s *Server[RawConfiguration, Configuration, State]) Mutation(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
+	logger := GetLogger(r.Context())
 	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Mutation", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 
@@ -293,7 +300,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Mutation(w http.Respons
 	defer decodeSpan.End()
 	var body schema.MutationRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		writeJson(w, http.StatusBadRequest, schema.ErrorResponse{
+		writeJson(w, logger, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": err.Error(),
@@ -314,7 +321,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Mutation(w http.Respons
 	defer execSpan.End()
 	response, err := s.connector.Mutation(execCtx, s.configuration, s.state, &body)
 	if err != nil {
-		status := writeError(w, err)
+		status := writeError(w, logger, err)
 		attributes := []attribute.KeyValue{
 			attribute.String("status", "failed"),
 			attribute.String("reason", fmt.Sprintf("%d", status)),
@@ -328,7 +335,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Mutation(w http.Respons
 	attributes := attribute.String("status", "success")
 	span.SetAttributes(attributes)
 	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
-	writeJson(w, http.StatusOK, response)
+	writeJson(w, logger, http.StatusOK, response)
 	responseSpan.End()
 
 	s.telemetry.mutationCounter.Add(r.Context(), 1, metric.WithAttributes(attributes))
@@ -354,7 +361,11 @@ func (s *Server[RawConfiguration, Configuration, State]) buildHandler() *http.Se
 // You can also replace this method with any router or web framework that is compatible with net/http.
 func (s *Server[RawConfiguration, Configuration, State]) ListenAndServe(port uint) error {
 	defer s.stop()
-	defer s.telemetry.Shutdown(context.Background())
+	defer func() {
+		if err := s.telemetry.Shutdown(context.Background()); err != nil {
+			s.logger.Error().Err(err).Msg("failed to shutdown OpenTelemetry")
+		}
+	}()
 
 	server := http.Server{
 		Addr: fmt.Sprintf(":%d", port),

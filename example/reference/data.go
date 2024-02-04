@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"encoding/csv"
 	"io"
 	"sort"
@@ -8,8 +9,14 @@ import (
 	"strings"
 )
 
+//go:embed articles.csv
+var csvArticles string
+
+//go:embed authors.csv
+var csvAuthors string
+
 func readAuthors() (map[int]Author, error) {
-	r := csv.NewReader(strings.NewReader(csvArticles))
+	r := csv.NewReader(strings.NewReader(csvAuthors))
 	results := make(map[int]Author)
 	// skip the title row
 	_, err := r.Read()

@@ -31,7 +31,7 @@ func TestConfigurationServer(t *testing.T) {
 	})
 
 	t.Run("GET /", func(t *testing.T) {
-		res, err := http.Get(fmt.Sprintf("%s", httpServer.URL))
+		res, err := http.Get(httpServer.URL)
 		if err != nil {
 			t.Errorf("GET /: expected no error, got %s", err)
 			t.FailNow()
@@ -55,7 +55,7 @@ func TestConfigurationServer(t *testing.T) {
 	})
 
 	t.Run("POST / - json decode failure", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s", httpServer.URL), "")
+		res, err := httpPostJSON(httpServer.URL, "")
 		if err != nil {
 			t.Errorf("POST /: expected no error, got %s", err)
 			t.FailNow()

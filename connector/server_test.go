@@ -198,7 +198,7 @@ func (mc *mockConnector) Query(ctx context.Context, configuration *mockConfigura
 
 // buildTestServer builds the http test server for testing purpose
 func buildTestServer(s *Server[mockRawConfiguration, mockConfiguration, mockState]) *httptest.Server {
-	s.telemetry.Shutdown(context.Background())
+	_ = s.telemetry.Shutdown(context.Background())
 	return httptest.NewServer(s.buildHandler())
 }
 
@@ -326,7 +326,11 @@ func TestNewServer(t *testing.T) {
 			t.FailNow()
 		}
 
-		go s.ListenAndServe(18080)
+		go func() {
+			if err := s.ListenAndServe(18080); err != nil {
+				t.Errorf("error happened when running http server: %s", err)
+			}
+		}()
 		time.Sleep(2 * time.Second)
 		s.stop()
 	})

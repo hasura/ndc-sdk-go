@@ -77,6 +77,9 @@ func setupOTelSDK(ctx context.Context, serverOptions *ServerOptions, serviceVers
 			}
 
 			traceExporter, err = otlptracegrpc.New(ctx, options...)
+			if err != nil {
+				return nil, err
+			}
 		} else {
 			// Set up trace exporter.
 			endpointURL, err := url.Parse(tracesEndpoint)
@@ -93,9 +96,9 @@ func setupOTelSDK(ctx context.Context, serverOptions *ServerOptions, serviceVers
 			}
 
 			traceExporter, err = otlptracehttp.New(ctx, options...)
-		}
-		if err != nil {
-			return nil, err
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		traceProvider = trace.NewTracerProvider(
