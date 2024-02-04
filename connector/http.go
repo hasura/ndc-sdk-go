@@ -15,10 +15,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type serverContextKey string
+
 const (
-	logContextKey     = "hasura-log"
-	headerContentType = "Content-Type"
-	contentTypeJson   = "application/json"
+	logContextKey     serverContextKey = "hasura-log"
+	headerContentType string           = "Content-Type"
+	contentTypeJson   string           = "application/json"
 )
 
 // define a custom response write to capture response information for logging
@@ -87,7 +89,7 @@ func (rt *router) Build() *http.ServeMux {
 						Str("stacktrace", string(debug.Stack())).
 						Msg("internal server error")
 
-					writeJson(w, http.StatusInternalServerError, schema.ErrorResponse{
+					writeJson(w, rt.logger, http.StatusInternalServerError, schema.ErrorResponse{
 						Message: "internal server error",
 						Details: map[string]any{
 							"cause": err,
@@ -118,7 +120,7 @@ func (rt *router) Build() *http.ServeMux {
 					err := schema.ErrorResponse{
 						Message: fmt.Sprintf("Invalid content type %s, accept %s only", contentType, contentTypeJson),
 					}
-					writeJson(w, http.StatusBadRequest, err)
+					writeJson(w, rt.logger, http.StatusBadRequest, err)
 
 					rt.logger.Error().
 						Str("request_id", requestID).
@@ -179,7 +181,7 @@ func getRequestID(r *http.Request) string {
 }
 
 // writeJson writes response data with json encode
-func writeJson(w http.ResponseWriter, statusCode int, body any) {
+func writeJson(w http.ResponseWriter, logger zerolog.Logger, statusCode int, body any) {
 	if body == nil {
 		w.WriteHeader(statusCode)
 		return
@@ -189,11 +191,15 @@ func writeJson(w http.ResponseWriter, statusCode int, body any) {
 	jsonBytes, err := json.Marshal(body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(fmt.Sprintf(`{"message": "%s"}`, http.StatusText(http.StatusInternalServerError))))
+		if _, err := w.Write([]byte(fmt.Sprintf(`{"message": "%s"}`, http.StatusText(http.StatusInternalServerError)))); err != nil {
+			logger.Error().Err(err).Msg("failed to write response")
+		}
 		return
 	}
 	w.WriteHeader(statusCode)
-	w.Write(jsonBytes)
+	if _, err := w.Write(jsonBytes); err != nil {
+		logger.Error().Err(err).Msg("failed to write response")
+	}
 }
 
 // GetLogger gets the logger instance from context
@@ -208,28 +214,28 @@ func GetLogger(ctx context.Context) zerolog.Logger {
 	return log.Level(zerolog.GlobalLevel())
 }
 
-func writeError(w http.ResponseWriter, err error) int {
+func writeError(w http.ResponseWriter, logger zerolog.Logger, err error) int {
 	w.Header().Add("Content-Type", "application/json")
 
 	var connectorErrorPtr *schema.ConnectorError
 	if errors.As(err, &connectorErrorPtr) {
-		writeJson(w, connectorErrorPtr.StatusCode(), connectorErrorPtr)
+		writeJson(w, logger, connectorErrorPtr.StatusCode(), connectorErrorPtr)
 		return connectorErrorPtr.StatusCode()
 	}
 
 	var errorResponse schema.ErrorResponse
 	if errors.As(err, &errorResponse) {
-		writeJson(w, http.StatusBadRequest, errorResponse)
+		writeJson(w, logger, http.StatusBadRequest, errorResponse)
 		return http.StatusBadRequest
 	}
 
 	var errorResponsePtr *schema.ErrorResponse
 	if errors.As(err, &errorResponsePtr) {
-		writeJson(w, http.StatusBadRequest, errorResponsePtr)
+		writeJson(w, logger, http.StatusBadRequest, errorResponsePtr)
 		return http.StatusBadRequest
 	}
 
-	writeJson(w, http.StatusBadRequest, schema.ErrorResponse{
+	writeJson(w, logger, http.StatusBadRequest, schema.ErrorResponse{
 		Message: err.Error(),
 	})
 
