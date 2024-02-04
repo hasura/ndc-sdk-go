@@ -178,11 +178,11 @@ func (mc *mockConnector) Mutation(ctx context.Context, configuration *mockConfig
 		OperationResults: results,
 	}, nil
 }
-func (mc *mockConnector) Query(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.QueryRequest) (*schema.QueryResponse, error) {
+func (mc *mockConnector) Query(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.QueryRequest) (schema.QueryResponse, error) {
 	if request.Collection != "articles" {
 		return nil, schema.BadRequestError(fmt.Sprintf("collection not found: %s", request.Collection), nil)
 	}
-	return &schema.QueryResponse{
+	return schema.QueryResponse{
 		{
 			Aggregates: schema.RowSetAggregates{},
 			Rows: []schema.Row{

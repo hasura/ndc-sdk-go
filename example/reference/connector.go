@@ -237,7 +237,7 @@ func (mc *Connector) Explain(ctx context.Context, configuration *Configuration, 
 	}, nil
 }
 
-func (mc *Connector) Query(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (*schema.QueryResponse, error) {
+func (mc *Connector) Query(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (schema.QueryResponse, error) {
 	var rows []schema.Row
 	switch request.Collection {
 	case "articles":
@@ -278,7 +278,7 @@ func (mc *Connector) Query(ctx context.Context, configuration *Configuration, st
 		return nil, schema.BadRequestError(fmt.Sprintf("invalid collection name %s", request.Collection), nil)
 	}
 
-	return &schema.QueryResponse{
+	return schema.QueryResponse{
 		{
 			Rows:       rows,
 			Aggregates: schema.RowSetAggregates{},
