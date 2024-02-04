@@ -178,11 +178,11 @@ func (mc *mockConnector) Mutation(ctx context.Context, configuration *mockConfig
 		OperationResults: results,
 	}, nil
 }
-func (mc *mockConnector) Query(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.QueryRequest) (*schema.QueryResponse, error) {
+func (mc *mockConnector) Query(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.QueryRequest) (schema.QueryResponse, error) {
 	if request.Collection != "articles" {
 		return nil, schema.BadRequestError(fmt.Sprintf("collection not found: %s", request.Collection), nil)
 	}
-	return &schema.QueryResponse{
+	return schema.QueryResponse{
 		{
 			Aggregates: schema.RowSetAggregates{},
 			Rows: []schema.Row{
@@ -198,7 +198,7 @@ func (mc *mockConnector) Query(ctx context.Context, configuration *mockConfigura
 
 // buildTestServer builds the http test server for testing purpose
 func buildTestServer(s *Server[mockRawConfiguration, mockConfiguration, mockState]) *httptest.Server {
-	s.telemetry.Shutdown(context.Background())
+	_ = s.telemetry.Shutdown(context.Background())
 	return httptest.NewServer(s.buildHandler())
 }
 
@@ -326,7 +326,11 @@ func TestNewServer(t *testing.T) {
 			t.FailNow()
 		}
 
-		go s.ListenAndServe(18080)
+		go func() {
+			if err := s.ListenAndServe(18080); err != nil {
+				t.Errorf("error happened when running http server: %s", err)
+			}
+		}()
 		time.Sleep(2 * time.Second)
 		s.stop()
 	})

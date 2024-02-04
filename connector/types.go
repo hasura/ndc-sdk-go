@@ -85,7 +85,7 @@ type Connector[RawConfiguration any, Configuration any, State any] interface {
 	// This function implements the [query endpoint] from the NDC specification.
 	//
 	// [query endpoint]: https://hasura.github.io/ndc-spec/specification/queries/index.html
-	Query(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (*schema.QueryResponse, error)
+	Query(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (schema.QueryResponse, error)
 }
 
 // the common serve options for the server
