@@ -222,10 +222,8 @@ func TestSchemaResponse(t *testing.T) {
 	} else if len(stringScalar.AggregateFunctions) != 0 {
 		t.Errorf("Int scalar in SchemaResponse: expected no aggregate function, got: %+v", stringScalar.AggregateFunctions)
 		t.FailNow()
-	} else if !internal.DeepEqual(stringScalar.ComparisonOperators, ScalarTypeComparisonOperators{
-		"like": ComparisonOperatorDefinition{
-			ArgumentType: NewNamedType("String").Encode(),
-		},
+	} else if !internal.DeepEqual(stringScalar.ComparisonOperators, map[string]ComparisonOperatorDefinition{
+		"like": NewComparisonOperatorCustom(NewNamedType("String")).Encode(),
 	}) {
 		t.Errorf("String scalar in SchemaResponse: expected equal comparison operators; %+v", stringScalar.ComparisonOperators)
 		t.FailNow()
@@ -437,8 +435,8 @@ func TestQueryRequest(t *testing.T) {
 				Collection: "authors",
 				Query: Query{
 					Fields: QueryFields{
-						"first_name": NewColumnField("first_name").Encode(),
-						"last_name":  NewColumnField("last_name").Encode(),
+						"first_name": NewColumnField("first_name", nil).Encode(),
+						"last_name":  NewColumnField("last_name", nil).Encode(),
 						"articles": NewRelationshipField(
 							Query{
 								Aggregates: QueryAggregates{

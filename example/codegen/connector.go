@@ -40,7 +40,7 @@ func (mc *Connector) HealthCheck(ctx context.Context, configuration *Configurati
 
 func (mc *Connector) GetCapabilities(configuration *Configuration) *schema.CapabilitiesResponse {
 	return &schema.CapabilitiesResponse{
-		Versions: "^0.1.0",
+		Version: "^0.1.0",
 		Capabilities: schema.Capabilities{
 			Query: schema.QueryCapabilities{
 				Variables: schema.LeafCapability{},
@@ -49,6 +49,10 @@ func (mc *Connector) GetCapabilities(configuration *Configuration) *schema.Capab
 	}
 }
 
-func (mc *Connector) Explain(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (*schema.ExplainResponse, error) {
-	return nil, schema.NotSupportedError("explain has not been supported yet", nil)
+func (mc *Connector) QueryExplain(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (*schema.ExplainResponse, error) {
+	return nil, schema.NotSupportedError("query explain has not been supported yet", nil)
+}
+
+func (mc *Connector) MutationExplain(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest) (*schema.ExplainResponse, error) {
+	return nil, schema.NotSupportedError("mutation explain has not been supported yet", nil)
 }

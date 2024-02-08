@@ -85,7 +85,7 @@ func (mc *Connector) HealthCheck(ctx context.Context, configuration *Configurati
 
 func (mc *Connector) GetCapabilities(configuration *Configuration) *schema.CapabilitiesResponse {
 	return &schema.CapabilitiesResponse{
-		Versions: "^0.1.0",
+		Version: "^0.1.0",
 		Capabilities: schema.Capabilities{
 			Query: schema.QueryCapabilities{
 				Aggregates: schema.LeafCapability{},
@@ -104,10 +104,8 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 		ScalarTypes: schema.SchemaResponseScalarTypes{
 			"String": schema.ScalarType{
 				AggregateFunctions: schema.ScalarTypeAggregateFunctions{},
-				ComparisonOperators: schema.ScalarTypeComparisonOperators{
-					"like": schema.ComparisonOperatorDefinition{
-						ArgumentType: schema.NewNamedType("String").Encode(),
-					},
+				ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
+					"like": schema.NewComparisonOperatorCustom(schema.NewNamedType("String")).Encode(),
 				},
 			},
 			"Int": schema.ScalarType{
@@ -224,7 +222,13 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 	}, nil
 }
 
-func (mc *Connector) Explain(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (*schema.ExplainResponse, error) {
+func (mc *Connector) QueryExplain(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (*schema.ExplainResponse, error) {
+	return &schema.ExplainResponse{
+		Details: schema.ExplainResponseDetails{},
+	}, nil
+}
+
+func (mc *Connector) MutationExplain(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest) (*schema.ExplainResponse, error) {
 	return &schema.ExplainResponse{
 		Details: schema.ExplainResponseDetails{},
 	}, nil

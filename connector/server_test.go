@@ -31,7 +31,7 @@ type mockState struct{}
 type mockConnector struct{}
 
 var mockCapabilities = schema.CapabilitiesResponse{
-	Versions: "^0.1.0",
+	Version: "^0.1.0",
 	Capabilities: schema.Capabilities{
 		Query: schema.QueryCapabilities{
 			Aggregates: schema.LeafCapability{},
@@ -48,10 +48,8 @@ var mockSchema = schema.SchemaResponse{
 	ScalarTypes: schema.SchemaResponseScalarTypes{
 		"String": schema.ScalarType{
 			AggregateFunctions: schema.ScalarTypeAggregateFunctions{},
-			ComparisonOperators: schema.ScalarTypeComparisonOperators{
-				"like": schema.ComparisonOperatorDefinition{
-					ArgumentType: schema.NewNamedType("String").Encode(),
-				},
+			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
+				"like": schema.NewComparisonOperatorCustom(schema.NewNamedType("String")).Encode(),
 			},
 		},
 		"Int": schema.ScalarType{
@@ -63,7 +61,7 @@ var mockSchema = schema.SchemaResponse{
 					ResultType: schema.NewNullableNamedType("Int").Encode(),
 				},
 			},
-			ComparisonOperators: schema.ScalarTypeComparisonOperators{},
+			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 		},
 	},
 	ObjectTypes: schema.SchemaResponseObjectTypes{
@@ -157,7 +155,13 @@ func (mc *mockConnector) GetCapabilities(configuration *mockConfiguration) *sche
 func (mc *mockConnector) GetSchema(configuration *mockConfiguration) (*schema.SchemaResponse, error) {
 	return &mockSchema, nil
 }
-func (mc *mockConnector) Explain(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.QueryRequest) (*schema.ExplainResponse, error) {
+func (mc *mockConnector) QueryExplain(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.QueryRequest) (*schema.ExplainResponse, error) {
+	return &schema.ExplainResponse{
+		Details: schema.ExplainResponseDetails{},
+	}, nil
+}
+
+func (mc *mockConnector) MutationExplain(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.MutationRequest) (*schema.ExplainResponse, error) {
 	return &schema.ExplainResponse{
 		Details: schema.ExplainResponseDetails{},
 	}, nil

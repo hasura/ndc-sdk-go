@@ -20,14 +20,10 @@ type ArgumentInfo struct {
 	Type Type `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-type BinaryArrayComparisonOperator string
-
-const BinaryArrayComparisonOperatorIn BinaryArrayComparisonOperator = "in"
-
 // Describes the features of the specification which a data connector implements.
 type Capabilities struct {
-	// Explain corresponds to the JSON schema field "explain".
-	Explain interface{} `json:"explain,omitempty" yaml:"explain,omitempty" mapstructure:"explain,omitempty"`
+	// Mutation corresponds to the JSON schema field "mutation".
+	Mutation MutationCapabilities `json:"mutation" yaml:"mutation" mapstructure:"mutation"`
 
 	// Query corresponds to the JSON schema field "query".
 	Query QueryCapabilities `json:"query" yaml:"query" mapstructure:"query"`
@@ -40,8 +36,8 @@ type CapabilitiesResponse struct {
 	// Capabilities corresponds to the JSON schema field "capabilities".
 	Capabilities Capabilities `json:"capabilities" yaml:"capabilities" mapstructure:"capabilities"`
 
-	// Versions corresponds to the JSON schema field "versions".
-	Versions string `json:"versions" yaml:"versions" mapstructure:"versions"`
+	// Version corresponds to the JSON schema field "version".
+	Version string `json:"version" yaml:"version" mapstructure:"version"`
 }
 
 type CollectionInfo struct {
@@ -77,10 +73,6 @@ type CollectionInfoForeignKeys map[string]ForeignKeyConstraint
 type CollectionInfoUniquenessConstraints map[string]UniquenessConstraint
 
 // The definition of a comparison operator on a scalar type
-type ComparisonOperatorDefinition struct {
-	// The type of the argument to this operator
-	ArgumentType Type `json:"argument_type" yaml:"argument_type" mapstructure:"argument_type"`
-}
 
 type ErrorResponse struct {
 	// Any additional structured information about the error
@@ -135,6 +127,14 @@ type FunctionInfoArguments map[string]ArgumentInfo
 // A unit value to indicate a particular leaf capability is supported. This is an
 // empty struct to allow for future sub-capabilities.
 type LeafCapability map[string]interface{}
+
+type MutationCapabilities struct {
+	// Does the connector support explaining mutations
+	Explain interface{} `json:"explain,omitempty" yaml:"explain,omitempty" mapstructure:"explain,omitempty"`
+
+	// Does the connector support executing multiple mutations in a transaction.
+	Transactional interface{} `json:"transactional,omitempty" yaml:"transactional,omitempty" mapstructure:"transactional,omitempty"`
+}
 
 type MutationOperationResults struct {
 	// The number of rows affected by the mutation operation
@@ -204,7 +204,7 @@ type PathElement struct {
 	Arguments PathElementArguments `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 
 	// A predicate expression to apply to the target collection
-	Predicate Expression `json:"predicate" yaml:"predicate" mapstructure:"predicate"`
+	Predicate Expression `json:"predicate,omitempty" yaml:"predicate,omitempty" mapstructure:"predicate,omitempty"`
 
 	// The name of the relationship to follow
 	Relationship string `json:"relationship" yaml:"relationship" mapstructure:"relationship"`
@@ -246,8 +246,8 @@ type Query struct {
 	// OrderBy corresponds to the JSON schema field "order_by".
 	OrderBy *OrderBy `json:"order_by,omitempty" yaml:"order_by,omitempty" mapstructure:"order_by,omitempty"`
 
-	// Where corresponds to the JSON schema field "where".
-	Where Expression `json:"where,omitempty" yaml:"where,omitempty" mapstructure:"where,omitempty"`
+	// Predicate corresponds to the JSON schema field "predicate".
+	Predicate Expression `json:"predicate,omitempty" yaml:"predicate,omitempty" mapstructure:"predicate,omitempty"`
 }
 
 // Aggregate fields of the query
@@ -256,6 +256,9 @@ type QueryAggregates map[string]Aggregate
 type QueryCapabilities struct {
 	// Does the connector support aggregate queries
 	Aggregates interface{} `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
+
+	// Does the connector support explaining queries
+	Explain interface{} `json:"explain,omitempty" yaml:"explain,omitempty" mapstructure:"explain,omitempty"`
 
 	// Does the connector support queries which use variables
 	Variables interface{} `json:"variables,omitempty" yaml:"variables,omitempty" mapstructure:"variables,omitempty"`
@@ -328,64 +331,103 @@ type RelationshipColumnMapping map[string]string
 
 type RelationshipType string
 
-const RelationshipTypeArray RelationshipType = "array"
-const RelationshipTypeObject RelationshipType = "object"
-
-type RowFieldValue interface{}
-
-type RowSet struct {
-	// The results of the aggregates returned by the query
-	Aggregates RowSetAggregates `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
-
-	// The rows returned by the query, corresponding to the query's fields
-	Rows []Row `json:"rows,omitempty" yaml:"rows,omitempty" mapstructure:"rows,omitempty"`
-}
-
-// The results of the aggregates returned by the query
-type RowSetAggregates map[string]interface{}
-
-type Row any
-
-// The definition of a scalar type, i.e. types that can be used as the types of
-// columns.
-type ScalarType struct {
-	// A map from aggregate function names to their definitions. Result type names
-	// must be defined scalar types declared in ScalarTypesCapabilities.
-	AggregateFunctions ScalarTypeAggregateFunctions `json:"aggregate_functions" yaml:"aggregate_functions" mapstructure:"aggregate_functions"`
-
-	// A map from comparison operator names to their definitions. Argument type names
-	// must be defined scalar types declared in ScalarTypesCapabilities.
-	ComparisonOperators ScalarTypeComparisonOperators `json:"comparison_operators" yaml:"comparison_operators" mapstructure:"comparison_operators"`
-}
-
-// A map from aggregate function names to their definitions. Result type names must
-// be defined scalar types declared in ScalarTypesCapabilities.
-type ScalarTypeAggregateFunctions map[string]AggregateFunctionDefinition
-
-// A map from comparison operator names to their definitions. Argument type names
-// must be defined scalar types declared in ScalarTypesCapabilities.
-type ScalarTypeComparisonOperators map[string]ComparisonOperatorDefinition
-
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *MutationRequest) UnmarshalJSON(b []byte) error {
+func (j *QueryRequest) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
+	if v, ok := raw["arguments"]; !ok || v == nil {
+		return fmt.Errorf("field arguments in QueryRequest: required")
+	}
+	if v, ok := raw["collection"]; !ok || v == nil {
+		return fmt.Errorf("field collection in QueryRequest: required")
+	}
 	if v, ok := raw["collection_relationships"]; !ok || v == nil {
-		return fmt.Errorf("field collection_relationships in MutationRequest: required")
+		return fmt.Errorf("field collection_relationships in QueryRequest: required")
 	}
-	if v, ok := raw["operations"]; !ok || v == nil {
-		return fmt.Errorf("field operations in MutationRequest: required")
+	if v, ok := raw["query"]; !ok || v == nil {
+		return fmt.Errorf("field query in QueryRequest: required")
 	}
-	type Plain MutationRequest
+	type Plain QueryRequest
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	*j = MutationRequest(plain)
+	*j = QueryRequest(plain)
 	return nil
 }
+
+var enumValues_OrderDirection = []interface{}{
+	"asc",
+	"desc",
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *OrderDirection) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	var ok bool
+	for _, expected := range enumValues_OrderDirection {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_OrderDirection, v)
+	}
+	*j = OrderDirection(v)
+	return nil
+}
+
+var enumValues_RelationshipType = []interface{}{
+	"object",
+	"array",
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Capabilities) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if v, ok := raw["mutation"]; !ok || v == nil {
+		return fmt.Errorf("field mutation in Capabilities: required")
+	}
+	if v, ok := raw["query"]; !ok || v == nil {
+		return fmt.Errorf("field query in Capabilities: required")
+	}
+	type Plain Capabilities
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = Capabilities(plain)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *ObjectType) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if v, ok := raw["fields"]; !ok || v == nil {
+		return fmt.Errorf("field fields in ObjectType: required")
+	}
+	type Plain ObjectType
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = ObjectType(plain)
+	return nil
+}
+
+const RelationshipTypeObject RelationshipType = "object"
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *OrderByElement) UnmarshalJSON(b []byte) error {
@@ -409,23 +451,20 @@ func (j *OrderByElement) UnmarshalJSON(b []byte) error {
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *ErrorResponse) UnmarshalJSON(b []byte) error {
+func (j *MutationOperationResults) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-	if v, ok := raw["details"]; !ok || v == nil {
-		return fmt.Errorf("field details in ErrorResponse: required")
+	if v, ok := raw["affected_rows"]; !ok || v == nil {
+		return fmt.Errorf("field affected_rows in MutationOperationResults: required")
 	}
-	if v, ok := raw["message"]; !ok || v == nil {
-		return fmt.Errorf("field message in ErrorResponse: required")
-	}
-	type Plain ErrorResponse
+	type Plain MutationOperationResults
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	*j = ErrorResponse(plain)
+	*j = MutationOperationResults(plain)
 	return nil
 }
 
@@ -448,181 +487,6 @@ func (j *OrderBy) UnmarshalJSON(b []byte) error {
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *ArgumentInfo) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["type"]; !ok || v == nil {
-		return fmt.Errorf("field type in ArgumentInfo: required")
-	}
-	type Plain ArgumentInfo
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = ArgumentInfo(plain)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *RelationshipType) UnmarshalJSON(b []byte) error {
-	var v string
-	if err := json.Unmarshal(b, &v); err != nil {
-		return err
-	}
-	var ok bool
-	for _, expected := range enumValues_RelationshipType {
-		if reflect.DeepEqual(v, expected) {
-			ok = true
-			break
-		}
-	}
-	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_RelationshipType, v)
-	}
-	*j = RelationshipType(v)
-	return nil
-}
-
-var enumValues_RelationshipType = []interface{}{
-	"object",
-	"array",
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *PathElement) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["arguments"]; !ok || v == nil {
-		return fmt.Errorf("field arguments in PathElement: required")
-	}
-	if v, ok := raw["predicate"]; !ok || v == nil {
-		return fmt.Errorf("field predicate in PathElement: required")
-	}
-	if v, ok := raw["relationship"]; !ok || v == nil {
-		return fmt.Errorf("field relationship in PathElement: required")
-	}
-	type Plain PathElement
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = PathElement(plain)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *MutationOperationResults) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["affected_rows"]; !ok || v == nil {
-		return fmt.Errorf("field affected_rows in MutationOperationResults: required")
-	}
-	type Plain MutationOperationResults
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = MutationOperationResults(plain)
-	return nil
-}
-
-var enumValues_BinaryArrayComparisonOperator = []interface{}{
-	"in",
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *ProcedureInfo) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["arguments"]; !ok || v == nil {
-		return fmt.Errorf("field arguments in ProcedureInfo: required")
-	}
-	if v, ok := raw["name"]; !ok || v == nil {
-		return fmt.Errorf("field name in ProcedureInfo: required")
-	}
-	if v, ok := raw["result_type"]; !ok || v == nil {
-		return fmt.Errorf("field result_type in ProcedureInfo: required")
-	}
-	type Plain ProcedureInfo
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = ProcedureInfo(plain)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *BinaryArrayComparisonOperator) UnmarshalJSON(b []byte) error {
-	var v string
-	if err := json.Unmarshal(b, &v); err != nil {
-		return err
-	}
-	var ok bool
-	for _, expected := range enumValues_BinaryArrayComparisonOperator {
-		if reflect.DeepEqual(v, expected) {
-			ok = true
-			break
-		}
-	}
-	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_BinaryArrayComparisonOperator, v)
-	}
-	*j = BinaryArrayComparisonOperator(v)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Capabilities) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["query"]; !ok || v == nil {
-		return fmt.Errorf("field query in Capabilities: required")
-	}
-	type Plain Capabilities
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = Capabilities(plain)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *FunctionInfo) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["arguments"]; !ok || v == nil {
-		return fmt.Errorf("field arguments in FunctionInfo: required")
-	}
-	if v, ok := raw["name"]; !ok || v == nil {
-		return fmt.Errorf("field name in FunctionInfo: required")
-	}
-	if v, ok := raw["result_type"]; !ok || v == nil {
-		return fmt.Errorf("field result_type in FunctionInfo: required")
-	}
-	type Plain FunctionInfo
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = FunctionInfo(plain)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
 func (j *CapabilitiesResponse) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
@@ -631,8 +495,8 @@ func (j *CapabilitiesResponse) UnmarshalJSON(b []byte) error {
 	if v, ok := raw["capabilities"]; !ok || v == nil {
 		return fmt.Errorf("field capabilities in CapabilitiesResponse: required")
 	}
-	if v, ok := raw["versions"]; !ok || v == nil {
-		return fmt.Errorf("field versions in CapabilitiesResponse: required")
+	if v, ok := raw["version"]; !ok || v == nil {
+		return fmt.Errorf("field version in CapabilitiesResponse: required")
 	}
 	type Plain CapabilitiesResponse
 	var plain Plain
@@ -670,6 +534,27 @@ type UniquenessConstraint struct {
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
+func (j *PathElement) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if v, ok := raw["arguments"]; !ok || v == nil {
+		return fmt.Errorf("field arguments in PathElement: required")
+	}
+	if v, ok := raw["relationship"]; !ok || v == nil {
+		return fmt.Errorf("field relationship in PathElement: required")
+	}
+	type Plain PathElement
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = PathElement(plain)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
 func (j *UniquenessConstraint) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
@@ -688,112 +573,50 @@ func (j *UniquenessConstraint) UnmarshalJSON(b []byte) error {
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *QueryRequest) UnmarshalJSON(b []byte) error {
+func (j *FunctionInfo) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
 	if v, ok := raw["arguments"]; !ok || v == nil {
-		return fmt.Errorf("field arguments in QueryRequest: required")
+		return fmt.Errorf("field arguments in FunctionInfo: required")
 	}
-	if v, ok := raw["collection"]; !ok || v == nil {
-		return fmt.Errorf("field collection in QueryRequest: required")
-	}
-	if v, ok := raw["collection_relationships"]; !ok || v == nil {
-		return fmt.Errorf("field collection_relationships in QueryRequest: required")
-	}
-	if v, ok := raw["query"]; !ok || v == nil {
-		return fmt.Errorf("field query in QueryRequest: required")
-	}
-	type Plain QueryRequest
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = QueryRequest(plain)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *AggregateFunctionDefinition) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
+	if v, ok := raw["name"]; !ok || v == nil {
+		return fmt.Errorf("field name in FunctionInfo: required")
 	}
 	if v, ok := raw["result_type"]; !ok || v == nil {
-		return fmt.Errorf("field result_type in AggregateFunctionDefinition: required")
+		return fmt.Errorf("field result_type in FunctionInfo: required")
 	}
-	type Plain AggregateFunctionDefinition
+	type Plain FunctionInfo
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	*j = AggregateFunctionDefinition(plain)
+	*j = FunctionInfo(plain)
 	return nil
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *Relationship) UnmarshalJSON(b []byte) error {
+func (j *ProcedureInfo) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
 	if v, ok := raw["arguments"]; !ok || v == nil {
-		return fmt.Errorf("field arguments in Relationship: required")
+		return fmt.Errorf("field arguments in ProcedureInfo: required")
 	}
-	if v, ok := raw["column_mapping"]; !ok || v == nil {
-		return fmt.Errorf("field column_mapping in Relationship: required")
+	if v, ok := raw["name"]; !ok || v == nil {
+		return fmt.Errorf("field name in ProcedureInfo: required")
 	}
-	if v, ok := raw["relationship_type"]; !ok || v == nil {
-		return fmt.Errorf("field relationship_type in Relationship: required")
+	if v, ok := raw["result_type"]; !ok || v == nil {
+		return fmt.Errorf("field result_type in ProcedureInfo: required")
 	}
-	if v, ok := raw["target_collection"]; !ok || v == nil {
-		return fmt.Errorf("field target_collection in Relationship: required")
-	}
-	type Plain Relationship
+	type Plain ProcedureInfo
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	*j = Relationship(plain)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *OrderDirection) UnmarshalJSON(b []byte) error {
-	var v string
-	if err := json.Unmarshal(b, &v); err != nil {
-		return err
-	}
-	var ok bool
-	for _, expected := range enumValues_OrderDirection {
-		if reflect.DeepEqual(v, expected) {
-			ok = true
-			break
-		}
-	}
-	if !ok {
-		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_OrderDirection, v)
-	}
-	*j = OrderDirection(v)
-	return nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *ExplainResponse) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["details"]; !ok || v == nil {
-		return fmt.Errorf("field details in ExplainResponse: required")
-	}
-	type Plain ExplainResponse
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = ExplainResponse(plain)
+	*j = ProcedureInfo(plain)
 	return nil
 }
 
@@ -827,44 +650,26 @@ func (j *CollectionInfo) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+const RelationshipTypeArray RelationshipType = "array"
+
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *ComparisonOperatorDefinition) UnmarshalJSON(b []byte) error {
+func (j *ErrorResponse) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-	if v, ok := raw["argument_type"]; !ok || v == nil {
-		return fmt.Errorf("field argument_type in ComparisonOperatorDefinition: required")
+	if v, ok := raw["details"]; !ok || v == nil {
+		return fmt.Errorf("field details in ErrorResponse: required")
 	}
-	type Plain ComparisonOperatorDefinition
+	if v, ok := raw["message"]; !ok || v == nil {
+		return fmt.Errorf("field message in ErrorResponse: required")
+	}
+	type Plain ErrorResponse
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	*j = ComparisonOperatorDefinition(plain)
-	return nil
-}
-
-var enumValues_OrderDirection = []interface{}{
-	"asc",
-	"desc",
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *MutationResponse) UnmarshalJSON(b []byte) error {
-	var raw map[string]interface{}
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	if v, ok := raw["operation_results"]; !ok || v == nil {
-		return fmt.Errorf("field operation_results in MutationResponse: required")
-	}
-	type Plain MutationResponse
-	var plain Plain
-	if err := json.Unmarshal(b, &plain); err != nil {
-		return err
-	}
-	*j = MutationResponse(plain)
+	*j = ErrorResponse(plain)
 	return nil
 }
 
@@ -887,21 +692,177 @@ func (j *ObjectField) UnmarshalJSON(b []byte) error {
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *ObjectType) UnmarshalJSON(b []byte) error {
+func (j *Relationship) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-	if v, ok := raw["fields"]; !ok || v == nil {
-		return fmt.Errorf("field fields in ObjectType: required")
+	if v, ok := raw["arguments"]; !ok || v == nil {
+		return fmt.Errorf("field arguments in Relationship: required")
 	}
-	type Plain ObjectType
+	if v, ok := raw["column_mapping"]; !ok || v == nil {
+		return fmt.Errorf("field column_mapping in Relationship: required")
+	}
+	if v, ok := raw["relationship_type"]; !ok || v == nil {
+		return fmt.Errorf("field relationship_type in Relationship: required")
+	}
+	if v, ok := raw["target_collection"]; !ok || v == nil {
+		return fmt.Errorf("field target_collection in Relationship: required")
+	}
+	type Plain Relationship
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	*j = ObjectType(plain)
+	*j = Relationship(plain)
 	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *MutationResponse) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if v, ok := raw["operation_results"]; !ok || v == nil {
+		return fmt.Errorf("field operation_results in MutationResponse: required")
+	}
+	type Plain MutationResponse
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = MutationResponse(plain)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *AggregateFunctionDefinition) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if v, ok := raw["result_type"]; !ok || v == nil {
+		return fmt.Errorf("field result_type in AggregateFunctionDefinition: required")
+	}
+	type Plain AggregateFunctionDefinition
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = AggregateFunctionDefinition(plain)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationshipType) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	var ok bool
+	for _, expected := range enumValues_RelationshipType {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_RelationshipType, v)
+	}
+	*j = RelationshipType(v)
+	return nil
+}
+
+// The results of the aggregates returned by the query
+type RowSetAggregates map[string]interface{}
+
+type Row any
+
+type RowSet struct {
+	// The results of the aggregates returned by the query
+	Aggregates RowSetAggregates `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
+
+	// The rows returned by the query, corresponding to the query's fields
+	Rows []Row `json:"rows,omitempty" yaml:"rows,omitempty" mapstructure:"rows,omitempty"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *MutationRequest) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if v, ok := raw["collection_relationships"]; !ok || v == nil {
+		return fmt.Errorf("field collection_relationships in MutationRequest: required")
+	}
+	if v, ok := raw["operations"]; !ok || v == nil {
+		return fmt.Errorf("field operations in MutationRequest: required")
+	}
+	type Plain MutationRequest
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = MutationRequest(plain)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *ArgumentInfo) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if v, ok := raw["type"]; !ok || v == nil {
+		return fmt.Errorf("field type in ArgumentInfo: required")
+	}
+	type Plain ArgumentInfo
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = ArgumentInfo(plain)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *ExplainResponse) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if v, ok := raw["details"]; !ok || v == nil {
+		return fmt.Errorf("field details in ExplainResponse: required")
+	}
+	type Plain ExplainResponse
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = ExplainResponse(plain)
+	return nil
+}
+
+type RowFieldValue interface{}
+
+// A map from aggregate function names to their definitions. Result type names must
+// be defined scalar types declared in ScalarTypesCapabilities.
+type ScalarTypeAggregateFunctions map[string]AggregateFunctionDefinition
+
+// A map from comparison operator names to their definitions. Argument type names
+// must be defined scalar types declared in ScalarTypesCapabilities.
+
+// The definition of a scalar type, i.e. types that can be used as the types of
+// columns.
+type ScalarType struct {
+	// A map from aggregate function names to their definitions. Result type names
+	// must be defined scalar types declared in ScalarTypesCapabilities.
+	AggregateFunctions ScalarTypeAggregateFunctions `json:"aggregate_functions" yaml:"aggregate_functions" mapstructure:"aggregate_functions"`
+
+	// A map from comparison operator names to their definitions. Argument type names
+	// must be defined scalar types declared in ScalarTypesCapabilities.
+	ComparisonOperators map[string]ComparisonOperatorDefinition `json:"comparison_operators" yaml:"comparison_operators" mapstructure:"comparison_operators"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.

@@ -12,19 +12,19 @@ import (
 var defaultScalarTypes = schema.SchemaResponseScalarTypes{
 	"String": schema.ScalarType{
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		ComparisonOperators: schema.ScalarTypeComparisonOperators{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 	},
 	"Int": schema.ScalarType{
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		ComparisonOperators: schema.ScalarTypeComparisonOperators{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 	},
 	"Float": schema.ScalarType{
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		ComparisonOperators: schema.ScalarTypeComparisonOperators{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 	},
 	"Boolean": schema.ScalarType{
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		ComparisonOperators: schema.ScalarTypeComparisonOperators{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 	},
 }
 

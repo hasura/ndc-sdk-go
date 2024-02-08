@@ -17,15 +17,17 @@ var (
 type TypeEnum string
 
 const (
-	TypeNamed    TypeEnum = "named"
-	TypeNullable TypeEnum = "nullable"
-	TypeArray    TypeEnum = "array"
+	TypeNamed     TypeEnum = "named"
+	TypeNullable  TypeEnum = "nullable"
+	TypeArray     TypeEnum = "array"
+	TypePredicate TypeEnum = "predicate"
 )
 
 var enumValues_Type = []TypeEnum{
 	TypeNamed,
 	TypeNullable,
 	TypeArray,
+	TypePredicate,
 }
 
 // ParseTypeEnum parses a type enum from string
@@ -92,6 +94,9 @@ func (j *Type) UnmarshalJSON(b []byte) error {
 		if err := json.Unmarshal(rawName, &name); err != nil {
 			return fmt.Errorf("field name in Type: %s", err)
 		}
+		if name == "" {
+			return fmt.Errorf("field name in Type: required")
+		}
 		result["name"] = name
 	case TypeNullable:
 		rawUnderlyingType, ok := raw["underlying_type"]
@@ -113,6 +118,19 @@ func (j *Type) UnmarshalJSON(b []byte) error {
 			return fmt.Errorf("field element_type in Type: %s", err)
 		}
 		result["element_type"] = elementType
+	case TypePredicate:
+		rawName, ok := raw["object_type_name"]
+		if !ok {
+			return errors.New("field object_type_name in Type is required for predicate type")
+		}
+		var objectTypeName string
+		if err := json.Unmarshal(rawName, &objectTypeName); err != nil {
+			return fmt.Errorf("field object_type_name in Type: %s", err)
+		}
+		if objectTypeName == "" {
+			return fmt.Errorf("field object_type_name in Type: required")
+		}
+		result["object_type_name"] = objectTypeName
 	}
 	*j = result
 	return nil
@@ -201,6 +219,22 @@ func (ty Type) AsArray() (*ArrayType, error) {
 	}, nil
 }
 
+// AsPredicate tries to convert the current type to PredicateType
+func (ty Type) AsPredicate() (*PredicateType, error) {
+	t, err := ty.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != TypePredicate {
+		return nil, fmt.Errorf("invalid type; expected %s, got %s", TypePredicate, t)
+	}
+
+	return &PredicateType{
+		Type:           t,
+		ObjectTypeName: getStringValueByKey(ty, "object_type_name"),
+	}, nil
+}
+
 // Interface returns the TypeEncoder interface
 func (ty Type) Interface() (TypeEncoder, error) {
 	t, err := ty.Type()
@@ -215,6 +249,8 @@ func (ty Type) Interface() (TypeEncoder, error) {
 		return ty.AsNullable()
 	case TypeArray:
 		return ty.AsArray()
+	case TypePredicate:
+		return ty.AsPredicate()
 	default:
 		return nil, fmt.Errorf("invalid type: %s", t)
 	}
@@ -307,6 +343,29 @@ func NewArrayType(elementType TypeEncoder) *ArrayType {
 	return &ArrayType{
 		Type:        TypeArray,
 		ElementType: elementType.Encode(),
+	}
+}
+
+// PredicateType represents a predicate type for a given object type
+type PredicateType struct {
+	Type TypeEnum `json:"type" mapstructure:"type"`
+	// The name can refer to a primitive type or a scalar type
+	ObjectTypeName string `json:"object_type_name" mapstructure:"object_type_name"`
+}
+
+// NewPredicateType creates a new PredicateType instance
+func NewPredicateType(objectTypeName string) *PredicateType {
+	return &PredicateType{
+		Type:           TypePredicate,
+		ObjectTypeName: objectTypeName,
+	}
+}
+
+// Encode returns the raw Type instance
+func (ty PredicateType) Encode() Type {
+	return map[string]any{
+		"type":             ty.Type,
+		"object_type_name": ty.ObjectTypeName,
 	}
 }
 
@@ -542,6 +601,16 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 		}
 
 		results["column"] = column
+
+		// decode fields
+		rawFields, ok := raw["fields"]
+		if ok {
+			var fields NestedField
+			if err = json.Unmarshal(rawFields, &fields); err != nil {
+				return fmt.Errorf("field fields in Field: %s", err)
+			}
+			results["fields"] = fields
+		}
 	case FieldTypeRelationship:
 		relationship, err := unmarshalStringFromJsonMap(raw, "relationship", true)
 		if err != nil {
@@ -608,10 +677,21 @@ func (j Field) AsColumn() (*ColumnField, error) {
 	if column == "" {
 		return nil, errors.New("ColumnField.column is required")
 	}
-	return &ColumnField{
+
+	result := &ColumnField{
 		Type:   t,
 		Column: column,
-	}, nil
+	}
+	rawFields, ok := j["fields"]
+	if ok && rawFields != nil {
+		fields, ok := rawFields.(NestedField)
+		if !ok {
+			return nil, fmt.Errorf("invalid ColumnField.fields type; expected NestedField, got %+v", rawFields)
+		}
+		result.Fields = fields
+	}
+
+	return result, nil
 }
 
 // AsRelationship tries to convert the current type to RelationshipField
@@ -676,6 +756,10 @@ type ColumnField struct {
 	Type FieldType `json:"type" mapstructure:"type"`
 	// Column name
 	Column string `json:"column" mapstructure:"column"`
+	// When the type of the column is a (possibly-nullable) array or object,
+	// the caller can request a subset of the complete column data, by specifying fields to fetch here.
+	// If omitted, the column data will be fetched in full.
+	Fields NestedField `json:"fields" mapstructure:"fields"`
 }
 
 // Encode converts the instance to raw Field
@@ -683,14 +767,16 @@ func (f ColumnField) Encode() Field {
 	return Field{
 		"type":   f.Type,
 		"column": f.Column,
+		"fields": f.Fields,
 	}
 }
 
 // NewColumnField creates a new ColumnField instance
-func NewColumnField(column string) *ColumnField {
+func NewColumnField(column string, fields NestedField) *ColumnField {
 	return &ColumnField{
 		Type:   FieldTypeColumn,
 		Column: column,
+		Fields: fields,
 	}
 }
 
@@ -865,13 +951,12 @@ type ComparisonTarget struct {
 type ExpressionType string
 
 const (
-	ExpressionTypeAnd                           ExpressionType = "and"
-	ExpressionTypeOr                            ExpressionType = "or"
-	ExpressionTypeNot                           ExpressionType = "not"
-	ExpressionTypeUnaryComparisonOperator       ExpressionType = "unary_comparison_operator"
-	ExpressionTypeBinaryComparisonOperator      ExpressionType = "binary_comparison_operator"
-	ExpressionTypeBinaryArrayComparisonOperator ExpressionType = "binary_array_comparison_operator"
-	ExpressionTypeExists                        ExpressionType = "exists"
+	ExpressionTypeAnd                      ExpressionType = "and"
+	ExpressionTypeOr                       ExpressionType = "or"
+	ExpressionTypeNot                      ExpressionType = "not"
+	ExpressionTypeUnaryComparisonOperator  ExpressionType = "unary_comparison_operator"
+	ExpressionTypeBinaryComparisonOperator ExpressionType = "binary_comparison_operator"
+	ExpressionTypeExists                   ExpressionType = "exists"
 )
 
 var enumValues_ExpressionType = []ExpressionType{
@@ -880,7 +965,6 @@ var enumValues_ExpressionType = []ExpressionType{
 	ExpressionTypeNot,
 	ExpressionTypeUnaryComparisonOperator,
 	ExpressionTypeBinaryComparisonOperator,
-	ExpressionTypeBinaryArrayComparisonOperator,
 	ExpressionTypeExists,
 }
 
@@ -902,45 +986,6 @@ func (j *ExpressionType) UnmarshalJSON(b []byte) error {
 	}
 
 	value, err := ParseExpressionType(rawValue)
-	if err != nil {
-		return err
-	}
-
-	*j = *value
-	return nil
-}
-
-// BinaryComparisonOperatorType represents a binary comparison operator type enum
-type BinaryComparisonOperatorType string
-
-const (
-	BinaryComparisonOperatorTypeEqual BinaryComparisonOperatorType = "equal"
-	BinaryComparisonOperatorTypeOther BinaryComparisonOperatorType = "other"
-)
-
-var enumValues_BinaryComparisonOperatorType = []BinaryComparisonOperatorType{
-	BinaryComparisonOperatorTypeEqual,
-	BinaryComparisonOperatorTypeOther,
-}
-
-// ParseBinaryComparisonOperatorType parses a comparison target type argument type from string
-func ParseBinaryComparisonOperatorType(input string) (*BinaryComparisonOperatorType, error) {
-	if !Contains(enumValues_BinaryComparisonOperatorType, BinaryComparisonOperatorType(input)) {
-		return nil, fmt.Errorf("failed to parse BinaryComparisonOperatorType, expect one of %v", enumValues_BinaryComparisonOperatorType)
-	}
-	result := BinaryComparisonOperatorType(input)
-
-	return &result, nil
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *BinaryComparisonOperatorType) UnmarshalJSON(b []byte) error {
-	var rawValue string
-	if err := json.Unmarshal(b, &rawValue); err != nil {
-		return err
-	}
-
-	value, err := ParseBinaryComparisonOperatorType(rawValue)
 	if err != nil {
 		return err
 	}
@@ -1450,12 +1495,6 @@ func (ei ExistsInCollectionUnrelated) Encode() ExistsInCollection {
 	}
 }
 
-// BinaryComparisonOperator represents a binary comparison operator object
-type BinaryComparisonOperator struct {
-	Type BinaryComparisonOperatorType `json:"type" mapstructure:"type"`
-	Name string                       `json:"name,omitempty" mapstructure:"name"`
-}
-
 // Expression represents the query expression object
 type Expression map[string]any
 
@@ -1525,9 +1564,13 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		if !ok {
 			return fmt.Errorf("field operator in Expression is required for '%s' type", ty)
 		}
-		var operator BinaryComparisonOperator
+		var operator string
 		if err := json.Unmarshal(rawOperator, &operator); err != nil {
 			return fmt.Errorf("field operator in Expression: %s", err)
+		}
+
+		if operator == "" {
+			return fmt.Errorf("field operator in Expression is required for '%s' type", ty)
 		}
 		result["operator"] = operator
 
@@ -1550,46 +1593,15 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 			return fmt.Errorf("field value in Expression: %s", err)
 		}
 		result["value"] = value
-	case ExpressionTypeBinaryArrayComparisonOperator:
-		rawOperator, ok := raw["operator"]
-		if !ok {
-			return fmt.Errorf("field operator in Expression is required for '%s' type", ty)
-		}
-		var operator BinaryArrayComparisonOperator
-		if err := json.Unmarshal(rawOperator, &operator); err != nil {
-			return fmt.Errorf("field operator in Expression: %s", err)
-		}
-		result["operator"] = operator
-
-		rawColumn, ok := raw["column"]
-		if !ok {
-			return fmt.Errorf("field column in Expression is required for '%s' type", ty)
-		}
-		var column ComparisonTarget
-		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in Expression: %s", err)
-		}
-		result["column"] = column
-
-		rawValues, ok := raw["values"]
-		if !ok {
-			return fmt.Errorf("field values in Expression is required for '%s' type", ty)
-		}
-		var values []ComparisonValue
-		if err := json.Unmarshal(rawValues, &values); err != nil {
-			return fmt.Errorf("field values in Expression: %s", err)
-		}
-		result["values"] = values
 	case ExpressionTypeExists:
-		rawWhere, ok := raw["where"]
-		if !ok {
-			return fmt.Errorf("field where in Expression is required for '%s' type", ty)
+		rawPredicate, ok := raw["predicate"]
+		if ok {
+			var predicate Expression
+			if err := json.Unmarshal(rawPredicate, &predicate); err != nil {
+				return fmt.Errorf("field predicate in Expression: %s", err)
+			}
+			result["predicate"] = predicate
 		}
-		var where Expression
-		if err := json.Unmarshal(rawWhere, &where); err != nil {
-			return fmt.Errorf("field where in Expression: %s", err)
-		}
-		result["where"] = where
 
 		rawInCollection, ok := raw["in_collection"]
 		if !ok {
@@ -1751,15 +1763,6 @@ func (j Expression) AsBinaryComparisonOperator() (*ExpressionBinaryComparisonOpe
 		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExpressionTypeBinaryComparisonOperator, t)
 	}
 
-	rawOperator, ok := j["operator"]
-	if !ok {
-		return nil, errors.New("ExpressionBinaryComparisonOperator.operator is required")
-	}
-	operator, ok := rawOperator.(BinaryComparisonOperator)
-	if !ok {
-		return nil, fmt.Errorf("invalid ExpressionBinaryComparisonOperator.operator type; expected: BinaryComparisonOperator, got: %+v", rawOperator)
-	}
-
 	rawColumn, ok := j["column"]
 	if !ok {
 		return nil, errors.New("ExpressionBinaryComparisonOperator.column is required")
@@ -1780,54 +1783,9 @@ func (j Expression) AsBinaryComparisonOperator() (*ExpressionBinaryComparisonOpe
 
 	return &ExpressionBinaryComparisonOperator{
 		Type:     t,
-		Operator: operator,
+		Operator: getStringValueByKey(j, "operator"),
 		Column:   column,
 		Value:    value,
-	}, nil
-}
-
-// AsBinaryArrayComparisonOperator tries to convert the instance to ExpressionBinaryArrayComparisonOperator instance
-func (j Expression) AsBinaryArrayComparisonOperator() (*ExpressionBinaryArrayComparisonOperator, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-	if t != ExpressionTypeBinaryArrayComparisonOperator {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExpressionTypeBinaryArrayComparisonOperator, t)
-	}
-
-	rawOperator, ok := j["operator"]
-	if !ok {
-		return nil, errors.New("ExpressionBinaryComparisonOperator.operator is required")
-	}
-	operator, ok := rawOperator.(BinaryArrayComparisonOperator)
-	if !ok {
-		return nil, fmt.Errorf("invalid ExpressionBinaryArrayComparisonOperator.operator type; expected: BinaryArrayComparisonOperator, got: %+v", rawOperator)
-	}
-
-	rawColumn, ok := j["column"]
-	if !ok {
-		return nil, errors.New("ExpressionBinaryComparisonOperator.column is required")
-	}
-	column, ok := rawColumn.(ComparisonTarget)
-	if !ok {
-		return nil, fmt.Errorf("invalid ExpressionBinaryArrayComparisonOperator.column type; expected: ComparisonTarget, got: %+v", rawColumn)
-	}
-
-	rawValues, ok := j["values"]
-	if !ok {
-		return nil, errors.New("ExpressionBinaryComparisonOperator.values is required")
-	}
-	values, ok := rawValues.([]ComparisonValue)
-	if !ok {
-		return nil, fmt.Errorf("invalid ExpressionBinaryArrayComparisonOperator.values type; expected: []ComparisonValue, got: %+v", rawValues)
-	}
-
-	return &ExpressionBinaryArrayComparisonOperator{
-		Type:     t,
-		Operator: operator,
-		Column:   column,
-		Values:   values,
 	}, nil
 }
 
@@ -1841,15 +1799,6 @@ func (j Expression) AsExists() (*ExpressionExists, error) {
 		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExpressionTypeExists, t)
 	}
 
-	rawWhere, ok := j["where"]
-	if !ok {
-		return nil, errors.New("ExpressionExists.where is required")
-	}
-	where, ok := rawWhere.(Expression)
-	if !ok {
-		return nil, fmt.Errorf("invalid ExpressionExists.where type; expected: Expression, got: %+v", rawWhere)
-	}
-
 	rawInCollection, ok := j["in_collection"]
 	if !ok {
 		return nil, errors.New("ExpressionExists.in_collection is required")
@@ -1859,11 +1808,19 @@ func (j Expression) AsExists() (*ExpressionExists, error) {
 		return nil, fmt.Errorf("invalid ExpressionExists.in_collection type; expected: ExistsInCollection, got: %+v", rawInCollection)
 	}
 
-	return &ExpressionExists{
+	result := &ExpressionExists{
 		Type:         t,
-		Where:        where,
 		InCollection: inCollection,
-	}, nil
+	}
+	rawPredicate, ok := j["predicate"]
+	if ok && rawPredicate != nil {
+		predicate, ok := rawPredicate.(Expression)
+		if !ok {
+			return nil, fmt.Errorf("invalid ExpressionExists.predicate type; expected: Expression, got: %+v", rawPredicate)
+		}
+		result.Predicate = predicate
+	}
+	return result, nil
 }
 
 // Interface tries to convert the instance to the ExpressionEncoder interface
@@ -1883,8 +1840,6 @@ func (j Expression) Interface() (ExpressionEncoder, error) {
 		return j.AsUnaryComparisonOperator()
 	case ExpressionTypeBinaryComparisonOperator:
 		return j.AsBinaryComparisonOperator()
-	case ExpressionTypeBinaryArrayComparisonOperator:
-		return j.AsBinaryArrayComparisonOperator()
 	case ExpressionTypeExists:
 		return j.AsExists()
 	default:
@@ -1967,10 +1922,10 @@ func (exp ExpressionUnaryComparisonOperator) Encode() Expression {
 //
 // [binary operator expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#unary-operators
 type ExpressionBinaryComparisonOperator struct {
-	Type     ExpressionType           `json:"type" mapstructure:"type"`
-	Operator BinaryComparisonOperator `json:"operator" mapstructure:"operator"`
-	Column   ComparisonTarget         `json:"column" mapstructure:"column"`
-	Value    ComparisonValue          `json:"value" mapstructure:"value"`
+	Type     ExpressionType   `json:"type" mapstructure:"type"`
+	Operator string           `json:"operator" mapstructure:"operator"`
+	Column   ComparisonTarget `json:"column" mapstructure:"column"`
+	Value    ComparisonValue  `json:"value" mapstructure:"value"`
 }
 
 // Encode converts the instance to a raw Expression
@@ -1983,32 +1938,12 @@ func (exp ExpressionBinaryComparisonOperator) Encode() Expression {
 	}
 }
 
-// ExpressionBinaryArrayComparisonOperator is an object which represents an [binary array-valued comparison operators expression]
-//
-// [binary array-valued comparison operators expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#binary-array-valued-comparison-operators
-type ExpressionBinaryArrayComparisonOperator struct {
-	Type     ExpressionType                `json:"type" mapstructure:"type"`
-	Operator BinaryArrayComparisonOperator `json:"operator" mapstructure:"operator"`
-	Column   ComparisonTarget              `json:"column" mapstructure:"column"`
-	Values   []ComparisonValue             `json:"values" mapstructure:"values"`
-}
-
-// Encode converts the instance to a raw Expression
-func (exp ExpressionBinaryArrayComparisonOperator) Encode() Expression {
-	return Expression{
-		"type":     exp.Type,
-		"operator": exp.Operator,
-		"column":   exp.Column,
-		"values":   exp.Values,
-	}
-}
-
 // ExpressionExists is an object which represents an [EXISTS expression]
 //
 // [EXISTS expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#exists-expressions
 type ExpressionExists struct {
 	Type         ExpressionType     `json:"type" mapstructure:"type"`
-	Where        Expression         `json:"where" mapstructure:"where"`
+	Predicate    Expression         `json:"predicate" mapstructure:"predicate"`
 	InCollection ExistsInCollection `json:"in_collection" mapstructure:"in_collection"`
 }
 
@@ -2016,7 +1951,7 @@ type ExpressionExists struct {
 func (exp ExpressionExists) Encode() Expression {
 	return Expression{
 		"type":          exp.Type,
-		"where":         exp.Where,
+		"predicate":     exp.Predicate,
 		"in_collection": exp.InCollection,
 	}
 }
@@ -2649,5 +2584,474 @@ func (ob OrderByStarCountAggregate) Encode() OrderByTarget {
 	return OrderByTarget{
 		"type": ob.Type,
 		"path": ob.Path,
+	}
+}
+
+// ComparisonOperatorDefinitionType represents a binary comparison operator type enum
+type ComparisonOperatorDefinitionType string
+
+const (
+	ComparisonOperatorDefinitionTypeEqual  ComparisonOperatorDefinitionType = "equal"
+	ComparisonOperatorDefinitionTypeIn     ComparisonOperatorDefinitionType = "in"
+	ComparisonOperatorDefinitionTypeCustom ComparisonOperatorDefinitionType = "custom"
+)
+
+var enumValues_ComparisonOperatorDefinitionType = []ComparisonOperatorDefinitionType{
+	ComparisonOperatorDefinitionTypeEqual,
+	ComparisonOperatorDefinitionTypeIn,
+	ComparisonOperatorDefinitionTypeCustom,
+}
+
+// ParseComparisonOperatorDefinitionType parses a type of a comparison operator definition
+func ParseComparisonOperatorDefinitionType(input string) (*ComparisonOperatorDefinitionType, error) {
+	if !Contains(enumValues_ComparisonOperatorDefinitionType, ComparisonOperatorDefinitionType(input)) {
+		return nil, fmt.Errorf("failed to parse ComparisonOperatorDefinitionType, expect one of %v", enumValues_ComparisonOperatorDefinitionType)
+	}
+	result := ComparisonOperatorDefinitionType(input)
+
+	return &result, nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *ComparisonOperatorDefinitionType) UnmarshalJSON(b []byte) error {
+	var rawValue string
+	if err := json.Unmarshal(b, &rawValue); err != nil {
+		return err
+	}
+
+	value, err := ParseComparisonOperatorDefinitionType(rawValue)
+	if err != nil {
+		return err
+	}
+
+	*j = *value
+	return nil
+}
+
+// ComparisonOperatorDefinition the definition of a comparison operator on a scalar type
+type ComparisonOperatorDefinition map[string]any
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *ComparisonOperatorDefinition) UnmarshalJSON(b []byte) error {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+
+	rawType, ok := raw["type"]
+	if !ok {
+		return errors.New("field type in ComparisonOperatorDefinition: required")
+	}
+
+	var ty ComparisonOperatorDefinitionType
+	if err := json.Unmarshal(rawType, &ty); err != nil {
+		return fmt.Errorf("field type in ComparisonOperatorDefinition: %s", err)
+	}
+
+	result := map[string]any{
+		"type": ty,
+	}
+	switch ty {
+	case ComparisonOperatorDefinitionTypeEqual:
+	case ComparisonOperatorDefinitionTypeIn:
+	case ComparisonOperatorDefinitionTypeCustom:
+		rawArgumentType, ok := raw["argument_type"]
+		if !ok {
+			return errors.New("field argument_type in ComparisonOperatorDefinition is required for custom type")
+		}
+		var argumentType Type
+		if err := json.Unmarshal(rawArgumentType, &argumentType); err != nil {
+			return fmt.Errorf("field argument_type in ComparisonOperatorDefinition: %s", err)
+		}
+		result["argument_type"] = argumentType
+	}
+	*j = result
+	return nil
+}
+
+// Type gets the type enum of the current type
+func (j ComparisonOperatorDefinition) Type() (ComparisonOperatorDefinitionType, error) {
+	t, ok := j["type"]
+	if !ok {
+		return ComparisonOperatorDefinitionType(""), errTypeRequired
+	}
+	switch raw := t.(type) {
+	case string:
+		v, err := ParseComparisonOperatorDefinitionType(raw)
+		if err != nil {
+			return ComparisonOperatorDefinitionType(""), err
+		}
+		return *v, nil
+	case ComparisonOperatorDefinitionType:
+		return raw, nil
+	default:
+		return ComparisonOperatorDefinitionType(""), fmt.Errorf("invalid type: %+v", t)
+	}
+}
+
+// AsEqual tries to convert the instance to ComparisonOperatorEqual type
+func (j ComparisonOperatorDefinition) AsEqual() (*ComparisonOperatorEqual, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != ComparisonOperatorDefinitionTypeEqual {
+		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeEqual, t)
+	}
+
+	return &ComparisonOperatorEqual{
+		Type: t,
+	}, nil
+}
+
+// AsIn tries to convert the instance to ComparisonOperatorIn type
+func (j ComparisonOperatorDefinition) AsIn() (*ComparisonOperatorIn, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != ComparisonOperatorDefinitionTypeIn {
+		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeIn, t)
+	}
+
+	return &ComparisonOperatorIn{
+		Type: t,
+	}, nil
+}
+
+// AsCustom tries to convert the instance to ComparisonOperatorIn type
+func (j ComparisonOperatorDefinition) AsCustom() (*ComparisonOperatorCustom, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != ComparisonOperatorDefinitionTypeCustom {
+		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeCustom, t)
+	}
+
+	rawArg, ok := j["argument_type"]
+	if !ok {
+		return nil, errors.New("ComparisonOperatorCustom.argument_type is required")
+	}
+
+	arg, ok := rawArg.(Type)
+	if !ok {
+		return nil, fmt.Errorf("invalid ComparisonOperatorCustom.argument_type type; expected: Type, got: %+v", rawArg)
+	}
+
+	return &ComparisonOperatorCustom{
+		Type:         t,
+		ArgumentType: arg,
+	}, nil
+}
+
+// Interface tries to convert the instance to ComparisonOperatorDefinitionEncoder interface
+func (j ComparisonOperatorDefinition) Interface() (ComparisonOperatorDefinitionEncoder, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+
+	switch t {
+	case ComparisonOperatorDefinitionTypeEqual:
+		return j.AsEqual()
+	case ComparisonOperatorDefinitionTypeIn:
+		return j.AsIn()
+	case ComparisonOperatorDefinitionTypeCustom:
+		return j.AsCustom()
+	default:
+		return nil, fmt.Errorf("invalid type: %s", t)
+	}
+}
+
+// ComparisonOperatorDefinitionEncoder abstracts the serialization interface for ComparisonOperatorDefinition
+type ComparisonOperatorDefinitionEncoder interface {
+	Encode() ComparisonOperatorDefinition
+}
+
+// ComparisonOperatorEqual presents an equal comparison operator
+type ComparisonOperatorEqual struct {
+	Type ComparisonOperatorDefinitionType `json:"type" mapstructure:"type"`
+}
+
+// NewComparisonOperatorEqual create a new ComparisonOperatorEqual instance
+func NewComparisonOperatorEqual() *ComparisonOperatorEqual {
+	return &ComparisonOperatorEqual{
+		Type: ComparisonOperatorDefinitionTypeEqual,
+	}
+}
+
+// Encode converts the instance to raw ComparisonOperatorDefinition
+func (ob ComparisonOperatorEqual) Encode() ComparisonOperatorDefinition {
+	return ComparisonOperatorDefinition{
+		"type": ob.Type,
+	}
+}
+
+// ComparisonOperatorIn presents an in comparison operator
+type ComparisonOperatorIn struct {
+	Type ComparisonOperatorDefinitionType `json:"type" mapstructure:"type"`
+}
+
+// NewComparisonOperatorIn create a new ComparisonOperatorIn instance
+func NewComparisonOperatorIn() *ComparisonOperatorIn {
+	return &ComparisonOperatorIn{
+		Type: ComparisonOperatorDefinitionTypeIn,
+	}
+}
+
+// Encode converts the instance to raw ComparisonOperatorDefinition
+func (ob ComparisonOperatorIn) Encode() ComparisonOperatorDefinition {
+	return ComparisonOperatorDefinition{
+		"type": ob.Type,
+	}
+}
+
+// ComparisonOperatorCustom presents a custom comparison operator
+type ComparisonOperatorCustom struct {
+	Type ComparisonOperatorDefinitionType `json:"type" mapstructure:"type"`
+	// The type of the argument to this operator
+	ArgumentType Type `json:"argument_type" mapstructure:"argument_type"`
+}
+
+// NewComparisonOperatorCustom create a new ComparisonOperatorCustom instance
+func NewComparisonOperatorCustom(argumentType TypeEncoder) *ComparisonOperatorCustom {
+	return &ComparisonOperatorCustom{
+		Type:         ComparisonOperatorDefinitionTypeCustom,
+		ArgumentType: argumentType.Encode(),
+	}
+}
+
+// Encode converts the instance to raw ComparisonOperatorDefinition
+func (ob ComparisonOperatorCustom) Encode() ComparisonOperatorDefinition {
+	return ComparisonOperatorDefinition{
+		"type":          ob.Type,
+		"argument_type": ob.ArgumentType,
+	}
+}
+
+// NestedFieldType represents a nested field type enum
+type NestedFieldType string
+
+const (
+	NestedFieldTypeObject NestedFieldType = "object"
+	NestedFieldTypeArray  NestedFieldType = "array"
+)
+
+var enumValues_NestedFieldType = []NestedFieldType{
+	NestedFieldTypeObject,
+	NestedFieldTypeArray,
+}
+
+// ParseNestedFieldType parses the type of nested field
+func ParseNestedFieldType(input string) (*NestedFieldType, error) {
+	if !Contains(enumValues_NestedFieldType, NestedFieldType(input)) {
+		return nil, fmt.Errorf("failed to parse NestedFieldType, expect one of %v", enumValues_NestedFieldType)
+	}
+	result := NestedFieldType(input)
+
+	return &result, nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *NestedFieldType) UnmarshalJSON(b []byte) error {
+	var rawValue string
+	if err := json.Unmarshal(b, &rawValue); err != nil {
+		return err
+	}
+
+	value, err := ParseNestedFieldType(rawValue)
+	if err != nil {
+		return err
+	}
+
+	*j = *value
+	return nil
+}
+
+// NestedField represents a nested field
+type NestedField map[string]any
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *NestedField) UnmarshalJSON(b []byte) error {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+
+	rawType, ok := raw["type"]
+	if !ok {
+		return errors.New("field type in NestedField: required")
+	}
+
+	var ty NestedFieldType
+	if err := json.Unmarshal(rawType, &ty); err != nil {
+		return fmt.Errorf("field type in NestedField: %s", err)
+	}
+
+	result := map[string]any{
+		"type": ty,
+	}
+	switch ty {
+	case NestedFieldTypeObject:
+		rawFields, ok := raw["fields"]
+		if !ok {
+			return errors.New("field fields in NestedField is required for object type")
+		}
+		var fields map[string]Field
+		if err := json.Unmarshal(rawFields, &fields); err != nil {
+			return fmt.Errorf("field fields in NestedField object: %s", err)
+		}
+		result["fields"] = fields
+	case NestedFieldTypeArray:
+		rawFields, ok := raw["fields"]
+		if !ok {
+			return errors.New("field fields in NestedField is required for array type")
+		}
+		var fields NestedField
+		if err := json.Unmarshal(rawFields, &fields); err != nil {
+			return fmt.Errorf("field fields in NestedField array: %s", err)
+		}
+		result["fields"] = fields
+	}
+	*j = result
+	return nil
+}
+
+// Type gets the type enum of the current type
+func (j NestedField) Type() (NestedFieldType, error) {
+	t, ok := j["type"]
+	if !ok {
+		return NestedFieldType(""), errTypeRequired
+	}
+	switch raw := t.(type) {
+	case string:
+		v, err := ParseNestedFieldType(raw)
+		if err != nil {
+			return NestedFieldType(""), err
+		}
+		return *v, nil
+	case NestedFieldType:
+		return raw, nil
+	default:
+		return NestedFieldType(""), fmt.Errorf("invalid type: %+v", t)
+	}
+}
+
+// AsObject tries to convert the instance to NestedObject type
+func (j NestedField) AsObject() (*NestedObject, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != NestedFieldTypeObject {
+		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", NestedFieldTypeObject, t)
+	}
+
+	rawFields, ok := j["fields"]
+	if !ok {
+		return nil, errors.New("NestedObject.fields is required")
+	}
+
+	fields, ok := rawFields.(map[string]Field)
+	if !ok {
+		return nil, fmt.Errorf("invalid NestedObject.fields type; expected: map[string]Field, got: %+v", rawFields)
+	}
+
+	return &NestedObject{
+		Type:   t,
+		Fields: fields,
+	}, nil
+}
+
+// AsArray tries to convert the instance to NestedArray type
+func (j NestedField) AsArray() (*NestedArray, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != NestedFieldTypeArray {
+		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", NestedFieldTypeArray, t)
+	}
+
+	rawFields, ok := j["fields"]
+	if !ok {
+		return nil, errors.New("NestedArray.fields is required")
+	}
+
+	fields, ok := rawFields.(NestedField)
+	if !ok {
+		return nil, fmt.Errorf("invalid NestedArray.fields type; expected: NestedField, got: %+v", rawFields)
+	}
+
+	return &NestedArray{
+		Type:   t,
+		Fields: fields,
+	}, nil
+}
+
+// Interface tries to convert the instance to NestedFieldEncoder interface
+func (j NestedField) Interface() (NestedFieldEncoder, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+
+	switch t {
+	case NestedFieldTypeObject:
+		return j.AsObject()
+	case NestedFieldTypeArray:
+		return j.AsArray()
+	default:
+		return nil, fmt.Errorf("invalid type: %s", t)
+	}
+}
+
+// NestedFieldEncoder abstracts the serialization interface for NestedField
+type NestedFieldEncoder interface {
+	Encode() NestedField
+}
+
+// NestedObject presents a nested object field
+type NestedObject struct {
+	Type   NestedFieldType  `json:"type" mapstructure:"type"`
+	Fields map[string]Field `json:"fields" mapstructure:"fields"`
+}
+
+// NewNestedObject create a new NestedObject instance
+func NewNestedObject(fields map[string]Field) *NestedObject {
+	return &NestedObject{
+		Type:   NestedFieldTypeObject,
+		Fields: fields,
+	}
+}
+
+// Encode converts the instance to raw NestedField
+func (ob NestedObject) Encode() NestedField {
+	return NestedField{
+		"type":   ob.Type,
+		"fields": ob.Fields,
+	}
+}
+
+// NestedArray presents a nested array field
+type NestedArray struct {
+	Type   NestedFieldType `json:"type" mapstructure:"type"`
+	Fields NestedField     `json:"fields" mapstructure:"fields"`
+}
+
+// NewNestedArray create a new NestedArray instance
+func NewNestedArray(fields NestedFieldEncoder) *NestedArray {
+	return &NestedArray{
+		Type:   NestedFieldTypeArray,
+		Fields: fields.Encode(),
+	}
+}
+
+// Encode converts the instance to raw NestedField
+func (ob NestedArray) Encode() NestedField {
+	return NestedField{
+		"type":   ob.Type,
+		"fields": ob.Fields,
 	}
 }

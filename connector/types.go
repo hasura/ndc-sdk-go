@@ -67,11 +67,17 @@ type Connector[RawConfiguration any, Configuration any, State any] interface {
 	// [schema endpoint]: https://hasura.github.io/ndc-spec/specification/schema/index.html
 	GetSchema(configuration *Configuration) (*schema.SchemaResponse, error)
 
-	// Explain a query by creating an execution plan.
+	// QueryExplain explains a query by creating an execution plan.
 	// This function implements the [explain endpoint] from the NDC specification.
 	//
 	// [explain endpoint]: https://hasura.github.io/ndc-spec/specification/explain.html
-	Explain(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (*schema.ExplainResponse, error)
+	QueryExplain(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (*schema.ExplainResponse, error)
+
+	// QueryExplain explains a mutation by creating an execution plan.
+	// This function implements the [explain endpoint] from the NDC specification.
+	//
+	// [explain endpoint]: https://hasura.github.io/ndc-spec/specification/explain.html
+	MutationExplain(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest) (*schema.ExplainResponse, error)
 
 	// Execute a mutation.
 	//
