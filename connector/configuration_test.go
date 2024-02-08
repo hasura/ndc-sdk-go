@@ -21,13 +21,13 @@ func TestConfigurationServer(t *testing.T) {
 	httpServer := buildTestConfigurationServer()
 	defer httpServer.Close()
 
-	t.Run("GET /healthz", func(t *testing.T) {
-		res, err := http.Get(fmt.Sprintf("%s/healthz", httpServer.URL))
+	t.Run("GET /health", func(t *testing.T) {
+		res, err := http.Get(fmt.Sprintf("%s/health", httpServer.URL))
 		if err != nil {
-			t.Errorf("GET /healthz: expected no error, got %s", err)
+			t.Errorf("GET /health: expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponseStatus(t, "GET /healthz", res, http.StatusNoContent)
+		assertHTTPResponseStatus(t, "GET /health", res, http.StatusNoContent)
 	})
 
 	t.Run("GET /", func(t *testing.T) {

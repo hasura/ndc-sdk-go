@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -13,7 +14,7 @@ func (c *Connector) GetSchema(configuration *Configuration) (*schema.SchemaRespo
 	return &schema.SchemaResponse{}, nil
 }
 
-func (c *Connector) Query(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (*schema.QueryResponse, error) {
+func (c *Connector) Query(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (schema.QueryResponse, error) {
 	requestVars := request.Variables
 	if len(requestVars) == 0 {
 		requestVars = []schema.QueryRequestVariablesElem{{}}
@@ -40,12 +41,7 @@ func (c *Connector) Query(ctx context.Context, configuration *Configuration, sta
 		})
 	}
 
-	return &schema.QueryResponse{
-		{
-			Rows:       nil,
-			Aggregates: schema.RowSetAggregates{},
-		},
-	}, nil
+	return rowSets, nil
 }
 
 func (c *Connector) Mutation(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
@@ -90,7 +86,15 @@ func execQuery(ctx context.Context, configuration *Configuration, state *State, 
 }
 
 func execProcedure(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest, operation *schema.MutationOperation) (any, error) {
-	switch request.Operations {
+	switch operation.Name {
+	case "create_author":
+		var args CreateAuthorArguments
+		if err := json.Unmarshal(operation.Arguments, &args); err != nil {
+			return nil, schema.BadRequestError("failed to decode arguments", map[string]any{
+				"cause": err.Error(),
+			})
+		}
+		return CreateAuthor(ctx, state, &args)
 	default:
 		return nil, fmt.Errorf("unsupported procedure operation: %s", operation.Name)
 	}
@@ -107,7 +111,14 @@ func PruneFields(fields map[string]schema.Field, result any) (any, error) {
 	}
 
 	var outputMap map[string]any
-	if err := mapstructure.Decode(result, &outputMap); err != nil {
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result:  &outputMap,
+		TagName: "json",
+	})
+	if err != nil {
+		return nil, err
+	}
+	if err := decoder.Decode(result); err != nil {
 		return nil, err
 	}
 

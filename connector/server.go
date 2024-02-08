@@ -351,7 +351,7 @@ func (s *Server[RawConfiguration, Configuration, State]) buildHandler() *http.Se
 	router.Use("/query", http.MethodPost, s.withAuth(s.Query))
 	router.Use("/explain", http.MethodPost, s.withAuth(s.Explain))
 	router.Use("/mutation", http.MethodPost, s.withAuth(s.Mutation))
-	router.Use("/healthz", http.MethodGet, s.withAuth(s.Health))
+	router.Use("/health", http.MethodGet, s.withAuth(s.Health))
 	router.Use("/metrics", http.MethodGet, s.withAuth(promhttp.Handler().ServeHTTP))
 
 	return router.Build()

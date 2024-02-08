@@ -255,6 +255,14 @@ type NullableType struct {
 	UnderlyingType Type `json:"underlying_type" mapstructure:"underlying_type"`
 }
 
+// NewNullableType creates a new NullableType instance with underlying type
+func NewNullableType(underlyingType TypeEncoder) *NullableType {
+	return &NullableType{
+		Type:           TypeNullable,
+		UnderlyingType: underlyingType.Encode(),
+	}
+}
+
 // NewNullableNamedType creates a new NullableType instance with underlying named type
 func NewNullableNamedType(name string) *NullableType {
 	return &NullableType{
