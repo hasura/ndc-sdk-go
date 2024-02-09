@@ -265,6 +265,10 @@ func setupMetrics(telemetry *TelemetryState, metricsPrefix string) error {
 		metricapi.WithDescription("Total time taken to plan and execute an explain query request, in seconds"),
 	)
 
+	if err != nil {
+		return err
+	}
+
 	telemetry.mutationExplainLatencyHistogram, err = meter.Float64Histogram(
 		fmt.Sprintf("%smutation.explain_total_time", metricsPrefix),
 		metricapi.WithDescription("Total time taken to plan and execute an explain mutation request, in seconds"),
