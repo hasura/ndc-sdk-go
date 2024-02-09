@@ -603,14 +603,14 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 		results["column"] = column
 
 		// decode fields
+		var fields NestedField
 		rawFields, ok := raw["fields"]
 		if ok {
-			var fields NestedField
 			if err = json.Unmarshal(rawFields, &fields); err != nil {
 				return fmt.Errorf("field fields in Field: %s", err)
 			}
-			results["fields"] = fields
 		}
+		results["fields"] = fields
 	case FieldTypeRelationship:
 		relationship, err := unmarshalStringFromJsonMap(raw, "relationship", true)
 		if err != nil {
