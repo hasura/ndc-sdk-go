@@ -112,7 +112,7 @@ func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) Validate(
 // The endpoint has nothing to check, because the reference implementation does not need to connect to any other services.
 // Therefore, once the reference implementation is running, it can always report a healthy status
 func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) Health(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) buildHandler() *http.ServeMux {

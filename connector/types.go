@@ -13,10 +13,10 @@ import (
 //
 // [NDC Specification]: https://hasura.github.io/ndc-spec/specification/index.html
 type Connector[RawConfiguration any, Configuration any, State any] interface {
-	// Return jsonschema for the raw configuration for this connector.
+	// GetRawConfigurationSchema returns jsonschema for the raw configuration for this connector.
 	GetRawConfigurationSchema() *jsonschema.Schema
 
-	// Return an empty raw configuration, to be manually filled in by the user to allow connection to the data source.
+	// MakeEmptyConfiguration returns an empty raw configuration, to be manually filled in by the user to allow connection to the data source.
 	// The exact shape depends on your connector's configuration. Example:
 	//
 	//   {
@@ -25,16 +25,16 @@ type Connector[RawConfiguration any, Configuration any, State any] interface {
 	//   }
 	MakeEmptyConfiguration() *RawConfiguration
 
-	// Take a raw configuration, update it where appropriate by connecting to the underlying data source, and otherwise return it as-is
+	// UpdateConfiguration take a raw configuration, update it where appropriate by connecting to the underlying data source, and otherwise return it as-is
 	// For example, if our configuration includes a list of tables, we may want to fetch an updated list from the data source.
 	// This is also used to "hidrate" an "empty" configuration where a user has provided connection details and little else.
 	UpdateConfiguration(ctx context.Context, rawConfiguration *RawConfiguration) (*RawConfiguration, error)
 
-	// Validate the raw configuration provided by the user,
+	// ValidateRawConfiguration validate the raw configuration provided by the user,
 	// returning a configuration error or a validated [`Connector::Configuration`].
 	ValidateRawConfiguration(rawConfiguration *RawConfiguration) (*Configuration, error)
 
-	// Initialize the connector's in-memory state.
+	// TryInitState initializes the connector's in-memory state.
 	//
 	// For example, any connection pools, prepared queries,
 	// or other managed resources would be allocated here.
@@ -43,7 +43,7 @@ type Connector[RawConfiguration any, Configuration any, State any] interface {
 	// connector-specific metrics with the metrics registry.
 	TryInitState(configuration *Configuration, metrics *TelemetryState) (*State, error)
 
-	// Check the health of the connector.
+	// HealthCheck checks the health of the connector.
 	//
 	// For example, this function should check that the connector
 	// is able to reach its data source over the network.
@@ -51,7 +51,7 @@ type Connector[RawConfiguration any, Configuration any, State any] interface {
 	// Should throw if the check fails, else resolve.
 	HealthCheck(ctx context.Context, configuration *Configuration, state *State) error
 
-	// Get the connector's capabilities.
+	// GetCapabilities get the connector's capabilities.
 	//
 	// This function implements the [capabilities endpoint] from the NDC specification.
 	//
@@ -60,7 +60,7 @@ type Connector[RawConfiguration any, Configuration any, State any] interface {
 	// [capabilities endpoint]: https://hasura.github.io/ndc-spec/specification/capabilities.html
 	GetCapabilities(configuration *Configuration) *schema.CapabilitiesResponse
 
-	// Get the connector's schema.
+	// GetSchema gets the connector's schema.
 	//
 	// This function implements the [schema endpoint] from the NDC specification.
 	//
@@ -73,20 +73,20 @@ type Connector[RawConfiguration any, Configuration any, State any] interface {
 	// [explain endpoint]: https://hasura.github.io/ndc-spec/specification/explain.html
 	QueryExplain(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (*schema.ExplainResponse, error)
 
-	// QueryExplain explains a mutation by creating an execution plan.
+	// MutationExplain explains a mutation by creating an execution plan.
 	// This function implements the [explain endpoint] from the NDC specification.
 	//
 	// [explain endpoint]: https://hasura.github.io/ndc-spec/specification/explain.html
 	MutationExplain(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest) (*schema.ExplainResponse, error)
 
-	// Execute a mutation.
+	// Mutation executes a mutation.
 	//
 	// This function implements the [mutation endpoint] from the NDC specification.
 	//
 	// [mutation endpoint]: https://hasura.github.io/ndc-spec/specification/mutations/index.html
 	Mutation(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest) (*schema.MutationResponse, error)
 
-	// Execute a query.
+	// Query executes a query.
 	//
 	// This function implements the [query endpoint] from the NDC specification.
 	//

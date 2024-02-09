@@ -24,6 +24,7 @@ var (
 	errConfigurationRequired = errors.New("Configuration is required")
 )
 
+// ServerOptions presents the configuration object of the connector http server
 type ServerOptions struct {
 	Configuration       string
 	InlineConfig        bool
@@ -146,12 +147,14 @@ func (s *Server[RawConfiguration, Configuration, State]) withAuth(handler http.H
 	}
 }
 
+// GetCapabilities get the connector's capabilities. Implement a handler for the /capabilities endpoint, GET method.
 func (s *Server[RawConfiguration, Configuration, State]) GetCapabilities(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r.Context())
 	capabilities := s.connector.GetCapabilities(s.configuration)
 	writeJson(w, logger, http.StatusOK, capabilities)
 }
 
+// Health checks the health of the connector. Implement a handler for the /health endpoint, GET method.
 func (s *Server[RawConfiguration, Configuration, State]) Health(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r.Context())
 	if err := s.connector.HealthCheck(r.Context(), s.configuration, s.state); err != nil {
@@ -159,7 +162,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Health(w http.ResponseW
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusOK)
 }
 
 // GetSchema implements a handler for the /schema endpoint, GET method.
@@ -174,6 +177,7 @@ func (s *Server[RawConfiguration, Configuration, State]) GetSchema(w http.Respon
 	writeJson(w, logger, http.StatusOK, schemaResult)
 }
 
+// Query implements a handler for the /query endpoint, POST method that executes a query.
 func (s *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
@@ -233,6 +237,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseWr
 	s.telemetry.queryLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
 }
 
+// QueryExplain implements a handler for the /query/explain endpoint, POST method that explains a query by creating an execution plan.
 func (s *Server[RawConfiguration, Configuration, State]) QueryExplain(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
@@ -291,6 +296,7 @@ func (s *Server[RawConfiguration, Configuration, State]) QueryExplain(w http.Res
 	s.telemetry.explainLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
 }
 
+// MutationExplain implements a handler for the /mutation/explain endpoint, POST method that explains a mutation by creating an execution plan.
 func (s *Server[RawConfiguration, Configuration, State]) MutationExplain(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
@@ -353,6 +359,7 @@ func (s *Server[RawConfiguration, Configuration, State]) MutationExplain(w http.
 	s.telemetry.explainLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
 }
 
+// Mutation implements a handler for the /mutation endpoint, POST method that executes a mutation.
 func (s *Server[RawConfiguration, Configuration, State]) Mutation(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
