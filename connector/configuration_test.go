@@ -27,7 +27,7 @@ func TestConfigurationServer(t *testing.T) {
 			t.Errorf("GET /health: expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponseStatus(t, "GET /health", res, http.StatusNoContent)
+		assertHTTPResponseStatus(t, "GET /health", res, http.StatusOK)
 	})
 
 	t.Run("GET /", func(t *testing.T) {
