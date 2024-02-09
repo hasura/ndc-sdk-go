@@ -261,7 +261,7 @@ func (s *Server[RawConfiguration, Configuration, State]) QueryExplain(w http.Res
 			attribute.String("reason", "json_decode"),
 		}
 		span.SetAttributes(attributes...)
-		s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
+		s.telemetry.queryExplainCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
 		return
 	}
 	decodeSpan.End()
@@ -280,7 +280,7 @@ func (s *Server[RawConfiguration, Configuration, State]) QueryExplain(w http.Res
 			attribute.String("reason", fmt.Sprintf("%d", status)),
 		}
 		span.SetAttributes(attributes...)
-		s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttributes...)...))
+		s.telemetry.queryExplainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttributes...)...))
 		return
 	}
 	execSpan.End()
@@ -290,10 +290,10 @@ func (s *Server[RawConfiguration, Configuration, State]) QueryExplain(w http.Res
 	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
 	writeJson(w, logger, http.StatusOK, response)
 	responseSpan.End()
-	s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
+	s.telemetry.queryExplainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
 
 	// record latency for success requests only
-	s.telemetry.explainLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
+	s.telemetry.queryExplainLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
 }
 
 // MutationExplain implements a handler for the /mutation/explain endpoint, POST method that explains a mutation by creating an execution plan.
@@ -320,7 +320,7 @@ func (s *Server[RawConfiguration, Configuration, State]) MutationExplain(w http.
 			attribute.String("reason", "json_decode"),
 		}
 		span.SetAttributes(attributes...)
-		s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
+		s.telemetry.mutationExplainCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
 		return
 	}
 	decodeSpan.End()
@@ -343,7 +343,7 @@ func (s *Server[RawConfiguration, Configuration, State]) MutationExplain(w http.
 			attribute.String("reason", fmt.Sprintf("%d", status)),
 		}
 		span.SetAttributes(attributes...)
-		s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttributes...)...))
+		s.telemetry.mutationExplainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttributes...)...))
 		return
 	}
 	execSpan.End()
@@ -353,10 +353,10 @@ func (s *Server[RawConfiguration, Configuration, State]) MutationExplain(w http.
 	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
 	writeJson(w, logger, http.StatusOK, response)
 	responseSpan.End()
-	s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
+	s.telemetry.mutationExplainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
 
 	// record latency for success requests only
-	s.telemetry.explainLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
+	s.telemetry.mutationExplainLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
 }
 
 // Mutation implements a handler for the /mutation endpoint, POST method that executes a mutation.

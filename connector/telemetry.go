@@ -27,15 +27,17 @@ import (
 )
 
 type TelemetryState struct {
-	Tracer                   traceapi.Tracer
-	Meter                    metricapi.Meter
-	Shutdown                 func(context.Context) error
-	queryCounter             metricapi.Int64Counter
-	mutationCounter          metricapi.Int64Counter
-	explainCounter           metricapi.Int64Counter
-	queryLatencyHistogram    metricapi.Float64Histogram
-	explainLatencyHistogram  metricapi.Float64Histogram
-	mutationLatencyHistogram metricapi.Float64Histogram
+	Tracer                          traceapi.Tracer
+	Meter                           metricapi.Meter
+	Shutdown                        func(context.Context) error
+	queryCounter                    metricapi.Int64Counter
+	mutationCounter                 metricapi.Int64Counter
+	queryExplainCounter             metricapi.Int64Counter
+	mutationExplainCounter          metricapi.Int64Counter
+	queryLatencyHistogram           metricapi.Float64Histogram
+	queryExplainLatencyHistogram    metricapi.Float64Histogram
+	mutationExplainLatencyHistogram metricapi.Float64Histogram
+	mutationLatencyHistogram        metricapi.Float64Histogram
 }
 
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.
@@ -226,9 +228,17 @@ func setupMetrics(telemetry *TelemetryState, metricsPrefix string) error {
 		return err
 	}
 
-	telemetry.explainCounter, err = meter.Int64Counter(
-		fmt.Sprintf("%sexplain.total", metricsPrefix),
-		metricapi.WithDescription("The total number of explain requests"),
+	telemetry.queryExplainCounter, err = meter.Int64Counter(
+		fmt.Sprintf("%squery.explain_total", metricsPrefix),
+		metricapi.WithDescription("The total number of explain query requests"),
+	)
+	if err != nil {
+		return err
+	}
+
+	telemetry.mutationExplainCounter, err = meter.Int64Counter(
+		fmt.Sprintf("%smutation.explain_total", metricsPrefix),
+		metricapi.WithDescription("The total number of explain mutation requests"),
 	)
 	if err != nil {
 		return err
@@ -250,9 +260,14 @@ func setupMetrics(telemetry *TelemetryState, metricsPrefix string) error {
 		return err
 	}
 
-	telemetry.explainLatencyHistogram, err = meter.Float64Histogram(
-		fmt.Sprintf("%sexplain.total_time", metricsPrefix),
-		metricapi.WithDescription("Total time taken to plan and execute an explain request, in seconds"),
+	telemetry.queryExplainLatencyHistogram, err = meter.Float64Histogram(
+		fmt.Sprintf("%squery.explain_total_time", metricsPrefix),
+		metricapi.WithDescription("Total time taken to plan and execute an explain query request, in seconds"),
+	)
+
+	telemetry.mutationExplainLatencyHistogram, err = meter.Float64Histogram(
+		fmt.Sprintf("%smutation.explain_total_time", metricsPrefix),
+		metricapi.WithDescription("Total time taken to plan and execute an explain mutation request, in seconds"),
 	)
 
 	return err
