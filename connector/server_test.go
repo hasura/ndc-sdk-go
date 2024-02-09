@@ -8,7 +8,6 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -200,12 +199,6 @@ func (mc *mockConnector) Query(ctx context.Context, configuration *mockConfigura
 	}, nil
 }
 
-// buildTestServer builds the http test server for testing purpose
-func buildTestServer(s *Server[mockRawConfiguration, mockConfiguration, mockState]) *httptest.Server {
-	_ = s.telemetry.Shutdown(context.Background())
-	return httptest.NewServer(s.buildHandler())
-}
-
 func httpPostJSON(url string, body any) (*http.Response, error) {
 	bodyBytes, err := json.Marshal(body)
 	if err != nil {
@@ -217,7 +210,7 @@ func httpPostJSON(url string, body any) (*http.Response, error) {
 
 func assertHTTPResponseStatus(t *testing.T, name string, res *http.Response, statusCode int) {
 	if res.StatusCode != statusCode {
-		t.Errorf("%s: expected status %d, got %d", name, statusCode, res.StatusCode)
+		t.Errorf("\n%s: expected status %d, got %d", name, statusCode, res.StatusCode)
 		t.FailNow()
 	}
 }
@@ -242,7 +235,7 @@ func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int,
 
 	if !internal.DeepEqual(body, expectedBody) {
 		expectedBytes, _ := json.Marshal(expectedBody)
-		t.Errorf("expect: %+v\ngot: %+v", string(expectedBytes), string(bodyBytes))
+		t.Errorf("\nexpect: %+v\ngot: %+v", string(expectedBytes), string(bodyBytes))
 		t.FailNow()
 	}
 }
@@ -365,7 +358,7 @@ func TestServerAuth(t *testing.T) {
 		t.FailNow()
 	}
 
-	httpServer := buildTestServer(server)
+	httpServer := server.BuildTestServer()
 	defer httpServer.Close()
 
 	t.Run("Unauthorized GET /schema", func(t *testing.T) {
@@ -407,11 +400,11 @@ func TestServerConnector(t *testing.T) {
 	}, WithLogger(zerolog.Nop()))
 
 	if err != nil {
-		t.Errorf("NewServerAuth: expected no error, got %s", err)
+		t.Errorf("NewServer: expected no error, got %s", err)
 		t.FailNow()
 	}
 
-	httpServer := buildTestServer(server)
+	httpServer := server.BuildTestServer()
 	defer httpServer.Close()
 
 	t.Run("GET /capabilities", func(t *testing.T) {

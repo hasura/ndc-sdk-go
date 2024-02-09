@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/signal"
 	"strings"
@@ -426,6 +427,12 @@ func (s *Server[RawConfiguration, Configuration, State]) buildHandler() *http.Se
 	router.Use("/metrics", http.MethodGet, s.withAuth(promhttp.Handler().ServeHTTP))
 
 	return router.Build()
+}
+
+// BuildTestServer builds an http test server for testing purpose
+func (s *Server[RawConfiguration, Configuration, State]) BuildTestServer() *httptest.Server {
+	_ = s.telemetry.Shutdown(context.Background())
+	return httptest.NewServer(s.buildHandler())
 }
 
 // ListenAndServe serves the configuration server with the standard http server.

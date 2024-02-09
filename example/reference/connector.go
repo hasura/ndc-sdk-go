@@ -238,9 +238,21 @@ func (mc *Connector) Query(ctx context.Context, configuration *Configuration, st
 	var rows []schema.Row
 	switch request.Collection {
 	case "articles":
-		rows = schema.ToRows(getMapValues(state.Articles))
+		for _, item := range state.Articles {
+			row, err := schema.PruneFields(request.Query.Fields, item)
+			if err != nil {
+				return nil, err
+			}
+			rows = append(rows, row)
+		}
 	case "authors":
-		rows = schema.ToRows(getMapValues(state.Authors))
+		for _, item := range state.Authors {
+			row, err := schema.PruneFields(request.Query.Fields, item)
+			if err != nil {
+				return nil, err
+			}
+			rows = append(rows, row)
+		}
 	case "articles_by_author":
 		authorIdArg, ok := request.Arguments["author_id"]
 		if !ok {
@@ -251,7 +263,11 @@ func (mc *Connector) Query(ctx context.Context, configuration *Configuration, st
 			switch authorIdArg.Type {
 			case schema.ArgumentTypeLiteral:
 				if fmt.Sprint(row.AuthorID) == fmt.Sprint(authorIdArg.Value) {
-					rows = append(rows, row)
+					r, err := schema.PruneFields(request.Query.Fields, row)
+					if err != nil {
+						return nil, err
+					}
+					rows = append(rows, r)
 				}
 			}
 		}
