@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
-	"slices"
+	"sort"
 	"strings"
 
 	"github.com/hasura/ndc-sdk-go/connector"
@@ -417,28 +417,28 @@ func evalAggregate(aggregate *schema.Aggregate, paginated []map[string]any) (any
 	}
 }
 
-func evalAggregateFunction(function string, values []any) (*int64, error) {
+func evalAggregateFunction(function string, values []any) (*int, error) {
 	if len(values) == 0 {
 		return nil, nil
 	}
 
-	var intValues []int64
+	var intValues []int
 	for _, value := range values {
 		switch v := value.(type) {
 		case int:
-			intValues = append(intValues, int64(v))
-		case int16:
-			intValues = append(intValues, int64(v))
-		case int32:
-			intValues = append(intValues, int64(v))
-		case int64:
 			intValues = append(intValues, v)
+		case int16:
+			intValues = append(intValues, int(v))
+		case int32:
+			intValues = append(intValues, int(v))
+		case int64:
+			intValues = append(intValues, int(v))
 		default:
 			return nil, schema.BadRequestError(fmt.Sprintf("%s: column is not an integer, got %+v", function, reflect.ValueOf(v).Kind()), nil)
 		}
 	}
 
-	slices.Sort(intValues)
+	sort.Ints(intValues)
 
 	switch function {
 	case "min":
