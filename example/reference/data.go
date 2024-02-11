@@ -3,6 +3,7 @@ package main
 import (
 	_ "embed"
 	"encoding/csv"
+	"encoding/json"
 	"io"
 	"sort"
 	"strconv"
@@ -14,6 +15,9 @@ var csvArticles string
 
 //go:embed authors.csv
 var csvAuthors string
+
+//go:embed institutions.json
+var jsonInstitutions []byte
 
 func readAuthors() (map[int]Author, error) {
 	r := csv.NewReader(strings.NewReader(csvAuthors))
@@ -89,14 +93,6 @@ func readArticles() (map[int]Article, error) {
 	return results, nil
 }
 
-func getMapValues[K comparable, V any](input map[K]V) []V {
-	results := make([]V, 0, len(input))
-	for _, v := range input {
-		results = append(results, v)
-	}
-	return results
-}
-
 func getMapKeys[K comparable, V any](input map[K]V) []K {
 	results := make([]K, 0, len(input))
 	for k := range input {
@@ -121,4 +117,17 @@ func sortArticles(input map[int]Article, key string, descending bool) []Article 
 		results = append(results, input[id])
 	}
 	return results
+}
+
+func readInstitutions() (map[int]Institution, error) {
+	var institutions []Institution
+	if err := json.Unmarshal(jsonInstitutions, &institutions); err != nil {
+		return nil, err
+	}
+
+	results := make(map[int]Institution)
+	for _, inst := range institutions {
+		results[inst.ID] = inst
+	}
+	return results, nil
 }

@@ -71,10 +71,40 @@ func TestQuery(t *testing.T) {
 		responseURL string
 	}{
 		{
+			name:        "aggregate_function",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/aggregate_function/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/aggregate_function/expected.json",
+		},
+		{
+			name:        "authors_with_article_aggregate",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/authors_with_article_aggregate/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/authors_with_article_aggregate/expected.json",
+		},
+		{
+			name:        "authors_with_articles",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/authors_with_articles/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/authors_with_articles/expected.json",
+		},
+		{
+			name:        "column_count",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/column_count/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/column_count/expected.json",
+		},
+		{
 			name:        "get_all_articles",
 			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/get_all_articles/request.json",
 			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/get_all_articles/expected.json",
 		},
+		{
+			name:        "get_max_article_id",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/get_max_article_id/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/get_max_article_id/expected.json",
+		},
+		// {
+		// 	name:        "nested_array_select",
+		// 	requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/nested_array_select/request.json",
+		// 	responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/nested_array_select/expected.json",
+		// },
 	}
 
 	for _, tc := range testCases {

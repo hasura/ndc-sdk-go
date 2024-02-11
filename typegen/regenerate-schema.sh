@@ -25,10 +25,10 @@ sed -i 's/type MutationOperation interface{}//g' ../schema/schema.generated.go
 sed -i 's/type MutationRequestOperationsElem interface{}//g' ../schema/schema.generated.go
 sed -i 's/MutationRequestOperationsElem/MutationOperation/g' ../schema/schema.generated.go
 sed -i 's/QueryRequestArguments map\[string\]interface{}/QueryRequestArguments map[string]Argument/g' ../schema/schema.generated.go
-sed -i 's/RowSetRowsElem map\[string\]interface{}/Row any/g' ../schema/schema.generated.go
-sed -i 's/RowSetRowsElem/Row/g' ../schema/schema.generated.go
+sed -i 's/type RowSetRowsElem map\[string\]interface{}//g' ../schema/schema.generated.go
+sed -i 's/RowSetRowsElem/map[string]any/g' ../schema/schema.generated.go
 sed -i 's/type MutationOperationResultsReturningElem map\[string\]interface{}//g' ../schema/schema.generated.go
-sed -i 's/MutationOperationResultsReturningElem/Row/g' ../schema/schema.generated.go
+sed -i 's/MutationOperationResultsReturningElem/map[string]any/g' ../schema/schema.generated.go
 sed -i 's/Query interface{}/Query Query/g' ../schema/schema.generated.go
 sed -i 's/OrderBy interface{}/OrderBy *OrderBy/g' ../schema/schema.generated.go
 sed -i 's/type Expression interface{}//g' ../schema/schema.generated.go
@@ -38,6 +38,7 @@ sed -i 's/Where interface{}/Where Expression/g' ../schema/schema.generated.go
 sed -i 's/type Aggregate interface{}//g' ../schema/schema.generated.go
 sed -i 's/type OrderByTarget interface{}//g' ../schema/schema.generated.go
 sed -i 's/QueryAggregates map\[string\]interface{}/QueryAggregates map[string]Aggregate/g' ../schema/schema.generated.go
+sed -i 's/RelationshipArguments map\[string\]interface{}/RelationshipArguments map[string]RelationshipArgument/g' ../schema/schema.generated.go
 sed -i 's/Predicate interface{}/Predicate Expression/g' ../schema/schema.generated.go
 sed -i 's/type OrderByElementTarget interface{}//g' ../schema/schema.generated.go
 sed -i 's/OrderByElementTarget/OrderByTarget/g' ../schema/schema.generated.go

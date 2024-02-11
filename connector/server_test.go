@@ -188,8 +188,8 @@ func (mc *mockConnector) Query(ctx context.Context, configuration *mockConfigura
 	return schema.QueryResponse{
 		{
 			Aggregates: schema.RowSetAggregates{},
-			Rows: []schema.Row{
-				map[string]any{
+			Rows: []map[string]any{
+				{
 					"id":        1,
 					"title":     "Hello world",
 					"author_id": 1,
@@ -449,8 +449,8 @@ func TestServerConnector(t *testing.T) {
 		assertHTTPResponse(t, res, http.StatusOK, schema.QueryResponse{
 			{
 				Aggregates: schema.RowSetAggregates{},
-				Rows: []schema.Row{
-					map[string]any{
+				Rows: []map[string]any{
+					{
 						"id":        1,
 						"title":     "Hello world",
 						"author_id": 1,

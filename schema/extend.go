@@ -2331,15 +2331,15 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 	}
 	switch ty {
 	case OrderByTargetTypeColumn:
-		rawColumn, ok := raw["column"]
+		rawName, ok := raw["name"]
 		if !ok {
-			return errors.New("field column in OrderByTarget is required for column type")
+			return errors.New("field name in OrderByTarget is required for column type")
 		}
-		var column string
-		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in OrderByTarget: %s", err)
+		var name string
+		if err := json.Unmarshal(rawName, &name); err != nil {
+			return fmt.Errorf("field name in OrderByTarget: %s", err)
 		}
-		result["column"] = column
+		result["name"] = name
 
 		rawPath, ok := raw["path"]
 		if !ok {
@@ -2425,9 +2425,9 @@ func (j OrderByTarget) AsColumn() (*OrderByColumn, error) {
 		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", OrderByTargetTypeColumn, t)
 	}
 
-	column := getStringValueByKey(j, "column")
-	if column == "" {
-		return nil, errors.New("OrderByColumn.column is required")
+	name := getStringValueByKey(j, "name")
+	if name == "" {
+		return nil, errors.New("OrderByColumn.name is required")
 	}
 	rawPath, ok := j["path"]
 	if !ok {
@@ -2438,9 +2438,9 @@ func (j OrderByTarget) AsColumn() (*OrderByColumn, error) {
 		return nil, fmt.Errorf("invalid OrderByColumn.path type; expected: []PathElement, got: %+v", rawPath)
 	}
 	return &OrderByColumn{
-		Type:   t,
-		Column: column,
-		Path:   p,
+		Type: t,
+		Name: name,
+		Path: p,
 	}, nil
 }
 
@@ -2531,7 +2531,7 @@ type OrderByTargetEncoder interface {
 type OrderByColumn struct {
 	Type OrderByTargetType `json:"type" mapstructure:"type"`
 	// The name of the column
-	Column string `json:"column" mapstructure:"column"`
+	Name string `json:"name" mapstructure:"name"`
 	// Any relationships to traverse to reach this column
 	Path []PathElement `json:"path" mapstructure:"path"`
 }
@@ -2539,9 +2539,9 @@ type OrderByColumn struct {
 // Encode converts the instance to raw OrderByTarget
 func (ob OrderByColumn) Encode() OrderByTarget {
 	return OrderByTarget{
-		"type":   ob.Type,
-		"column": ob.Column,
-		"path":   ob.Path,
+		"type": ob.Type,
+		"name": ob.Name,
+		"path": ob.Path,
 	}
 }
 

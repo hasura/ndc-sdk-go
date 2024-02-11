@@ -22,15 +22,6 @@ func ToAnySlice[V any](slice []V) []any {
 	return results
 }
 
-// ToRows converts a typed slice to Row slice
-func ToRows[V any](slice []V) []Row {
-	results := make([]Row, len(slice))
-	for i, v := range slice {
-		results[i] = v
-	}
-	return results
-}
-
 // Index returns the index of the first occurrence of item in slice,
 // or -1 if not present.
 func Index[E comparable](s []E, v E) int {
@@ -95,13 +86,9 @@ func unmarshalStringFromJsonMap(collection map[string]json.RawMessage, key strin
 	return result, nil
 }
 
-// PruneFields prune unnecessary fields from selection
-func PruneFields(fields map[string]Field, result any) (any, error) {
-	if len(fields) == 0 {
-		return result, nil
-	}
-
-	if result == nil {
+// EncodeRow encodes an object row to a map[string]any, using json tag to convert object keys
+func EncodeRow(row any) (map[string]any, error) {
+	if row == nil {
 		return nil, errors.New("expected object fields, got nil")
 	}
 
@@ -113,8 +100,22 @@ func PruneFields(fields map[string]Field, result any) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := decoder.Decode(result); err != nil {
+	if err := decoder.Decode(row); err != nil {
 		return nil, err
+	}
+
+	return outputMap, nil
+}
+
+// PruneFields prune unnecessary fields from selection
+func PruneFields(fields map[string]Field, result any) (map[string]any, error) {
+	outputMap, err := EncodeRow(result)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(fields) == 0 {
+		return outputMap, nil
 	}
 
 	output := make(map[string]any)

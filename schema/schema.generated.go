@@ -141,7 +141,7 @@ type MutationOperationResults struct {
 	AffectedRows int `json:"affected_rows" yaml:"affected_rows" mapstructure:"affected_rows"`
 
 	// The rows affected by the mutation operation
-	Returning []Row `json:"returning,omitempty" yaml:"returning,omitempty" mapstructure:"returning,omitempty"`
+	Returning []map[string]any `json:"returning,omitempty" yaml:"returning,omitempty" mapstructure:"returning,omitempty"`
 }
 
 type MutationRequest struct {
@@ -314,7 +314,7 @@ type Relationship struct {
 }
 
 // Values to be provided to any collection arguments
-type RelationshipArguments map[string]interface{}
+type RelationshipArguments map[string]RelationshipArgument
 
 type RelationshipCapabilities struct {
 	// Does the connector support ordering by an aggregated array relationship?
@@ -777,14 +777,12 @@ func (j *RelationshipType) UnmarshalJSON(b []byte) error {
 // The results of the aggregates returned by the query
 type RowSetAggregates map[string]interface{}
 
-type Row any
-
 type RowSet struct {
 	// The results of the aggregates returned by the query
 	Aggregates RowSetAggregates `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
 
 	// The rows returned by the query, corresponding to the query's fields
-	Rows []Row `json:"rows,omitempty" yaml:"rows,omitempty" mapstructure:"rows,omitempty"`
+	Rows []map[string]any `json:"rows,omitempty" yaml:"rows,omitempty" mapstructure:"rows,omitempty"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
