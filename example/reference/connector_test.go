@@ -57,7 +57,7 @@ func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int,
 
 	if !internal.DeepEqual(body, expectedBody) {
 		expectedBytes, _ := json.Marshal(expectedBody)
-		t.Errorf("\nexpect: %+v\ngot: %+v", string(expectedBytes), string(bodyBytes))
+		t.Errorf("\nexpect: %+v\ngot		: %+v", string(expectedBytes), string(bodyBytes))
 		t.FailNow()
 	}
 }
@@ -125,7 +125,6 @@ func TestQuery(t *testing.T) {
 			}
 
 			assertHTTPResponse[schema.QueryResponse](t, res, http.StatusOK, expected)
-
 		})
 	}
 }

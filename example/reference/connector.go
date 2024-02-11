@@ -969,7 +969,7 @@ func getCollectionByName(collectionName string, arguments schema.QueryRequestArg
 
 		// collections
 	case "articles":
-		for _, item := range state.Articles {
+		for _, item := range sortArticles(state.Articles, "id", false) {
 			row, err := schema.EncodeRow(item)
 			if err != nil {
 				return nil, err
