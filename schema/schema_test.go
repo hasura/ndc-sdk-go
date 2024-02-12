@@ -350,6 +350,7 @@ func TestQueryRequest(t *testing.T) {
 						},
 						RelationshipType: RelationshipTypeArray,
 						TargetCollection: "articles",
+						Arguments:        RelationshipArguments{},
 					},
 				},
 			},
