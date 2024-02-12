@@ -108,20 +108,20 @@ func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) Validate(
 	})
 }
 
-// Health implements a handler for /healthz endpoint.
+// Health implements a handler for /health endpoint.
 // The endpoint has nothing to check, because the reference implementation does not need to connect to any other services.
 // Therefore, once the reference implementation is running, it can always report a healthy status
 func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) Health(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (cs *ConfigurationServer[RawConfiguration, Configuration, State]) buildHandler() *http.ServeMux {
-	router := newRouter(cs.logger)
+	router := newRouter(cs.logger, false)
 	router.Use("/", http.MethodGet, cs.GetIndex)
 	router.Use("/", http.MethodPost, cs.PostIndex)
 	router.Use("/schema", http.MethodGet, cs.GetSchema)
 	router.Use("/validate", http.MethodPost, cs.Validate)
-	router.Use("/healthz", http.MethodGet, cs.Health)
+	router.Use("/health", http.MethodGet, cs.Health)
 
 	return router.Build()
 }

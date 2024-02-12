@@ -21,13 +21,13 @@ func TestConfigurationServer(t *testing.T) {
 	httpServer := buildTestConfigurationServer()
 	defer httpServer.Close()
 
-	t.Run("GET /healthz", func(t *testing.T) {
-		res, err := http.Get(fmt.Sprintf("%s/healthz", httpServer.URL))
+	t.Run("GET /health", func(t *testing.T) {
+		res, err := http.Get(fmt.Sprintf("%s/health", httpServer.URL))
 		if err != nil {
-			t.Errorf("GET /healthz: expected no error, got %s", err)
+			t.Errorf("GET /health: expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponseStatus(t, "GET /healthz", res, http.StatusNoContent)
+		assertHTTPResponseStatus(t, "GET /health", res, http.StatusOK)
 	})
 
 	t.Run("GET /", func(t *testing.T) {
@@ -36,7 +36,7 @@ func TestConfigurationServer(t *testing.T) {
 			t.Errorf("GET /: expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, "GET /", res, http.StatusOK, mockRawConfiguration{
+		assertHTTPResponse(t, res, http.StatusOK, mockRawConfiguration{
 			Version: "1",
 		})
 	})
@@ -49,7 +49,7 @@ func TestConfigurationServer(t *testing.T) {
 			t.Errorf("POST /: expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, "POST /", res, http.StatusOK, mockRawConfiguration{
+		assertHTTPResponse(t, res, http.StatusOK, mockRawConfiguration{
 			Version: "1",
 		})
 	})
@@ -60,7 +60,7 @@ func TestConfigurationServer(t *testing.T) {
 			t.Errorf("POST /: expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, "POST /", res, http.StatusBadRequest, schema.ErrorResponse{
+		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]string{
 				"cause": "json: cannot unmarshal string into Go value of type connector.mockRawConfiguration",
@@ -74,7 +74,7 @@ func TestConfigurationServer(t *testing.T) {
 			t.Errorf("GET /schema: expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, "GET /schema", res, http.StatusOK, jsonschema.Schema{
+		assertHTTPResponse(t, res, http.StatusOK, jsonschema.Schema{
 			ID: schema.ToPtr("test"),
 		})
 	})
@@ -87,7 +87,7 @@ func TestConfigurationServer(t *testing.T) {
 			t.Errorf("POST /validate: expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, "POST /validate", res, http.StatusOK, schema.ValidateResponse{
+		assertHTTPResponse(t, res, http.StatusOK, schema.ValidateResponse{
 			Schema:                mockSchema,
 			Capabilities:          mockCapabilities,
 			ResolvedConfiguration: `{"version":1}`,
@@ -100,7 +100,7 @@ func TestConfigurationServer(t *testing.T) {
 			t.Errorf("POST /validate: expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, "POST /validate", res, http.StatusBadRequest, schema.ErrorResponse{
+		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]string{
 				"cause": "json: cannot unmarshal string into Go value of type connector.mockRawConfiguration",

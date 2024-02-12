@@ -3,6 +3,9 @@ package schema
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+
+	"github.com/mitchellh/mapstructure"
 )
 
 // ToPtr converts a value to its pointer
@@ -13,15 +16,6 @@ func ToPtr[V any](value V) *V {
 // ToAnySlice converts a typed slice to any slice
 func ToAnySlice[V any](slice []V) []any {
 	results := make([]any, len(slice))
-	for i, v := range slice {
-		results[i] = v
-	}
-	return results
-}
-
-// ToRows converts a typed slice to Row slice
-func ToRows[V any](slice []V) []Row {
-	results := make([]Row, len(slice))
 	for i, v := range slice {
 		results[i] = v
 	}
@@ -90,4 +84,100 @@ func unmarshalStringFromJsonMap(collection map[string]json.RawMessage, key strin
 	}
 
 	return result, nil
+}
+
+// EncodeRow encodes an object row to a map[string]any, using json tag to convert object keys
+func EncodeRow(row any) (map[string]any, error) {
+	return encodeRows[map[string]any](row)
+}
+
+// EncodeRows encodes an object rows to a slice of map[string]any, using json tag to convert object keys
+func EncodeRows(rows any) ([]map[string]any, error) {
+	return encodeRows[[]map[string]any](rows)
+}
+
+func encodeRows[R any](rows any) (R, error) {
+	var result R
+	if rows == nil {
+		return result, errors.New("expected object fields, got nil")
+	}
+
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result:  &result,
+		TagName: "json",
+	})
+	if err != nil {
+		return result, err
+	}
+	err = decoder.Decode(rows)
+
+	return result, err
+}
+
+// PruneFields prune unnecessary fields from selection
+func PruneFields(fields map[string]Field, result any) (map[string]any, error) {
+	outputMap, err := EncodeRow(result)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(fields) == 0 {
+		return outputMap, nil
+	}
+
+	output := make(map[string]any)
+	for key, field := range fields {
+		f, err := field.Interface()
+		switch fi := f.(type) {
+		case *ColumnField:
+			if col, ok := outputMap[fi.Column]; ok {
+				output[fi.Column] = col
+			} else {
+				output[fi.Column] = nil
+			}
+		case *RelationshipField:
+			return nil, fmt.Errorf("unsupported relationship field,  %s", key)
+		default:
+			return nil, err
+		}
+	}
+
+	return output, nil
+}
+
+// ResolveArguments resolve variables in arguments and map them to struct
+func ResolveArguments[R any](arguments map[string]Argument, variables map[string]any) (*R, error) {
+	resolvedArgs, err := ResolveArgumentVariables(arguments, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	var result R
+
+	if err = mapstructure.Decode(resolvedArgs, &result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// ResolveArgumentVariables resolve variables in arguments if exist
+func ResolveArgumentVariables(arguments map[string]Argument, variables map[string]any) (map[string]any, error) {
+	results := make(map[string]any)
+	for key, arg := range arguments {
+		switch arg.Type {
+		case ArgumentTypeLiteral:
+			results[key] = arg.Value
+		case ArgumentTypeVariable:
+			value, ok := variables[arg.Name]
+			if !ok {
+				return nil, fmt.Errorf("variable %s not found", arg.Name)
+			}
+			results[key] = value
+		default:
+			return nil, fmt.Errorf("unsupported argument type: %s", arg.Type)
+		}
+	}
+
+	return results, nil
 }

@@ -2,236 +2,51 @@ package schema
 
 import (
 	"encoding/json"
+	"net/http"
 	"testing"
 
 	"github.com/hasura/ndc-sdk-go/internal"
 )
 
 func TestSchemaResponse(t *testing.T) {
-	rawInput := []byte(`{
-		"scalar_types": {
-			"Int": {
-				"aggregate_functions": {
-					"max": {
-						"result_type": {
-							"type": "nullable",
-							"underlying_type": {
-								"type": "named",
-								"name": "Int"
-							}
-						}
-					},
-					"min": {
-						"result_type": {
-							"type": "nullable",
-							"underlying_type": {
-								"type": "named",
-								"name": "Int"
-							}
-						}
-					}
-				},
-				"comparison_operators": {}
-			},
-			"String": {
-				"aggregate_functions": {},
-				"comparison_operators": {
-					"like": {
-						"argument_type": {
-							"type": "named",
-							"name": "String"
-						}
-					}
-				}
-			}
-		},
-		"object_types": {
-			"article": {
-				"description": "An article",
-				"fields": {
-					"author_id": {
-						"description": "The article's author ID",
-						"type": {
-							"type": "named",
-							"name": "Int"
-						}
-					},
-					"id": {
-						"description": "The article's primary key",
-						"type": {
-							"type": "named",
-							"name": "Int"
-						}
-					},
-					"title": {
-						"description": "The article's title",
-						"type": {
-							"type": "named",
-							"name": "String"
-						}
-					}
-				}
-			},
-			"author": {
-				"description": "An author",
-				"fields": {
-					"first_name": {
-						"description": "The author's first name",
-						"type": {
-							"type": "named",
-							"name": "String"
-						}
-					},
-					"id": {
-						"description": "The author's primary key",
-						"type": {
-							"type": "named",
-							"name": "Int"
-						}
-					},
-					"last_name": {
-						"description": "The author's last name",
-						"type": {
-							"type": "named",
-							"name": "String"
-						}
-					}
-				}
-			}
-		},
-		"collections": [
-			{
-				"name": "articles",
-				"description": "A collection of articles",
-				"arguments": {},
-				"type": "article",
-				"uniqueness_constraints": {
-					"ArticleByID": {
-						"unique_columns": [
-							"id"
-						]
-					}
-				},
-				"foreign_keys": {
-					"Article_AuthorID": {
-						"column_mapping": {
-							"author_id": "id"
-						},
-						"foreign_collection": "authors"
-					}
-				}
-			},
-			{
-				"name": "authors",
-				"description": "A collection of authors",
-				"arguments": {},
-				"type": "author",
-				"uniqueness_constraints": {
-					"AuthorByID": {
-						"unique_columns": [
-							"id"
-						]
-					}
-				},
-				"foreign_keys": {}
-			},
-			{
-				"name": "articles_by_author",
-				"description": "Articles parameterized by author",
-				"arguments": {
-					"author_id": {
-						"type": {
-							"type": "named",
-							"name": "Int"
-						}
-					}
-				},
-				"type": "article",
-				"uniqueness_constraints": {},
-				"foreign_keys": {}
-			}
-		],
-		"functions": [
-			{
-				"name": "latest_article_id",
-				"description": "Get the ID of the most recent article",
-				"arguments": {},
-				"result_type": {
-					"type": "nullable",
-					"underlying_type": {
-						"type": "named",
-						"name": "Int"
-					}
-				}
-			}
-		],
-		"procedures": [
-			{
-				"name": "upsert_article",
-				"description": "Insert or update an article",
-				"arguments": {
-					"article": {
-						"description": "The article to insert or update",
-						"type": {
-							"type": "named",
-							"name": "article"
-						}
-					}
-				},
-				"result_type": {
-					"type": "nullable",
-					"underlying_type": {
-						"type": "named",
-						"name": "article"
-					}
-				}
-			}
-		]
-	}`)
+	// reuse test fixtures from ndc-reference
+	httpResp, err := http.Get("https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/schema/expected.json")
+	if err != nil {
+		t.Errorf("failed to fetch schema: %s", err.Error())
+		t.FailNow()
+	}
 
 	var resp SchemaResponse
-	if err := json.Unmarshal(rawInput, &resp); err != nil {
-		t.Errorf("failed to decode SchemaResponse: %s", err)
-		t.FailNow()
-	}
-
-	if intScalar, ok := resp.ScalarTypes["Int"]; !ok {
-		t.Error("Int scalar in SchemaResponse: required")
-		t.FailNow()
-	} else if len(intScalar.ComparisonOperators) != 0 {
-		t.Errorf("Int scalar in SchemaResponse: expected no comparison operator, got: %+v", intScalar.ComparisonOperators)
-		t.FailNow()
-	} else if !internal.DeepEqual(intScalar.AggregateFunctions, ScalarTypeAggregateFunctions{
-		"max": AggregateFunctionDefinition{
-			ResultType: NewNullableNamedType("Int").Encode(),
-		},
-		"min": AggregateFunctionDefinition{
-			ResultType: NewNullableNamedType("Int").Encode(),
-		},
-	}) {
-		t.Errorf("Int scalar in SchemaResponse: expected equal aggregate functions; %+v", intScalar.AggregateFunctions)
-		t.FailNow()
-	} else if _, err := intScalar.AggregateFunctions["max"].ResultType.AsNullable(); err != nil {
-		t.Errorf("Int scalar in SchemaResponse: expected aggregate function max, got error: %s", err)
-		t.FailNow()
-	}
-
-	if stringScalar, ok := resp.ScalarTypes["String"]; !ok {
-		t.Error("String scalar in SchemaResponse: required")
-		t.FailNow()
-	} else if len(stringScalar.AggregateFunctions) != 0 {
-		t.Errorf("Int scalar in SchemaResponse: expected no aggregate function, got: %+v", stringScalar.AggregateFunctions)
-		t.FailNow()
-	} else if !internal.DeepEqual(stringScalar.ComparisonOperators, ScalarTypeComparisonOperators{
-		"like": ComparisonOperatorDefinition{
-			ArgumentType: NewNamedType("String").Encode(),
-		},
-	}) {
-		t.Errorf("String scalar in SchemaResponse: expected equal comparison operators; %+v", stringScalar.ComparisonOperators)
+	if err = json.NewDecoder(httpResp.Body).Decode(&resp); err != nil {
+		t.Errorf("failed to decode schema json: %s", err.Error())
 		t.FailNow()
 	}
 
 	expected := SchemaResponse{
+		ScalarTypes: SchemaResponseScalarTypes{
+			"Int": ScalarType{
+				AggregateFunctions: ScalarTypeAggregateFunctions{
+					"max": AggregateFunctionDefinition{
+						ResultType: NewNullableNamedType("Int").Encode(),
+					},
+					"min": AggregateFunctionDefinition{
+						ResultType: NewNullableNamedType("Int").Encode(),
+					},
+				},
+				ComparisonOperators: map[string]ComparisonOperatorDefinition{
+					"eq": NewComparisonOperatorEqual().Encode(),
+					"in": NewComparisonOperatorIn().Encode(),
+				},
+			},
+			"String": {
+				AggregateFunctions: ScalarTypeAggregateFunctions{},
+				ComparisonOperators: map[string]ComparisonOperatorDefinition{
+					"eq":   NewComparisonOperatorEqual().Encode(),
+					"in":   NewComparisonOperatorIn().Encode(),
+					"like": NewComparisonOperatorCustom(NewNamedType("String")).Encode(),
+				},
+			},
+		},
 		ObjectTypes: SchemaResponseObjectTypes{
 			"article": ObjectType{
 				Description: ToPtr("An article"),
@@ -240,11 +55,11 @@ func TestSchemaResponse(t *testing.T) {
 						Description: ToPtr("The article's author ID"),
 						Type:        NewNamedType("Int").Encode(),
 					},
-					"id": ObjectField{
+					"id": {
 						Description: ToPtr("The article's primary key"),
 						Type:        NewNamedType("Int").Encode(),
 					},
-					"title": ObjectField{
+					"title": {
 						Description: ToPtr("The article's title"),
 						Type:        NewNamedType("String").Encode(),
 					},
@@ -253,17 +68,76 @@ func TestSchemaResponse(t *testing.T) {
 			"author": ObjectType{
 				Description: ToPtr("An author"),
 				Fields: ObjectTypeFields{
-					"first_name": ObjectField{
+					"first_name": {
 						Description: ToPtr("The author's first name"),
 						Type:        NewNamedType("String").Encode(),
 					},
-					"id": ObjectField{
+					"id": {
 						Description: ToPtr("The author's primary key"),
 						Type:        NewNamedType("Int").Encode(),
 					},
-					"last_name": ObjectField{
+					"last_name": {
 						Description: ToPtr("The author's last name"),
 						Type:        NewNamedType("String").Encode(),
+					},
+				},
+			},
+			"institution": ObjectType{
+				Description: ToPtr("An institution"),
+				Fields: ObjectTypeFields{
+					"departments": ObjectField{
+						Description: ToPtr("The institution's departments"),
+						Type:        NewArrayType(NewNamedType("String")).Encode(),
+					},
+					"id": ObjectField{
+						Description: ToPtr("The institution's primary key"),
+						Type:        NewNamedType("Int").Encode(),
+					},
+					"location": ObjectField{
+						Description: ToPtr("The institution's location"),
+						Type:        NewNamedType("location").Encode(),
+					},
+					"name": ObjectField{
+						Description: ToPtr("The institution's name"),
+						Type:        NewNamedType("String").Encode(),
+					},
+					"staff": ObjectField{
+						Description: ToPtr("The institution's staff"),
+						Type:        NewArrayType(NewNamedType("staff_member")).Encode(),
+					},
+				},
+			},
+			"location": ObjectType{
+				Description: ToPtr("A location"),
+				Fields: ObjectTypeFields{
+					"campuses": ObjectField{
+						Description: ToPtr("The location's campuses"),
+						Type:        NewArrayType(NewNamedType("String")).Encode(),
+					},
+					"city": ObjectField{
+						Description: ToPtr("The location's city"),
+						Type:        NewNamedType("String").Encode(),
+					},
+					"country": ObjectField{
+						Description: ToPtr("The location's country"),
+						Type:        NewNamedType("String").Encode(),
+					},
+				},
+			},
+			"staff_member": ObjectType{
+				Description: ToPtr("A staff member"),
+				Fields: ObjectTypeFields{
+					"first_name": ObjectField{
+						Description: ToPtr("The staff member's first name"),
+						Type:        NewNamedType("String").Encode(),
+					},
+					"last_name": ObjectField{
+						Description: ToPtr("The staff member's last name"),
+						Type:        NewNamedType("String").Encode(),
+					},
+					"specialities": ObjectField{
+						Description: ToPtr("The staff member's specialities"),
+						Type:        NewArrayType(NewNamedType("String")).Encode(),
 					},
 				},
 			},
@@ -295,6 +169,18 @@ func TestSchemaResponse(t *testing.T) {
 				Type:        "author",
 				UniquenessConstraints: CollectionInfoUniquenessConstraints{
 					"AuthorByID": UniquenessConstraint{
+						UniqueColumns: []string{"id"},
+					},
+				},
+				ForeignKeys: CollectionInfoForeignKeys{},
+			},
+			{
+				Name:        "institutions",
+				Description: ToPtr("A collection of institutions"),
+				Arguments:   CollectionInfoArguments{},
+				Type:        "institution",
+				UniquenessConstraints: CollectionInfoUniquenessConstraints{
+					"InstitutionByID": UniquenessConstraint{
 						UniqueColumns: []string{"id"},
 					},
 				},
@@ -333,11 +219,18 @@ func TestSchemaResponse(t *testing.T) {
 				},
 				ResultType: NewNullableNamedType("article").Encode(),
 			},
+			{
+				Name:        "delete_articles",
+				Description: ToPtr("Delete articles which match a predicate"),
+				Arguments: ProcedureInfoArguments{
+					"where": ArgumentInfo{
+						Description: ToPtr("The predicate"),
+						Type:        NewPredicateType("article").Encode(),
+					},
+				},
+				ResultType: NewArrayType(NewNamedType("article")).Encode(),
+			},
 		},
-	}
-	if !internal.DeepEqual(expected.ObjectTypes, resp.ObjectTypes) {
-		t.Errorf("object_types in SchemaResponse: unexpected equality;\nexpected:	%+v,\n got:	%+v\n", expected.ObjectTypes, resp.ObjectTypes)
-		t.FailNow()
 	}
 
 	if !internal.DeepEqual(expected.Collections, resp.Collections) {
@@ -437,8 +330,8 @@ func TestQueryRequest(t *testing.T) {
 				Collection: "authors",
 				Query: Query{
 					Fields: QueryFields{
-						"first_name": NewColumnField("first_name").Encode(),
-						"last_name":  NewColumnField("last_name").Encode(),
+						"first_name": NewColumnField("first_name", nil).Encode(),
+						"last_name":  NewColumnField("last_name", nil).Encode(),
 						"articles": NewRelationshipField(
 							Query{
 								Aggregates: QueryAggregates{
@@ -457,6 +350,7 @@ func TestQueryRequest(t *testing.T) {
 						},
 						RelationshipType: RelationshipTypeArray,
 						TargetCollection: "articles",
+						Arguments:        RelationshipArguments{},
 					},
 				},
 			},

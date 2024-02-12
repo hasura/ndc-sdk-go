@@ -8,7 +8,6 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -31,7 +30,7 @@ type mockState struct{}
 type mockConnector struct{}
 
 var mockCapabilities = schema.CapabilitiesResponse{
-	Versions: "^0.1.0",
+	Version: "^0.1.0",
 	Capabilities: schema.Capabilities{
 		Query: schema.QueryCapabilities{
 			Aggregates: schema.LeafCapability{},
@@ -48,10 +47,8 @@ var mockSchema = schema.SchemaResponse{
 	ScalarTypes: schema.SchemaResponseScalarTypes{
 		"String": schema.ScalarType{
 			AggregateFunctions: schema.ScalarTypeAggregateFunctions{},
-			ComparisonOperators: schema.ScalarTypeComparisonOperators{
-				"like": schema.ComparisonOperatorDefinition{
-					ArgumentType: schema.NewNamedType("String").Encode(),
-				},
+			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
+				"like": schema.NewComparisonOperatorCustom(schema.NewNamedType("String")).Encode(),
 			},
 		},
 		"Int": schema.ScalarType{
@@ -63,7 +60,7 @@ var mockSchema = schema.SchemaResponse{
 					ResultType: schema.NewNullableNamedType("Int").Encode(),
 				},
 			},
-			ComparisonOperators: schema.ScalarTypeComparisonOperators{},
+			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 		},
 	},
 	ObjectTypes: schema.SchemaResponseObjectTypes{
@@ -157,7 +154,13 @@ func (mc *mockConnector) GetCapabilities(configuration *mockConfiguration) *sche
 func (mc *mockConnector) GetSchema(configuration *mockConfiguration) (*schema.SchemaResponse, error) {
 	return &mockSchema, nil
 }
-func (mc *mockConnector) Explain(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.QueryRequest) (*schema.ExplainResponse, error) {
+func (mc *mockConnector) QueryExplain(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.QueryRequest) (*schema.ExplainResponse, error) {
+	return &schema.ExplainResponse{
+		Details: schema.ExplainResponseDetails{},
+	}, nil
+}
+
+func (mc *mockConnector) MutationExplain(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.MutationRequest) (*schema.ExplainResponse, error) {
 	return &schema.ExplainResponse{
 		Details: schema.ExplainResponseDetails{},
 	}, nil
@@ -185,8 +188,8 @@ func (mc *mockConnector) Query(ctx context.Context, configuration *mockConfigura
 	return schema.QueryResponse{
 		{
 			Aggregates: schema.RowSetAggregates{},
-			Rows: []schema.Row{
-				map[string]any{
+			Rows: []map[string]any{
+				{
 					"id":        1,
 					"title":     "Hello world",
 					"author_id": 1,
@@ -194,12 +197,6 @@ func (mc *mockConnector) Query(ctx context.Context, configuration *mockConfigura
 			},
 		},
 	}, nil
-}
-
-// buildTestServer builds the http test server for testing purpose
-func buildTestServer(s *Server[mockRawConfiguration, mockConfiguration, mockState]) *httptest.Server {
-	_ = s.telemetry.Shutdown(context.Background())
-	return httptest.NewServer(s.buildHandler())
 }
 
 func httpPostJSON(url string, body any) (*http.Response, error) {
@@ -213,32 +210,32 @@ func httpPostJSON(url string, body any) (*http.Response, error) {
 
 func assertHTTPResponseStatus(t *testing.T, name string, res *http.Response, statusCode int) {
 	if res.StatusCode != statusCode {
-		t.Errorf("%s: expected status %d, got %d", name, statusCode, res.StatusCode)
+		t.Errorf("\n%s: expected status %d, got %d", name, statusCode, res.StatusCode)
 		t.FailNow()
 	}
 }
 
-func assertHTTPResponse[B any](t *testing.T, name string, res *http.Response, statusCode int, expectedBody B) {
+func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int, expectedBody B) {
 	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
-		t.Errorf("%s: failed to read response body", name)
+		t.Error("failed to read response body")
 		t.FailNow()
 	}
 
 	if res.StatusCode != statusCode {
-		t.Errorf("%s: expected status %d, got %d. Body: %s", name, statusCode, res.StatusCode, string(bodyBytes))
+		t.Errorf("expected status %d, got %d. Body: %s", statusCode, res.StatusCode, string(bodyBytes))
 		t.FailNow()
 	}
 
 	var body B
 	if err = json.Unmarshal(bodyBytes, &body); err != nil {
-		t.Errorf("%s: failed to decode json body, got error: %s; body: %s", name, err, string(bodyBytes))
+		t.Errorf("failed to decode json body, got error: %s; body: %s", err, string(bodyBytes))
 		t.FailNow()
 	}
 
 	if !internal.DeepEqual(body, expectedBody) {
 		expectedBytes, _ := json.Marshal(expectedBody)
-		t.Errorf("%s.\nexpect: %+v\ngot: %+v", name, string(expectedBytes), string(bodyBytes))
+		t.Errorf("\nexpect: %+v\ngot: %+v", string(expectedBytes), string(bodyBytes))
 		t.FailNow()
 	}
 }
@@ -361,35 +358,39 @@ func TestServerAuth(t *testing.T) {
 		t.FailNow()
 	}
 
-	httpServer := buildTestServer(server)
+	httpServer := server.BuildTestServer()
 	defer httpServer.Close()
 
-	res, err := http.Get(fmt.Sprintf("%s/schema", httpServer.URL))
-	if err != nil {
-		t.Errorf("Unauthorized GET /schema: expected no error, got %s", err)
-		t.FailNow()
-	}
-	assertHTTPResponse(t, "Unauthorized GET /schema", res, http.StatusUnauthorized, schema.ErrorResponse{
-		Message: "Unauthorized",
-		Details: map[string]any{
-			"cause": "Bearer token does not match.",
-		},
+	t.Run("Unauthorized GET /schema", func(t *testing.T) {
+		res, err := http.Get(fmt.Sprintf("%s/schema", httpServer.URL))
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+			t.FailNow()
+		}
+		assertHTTPResponse(t, res, http.StatusUnauthorized, schema.ErrorResponse{
+			Message: "Unauthorized",
+			Details: map[string]any{
+				"cause": "Bearer token does not match.",
+			},
+		})
 	})
 
-	authRequest, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/schema", httpServer.URL), nil)
-	if err != nil {
-		t.Errorf("Authorized GET /schema: expected no error, got %s", err)
-		t.FailNow()
-	}
-	authRequest.Header.Add("Authorization", "Bearer random-secret")
+	t.Run("Authorized GET /schema", func(t *testing.T) {
+		authRequest, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/schema", httpServer.URL), nil)
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+			t.FailNow()
+		}
+		authRequest.Header.Add("Authorization", "Bearer random-secret")
 
-	res, err = http.DefaultClient.Do(authRequest)
-	if err != nil {
-		t.Errorf("Authorized GET /schema: expected no error, got %s", err)
-		t.FailNow()
-	}
+		res, err := http.DefaultClient.Do(authRequest)
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+			t.FailNow()
+		}
 
-	assertHTTPResponse(t, "Authorized GET /schema", res, http.StatusOK, mockSchema)
+		assertHTTPResponse(t, res, http.StatusOK, mockSchema)
+	})
 }
 
 func TestServerConnector(t *testing.T) {
@@ -399,35 +400,35 @@ func TestServerConnector(t *testing.T) {
 	}, WithLogger(zerolog.Nop()))
 
 	if err != nil {
-		t.Errorf("NewServerAuth: expected no error, got %s", err)
+		t.Errorf("NewServer: expected no error, got %s", err)
 		t.FailNow()
 	}
 
-	httpServer := buildTestServer(server)
+	httpServer := server.BuildTestServer()
 	defer httpServer.Close()
 
 	t.Run("GET /capabilities", func(t *testing.T) {
 		res, err := http.Get(fmt.Sprintf("%s/capabilities", httpServer.URL))
 		if err != nil {
-			t.Errorf("GET /capabilities: expected no error, got %s", err)
+			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, "GET /capabilities", res, http.StatusOK, mockCapabilities)
+		assertHTTPResponse(t, res, http.StatusOK, mockCapabilities)
 	})
 
-	t.Run("GET /healthz", func(t *testing.T) {
-		res, err := http.Get(fmt.Sprintf("%s/healthz", httpServer.URL))
+	t.Run("GET /health", func(t *testing.T) {
+		res, err := http.Get(fmt.Sprintf("%s/health", httpServer.URL))
 		if err != nil {
-			t.Errorf("GET /healthz: expected no error, got %s", err)
+			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponseStatus(t, "GET /healthz", res, http.StatusNoContent)
+		assertHTTPResponseStatus(t, "GET /health", res, http.StatusOK)
 	})
 
 	t.Run("GET /metrics", func(t *testing.T) {
 		res, err := http.Get(fmt.Sprintf("%s/metrics", httpServer.URL))
 		if err != nil {
-			t.Errorf("GET /metrics: expected no error, got %s", err)
+			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
 		assertHTTPResponseStatus(t, "GET /metrics", res, http.StatusOK)
@@ -442,14 +443,14 @@ func TestServerConnector(t *testing.T) {
 			Variables:               []schema.QueryRequestVariablesElem{},
 		})
 		if err != nil {
-			t.Errorf("POST /query: expected no error, got %s", err)
+			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, "POST /query", res, http.StatusOK, schema.QueryResponse{
+		assertHTTPResponse(t, res, http.StatusOK, schema.QueryResponse{
 			{
 				Aggregates: schema.RowSetAggregates{},
-				Rows: []schema.Row{
-					map[string]any{
+				Rows: []map[string]any{
+					{
 						"id":        1,
 						"title":     "Hello world",
 						"author_id": 1,
@@ -462,10 +463,10 @@ func TestServerConnector(t *testing.T) {
 	t.Run("POST /query - json decode failure", func(t *testing.T) {
 		res, err := httpPostJSON(fmt.Sprintf("%s/query", httpServer.URL), "")
 		if err != nil {
-			t.Errorf("POST /query: expected no error, got %s", err)
+			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, "POST /query", res, http.StatusBadRequest, schema.ErrorResponse{
+		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": "json: cannot unmarshal string into Go value of type map[string]interface {}",
@@ -482,10 +483,10 @@ func TestServerConnector(t *testing.T) {
 			Variables:               []schema.QueryRequestVariablesElem{},
 		})
 		if err != nil {
-			t.Errorf("POST /query: expected no error, got %s", err)
+			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, "POST /query", res, http.StatusBadRequest, schema.ErrorResponse{
+		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "collection not found: test",
 			Details: map[string]any{},
 		})
@@ -502,10 +503,10 @@ func TestServerConnector(t *testing.T) {
 			CollectionRelationships: schema.MutationRequestCollectionRelationships{},
 		})
 		if err != nil {
-			t.Errorf("POST /mutation: expected no error, got %s", err)
+			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, "POST /mutation", res, http.StatusOK, schema.MutationResponse{
+		assertHTTPResponse(t, res, http.StatusOK, schema.MutationResponse{
 			OperationResults: []schema.MutationOperationResults{
 				{
 					AffectedRows: 1,
@@ -517,10 +518,10 @@ func TestServerConnector(t *testing.T) {
 	t.Run("POST /mutation - json decode failure", func(t *testing.T) {
 		res, err := httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), "")
 		if err != nil {
-			t.Errorf("POST /mutation: expected no error, got %s", err)
+			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, "POST /mutation", res, http.StatusBadRequest, schema.ErrorResponse{
+		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": "json: cannot unmarshal string into Go value of type map[string]interface {}",
@@ -539,17 +540,17 @@ func TestServerConnector(t *testing.T) {
 			CollectionRelationships: schema.MutationRequestCollectionRelationships{},
 		})
 		if err != nil {
-			t.Errorf("POST /mutation: expected no error, got %s", err)
+			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, "POST /mutation", res, http.StatusBadRequest, schema.ErrorResponse{
+		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "operation not found: test",
 			Details: map[string]any{},
 		})
 	})
 
-	t.Run("POST /explain", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/explain", httpServer.URL), schema.QueryRequest{
+	t.Run("POST /query/explain", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/query/explain", httpServer.URL), schema.QueryRequest{
 			Collection:              "articles",
 			Arguments:               schema.QueryRequestArguments{},
 			CollectionRelationships: schema.QueryRequestCollectionRelationships{},
@@ -557,24 +558,52 @@ func TestServerConnector(t *testing.T) {
 			Variables:               []schema.QueryRequestVariablesElem{},
 		})
 		if err != nil {
-			t.Errorf("POST /explain: expected no error, got %s", err)
+			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, "POST /explain", res, http.StatusOK, schema.ExplainResponse{
+		assertHTTPResponse(t, res, http.StatusOK, schema.ExplainResponse{
 			Details: schema.ExplainResponseDetails{},
 		})
 	})
 
-	t.Run("POST /explain - json decode failure", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/explain", httpServer.URL), schema.QueryRequest{})
+	t.Run("POST /query/explain - json decode failure", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/query/explain", httpServer.URL), schema.QueryRequest{})
 		if err != nil {
-			t.Errorf("POST /mutation: expected no error, got %s", err)
+			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, "POST /explain", res, http.StatusBadRequest, schema.ErrorResponse{
+		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": "field arguments in QueryRequest: required",
+			},
+		})
+	})
+
+	t.Run("POST /mutation/explain", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/mutation/explain", httpServer.URL), schema.MutationRequest{
+			Operations:              []schema.MutationOperation{},
+			CollectionRelationships: make(schema.MutationRequestCollectionRelationships),
+		})
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+			t.FailNow()
+		}
+		assertHTTPResponse(t, res, http.StatusOK, schema.ExplainResponse{
+			Details: schema.ExplainResponseDetails{},
+		})
+	})
+
+	t.Run("POST /mutation/explain - json decode failure", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/mutation/explain", httpServer.URL), schema.MutationRequest{})
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+			t.FailNow()
+		}
+		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
+			Message: "failed to decode json request body",
+			Details: map[string]any{
+				"cause": "field collection_relationships in MutationRequest: required",
 			},
 		})
 	})

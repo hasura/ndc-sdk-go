@@ -3,21 +3,24 @@ package main
 import (
 	_ "embed"
 	"encoding/csv"
+	"encoding/json"
 	"io"
-	"sort"
 	"strconv"
 	"strings"
 )
 
-//go:embed articles.csv
+//go:embed data/articles.csv
 var csvArticles string
 
-//go:embed authors.csv
+//go:embed data/authors.csv
 var csvAuthors string
 
-func readAuthors() (map[int]Author, error) {
+//go:embed data/institutions.json
+var jsonInstitutions []byte
+
+func readAuthors() ([]Author, error) {
 	r := csv.NewReader(strings.NewReader(csvAuthors))
-	results := make(map[int]Author)
+	results := make([]Author, 0)
 	// skip the title row
 	_, err := r.Read()
 	if err == io.EOF {
@@ -40,19 +43,19 @@ func readAuthors() (map[int]Author, error) {
 		if err != nil {
 			return nil, err
 		}
-		results[int(id)] = Author{
+		results = append(results, Author{
 			ID:        int(id),
 			FirstName: record[1],
 			LastName:  record[2],
-		}
+		})
 	}
 
 	return results, nil
 }
 
-func readArticles() (map[int]Article, error) {
+func readArticles() ([]Article, error) {
 	r := csv.NewReader(strings.NewReader(csvArticles))
-	results := make(map[int]Article)
+	results := make([]Article, 0)
 	// skip the title row
 	_, err := r.Read()
 	if err == io.EOF {
@@ -79,46 +82,21 @@ func readArticles() (map[int]Article, error) {
 		if err != nil {
 			return nil, err
 		}
-		results[int(id)] = Article{
+		results = append(results, Article{
 			ID:       int(id),
 			Title:    record[1],
 			AuthorID: int(authorID),
-		}
+		})
 	}
 
 	return results, nil
 }
 
-func getMapValues[K comparable, V any](input map[K]V) []V {
-	results := make([]V, 0, len(input))
-	for _, v := range input {
-		results = append(results, v)
-	}
-	return results
-}
-
-func getMapKeys[K comparable, V any](input map[K]V) []K {
-	results := make([]K, 0, len(input))
-	for k := range input {
-		results = append(results, k)
-	}
-	return results
-}
-
-func sortArticles(input map[int]Article, key string, descending bool) []Article {
-	ids := getMapKeys(input)
-	sort.Ints(ids)
-	results := make([]Article, 0, len(ids))
-	if !descending {
-		for _, id := range ids {
-			results = append(results, input[id])
-		}
-		return results
+func readInstitutions() ([]Institution, error) {
+	var institutions []Institution
+	if err := json.Unmarshal(jsonInstitutions, &institutions); err != nil {
+		return nil, err
 	}
 
-	for i := range ids {
-		id := ids[len(ids)-1-i]
-		results = append(results, input[id])
-	}
-	return results
+	return institutions, nil
 }
