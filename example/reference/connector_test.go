@@ -27,7 +27,7 @@ func createTestServer(t *testing.T) *connector.Server[RawConfiguration, Configur
 	return server
 }
 
-func fetchTestSample[R any](t *testing.T, uri string) *http.Response {
+func fetchTestSample(t *testing.T, uri string) *http.Response {
 	res, err := http.Get(uri)
 	if err != nil {
 		t.Errorf("failed to fetch test sample at %s: %s", uri, err)
@@ -235,13 +235,13 @@ func TestQuery(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			req := fetchTestSample[schema.QueryRequest](t, tc.requestURL)
+			req := fetchTestSample(t, tc.requestURL)
 			var expected schema.QueryResponse
 			var err error
 			if len(tc.response) > 0 {
 				err = json.Unmarshal(tc.response, &expected)
 			} else {
-				expectedRes := fetchTestSample[schema.QueryResponse](t, tc.responseURL)
+				expectedRes := fetchTestSample(t, tc.responseURL)
 				err = json.NewDecoder(expectedRes.Body).Decode(&expected)
 			}
 			if err != nil {
@@ -256,6 +256,43 @@ func TestQuery(t *testing.T) {
 			}
 
 			assertHTTPResponse[schema.QueryResponse](t, res, http.StatusOK, expected)
+		})
+	}
+}
+
+func TestMutation(t *testing.T) {
+	server := createTestServer(t).BuildTestServer()
+
+	testCases := []struct {
+		name        string
+		requestURL  string
+		responseURL string
+		response    []byte
+	}{}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			req := fetchTestSample(t, tc.requestURL)
+			var expected schema.MutationResponse
+			var err error
+			if len(tc.response) > 0 {
+				err = json.Unmarshal(tc.response, &expected)
+			} else {
+				expectedRes := fetchTestSample(t, tc.responseURL)
+				err = json.NewDecoder(expectedRes.Body).Decode(&expected)
+			}
+			if err != nil {
+				t.Errorf("failed to decode expected response: %s", err)
+				t.FailNow()
+			}
+
+			res, err := http.Post(fmt.Sprintf("%s/mutation", server.URL), "application/json", req.Body)
+			if err != nil {
+				t.Errorf("expected no error, got %s", err)
+				t.FailNow()
+			}
+
+			assertHTTPResponse[schema.MutationResponse](t, res, http.StatusOK, expected)
 		})
 	}
 }

@@ -341,9 +341,62 @@ func executeProcedure(ctx context.Context, state *State, collectionRelationship 
 			AffectedRows: 1,
 			Returning:    []map[string]any{row},
 		}, nil
+	case "delete_articles":
+		return executeDeleteArticles(state, operation.Arguments, operation.Fields, collectionRelationship)
 	default:
 		return nil, schema.BadRequestError("unknown procedure", nil)
 	}
+}
+
+func executeDeleteArticles(
+	state *State,
+	arguments json.RawMessage,
+	fields map[string]schema.Field,
+	collectionRelationships map[string]schema.Relationship,
+) (*schema.MutationOperationResults, error) {
+	var argumentData struct {
+		Where schema.Expression `json:"where"`
+	}
+	if err := json.Unmarshal(arguments, &argumentData); err != nil {
+		return nil, schema.BadRequestError(err.Error(), nil)
+	}
+	if len(argumentData.Where) == 0 {
+		return nil, schema.BadRequestError("Expected argument 'where'", nil)
+	}
+
+	var removed []map[string]any
+	for _, article := range state.Articles {
+		encodedArticle, err := schema.EncodeRow(article)
+		if err != nil {
+			return nil, schema.InternalServerError(err.Error(), nil)
+		}
+
+		ok, err := evalExpression(nil, nil, state, argumentData.Where, encodedArticle, encodedArticle)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			removed = append(removed, encodedArticle)
+		}
+	}
+
+	var returning []map[string]any
+	for _, item := range removed {
+		row, err := evalRow(fields, collectionRelationships, nil, state, item)
+		if err != nil {
+			return nil, err
+		}
+		returning = append(returning, row)
+	}
+
+	return &schema.MutationOperationResults{
+		AffectedRows: len(returning),
+		Returning: []map[string]any{
+			{
+				"__value": returning,
+			},
+		},
+	}, nil
 }
 
 func executeQueryWithVariables(
