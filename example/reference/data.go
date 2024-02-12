@@ -92,14 +92,6 @@ func readArticles() ([]Article, error) {
 	return results, nil
 }
 
-func getMapKeys[K comparable, V any](input map[K]V) []K {
-	results := make([]K, 0, len(input))
-	for k := range input {
-		results = append(results, k)
-	}
-	return results
-}
-
 func readInstitutions() ([]Institution, error) {
 	var institutions []Institution
 	if err := json.Unmarshal(jsonInstitutions, &institutions); err != nil {
