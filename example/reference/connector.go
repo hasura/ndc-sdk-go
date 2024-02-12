@@ -50,9 +50,9 @@ type Institution struct {
 }
 
 type State struct {
-	Authors      map[int]Author
-	Articles     map[int]Article
-	Institutions map[int]Institution
+	Authors      []Author
+	Articles     []Article
+	Institutions []Institution
 	Telemetry    *connector.TelemetryState
 }
 
@@ -61,9 +61,7 @@ func (s State) GetLatestArticle() *Article {
 		return nil
 	}
 
-	articles := sortArticles(s.Articles, "id", true)
-
-	return &articles[0]
+	return &s.Articles[len(s.Articles)-1]
 }
 
 type Connector struct{}
@@ -356,22 +354,24 @@ func executeQueryWithVariables(
 	variables map[string]any,
 	state *State,
 ) (*schema.RowSet, error) {
-	argumentValues := make(map[string]any)
+	argumentValues := make(map[string]schema.Argument)
 
 	for argumentName, argument := range arguments {
 		argumentValue, err := evalArgument(variables, &argument)
 		if err != nil {
 			return nil, err
 		}
-		argumentValues[argumentName] = argumentValue
+		argumentValues[argumentName] = schema.Argument{
+			Type:  schema.ArgumentTypeLiteral,
+			Value: argumentValue,
+		}
 	}
 
-	// FIXME: argument
-	coll, err := getCollectionByName(collection, nil, state)
+	coll, err := getCollectionByName(collection, argumentValues, state)
 	if err != nil {
 		return nil, err
 	}
-	return executeQuery(collectionRelationships, variables, state, query, nil, coll)
+	return executeQuery(collectionRelationships, variables, state, query, nil, coll, false)
 }
 
 func evalAggregate(aggregate *schema.Aggregate, paginated []map[string]any) (any, error) {
@@ -457,6 +457,7 @@ func executeQuery(
 	query *schema.Query,
 	root map[string]any,
 	collection []map[string]any,
+	skipMappingFields bool,
 ) (*schema.RowSet, error) {
 	sorted, err := sortCollection(collectionRelationships, variables, state, collection, query.OrderBy)
 	if err != nil {
@@ -464,7 +465,7 @@ func executeQuery(
 	}
 
 	filtered := sorted
-	if query.Predicate != nil {
+	if len(query.Predicate) > 0 {
 		filtered = []map[string]any{}
 		for _, item := range sorted {
 			rootItem := root
@@ -492,16 +493,20 @@ func executeQuery(
 		aggregates[aggKey] = aggValue
 	}
 
-	rows := make([]map[string]any, 0)
-	for _, item := range paginated {
-		row, err := evalRow(query.Fields, collectionRelationships, variables, state, item)
-		if err != nil {
-			return nil, err
-		}
-		if row != nil {
-			rows = append(rows, row)
+	rows := paginated
+	if !skipMappingFields {
+		rows = make([]map[string]any, 0)
+		for _, item := range paginated {
+			row, err := evalRow(query.Fields, collectionRelationships, variables, state, item)
+			if err != nil {
+				return nil, err
+			}
+			if row != nil {
+				rows = append(rows, row)
+			}
 		}
 	}
+
 	return &schema.RowSet{
 		Aggregates: aggregates,
 		Rows:       rows,
@@ -515,7 +520,7 @@ func sortCollection(
 	collection []map[string]any,
 	orderBy *schema.OrderBy,
 ) ([]map[string]any, error) {
-	if orderBy == nil {
+	if orderBy == nil || len(orderBy.Elements) == 0 {
 		return collection, nil
 	}
 
@@ -525,18 +530,26 @@ func sortCollection(
 			results = append(results, itemToInsert)
 			continue
 		}
-		index := 0
+		inserted := false
+		newResults := []map[string]any{}
 		for _, other := range results {
 			ordering, err := evalOrderBy(collectionRelationships, variables, state, orderBy, other, itemToInsert)
 			if err != nil {
 				return nil, err
 			}
 			if ordering > 0 {
-				break
+				newResults = append(newResults, itemToInsert, other)
+				inserted = true
+			} else {
+				newResults = append(newResults, other)
 			}
-			index++
 		}
-		results = append(append(results[:index], itemToInsert), results[(index+1):]...)
+
+		if !inserted {
+			newResults = append(newResults, itemToInsert)
+		}
+
+		results = newResults
 	}
 	return results, nil
 }
@@ -584,6 +597,9 @@ func evalOrderBy(
 				return 0, err
 			}
 		}
+		if ordering != 0 {
+			return ordering, nil
+		}
 	}
 
 	return ordering, nil
@@ -607,11 +623,17 @@ func compare(v1 any, v2 any) (int, error) {
 		return 1, nil
 	}
 
-	kindV1 := reflect.ValueOf(v1).Kind()
-	kindV2 := reflect.ValueOf(v2).Kind()
+	value1 := reflect.ValueOf(v1)
+	kindV1 := value1.Kind()
+	value2 := reflect.ValueOf(v2)
+	kindV2 := value2.Kind()
 
 	if kindV1 != kindV2 {
 		return 0, schema.InternalServerError(fmt.Sprintf("cannot compare values with different types: %s <> %s", kindV1, kindV2), nil)
+	}
+
+	if kindV1 == reflect.Pointer {
+		return compare(value1.Elem().Interface(), value2.Elem().Interface())
 	}
 
 	switch value1 := v1.(type) {
@@ -637,7 +659,8 @@ func compare(v1 any, v2 any) (int, error) {
 		value2 := v2.(string)
 		return strings.Compare(value1, value2), nil
 	default:
-		return 0, schema.InternalServerError(fmt.Sprintf("cannot compare values with type: %s", kindV1), nil)
+		rawV1, _ := json.Marshal(v1)
+		return 0, schema.InternalServerError(fmt.Sprintf("cannot compare values with type: %s, value: %s", kindV1, string(rawV1)), nil)
 	}
 }
 
@@ -740,16 +763,18 @@ func evalInCollection(
 		source := []map[string]any{item}
 		return evalPathElement(collectionRelationships, variables, state, &relationship, inCol.Arguments, source, nil)
 	case *schema.ExistsInCollectionUnrelated:
-		arguments := make(map[string]any)
+		arguments := make(map[string]schema.Argument)
 		for key, relArg := range inCol.Arguments {
-			arg, err := evalRelationshipArgument(variables, item, &relArg)
+			argValue, err := evalRelationshipArgument(variables, item, &relArg)
 			if err != nil {
 				return nil, err
 			}
-			arguments[key] = arg
+			arguments[key] = schema.Argument{
+				Type:  schema.ArgumentTypeLiteral,
+				Value: argValue,
+			}
 		}
-		// FIXME: arguments?
-		return getCollectionByName(inCol.Collection, nil, state)
+		return getCollectionByName(inCol.Collection, arguments, state)
 	default:
 		return nil, err
 	}
@@ -799,9 +824,9 @@ func evalNestedField(
 
 		return row, nil
 	case *schema.NestedArray:
-		array, ok := value.(map[string]any)
-		if !ok {
-			return nil, schema.BadRequestError(fmt.Sprintf("expected object, got %s", reflect.ValueOf(value).Kind()), nil)
+		array, err := schema.EncodeRows(value)
+		if err != nil {
+			return nil, err
 		}
 
 		result := []any{}
@@ -847,7 +872,7 @@ func evalField(
 			return nil, err
 		}
 
-		return executeQuery(collectionRelationships, variables, state, &f.Query, nil, collection)
+		return executeQuery(collectionRelationships, variables, state, &f.Query, nil, collection, false)
 
 	default:
 		return nil, err
@@ -863,7 +888,7 @@ func evalPathElement(
 	source []map[string]any,
 	predicate schema.Expression,
 ) ([]map[string]any, error) {
-	allArguments := make(map[string]any)
+	allArguments := make(map[string]schema.Argument)
 	var matchingRows []map[string]any
 
 	// Note: Join strategy
@@ -883,12 +908,16 @@ func evalPathElement(
 	// should consist of all object relationships, and possibly terminated by a
 	// single array relationship, so there should be no double counting.
 	for _, srcRow := range source {
+
 		for argName, arg := range relationship.Arguments {
 			relValue, err := evalRelationshipArgument(variables, srcRow, &arg)
 			if err != nil {
 				return nil, err
 			}
-			allArguments[argName] = relValue
+			allArguments[argName] = schema.Argument{
+				Type:  schema.ArgumentTypeLiteral,
+				Value: relValue,
+			}
 		}
 		for argName, arg := range arguments {
 			if _, ok := allArguments[argName]; ok {
@@ -898,11 +927,13 @@ func evalPathElement(
 			if err != nil {
 				return nil, err
 			}
-			allArguments[argName] = relValue
+			allArguments[argName] = schema.Argument{
+				Type:  schema.ArgumentTypeLiteral,
+				Value: relValue,
+			}
 		}
 
-		// FIXME: arguments?
-		targetRows, err := getCollectionByName(relationship.TargetCollection, nil, state)
+		targetRows, err := getCollectionByName(relationship.TargetCollection, allArguments, state)
 		if err != nil {
 			return nil, err
 		}
@@ -915,6 +946,7 @@ func evalPathElement(
 			if !ok {
 				continue
 			}
+
 			if predicate != nil {
 				ok, err := evalExpression(collectionRelationships, variables, state, predicate, targetRow, targetRow)
 				if err != nil {
@@ -969,7 +1001,7 @@ func getCollectionByName(collectionName string, arguments schema.QueryRequestArg
 
 		// collections
 	case "articles":
-		for _, item := range sortArticles(state.Articles, "id", false) {
+		for _, item := range state.Articles {
 			row, err := schema.EncodeRow(item)
 			if err != nil {
 				return nil, err
@@ -995,7 +1027,7 @@ func getCollectionByName(collectionName string, arguments schema.QueryRequestArg
 	case "articles_by_author":
 		authorIdArg, ok := arguments["author_id"]
 		if !ok {
-			return nil, schema.BadGatewayError("missing argument author_id", nil)
+			return nil, schema.BadRequestError("missing argument author_id", nil)
 		}
 
 		for _, row := range state.Articles {
@@ -1165,9 +1197,11 @@ func evalExpression(
 			if err != nil {
 				return false, err
 			}
+
 			for _, leftVal := range leftValues {
 				for _, rightVal := range rightValues {
-					if leftVal == rightVal {
+					// TODO: coalesce equality
+					if leftVal == rightVal || fmt.Sprint(leftVal) == fmt.Sprint(rightVal) {
 						return true, nil
 					}
 				}
@@ -1184,6 +1218,7 @@ func evalExpression(
 			}
 
 			for _, columnValue := range columnValues {
+
 				columnStr, ok := columnValue.(string)
 				if !ok {
 					return false, schema.BadRequestError(fmt.Sprintf("value of column %s is not a string, got %+v", expression.Column, columnValue), nil)
@@ -1198,6 +1233,7 @@ func evalExpression(
 					if err != nil {
 						return false, schema.BadRequestError(fmt.Sprintf("invalid regular expression: %s", err), nil)
 					}
+
 					if regex.Match([]byte(columnStr)) {
 						return true, nil
 					}
@@ -1221,7 +1257,8 @@ func evalExpression(
 				}
 				for _, leftVal := range leftValues {
 					for _, rightVal := range rightValues {
-						if leftVal == rightVal {
+						// TODO: coalesce equality
+						if leftVal == rightVal || fmt.Sprint(leftVal) == fmt.Sprint(rightVal) {
 							return true, nil
 						}
 					}
@@ -1240,10 +1277,11 @@ func evalExpression(
 			return false, err
 		}
 
-		rowSet, err := executeQuery(collectionRelationships, variables, state, query, root, collection)
+		rowSet, err := executeQuery(collectionRelationships, variables, state, query, root, collection, true)
 		if err != nil {
 			return false, err
 		}
+
 		return len(rowSet.Rows) > 0, nil
 	default:
 		return false, err

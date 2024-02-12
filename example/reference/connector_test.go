@@ -17,7 +17,7 @@ func createTestServer(t *testing.T) *connector.Server[RawConfiguration, Configur
 	server, err := connector.NewServer[RawConfiguration, Configuration, State](&Connector{}, &connector.ServerOptions{
 		Configuration: "{}",
 		InlineConfig:  true,
-	}, connector.WithLogger(zerolog.Nop()))
+	}, connector.WithLogger(zerolog.Nop()), connector.WithoutRecovery())
 
 	if err != nil {
 		t.Errorf("NewServer: expected no error, got %s", err)
@@ -69,6 +69,7 @@ func TestQuery(t *testing.T) {
 		name        string
 		requestURL  string
 		responseURL string
+		response    []byte
 	}{
 		{
 			name:        "aggregate_function",
@@ -100,27 +101,157 @@ func TestQuery(t *testing.T) {
 			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/get_max_article_id/request.json",
 			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/get_max_article_id/expected.json",
 		},
-		// {
-		// 	name:        "nested_array_select",
-		// 	requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/nested_array_select/request.json",
-		// 	responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/nested_array_select/expected.json",
-		// },
+		{
+			name:        "nested_array_select",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/nested_array_select/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/nested_array_select/expected.json",
+		},
+		{
+			name:        "nested_object_select",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/nested_object_select/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/nested_object_select/expected.json",
+		},
+		{
+			name:        "order_by_aggregate",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/order_by_aggregate/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/order_by_aggregate/expected.json",
+		},
+		{
+			name:        "order_by_aggregate_function",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/order_by_aggregate_function/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/order_by_aggregate_function/expected.json",
+		},
+		{
+			name:        "order_by_aggregate_with_predicate",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/order_by_aggregate_with_predicate/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/order_by_aggregate_with_predicate/expected.json",
+		},
+		{
+			name:        "order_by_column",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/order_by_column/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/order_by_column/expected.json",
+		},
+		{
+			name:        "order_by_relationship",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/order_by_relationship/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/order_by_relationship/expected.json",
+		},
+		{
+			name:        "pagination",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/pagination/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/pagination/expected.json",
+		},
+		{
+			name:        "predicate_with_array_relationship",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/predicate_with_array_relationship/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/predicate_with_array_relationship/expected.json",
+		},
+		{
+			name:        "predicate_with_eq",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/predicate_with_eq/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/predicate_with_eq/expected.json",
+		},
+		{
+			name:        "predicate_with_exists",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/predicate_with_exists/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/predicate_with_exists/expected.json",
+		},
+		{
+			name:        "predicate_with_in",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/predicate_with_in/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/predicate_with_in/expected.json",
+		},
+		{
+			name:        "predicate_with_like",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/predicate_with_like/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/predicate_with_like/expected.json",
+		},
+		{
+			name:        "predicate_with_nondet_in_1",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/predicate_with_nondet_in_1/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/predicate_with_nondet_in_1/expected.json",
+		},
+		{
+			name:        "predicate_with_unrelated_exists",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/predicate_with_unrelated_exists/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/predicate_with_unrelated_exists/expected.json",
+		},
+		{
+			name:       "predicate_with_unrelated_exists_and_relationship",
+			requestURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/predicate_with_unrelated_exists_and_relationship/request.json",
+			response:   []byte(`[{"rows":[{"author_if_has_functional_articles":{},"title":"The Next 700 Programming Languages"},{"author_if_has_functional_articles":{"rows":[{"articles":{"rows":[{"title":"Why Functional Programming Matters"},{"title":"The Design And Implementation Of Programming Languages"}]},"first_name":"John","last_name":"Hughes"}]},"title":"Why Functional Programming Matters"},{"author_if_has_functional_articles":{"rows":[{"articles":{"rows":[{"title":"Why Functional Programming Matters"},{"title":"The Design And Implementation Of Programming Languages"}]},"first_name":"John","last_name":"Hughes"}]},"title":"The Design And Implementation Of Programming Languages"}]}]`),
+		},
+		{
+			name:        "star_count",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/star_count/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/star_count/expected.json",
+		},
+		{
+			name:        "table_argument",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/table_argument/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/table_argument/expected.json",
+		},
+		{
+			name:        "table_argument_aggregate",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/table_argument_aggregate/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/table_argument_aggregate/expected.json",
+		},
+		{
+			name:        "table_argument_exists",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/table_argument_exists/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/table_argument_exists/expected.json",
+		},
+		{
+			name:        "table_argument_order_by",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/table_argument_order_by/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/table_argument_order_by/expected.json",
+		},
+		{
+			name:        "table_argument_predicate",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/table_argument_predicate/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/table_argument_predicate/expected.json",
+		},
+		{
+			name:        "table_argument_relationship_1",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/table_argument_relationship_1/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/table_argument_relationship_1/expected.json",
+		},
+		{
+			name:        "table_argument_relationship_2",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/table_argument_relationship_2/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/table_argument_relationship_2/expected.json",
+		},
+		{
+			name:        "table_argument_unrelated_exists",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/table_argument_unrelated_exists/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/table_argument_unrelated_exists/expected.json",
+		},
+		{
+			name:        "variables",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/variables/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/variables/expected.json",
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			req := fetchTestSample[schema.QueryRequest](t, tc.requestURL)
-			expectedRes := fetchTestSample[schema.QueryResponse](t, tc.responseURL)
+			var expected schema.QueryResponse
+			var err error
+			if len(tc.response) > 0 {
+				err = json.Unmarshal(tc.response, &expected)
+			} else {
+				expectedRes := fetchTestSample[schema.QueryResponse](t, tc.responseURL)
+				err = json.NewDecoder(expectedRes.Body).Decode(&expected)
+			}
+			if err != nil {
+				t.Errorf("failed to decode expected response: %s", err)
+				t.FailNow()
+			}
 
 			res, err := http.Post(fmt.Sprintf("%s/query", server.URL), "application/json", req.Body)
 			if err != nil {
 				t.Errorf("expected no error, got %s", err)
-				t.FailNow()
-			}
-
-			var expected schema.QueryResponse
-			if err := json.NewDecoder(expectedRes.Body).Decode(&expected); err != nil {
-				t.Errorf("failed to decode expected response: %s", err)
 				t.FailNow()
 			}
 

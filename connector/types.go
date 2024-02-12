@@ -96,19 +96,21 @@ type Connector[RawConfiguration any, Configuration any, State any] interface {
 
 // the common serve options for the server
 type serveOptions struct {
-	logger        zerolog.Logger
-	metricsPrefix string
-	version       string
-	serviceName   string
-	withoutConfig bool
+	logger          zerolog.Logger
+	metricsPrefix   string
+	version         string
+	serviceName     string
+	withoutConfig   bool
+	withoutRecovery bool
 }
 
 func defaultServeOptions() *serveOptions {
 	return &serveOptions{
-		logger:        log.Level(zerolog.GlobalLevel()),
-		serviceName:   "ndc-go",
-		version:       "0.1.0",
-		withoutConfig: false,
+		logger:          log.Level(zerolog.GlobalLevel()),
+		serviceName:     "ndc-go",
+		version:         "0.1.0",
+		withoutConfig:   false,
+		withoutRecovery: false,
 	}
 }
 
@@ -147,5 +149,12 @@ func WithDefaultServiceName(name string) ServeOption {
 func WithoutConfig() ServeOption {
 	return func(so *serveOptions) {
 		so.withoutConfig = true
+	}
+}
+
+// WithoutRecovery disables recovery on panic
+func WithoutRecovery() ServeOption {
+	return func(so *serveOptions) {
+		so.withoutRecovery = true
 	}
 }

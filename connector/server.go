@@ -15,7 +15,6 @@ import (
 
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/rs/zerolog"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
@@ -41,6 +40,8 @@ type ServerOptions struct {
 //
 // [NDC API specification]: https://hasura.github.io/ndc-spec/specification/index.html
 type Server[RawConfiguration any, Configuration any, State any] struct {
+	*serveOptions
+
 	context       context.Context
 	stop          context.CancelFunc
 	connector     Connector[RawConfiguration, Configuration, State]
@@ -48,7 +49,6 @@ type Server[RawConfiguration any, Configuration any, State any] struct {
 	configuration *Configuration
 	options       *ServerOptions
 	telemetry     *TelemetryState
-	logger        zerolog.Logger
 }
 
 // NewServer creates a Server instance
@@ -121,7 +121,7 @@ func NewServer[RawConfiguration any, Configuration any, State any](connector Con
 		configuration: configuration,
 		options:       options,
 		telemetry:     telemetry,
-		logger:        defaultOptions.logger,
+		serveOptions:  defaultOptions,
 	}, nil
 }
 
@@ -416,7 +416,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Mutation(w http.Respons
 }
 
 func (s *Server[RawConfiguration, Configuration, State]) buildHandler() *http.ServeMux {
-	router := newRouter(s.logger)
+	router := newRouter(s.logger, !s.withoutRecovery)
 	router.Use("/capabilities", http.MethodGet, s.withAuth(s.GetCapabilities))
 	router.Use("/schema", http.MethodGet, s.withAuth(s.GetSchema))
 	router.Use("/query", http.MethodPost, s.withAuth(s.Query))

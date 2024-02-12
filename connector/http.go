@@ -42,14 +42,16 @@ func (cw *customResponseWriter) Write(body []byte) (int, error) {
 
 // implements a simple router to reuse for both configuration and connector servers
 type router struct {
-	routes map[string]map[string]http.HandlerFunc
-	logger zerolog.Logger
+	routes          map[string]map[string]http.HandlerFunc
+	logger          zerolog.Logger
+	recoveryEnabled bool
 }
 
-func newRouter(logger zerolog.Logger) *router {
+func newRouter(logger zerolog.Logger, enableRecovery bool) *router {
 	return &router{
-		routes: make(map[string]map[string]http.HandlerFunc),
-		logger: logger,
+		routes:          make(map[string]map[string]http.HandlerFunc),
+		logger:          logger,
+		recoveryEnabled: enableRecovery,
 	}
 }
 
@@ -79,24 +81,26 @@ func (rt *router) Build() *http.ServeMux {
 			}
 
 			// recover from panic
-			defer func() {
-				if err := recover(); err != nil {
-					rt.logger.Error().
-						Str("request_id", requestID).
-						Dur("latency", time.Since(startTime)).
-						Interface("request", requestLogData).
-						Interface("error", err).
-						Str("stacktrace", string(debug.Stack())).
-						Msg("internal server error")
+			if rt.recoveryEnabled {
+				defer func() {
+					if err := recover(); err != nil {
+						rt.logger.Error().
+							Str("request_id", requestID).
+							Dur("latency", time.Since(startTime)).
+							Interface("request", requestLogData).
+							Interface("error", err).
+							Str("stacktrace", string(debug.Stack())).
+							Msg("internal server error")
 
-					writeJson(w, rt.logger, http.StatusInternalServerError, schema.ErrorResponse{
-						Message: "internal server error",
-						Details: map[string]any{
-							"cause": err,
-						},
-					})
-				}
-			}()
+						writeJson(w, rt.logger, http.StatusInternalServerError, schema.ErrorResponse{
+							Message: "internal server error",
+							Details: map[string]any{
+								"cause": err,
+							},
+						})
+					}
+				}()
+			}
 
 			h, ok := handlers[r.Method]
 			if !ok {

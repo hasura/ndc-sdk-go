@@ -88,23 +88,30 @@ func unmarshalStringFromJsonMap(collection map[string]json.RawMessage, key strin
 
 // EncodeRow encodes an object row to a map[string]any, using json tag to convert object keys
 func EncodeRow(row any) (map[string]any, error) {
-	if row == nil {
-		return nil, errors.New("expected object fields, got nil")
+	return encodeRows[map[string]any](row)
+}
+
+// EncodeRows encodes an object rows to a slice of map[string]any, using json tag to convert object keys
+func EncodeRows(rows any) ([]map[string]any, error) {
+	return encodeRows[[]map[string]any](rows)
+}
+
+func encodeRows[R any](rows any) (R, error) {
+	var result R
+	if rows == nil {
+		return result, errors.New("expected object fields, got nil")
 	}
 
-	var outputMap map[string]any
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  &outputMap,
+		Result:  &result,
 		TagName: "json",
 	})
 	if err != nil {
-		return nil, err
+		return result, err
 	}
-	if err := decoder.Decode(row); err != nil {
-		return nil, err
-	}
+	err = decoder.Decode(rows)
 
-	return outputMap, nil
+	return result, err
 }
 
 // PruneFields prune unnecessary fields from selection
