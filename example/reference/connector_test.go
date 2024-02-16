@@ -92,6 +92,11 @@ func TestQuery(t *testing.T) {
 			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/column_count/expected.json",
 		},
 		{
+			name:        "get_max_article",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/get_max_article/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/get_max_article/expected.json",
+		},
+		{
 			name:        "get_all_articles",
 			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/get_all_articles/request.json",
 			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/query/get_all_articles/expected.json",

@@ -236,6 +236,11 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 				Description: schema.ToPtr("Get the ID of the most recent article"),
 				ResultType:  schema.NewNullableNamedType("Int").Encode(),
 			},
+			{
+				Name:        "latest_article",
+				Description: schema.ToPtr("Get the most recent article"),
+				ResultType:  schema.NewArrayType(schema.NewNullableNamedType("article")).Encode(),
+			},
 		},
 		Procedures: []schema.ProcedureInfo{
 			{
@@ -294,7 +299,7 @@ func (mc *Connector) Mutation(ctx context.Context, configuration *Configuration,
 		if err != nil {
 			return nil, err
 		}
-		operationResults = append(operationResults, *results)
+		operationResults = append(operationResults, results)
 	}
 
 	return &schema.MutationResponse{
@@ -302,7 +307,7 @@ func (mc *Connector) Mutation(ctx context.Context, configuration *Configuration,
 	}, nil
 }
 
-func executeMutationOperation(ctx context.Context, state *State, collectionRelationship schema.MutationRequestCollectionRelationships, operation *schema.MutationOperation) (*schema.MutationOperationResults, error) {
+func executeMutationOperation(ctx context.Context, state *State, collectionRelationship schema.MutationRequestCollectionRelationships, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
 	switch operation.Type {
 	case schema.MutationOperationProcedure:
 		return executeProcedure(ctx, state, collectionRelationship, operation)
@@ -315,7 +320,7 @@ type UpsertArticleArguments struct {
 	Article Article `json:"article"`
 }
 
-func executeProcedure(ctx context.Context, state *State, collectionRelationship schema.MutationRequestCollectionRelationships, operation *schema.MutationOperation) (*schema.MutationOperationResults, error) {
+func executeProcedure(ctx context.Context, state *State, collectionRelationship schema.MutationRequestCollectionRelationships, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
 	switch operation.Name {
 	case "upsert_article":
 		var args UpsertArticleArguments
@@ -333,14 +338,11 @@ func executeProcedure(ctx context.Context, state *State, collectionRelationship 
 		}
 		state.Articles[args.Article.ID] = args.Article
 
-		row, err := schema.PruneFields(operation.Fields, args.Article)
-		if err != nil {
-			return nil, err
-		}
-		return &schema.MutationOperationResults{
-			AffectedRows: 1,
-			Returning:    []map[string]any{row},
-		}, nil
+		// row, err := schema.PruneFields(operation.Fields, args.Article)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		return schema.NewProcedureResult(args.Article).Encode(), nil
 	case "delete_articles":
 		return executeDeleteArticles(state, operation.Arguments, operation.Fields, collectionRelationship)
 	default:
@@ -351,9 +353,9 @@ func executeProcedure(ctx context.Context, state *State, collectionRelationship 
 func executeDeleteArticles(
 	state *State,
 	arguments json.RawMessage,
-	fields map[string]schema.Field,
+	fields schema.NestedField,
 	collectionRelationships map[string]schema.Relationship,
-) (*schema.MutationOperationResults, error) {
+) (schema.MutationOperationResults, error) {
 	var argumentData struct {
 		Where schema.Expression `json:"where"`
 	}
@@ -382,21 +384,14 @@ func executeDeleteArticles(
 
 	var returning []map[string]any
 	for _, item := range removed {
-		row, err := evalRow(fields, collectionRelationships, nil, state, item)
+		row, err := evalRow(nil, collectionRelationships, nil, state, item)
 		if err != nil {
 			return nil, err
 		}
 		returning = append(returning, row)
 	}
 
-	return &schema.MutationOperationResults{
-		AffectedRows: len(returning),
-		Returning: []map[string]any{
-			{
-				"__value": returning,
-			},
-		},
-	}, nil
+	return schema.NewProcedureResult(returning).Encode(), nil
 }
 
 func executeQueryWithVariables(
@@ -859,8 +854,8 @@ func evalNestedField(
 	iNestedField, err := nestedField.Interface()
 	switch nf := iNestedField.(type) {
 	case *schema.NestedObject:
-		fullRow, ok := value.(map[string]any)
-		if !ok {
+		fullRow, err := schema.EncodeRow(value)
+		if err != nil {
 			return nil, schema.BadRequestError(fmt.Sprintf("expected object, got %s", reflect.ValueOf(value).Kind()), nil)
 		}
 
@@ -1051,7 +1046,19 @@ func getCollectionByName(collectionName string, arguments schema.QueryRequestArg
 				"__value": latestArticle.ID,
 			},
 		}, nil
+	case "latest_article":
+		var latestArticle Article
+		for _, article := range state.Articles {
+			if latestArticle.ID < article.ID {
+				latestArticle = article
+			}
+		}
 
+		return []map[string]any{
+			{
+				"__value": latestArticle,
+			},
+		}, nil
 		// collections
 	case "articles":
 		for _, item := range state.Articles {

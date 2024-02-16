@@ -67,7 +67,7 @@ func Start[RawConfiguration any, Configuration any, State any](connector Connect
 		server := NewConfigurationServer[RawConfiguration, Configuration, State](connector, WithLogger(*logger))
 		return server.ListenAndServe(cli.Serve.Port)
 	default:
-		return fmt.Errorf("Unknown command <%s>", cmd.Command())
+		return fmt.Errorf("unknown command <%s>", cmd.Command())
 	}
 }
 

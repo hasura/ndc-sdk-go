@@ -206,6 +206,12 @@ func TestSchemaResponse(t *testing.T) {
 				Arguments:   FunctionInfoArguments{},
 				ResultType:  NewNullableNamedType("Int").Encode(),
 			},
+			{
+				Name:        "latest_article",
+				Description: ToPtr("Get the most recent article"),
+				Arguments:   FunctionInfoArguments{},
+				ResultType:  NewArrayType(NewNullableNamedType("article")).Encode(),
+			},
 		},
 		Procedures: []ProcedureInfo{
 			{
@@ -234,17 +240,17 @@ func TestSchemaResponse(t *testing.T) {
 	}
 
 	if !internal.DeepEqual(expected.Collections, resp.Collections) {
-		t.Errorf("collections in SchemaResponse: unexpected equality;\nexpected:	%+v,\n got:	%+v\n", expected.Collections, resp.Collections)
+		t.Errorf("collections in SchemaResponse: unexpected equality;\nexpected:	%+v\ngot		:	%+v\n", expected.Collections, resp.Collections)
 		t.FailNow()
 	}
 
 	if !internal.DeepEqual(expected.Functions, resp.Functions) {
-		t.Errorf("functions in SchemaResponse: unexpected equality;\nexpected:	%+v,\n got:	%+v\n", expected.Functions, resp.Functions)
+		t.Errorf("functions in SchemaResponse: unexpected equality;\nexpected:	%+v\ngot			:	%+v\n", expected.Functions, resp.Functions)
 		t.FailNow()
 	}
 
 	if !internal.DeepEqual(expected.Procedures, resp.Procedures) {
-		t.Errorf("procedures in SchemaResponse: unexpected equality;\nexpected:	%+v,\n got:	%+v\n", expected.Procedures, resp.Procedures)
+		t.Errorf("procedures in SchemaResponse: unexpected equality;\nexpected:	%+v\ngot			:	%+v\n", expected.Procedures, resp.Procedures)
 		t.FailNow()
 	}
 }
