@@ -118,8 +118,8 @@ func encodeRows[R any](rows any) (R, error) {
 	return result, err
 }
 
-// PruneFields prune unnecessary fields from selection
-func PruneFields(fields map[string]Field, result any) (map[string]any, error) {
+// EvalColumnFields evaluate and prune column fields without relationship
+func EvalColumnFields(fields map[string]Field, result any) (map[string]any, error) {
 	outputMap, err := EncodeRow(result)
 	if err != nil {
 		return nil, err

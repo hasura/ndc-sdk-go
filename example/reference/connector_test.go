@@ -64,7 +64,7 @@ func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int,
 
 func TestSchema(t *testing.T) {
 	server := createTestServer(t).BuildTestServer()
-	expectedResp, err := http.Get("https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/schema/expected.json")
+	expectedResp, err := http.Get("https://raw.githubusercontent.com/hasura/ndc-spec/ed9254cf16efeabaaa7ad92967fd6734e342d9c4/ndc-reference/tests/schema/expected.json")
 	if err != nil {
 		t.Errorf("failed to fetch expected schema: %s", err.Error())
 		t.FailNow()

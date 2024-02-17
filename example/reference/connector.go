@@ -326,7 +326,7 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 				Name:        "latest_article",
 				Description: schema.ToPtr("Get the most recent article"),
 				Arguments:   schema.FunctionInfoArguments{},
-				ResultType:  schema.NewArrayType(schema.NewNullableNamedType("article")).Encode(),
+				ResultType:  schema.NewNullableNamedType("article").Encode(),
 			},
 		},
 		Procedures: []schema.ProcedureInfo{
@@ -1169,15 +1169,9 @@ func getCollectionByName(collectionName string, arguments schema.QueryRequestArg
 			},
 		}, nil
 	case "latest_article":
-		var result []any
-		latestArticle := state.GetLatestArticle()
-		if latestArticle != nil {
-			result = append(result, latestArticle)
-		}
-
 		return []map[string]any{
 			{
-				"__value": result,
+				"__value": state.GetLatestArticle(),
 			},
 		}, nil
 		// collections
