@@ -2,6 +2,7 @@ package internal
 
 import (
 	"encoding/json"
+	"log"
 	"math/rand"
 	"reflect"
 	"strings"
@@ -51,25 +52,45 @@ func DeepEqual(v1, v2 any) bool {
 		return true
 	}
 
-	var map1 map[string]any
-	var map2 map[string]any
-	if err := json.Unmarshal(bytesA, &map1); err == nil {
-		if err2 := json.Unmarshal(bytesB, &map2); err2 != nil {
-			return false
-		}
-		if len(map1) == 0 && len(map2) == 0 {
-			return true
-		}
-		if len(map1) != len(map2) {
-			return false
-		}
-		for k, v1 := range map1 {
-			v2, ok := map2[k]
-			if !ok || !DeepEqual(v1, v2) {
+	switch reflect.ValueOf(v1).Kind() {
+	case reflect.Slice, reflect.Array:
+		var values1 []map[string]any
+		var values2 []map[string]any
+		if err := json.Unmarshal(bytesA, &values1); err == nil {
+			if err2 := json.Unmarshal(bytesB, &values2); err2 != nil {
 				return false
 			}
+			if len(values1) != len(values2) {
+				return false
+			}
+
+			for i, value1 := range values1 {
+				if !DeepEqual(value1, values2[i]) {
+					log.Printf("deep equality is failed at index: %d\n value 1: %+v\n value 2: %v\n", i, value1, values2[i])
+					return false
+				}
+			}
+			return true
 		}
-		return true
+	case reflect.Struct, reflect.Map:
+		var map1 map[string]any
+		var map2 map[string]any
+		if err := json.Unmarshal(bytesA, &map1); err == nil {
+			if err2 := json.Unmarshal(bytesB, &map2); err2 != nil {
+				return false
+			}
+			if len(map1) != len(map2) {
+				return false
+			}
+			for k, v1 := range map1 {
+				v2, ok := map2[k]
+				if !ok || !DeepEqual(v1, v2) {
+					log.Printf("deep equality is failed at key: %s\n value 1: %+v\n value 2: %v\n", k, v1, v2)
+					return false
+				}
+			}
+			return true
+		}
 	}
 
 	var x1 any

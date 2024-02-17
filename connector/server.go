@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/signal"
 	"strings"
@@ -14,16 +15,16 @@ import (
 
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/rs/zerolog"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 )
 
 var (
-	errConfigurationRequired = errors.New("Configuration is required")
+	errConfigurationRequired = errors.New("configuration is required")
 )
 
+// ServerOptions presents the configuration object of the connector http server
 type ServerOptions struct {
 	Configuration       string
 	InlineConfig        bool
@@ -39,6 +40,8 @@ type ServerOptions struct {
 //
 // [NDC API specification]: https://hasura.github.io/ndc-spec/specification/index.html
 type Server[RawConfiguration any, Configuration any, State any] struct {
+	*serveOptions
+
 	context       context.Context
 	stop          context.CancelFunc
 	connector     Connector[RawConfiguration, Configuration, State]
@@ -46,7 +49,6 @@ type Server[RawConfiguration any, Configuration any, State any] struct {
 	configuration *Configuration
 	options       *ServerOptions
 	telemetry     *TelemetryState
-	logger        zerolog.Logger
 }
 
 // NewServer creates a Server instance
@@ -67,7 +69,7 @@ func NewServer[RawConfiguration any, Configuration any, State any](connector Con
 			var err error
 			configBytes, err = os.ReadFile(options.Configuration)
 			if err != nil {
-				return nil, fmt.Errorf("Invalid configuration provided: %s", err)
+				return nil, fmt.Errorf("invalid configuration provided: %s", err)
 			}
 
 			if len(configBytes) == 0 {
@@ -76,7 +78,7 @@ func NewServer[RawConfiguration any, Configuration any, State any](connector Con
 		}
 
 		if err := json.Unmarshal(configBytes, &rawConfiguration); err != nil {
-			return nil, fmt.Errorf("Invalid configuration provided: %s", err)
+			return nil, fmt.Errorf("invalid configuration provided: %s", err)
 		}
 	}
 
@@ -119,7 +121,7 @@ func NewServer[RawConfiguration any, Configuration any, State any](connector Con
 		configuration: configuration,
 		options:       options,
 		telemetry:     telemetry,
-		logger:        defaultOptions.logger,
+		serveOptions:  defaultOptions,
 	}, nil
 }
 
@@ -146,12 +148,14 @@ func (s *Server[RawConfiguration, Configuration, State]) withAuth(handler http.H
 	}
 }
 
+// GetCapabilities get the connector's capabilities. Implement a handler for the /capabilities endpoint, GET method.
 func (s *Server[RawConfiguration, Configuration, State]) GetCapabilities(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r.Context())
 	capabilities := s.connector.GetCapabilities(s.configuration)
 	writeJson(w, logger, http.StatusOK, capabilities)
 }
 
+// Health checks the health of the connector. Implement a handler for the /health endpoint, GET method.
 func (s *Server[RawConfiguration, Configuration, State]) Health(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r.Context())
 	if err := s.connector.HealthCheck(r.Context(), s.configuration, s.state); err != nil {
@@ -159,7 +163,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Health(w http.ResponseW
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusOK)
 }
 
 // GetSchema implements a handler for the /schema endpoint, GET method.
@@ -174,6 +178,7 @@ func (s *Server[RawConfiguration, Configuration, State]) GetSchema(w http.Respon
 	writeJson(w, logger, http.StatusOK, schemaResult)
 }
 
+// Query implements a handler for the /query endpoint, POST method that executes a query.
 func (s *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
@@ -233,6 +238,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseWr
 	s.telemetry.queryLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
 }
 
+// QueryExplain implements a handler for the /query/explain endpoint, POST method that explains a query by creating an execution plan.
 func (s *Server[RawConfiguration, Configuration, State]) QueryExplain(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
@@ -256,7 +262,7 @@ func (s *Server[RawConfiguration, Configuration, State]) QueryExplain(w http.Res
 			attribute.String("reason", "json_decode"),
 		}
 		span.SetAttributes(attributes...)
-		s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
+		s.telemetry.queryExplainCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
 		return
 	}
 	decodeSpan.End()
@@ -275,7 +281,7 @@ func (s *Server[RawConfiguration, Configuration, State]) QueryExplain(w http.Res
 			attribute.String("reason", fmt.Sprintf("%d", status)),
 		}
 		span.SetAttributes(attributes...)
-		s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttributes...)...))
+		s.telemetry.queryExplainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttributes...)...))
 		return
 	}
 	execSpan.End()
@@ -285,12 +291,13 @@ func (s *Server[RawConfiguration, Configuration, State]) QueryExplain(w http.Res
 	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
 	writeJson(w, logger, http.StatusOK, response)
 	responseSpan.End()
-	s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
+	s.telemetry.queryExplainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
 
 	// record latency for success requests only
-	s.telemetry.explainLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
+	s.telemetry.queryExplainLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
 }
 
+// MutationExplain implements a handler for the /mutation/explain endpoint, POST method that explains a mutation by creating an execution plan.
 func (s *Server[RawConfiguration, Configuration, State]) MutationExplain(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
@@ -314,7 +321,7 @@ func (s *Server[RawConfiguration, Configuration, State]) MutationExplain(w http.
 			attribute.String("reason", "json_decode"),
 		}
 		span.SetAttributes(attributes...)
-		s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
+		s.telemetry.mutationExplainCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
 		return
 	}
 	decodeSpan.End()
@@ -337,7 +344,7 @@ func (s *Server[RawConfiguration, Configuration, State]) MutationExplain(w http.
 			attribute.String("reason", fmt.Sprintf("%d", status)),
 		}
 		span.SetAttributes(attributes...)
-		s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttributes...)...))
+		s.telemetry.mutationExplainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttributes...)...))
 		return
 	}
 	execSpan.End()
@@ -347,12 +354,13 @@ func (s *Server[RawConfiguration, Configuration, State]) MutationExplain(w http.
 	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
 	writeJson(w, logger, http.StatusOK, response)
 	responseSpan.End()
-	s.telemetry.explainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
+	s.telemetry.mutationExplainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
 
 	// record latency for success requests only
-	s.telemetry.explainLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
+	s.telemetry.mutationExplainLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
 }
 
+// Mutation implements a handler for the /mutation endpoint, POST method that executes a mutation.
 func (s *Server[RawConfiguration, Configuration, State]) Mutation(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
@@ -408,7 +416,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Mutation(w http.Respons
 }
 
 func (s *Server[RawConfiguration, Configuration, State]) buildHandler() *http.ServeMux {
-	router := newRouter(s.logger)
+	router := newRouter(s.logger, !s.withoutRecovery)
 	router.Use("/capabilities", http.MethodGet, s.withAuth(s.GetCapabilities))
 	router.Use("/schema", http.MethodGet, s.withAuth(s.GetSchema))
 	router.Use("/query", http.MethodPost, s.withAuth(s.Query))
@@ -419,6 +427,12 @@ func (s *Server[RawConfiguration, Configuration, State]) buildHandler() *http.Se
 	router.Use("/metrics", http.MethodGet, s.withAuth(promhttp.Handler().ServeHTTP))
 
 	return router.Build()
+}
+
+// BuildTestServer builds an http test server for testing purpose
+func (s *Server[RawConfiguration, Configuration, State]) BuildTestServer() *httptest.Server {
+	_ = s.telemetry.Shutdown(context.Background())
+	return httptest.NewServer(s.buildHandler())
 }
 
 // ListenAndServe serves the configuration server with the standard http server.

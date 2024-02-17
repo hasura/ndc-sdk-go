@@ -1,7 +1,6 @@
 name: Unit tests
 
 on:
-  pull_request:
   push:
     paths:
       - "**.go"
@@ -45,7 +44,7 @@ jobs:
           only-new-issues: true
           skip-cache: true
       - name: Run Go unit tests
-        run: go test -v -race -timeout 3m -coverprofile=coverage.out ./...
+        run: go test -v -coverpkg=./... -race -timeout 3m -coverprofile=coverage.out ./...
       - name: Go coverage format
         if: ${{ github.event_name == 'pull_request' }}
         run: |

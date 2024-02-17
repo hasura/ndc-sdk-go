@@ -3,10 +3,8 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
-	"github.com/go-viper/mapstructure/v2"
 	"github.com/hasura/ndc-sdk-go/schema"
 )
 
@@ -27,14 +25,14 @@ func (c *Connector) Query(ctx context.Context, configuration *Configuration, sta
 		if err != nil {
 			return nil, err
 		}
-		result, err := PruneFields(request.Query.Fields, rawResult)
+		result, err := schema.EvalColumnFields(request.Query.Fields, rawResult)
 		if err != nil {
 			return nil, err
 		}
 		rowSets = append(rowSets, schema.RowSet{
 			Aggregates: schema.RowSetAggregates{},
-			Rows: []schema.Row{
-				map[string]any{
+			Rows: []map[string]any{
+				{
 					"__value": result,
 				},
 			},
@@ -52,18 +50,11 @@ func (c *Connector) Mutation(ctx context.Context, configuration *Configuration, 
 		if err != nil {
 			return nil, err
 		}
-		result, err := PruneFields(operation.Fields, rawResult)
+		result, err := schema.EvalColumnFields(nil, rawResult)
 		if err != nil {
 			return nil, err
 		}
-		operationResults = append(operationResults, schema.MutationOperationResults{
-			AffectedRows: 1,
-			Returning: []schema.Row{
-				map[string]any{
-					"__value": result,
-				},
-			},
-		})
+		operationResults = append(operationResults, schema.NewProcedureResult(result).Encode())
 	}
 
 	return &schema.MutationResponse{
@@ -75,7 +66,7 @@ func execQuery(ctx context.Context, configuration *Configuration, state *State, 
 
 	switch request.Collection {
 	case "hello":
-		args, err := ResolveArguments[HelloArguments](request.Arguments, variables)
+		args, err := schema.ResolveArguments[HelloArguments](request.Arguments, variables)
 		if err != nil {
 			return nil, err
 		}
@@ -98,83 +89,4 @@ func execProcedure(ctx context.Context, configuration *Configuration, state *Sta
 	default:
 		return nil, fmt.Errorf("unsupported procedure operation: %s", operation.Name)
 	}
-}
-
-// PruneFields prune unnecessary fields from selection
-func PruneFields(fields map[string]schema.Field, result any) (any, error) {
-	if len(fields) == 0 {
-		return result, nil
-	}
-
-	if result == nil {
-		return nil, errors.New("expected object fields, got nil")
-	}
-
-	var outputMap map[string]any
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  &outputMap,
-		TagName: "json",
-	})
-	if err != nil {
-		return nil, err
-	}
-	if err := decoder.Decode(result); err != nil {
-		return nil, err
-	}
-
-	output := make(map[string]any)
-	for key, field := range fields {
-		f, err := field.Interface()
-		switch fi := f.(type) {
-		case schema.ColumnField:
-			if col, ok := outputMap[fi.Column]; ok {
-				output[fi.Column] = col
-			} else {
-				output[fi.Column] = nil
-			}
-		case schema.RelationshipField:
-			return nil, fmt.Errorf("unsupported relationship field,  %s", key)
-		default:
-			return nil, err
-		}
-	}
-
-	return output, nil
-}
-
-// ResolveArguments resolve variables in arguments and map them to struct
-func ResolveArguments[R any](arguments map[string]schema.Argument, variables map[string]any) (*R, error) {
-	resolvedArgs, err := ResolveArgumentVariables(arguments, variables)
-	if err != nil {
-		return nil, err
-	}
-
-	var result R
-
-	if err = mapstructure.Decode(resolvedArgs, &result); err != nil {
-		return nil, err
-	}
-
-	return &result, nil
-}
-
-// ResolveArgumentVariables resolve variables in arguments if exist
-func ResolveArgumentVariables(arguments map[string]schema.Argument, variables map[string]any) (map[string]any, error) {
-	results := make(map[string]any)
-	for key, arg := range arguments {
-		switch arg.Type {
-		case schema.ArgumentTypeLiteral:
-			results[key] = arg.Value
-		case schema.ArgumentTypeVariable:
-			value, ok := variables[arg.Name]
-			if !ok {
-				return nil, fmt.Errorf("variable %s not found", arg.Name)
-			}
-			results[key] = value
-		default:
-			return nil, fmt.Errorf("unsupported argument type: %s", arg.Type)
-		}
-	}
-
-	return results, nil
 }
