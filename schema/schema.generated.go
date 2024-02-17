@@ -508,8 +508,6 @@ func (j *MutationRequest) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-
-
 type MutationResponse struct {
 	// The results of each mutation operation, in the same order as they were received
 	OperationResults []MutationOperationResults `json:"operation_results" yaml:"operation_results" mapstructure:"operation_results"`

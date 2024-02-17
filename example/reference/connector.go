@@ -56,12 +56,19 @@ type State struct {
 	Telemetry    *connector.TelemetryState
 }
 
-func (s State) GetLatestArticle() *Article {
+func (s *State) GetLatestArticle() *Article {
 	if len(s.Articles) == 0 {
 		return nil
 	}
 
-	return &s.Articles[len(s.Articles)-1]
+	var latestArticle Article
+	for _, article := range s.Articles {
+		if latestArticle.ID < article.ID {
+			latestArticle = article
+		}
+	}
+
+	return &latestArticle
 }
 
 type Connector struct{}
@@ -133,12 +140,6 @@ func (mc *Connector) GetCapabilities(configuration *Configuration) *schema.Capab
 func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResponse, error) {
 	return &schema.SchemaResponse{
 		ScalarTypes: schema.SchemaResponseScalarTypes{
-			"String": schema.ScalarType{
-				AggregateFunctions: schema.ScalarTypeAggregateFunctions{},
-				ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
-					"like": schema.NewComparisonOperatorCustom(schema.NewNamedType("String")).Encode(),
-				},
-			},
 			"Int": schema.ScalarType{
 				AggregateFunctions: schema.ScalarTypeAggregateFunctions{
 					"max": schema.AggregateFunctionDefinition{
@@ -148,40 +149,111 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 						ResultType: schema.NewNullableNamedType("Int").Encode(),
 					},
 				},
+				ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
+					"eq": schema.NewComparisonOperatorEqual().Encode(),
+					"in": schema.NewComparisonOperatorIn().Encode(),
+				},
+			},
+			"String": {
+				AggregateFunctions: schema.ScalarTypeAggregateFunctions{},
+				ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
+					"eq":   schema.NewComparisonOperatorEqual().Encode(),
+					"in":   schema.NewComparisonOperatorIn().Encode(),
+					"like": schema.NewComparisonOperatorCustom(schema.NewNamedType("String")).Encode(),
+				},
 			},
 		},
 		ObjectTypes: schema.SchemaResponseObjectTypes{
 			"article": schema.ObjectType{
 				Description: schema.ToPtr("An article"),
 				Fields: schema.ObjectTypeFields{
-					"id": schema.ObjectField{
-						Description: schema.ToPtr("The article's primary key"),
-						Type:        schema.NewNamedType("Int").Encode(),
-					},
-					"title": schema.ObjectField{
-						Description: schema.ToPtr("The article's title"),
-						Type:        schema.NewNamedType("String").Encode(),
-					},
 					"author_id": schema.ObjectField{
 						Description: schema.ToPtr("The article's author ID"),
 						Type:        schema.NewNamedType("Int").Encode(),
+					},
+					"id": {
+						Description: schema.ToPtr("The article's primary key"),
+						Type:        schema.NewNamedType("Int").Encode(),
+					},
+					"title": {
+						Description: schema.ToPtr("The article's title"),
+						Type:        schema.NewNamedType("String").Encode(),
 					},
 				},
 			},
 			"author": schema.ObjectType{
 				Description: schema.ToPtr("An author"),
 				Fields: schema.ObjectTypeFields{
-					"id": schema.ObjectField{
-						Description: schema.ToPtr("The author's primary key"),
-						Type:        schema.NewNamedType("Int").Encode(),
-					},
-					"first_name": schema.ObjectField{
+					"first_name": {
 						Description: schema.ToPtr("The author's first name"),
 						Type:        schema.NewNamedType("String").Encode(),
 					},
-					"last_name": schema.ObjectField{
+					"id": {
+						Description: schema.ToPtr("The author's primary key"),
+						Type:        schema.NewNamedType("Int").Encode(),
+					},
+					"last_name": {
 						Description: schema.ToPtr("The author's last name"),
 						Type:        schema.NewNamedType("String").Encode(),
+					},
+				},
+			},
+			"institution": schema.ObjectType{
+				Description: schema.ToPtr("An institution"),
+				Fields: schema.ObjectTypeFields{
+					"departments": schema.ObjectField{
+						Description: schema.ToPtr("The institution's departments"),
+						Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
+					},
+					"id": schema.ObjectField{
+						Description: schema.ToPtr("The institution's primary key"),
+						Type:        schema.NewNamedType("Int").Encode(),
+					},
+					"location": schema.ObjectField{
+						Description: schema.ToPtr("The institution's location"),
+						Type:        schema.NewNamedType("location").Encode(),
+					},
+					"name": schema.ObjectField{
+						Description: schema.ToPtr("The institution's name"),
+						Type:        schema.NewNamedType("String").Encode(),
+					},
+					"staff": schema.ObjectField{
+						Description: schema.ToPtr("The institution's staff"),
+						Type:        schema.NewArrayType(schema.NewNamedType("staff_member")).Encode(),
+					},
+				},
+			},
+			"location": schema.ObjectType{
+				Description: schema.ToPtr("A location"),
+				Fields: schema.ObjectTypeFields{
+					"campuses": schema.ObjectField{
+						Description: schema.ToPtr("The location's campuses"),
+						Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
+					},
+					"city": schema.ObjectField{
+						Description: schema.ToPtr("The location's city"),
+						Type:        schema.NewNamedType("String").Encode(),
+					},
+					"country": schema.ObjectField{
+						Description: schema.ToPtr("The location's country"),
+						Type:        schema.NewNamedType("String").Encode(),
+					},
+				},
+			},
+			"staff_member": schema.ObjectType{
+				Description: schema.ToPtr("A staff member"),
+				Fields: schema.ObjectTypeFields{
+					"first_name": schema.ObjectField{
+						Description: schema.ToPtr("The staff member's first name"),
+						Type:        schema.NewNamedType("String").Encode(),
+					},
+					"last_name": schema.ObjectField{
+						Description: schema.ToPtr("The staff member's last name"),
+						Type:        schema.NewNamedType("String").Encode(),
+					},
+					"specialities": schema.ObjectField{
+						Description: schema.ToPtr("The staff member's specialities"),
+						Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
 					},
 				},
 			},
@@ -190,29 +262,45 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 			{
 				Name:        "articles",
 				Description: schema.ToPtr("A collection of articles"),
-				ForeignKeys: schema.CollectionInfoForeignKeys{
-					"Article_AuthorID": schema.ForeignKeyConstraint{
-						ForeignCollection: "authors",
-						ColumnMapping: schema.ForeignKeyConstraintColumnMapping{
-							"author_id": "id",
-						},
-					},
-				},
+				Arguments:   schema.CollectionInfoArguments{},
+				Type:        "article",
 				UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
 					"ArticleByID": schema.UniquenessConstraint{
 						UniqueColumns: []string{"id"},
+					},
+				},
+				ForeignKeys: schema.CollectionInfoForeignKeys{
+					"Article_AuthorID": schema.ForeignKeyConstraint{
+						ColumnMapping: schema.ForeignKeyConstraintColumnMapping{
+							"author_id": "id",
+						},
+						ForeignCollection: "authors",
 					},
 				},
 			},
 			{
 				Name:        "authors",
 				Description: schema.ToPtr("A collection of authors"),
-				ForeignKeys: schema.CollectionInfoForeignKeys{},
+				Arguments:   schema.CollectionInfoArguments{},
+				Type:        "author",
 				UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
 					"AuthorByID": schema.UniquenessConstraint{
 						UniqueColumns: []string{"id"},
 					},
 				},
+				ForeignKeys: schema.CollectionInfoForeignKeys{},
+			},
+			{
+				Name:        "institutions",
+				Description: schema.ToPtr("A collection of institutions"),
+				Arguments:   schema.CollectionInfoArguments{},
+				Type:        "institution",
+				UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
+					"InstitutionByID": schema.UniquenessConstraint{
+						UniqueColumns: []string{"id"},
+					},
+				},
+				ForeignKeys: schema.CollectionInfoForeignKeys{},
 			},
 			{
 				Name:        "articles_by_author",
@@ -222,23 +310,22 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 						Type: schema.NewNamedType("Int").Encode(),
 					},
 				},
-				ForeignKeys: schema.CollectionInfoForeignKeys{},
-				UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
-					"AuthorByID": schema.UniquenessConstraint{
-						UniqueColumns: []string{"id"},
-					},
-				},
+				Type:                  "article",
+				UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{},
+				ForeignKeys:           schema.CollectionInfoForeignKeys{},
 			},
 		},
 		Functions: []schema.FunctionInfo{
 			{
 				Name:        "latest_article_id",
 				Description: schema.ToPtr("Get the ID of the most recent article"),
+				Arguments:   schema.FunctionInfoArguments{},
 				ResultType:  schema.NewNullableNamedType("Int").Encode(),
 			},
 			{
 				Name:        "latest_article",
 				Description: schema.ToPtr("Get the most recent article"),
+				Arguments:   schema.FunctionInfoArguments{},
 				ResultType:  schema.NewArrayType(schema.NewNullableNamedType("article")).Encode(),
 			},
 		},
@@ -253,6 +340,17 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 					},
 				},
 				ResultType: schema.NewNullableNamedType("article").Encode(),
+			},
+			{
+				Name:        "delete_articles",
+				Description: schema.ToPtr("Delete articles which match a predicate"),
+				Arguments: schema.ProcedureInfoArguments{
+					"where": schema.ArgumentInfo{
+						Description: schema.ToPtr("The predicate"),
+						Type:        schema.NewPredicateType("article").Encode(),
+					},
+				},
+				ResultType: schema.NewArrayType(schema.NewNamedType("article")).Encode(),
 			},
 		},
 	}, nil
@@ -313,41 +411,64 @@ func executeMutationOperation(ctx context.Context, state *State, collectionRelat
 		return executeProcedure(ctx, state, collectionRelationship, operation)
 	}
 
-	return nil, schema.NotSupportedError(fmt.Sprintf("Unsupported operation type: %s", operation.Type), nil)
+	return nil, schema.NotSupportedError(fmt.Sprintf("unsupported operation type: %s", operation.Type), nil)
 }
 
 type UpsertArticleArguments struct {
 	Article Article `json:"article"`
 }
 
-func executeProcedure(ctx context.Context, state *State, collectionRelationship schema.MutationRequestCollectionRelationships, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
+func executeProcedure(ctx context.Context, state *State, collectionRelationships schema.MutationRequestCollectionRelationships, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
 	switch operation.Name {
 	case "upsert_article":
-		var args UpsertArticleArguments
-		if err := json.Unmarshal(operation.Arguments, &args); err != nil {
-			return nil, schema.BadRequestError(err.Error(), nil)
-		}
-
-		latestArticle := state.GetLatestArticle()
-		if args.Article.ID <= 0 {
-			if latestArticle == nil {
-				args.Article.ID = 1
-			} else {
-				args.Article.ID = latestArticle.ID + 1
-			}
-		}
-		state.Articles[args.Article.ID] = args.Article
-
-		// row, err := schema.PruneFields(operation.Fields, args.Article)
-		// if err != nil {
-		// 	return nil, err
-		// }
-		return schema.NewProcedureResult(args.Article).Encode(), nil
+		return executeUpsertArticle(state, operation.Arguments, operation.Fields, collectionRelationships)
 	case "delete_articles":
-		return executeDeleteArticles(state, operation.Arguments, operation.Fields, collectionRelationship)
+		return executeDeleteArticles(state, operation.Arguments, operation.Fields, collectionRelationships)
 	default:
 		return nil, schema.BadRequestError("unknown procedure", nil)
 	}
+}
+
+func executeUpsertArticle(
+	state *State,
+	arguments json.RawMessage,
+	fields schema.NestedField,
+	collectionRelationships map[string]schema.Relationship,
+) (schema.MutationOperationResults, error) {
+
+	var args UpsertArticleArguments
+	if err := json.Unmarshal(arguments, &args); err != nil {
+		return nil, schema.BadRequestError(err.Error(), nil)
+	}
+
+	var oldRow *Article
+	latestArticle := state.GetLatestArticle()
+	if args.Article.ID <= 0 {
+		if latestArticle == nil {
+			args.Article.ID = 1
+		} else {
+			args.Article.ID = latestArticle.ID + 1
+		}
+		state.Articles = append(state.Articles, args.Article)
+	} else {
+		for i, article := range state.Articles {
+			if article.ID == args.Article.ID {
+				oldRow = &article
+				state.Articles[i] = args.Article
+				break
+			}
+		}
+		if oldRow == nil {
+			state.Articles = append(state.Articles, args.Article)
+		}
+	}
+
+	returning, err := evalNestedField(collectionRelationships, nil, state, oldRow, fields)
+	if err != nil {
+		return nil, err
+	}
+
+	return schema.NewProcedureResult(returning).Encode(), nil
 }
 
 func executeDeleteArticles(
@@ -382,13 +503,9 @@ func executeDeleteArticles(
 		}
 	}
 
-	var returning []map[string]any
-	for _, item := range removed {
-		row, err := evalRow(nil, collectionRelationships, nil, state, item)
-		if err != nil {
-			return nil, err
-		}
-		returning = append(returning, row)
+	returning, err := evalNestedField(collectionRelationships, nil, state, removed, fields)
+	if err != nil {
+		return nil, err
 	}
 
 	return schema.NewProcedureResult(returning).Encode(), nil
@@ -849,8 +966,12 @@ func evalNestedField(
 	variables map[string]any,
 	state *State,
 	value any,
-	nestedField *schema.NestedField,
+	nestedField schema.NestedField,
 ) (any, error) {
+
+	if isNil(value) {
+		return value, nil
+	}
 	iNestedField, err := nestedField.Interface()
 	switch nf := iNestedField.(type) {
 	case *schema.NestedObject:
@@ -879,7 +1000,7 @@ func evalNestedField(
 
 		result := []any{}
 		for _, item := range array {
-			val, err := evalNestedField(collectionRelationships, variables, state, item, &nf.Fields)
+			val, err := evalNestedField(collectionRelationships, variables, state, item, nf.Fields)
 			if err != nil {
 				return nil, err
 			}
@@ -908,7 +1029,7 @@ func evalField(
 		if len(f.Fields) == 0 {
 			return value, nil
 		}
-		return evalNestedField(collectionRelationships, variables, state, value, &f.Fields)
+		return evalNestedField(collectionRelationships, variables, state, value, f.Fields)
 	case *schema.RelationshipField:
 		relationship, ok := collectionRelationships[f.Relationship]
 		if !ok {
@@ -1038,25 +1159,25 @@ func getCollectionByName(collectionName string, arguments schema.QueryRequestArg
 	// function
 	case "latest_article_id":
 		latestArticle := state.GetLatestArticle()
-		if latestArticle == nil {
-			return nil, schema.BadRequestError("No available article", nil)
+		var latestID *int
+		if latestArticle != nil {
+			latestID = &latestArticle.ID
 		}
 		return []map[string]any{
 			{
-				"__value": latestArticle.ID,
+				"__value": latestID,
 			},
 		}, nil
 	case "latest_article":
-		var latestArticle Article
-		for _, article := range state.Articles {
-			if latestArticle.ID < article.ID {
-				latestArticle = article
-			}
+		var result []any
+		latestArticle := state.GetLatestArticle()
+		if latestArticle != nil {
+			result = append(result, latestArticle)
 		}
 
 		return []map[string]any{
 			{
-				"__value": latestArticle,
+				"__value": result,
 			},
 		}, nil
 		// collections
@@ -1378,4 +1499,12 @@ func evalColumnMapping(relationship *schema.Relationship, srcRow map[string]any,
 		}
 	}
 	return true, nil
+}
+
+func isNil(value any) bool {
+	if value == nil {
+		return true
+	}
+	v := reflect.ValueOf(value)
+	return v.Kind() == reflect.Ptr && v.IsNil()
 }

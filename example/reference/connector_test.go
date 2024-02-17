@@ -55,11 +55,35 @@ func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int,
 		t.FailNow()
 	}
 
-	if !internal.DeepEqual(body, expectedBody) {
+	if !internal.DeepEqual(expectedBody, body) {
 		expectedBytes, _ := json.Marshal(expectedBody)
-		t.Errorf("\nexpect: %+v\ngot		: %+v", string(expectedBytes), string(bodyBytes))
+		t.Errorf("\nexpect: %+v\ngot: %+v", string(expectedBytes), string(bodyBytes))
 		t.FailNow()
 	}
+}
+
+func TestSchema(t *testing.T) {
+	server := createTestServer(t).BuildTestServer()
+	expectedResp, err := http.Get("https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/schema/expected.json")
+	if err != nil {
+		t.Errorf("failed to fetch expected schema: %s", err.Error())
+		t.FailNow()
+	}
+
+	var expectedSchema schema.SchemaResponse
+	err = json.NewDecoder(expectedResp.Body).Decode(&expectedSchema)
+	if err != nil {
+		t.Errorf("failed to read expected body: %s", err.Error())
+		t.FailNow()
+	}
+
+	httpResp, err := http.Get(fmt.Sprintf("%s/schema", server.URL))
+	if err != nil {
+		t.Errorf("failed to fetch schema: %s", err.Error())
+		t.FailNow()
+	}
+
+	assertHTTPResponse[schema.SchemaResponse](t, httpResp, http.StatusOK, expectedSchema)
 }
 
 func TestQuery(t *testing.T) {
@@ -273,7 +297,23 @@ func TestMutation(t *testing.T) {
 		requestURL  string
 		responseURL string
 		response    []byte
-	}{}
+	}{
+		{
+			name:        "upsert_article",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/mutation/upsert_article/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/mutation/upsert_article/expected.json",
+		},
+		{
+			name:        "upsert_article_with_relationship",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/mutation/upsert_article_with_relationship/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/mutation/upsert_article_with_relationship/expected.json",
+		},
+		{
+			name:        "delete_articles",
+			requestURL:  "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/mutation/delete_articles/request.json",
+			responseURL: "https://raw.githubusercontent.com/hasura/ndc-spec/main/ndc-reference/tests/mutation/delete_articles/expected.json",
+		},
+	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
