@@ -88,6 +88,10 @@ func unmarshalStringFromJsonMap(collection map[string]json.RawMessage, key strin
 
 // EncodeRow encodes an object row to a map[string]any, using json tag to convert object keys
 func EncodeRow(row any) (map[string]any, error) {
+	value, ok := row.(map[string]any)
+	if ok {
+		return value, nil
+	}
 	return encodeRows[map[string]any](row)
 }
 
@@ -114,8 +118,8 @@ func encodeRows[R any](rows any) (R, error) {
 	return result, err
 }
 
-// PruneFields prune unnecessary fields from selection
-func PruneFields(fields map[string]Field, result any) (map[string]any, error) {
+// EvalColumnFields evaluate and prune column fields without relationship
+func EvalColumnFields(fields map[string]Field, result any) (map[string]any, error) {
 	outputMap, err := EncodeRow(result)
 	if err != nil {
 		return nil, err

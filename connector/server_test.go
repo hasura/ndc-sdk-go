@@ -172,9 +172,7 @@ func (mc *mockConnector) Mutation(ctx context.Context, configuration *mockConfig
 			return nil, schema.BadRequestError(fmt.Sprintf("operation not found: %s", operation.Name), nil)
 		}
 
-		results = append(results, schema.MutationOperationResults{
-			AffectedRows: 1,
-		})
+		results = append(results, schema.NewProcedureResult(nil).Encode())
 	}
 
 	return &schema.MutationResponse{
@@ -261,7 +259,7 @@ func TestNewServer(t *testing.T) {
 			t.Errorf("expected error, got nil")
 			t.FailNow()
 		}
-		if !strings.Contains(err.Error(), "Invalid configuration provided: open /tmp/any-file: no such file or directory") {
+		if !strings.Contains(err.Error(), "invalid configuration provided: open /tmp/any-file: no such file or directory") {
 			t.Errorf("expected file not found error, got %s", err)
 			t.FailNow()
 		}
@@ -302,7 +300,7 @@ func TestNewServer(t *testing.T) {
 			t.Errorf("NewServerWithInvalidConfigFile: expected error, got nil")
 			t.FailNow()
 		}
-		if !strings.Contains(err.Error(), "Invalid configuration provided: unexpected end of JSON input") {
+		if !strings.Contains(err.Error(), "invalid configuration provided: unexpected end of JSON input") {
 			t.Errorf("NewServerWithInvalidConfigFile: expected invalid json error, got %s", err)
 			t.FailNow()
 		}
@@ -508,9 +506,7 @@ func TestServerConnector(t *testing.T) {
 		}
 		assertHTTPResponse(t, res, http.StatusOK, schema.MutationResponse{
 			OperationResults: []schema.MutationOperationResults{
-				{
-					AffectedRows: 1,
-				},
+				schema.NewProcedureResult(nil).Encode(),
 			},
 		})
 	})

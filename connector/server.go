@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	errConfigurationRequired = errors.New("Configuration is required")
+	errConfigurationRequired = errors.New("configuration is required")
 )
 
 // ServerOptions presents the configuration object of the connector http server
@@ -69,7 +69,7 @@ func NewServer[RawConfiguration any, Configuration any, State any](connector Con
 			var err error
 			configBytes, err = os.ReadFile(options.Configuration)
 			if err != nil {
-				return nil, fmt.Errorf("Invalid configuration provided: %s", err)
+				return nil, fmt.Errorf("invalid configuration provided: %s", err)
 			}
 
 			if len(configBytes) == 0 {
@@ -78,7 +78,7 @@ func NewServer[RawConfiguration any, Configuration any, State any](connector Con
 		}
 
 		if err := json.Unmarshal(configBytes, &rawConfiguration); err != nil {
-			return nil, fmt.Errorf("Invalid configuration provided: %s", err)
+			return nil, fmt.Errorf("invalid configuration provided: %s", err)
 		}
 	}
 

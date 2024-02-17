@@ -7,7 +7,9 @@ if [ ! -f ./go-jsonschema ]; then
 fi
 
 # download the schema json file from ndc-sdk-typescript repository and regerate schema 
-wget https://raw.githubusercontent.com/hasura/ndc-sdk-typescript/main/src/schema/schema.generated.json
+if [[ -z $SKIP_DOWNLOAD ]]; then
+  wget https://raw.githubusercontent.com/hasura/ndc-sdk-typescript/main/src/schema/schema.generated.json
+fi
 
 ./go-jsonschema \
   --package=github.com/hasura/ndc-sdk-go/schema \
@@ -53,6 +55,9 @@ sed -i 's/type ComparisonOperatorDefinition interface{}//g' ../schema/schema.gen
 sed -i 's/type NestedField interface{}//g' ../schema/schema.generated.go
 sed -i 's/type ScalarTypeComparisonOperators map\[string\]interface{}//g' ../schema/schema.generated.go
 sed -i 's/ScalarTypeComparisonOperators/map[string]ComparisonOperatorDefinition/g' ../schema/schema.generated.go
+sed -i 's/type MutationOperationResults interface{}//g' ../schema/schema.generated.go
+sed -i 's/type MutationResponseOperationResultsElem interface{}//g' ../schema/schema.generated.go
+sed -i 's/MutationResponseOperationResultsElem/MutationOperationResults/g' ../schema/schema.generated.go
 
 # format codes
 gofmt -w -s ../
