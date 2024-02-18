@@ -1,16 +1,38 @@
 package main
 
 import (
+	"bufio"
 	_ "embed"
 	"encoding/json"
 	"os"
 	"path"
+	"text/template"
 )
 
 //go:embed templates/connector/connector.go.tmpl
-var connectorTemplate []byte
+var connectorTemplate string
 
-func generateConnector(rawSchema *RawConnectorSchema, srcPath string) error {
+const (
+	connectorOutputFile = "connector.generated.go"
+)
+
+func parseAndGenerateConnector(basePath string, directories []string, moduleName string) error {
+	if err := os.Chdir(basePath); err != nil {
+		return err
+	}
+	sm, err := parseRawConnectorSchemaFromGoCode(".", directories)
+	if err != nil {
+		return err
+	}
+
+	return generateConnector(sm, ".", moduleName)
+}
+
+func generateConnector(rawSchema *RawConnectorSchema, srcPath string, moduleName string) error {
+	fileTemplate, err := template.New(connectorOutputFile).Parse(connectorTemplate)
+	if err != nil {
+		return err
+	}
 
 	// generate schema.generated.json
 	schemaBytes, err := json.MarshalIndent(rawSchema.Schema(), "", "  ")
@@ -23,5 +45,21 @@ func generateConnector(rawSchema *RawConnectorSchema, srcPath string) error {
 		return err
 	}
 
-	return nil
+	targetPath := path.Join(srcPath, connectorOutputFile)
+	f, err := os.Create(targetPath)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = f.Close()
+	}()
+
+	w := bufio.NewWriter(f)
+	err = fileTemplate.Execute(w, map[string]any{
+		"Module": moduleName,
+	})
+	if err != nil {
+		return err
+	}
+	return w.Flush()
 }

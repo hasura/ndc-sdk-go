@@ -152,6 +152,7 @@ func parseRawConnectorSchemaFromGoCode(filePath string, folders []string) (*RawC
 		if err != nil {
 			return nil, err
 		}
+
 		err = parseRawConnectorSchema(rawSchema, pkg, info, files)
 		if err != nil {
 			return nil, err

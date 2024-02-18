@@ -24,6 +24,7 @@ typegen/*
 # Go workspace file
 go.work
 go.work.sum
+
 .idea/
 _output/
 coverage.out

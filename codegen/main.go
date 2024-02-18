@@ -1,22 +1,25 @@
 package main
 
 import (
-	"fmt"
-	"log"
+	"os"
 
 	"github.com/alecthomas/kong"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 var cli struct {
 	Init struct {
-		Name    string `help:"Name of the connector." short:"n" required:""`
-		Package string `help:"Package name of the connector" short:"p" required:""`
-		Output  string `help:"The location where source codes will be generated" short:"o" default:""`
+		Name     string `help:"Name of the connector." short:"n" required:""`
+		Module   string `help:"Module name of the connector" short:"m" required:""`
+		Output   string `help:"The location where source codes will be generated" short:"o" default:""`
+		LogLevel string `help:"Log level." enum:"trace,debug,info,warn,error" default:"info"`
 	} `cmd:"" help:"Initialize a NDC connector boilerplate."`
 
 	Generate struct {
 		Path        string   `help:"The base path of the connector's source code" short:"p" default:"."`
 		Directories []string `help:"Folders contain NDC operation functions" short:"d" default:"functions,types"`
+		LogLevel    string   `help:"Log level." enum:"trace,debug,info,warn,error" default:"info"`
 	} `cmd:"" help:"Generate schema and implementation for the connector from functions."`
 }
 
@@ -24,21 +27,41 @@ func main() {
 	cmd := kong.Parse(&cli)
 	switch cmd.Command() {
 	case "init":
-		log.Println("init", cli.Init)
-		if err := generateNewProject(cli.Init.Name, cli.Init.Package, cli.Init.Output); err != nil {
-			panic(err)
+		setupGlobalLogger(cli.Init.LogLevel)
+		log.Info().
+			Str("name", cli.Init.Name).
+			Str("module", cli.Init.Module).
+			Str("output", cli.Init.Output).
+			Msg("generating the NDC boilerplate...")
+		if err := generateNewProject(cli.Init.Name, cli.Init.Module, cli.Init.Output); err != nil {
+			log.Fatal().Err(err).Msg("failed to generate new project")
 		}
+		log.Info().Msg("generated successfully")
 	case "generate":
-		log.Println("generate", cli.Generate)
-		sm, err := parseRawConnectorSchemaFromGoCode(cli.Generate.Path, cli.Generate.Directories)
+		setupGlobalLogger(cli.Generate.LogLevel)
+		log.Info().
+			Str("path", cli.Generate.Path).
+			Interface("directories", cli.Generate.Directories).
+			Msg("generating connector schema...")
+		moduleName, err := getModuleName(cli.Generate.Path)
 		if err != nil {
-			panic(err)
-		}
-		if err = generateConnector(sm, cli.Generate.Path); err != nil {
-			panic(err)
+			log.Fatal().Err(err).Msg("failed to get module name. The base path must contain a go.mod file")
 		}
 
+		if err = parseAndGenerateConnector(cli.Generate.Path, cli.Generate.Directories, moduleName); err != nil {
+			log.Fatal().Err(err).Msg("failed to generate connector schema")
+		}
+		log.Info().Msg("generated successfully")
 	default:
-		panic(fmt.Errorf("unknown command <%s>", cmd.Command()))
+		log.Fatal().Msgf("unknown command <%s>", cmd.Command())
 	}
+}
+
+func setupGlobalLogger(level string) {
+	logLevel, err := zerolog.ParseLevel(level)
+	if err != nil {
+		log.Fatal().Err(err).Msgf("failed to parse log level: %s", level)
+	}
+	zerolog.SetGlobalLevel(logLevel)
+	log.Logger = log.Level(logLevel).Output(zerolog.ConsoleWriter{Out: os.Stderr})
 }
