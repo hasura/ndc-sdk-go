@@ -2,17 +2,30 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 
+	"github.com/hasura/ndc-sdk-go/example/codegen/functions"
+	"github.com/hasura/ndc-sdk-go/example/codegen/types"
 	"github.com/hasura/ndc-sdk-go/schema"
 )
 
-func (c *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResponse, error) {
-	return &schema.SchemaResponse{}, nil
+//go:embed schema.generated.json
+var rawSchema []byte
+var schemaResponse schema.SchemaResponse
+
+func init() {
+	if err := json.Unmarshal(rawSchema, &schemaResponse); err != nil {
+		panic(fmt.Errorf("failed to decode schema: %s", err))
+	}
 }
 
-func (c *Connector) Query(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (schema.QueryResponse, error) {
+func (c *Connector) GetSchema(configuration *types.Configuration) (*schema.SchemaResponse, error) {
+	return &schemaResponse, nil
+}
+
+func (c *Connector) Query(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.QueryRequest) (schema.QueryResponse, error) {
 	requestVars := request.Variables
 	if len(requestVars) == 0 {
 		requestVars = []schema.QueryRequestVariablesElem{{}}
@@ -42,7 +55,7 @@ func (c *Connector) Query(ctx context.Context, configuration *Configuration, sta
 	return rowSets, nil
 }
 
-func (c *Connector) Mutation(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
+func (c *Connector) Mutation(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
 	operationResults := make([]schema.MutationOperationResults, 0, len(request.Operations))
 
 	for _, operation := range request.Operations {
@@ -50,11 +63,11 @@ func (c *Connector) Mutation(ctx context.Context, configuration *Configuration, 
 		if err != nil {
 			return nil, err
 		}
-		result, err := schema.EvalColumnFields(nil, rawResult)
-		if err != nil {
-			return nil, err
-		}
-		operationResults = append(operationResults, schema.NewProcedureResult(result).Encode())
+		// result, err := schema.EvalNestedColumnFields(operation.Fields, rawResult)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		operationResults = append(operationResults, schema.NewProcedureResult(rawResult).Encode())
 	}
 
 	return &schema.MutationResponse{
@@ -62,30 +75,30 @@ func (c *Connector) Mutation(ctx context.Context, configuration *Configuration, 
 	}, nil
 }
 
-func execQuery(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest, variables map[string]any) (any, error) {
+func execQuery(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.QueryRequest, variables map[string]any) (any, error) {
 
 	switch request.Collection {
 	case "hello":
-		args, err := schema.ResolveArguments[HelloArguments](request.Arguments, variables)
+		args, err := schema.ResolveArguments[functions.HelloArguments](request.Arguments, variables)
 		if err != nil {
 			return nil, err
 		}
-		return Hello(ctx, state, args)
+		return functions.FunctionHello(ctx, state, args)
 	default:
 		return nil, fmt.Errorf("unsupported query: %s", request.Collection)
 	}
 }
 
-func execProcedure(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest, operation *schema.MutationOperation) (any, error) {
+func execProcedure(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.MutationRequest, operation *schema.MutationOperation) (any, error) {
 	switch operation.Name {
 	case "create_author":
-		var args CreateAuthorArguments
+		var args functions.CreateAuthorArguments
 		if err := json.Unmarshal(operation.Arguments, &args); err != nil {
 			return nil, schema.BadRequestError("failed to decode arguments", map[string]any{
 				"cause": err.Error(),
 			})
 		}
-		return CreateAuthor(ctx, state, &args)
+		return functions.ProcedureCreateAuthor(ctx, state, &args)
 	default:
 		return nil, fmt.Errorf("unsupported procedure operation: %s", operation.Name)
 	}

@@ -1,7 +1,9 @@
-package main
+package functions
 
 import (
 	"context"
+
+	"{{.Package}}/types"
 )
 
 // A hello argument
@@ -17,9 +19,7 @@ type HelloResult struct {
 }
 
 // Send hello message
-//
-// @function hello
-func Hello(ctx context.Context, state *State, arguments *HelloArguments) (*HelloResult, error) {
+func FunctionHello(ctx context.Context, state *types.State, arguments *HelloArguments) (*HelloResult, error) {
 	return &HelloResult{
 		Num: 1,
 		Str: "world",
@@ -38,9 +38,7 @@ type CreateAuthorResult struct {
 }
 
 // A procedure example
-//
-// @procedure
-func CreateAuthor(ctx context.Context, state *State, arguments *CreateAuthorArguments) (*CreateAuthorResult, error) {
+func ProcedureCreateAuthor(ctx context.Context, state *types.State, arguments *CreateAuthorArguments) (*CreateAuthorResult, error) {
 	return &CreateAuthorResult{
 		ID:   1,
 		Name: arguments.Name,

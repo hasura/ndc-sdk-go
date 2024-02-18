@@ -15,3 +15,7 @@ test:
 .PHONY: lint
 lint:
 	golangci-lint run
+
+.PHONY: build-codegen
+build-codegen:
+	go build -o _output/hasura-ndc-go ./codegen

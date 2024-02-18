@@ -1,0 +1,114 @@
+{
+  "collections": [],
+  "functions": [
+    {
+      "arguments": {
+        "Num": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Str": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      },
+      "name": "getScalar",
+      "result_type": {
+        "name": "Int",
+        "type": "named"
+      }
+    },
+    {
+      "arguments": {
+        "Num": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Str": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      },
+      "name": "hello",
+      "result_type": {
+        "type": "nullable",
+        "underlying_type": {
+          "name": "HelloResult",
+          "type": "named"
+        }
+      }
+    }
+  ],
+  "object_types": {
+    "CreateAuthorResult": {
+      "fields": {
+        "ID": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Name": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "HelloResult": {
+      "fields": {
+        "Num": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Str": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    }
+  },
+  "procedures": [
+    {
+      "arguments": {
+        "Name": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      },
+      "name": "createAuthor",
+      "result_type": {
+        "type": "nullable",
+        "underlying_type": {
+          "name": "CreateAuthorResult",
+          "type": "named"
+        }
+      }
+    }
+  ],
+  "scalar_types": {
+    "Int": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "String": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    }
+  }
+}

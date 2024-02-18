@@ -2,12 +2,11 @@ package main
 
 import (
 	"context"
-	_ "embed"
 
 	"github.com/hasura/ndc-sdk-go/connector"
-	"github.com/hasura/ndc-sdk-go/example/codegen/types"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/swaggest/jsonschema-go"
+	"{{.Package}}/types"
 )
 
 type Connector struct{}

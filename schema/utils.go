@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 
-	"github.com/mitchellh/mapstructure"
+	"github.com/go-viper/mapstructure/v2"
 )
 
 // ToPtr converts a value to its pointer
@@ -116,6 +117,49 @@ func encodeRows[R any](rows any) (R, error) {
 	err = decoder.Decode(rows)
 
 	return result, err
+}
+
+func isNil(value any) bool {
+	if value == nil {
+		return true
+	}
+	v := reflect.ValueOf(value)
+	return v.Kind() == reflect.Ptr && v.IsNil()
+}
+
+// EvalNestedColumnFields evaluate and prune nested fields without relationship
+func EvalNestedColumnFields(fields NestedField, value any) (any, error) {
+	if isNil(value) {
+		return nil, nil
+	}
+
+	iNestedField, err := fields.Interface()
+	switch nf := iNestedField.(type) {
+	case *NestedObject:
+		row, err := EncodeRow(value)
+		if err != nil {
+			return nil, fmt.Errorf("expected object, got %s", reflect.ValueOf(value).Kind())
+		}
+
+		return EvalColumnFields(nf.Fields, row)
+	case *NestedArray:
+		array, err := EncodeRows(value)
+		if err != nil {
+			return nil, err
+		}
+
+		result := []any{}
+		for _, item := range array {
+			val, err := EvalNestedColumnFields(nf.Fields, item)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, val)
+		}
+		return result, nil
+	default:
+		return nil, err
+	}
 }
 
 // EvalColumnFields evaluate and prune column fields without relationship

@@ -980,18 +980,7 @@ func evalNestedField(
 			return nil, schema.BadRequestError(fmt.Sprintf("expected object, got %s", reflect.ValueOf(value).Kind()), nil)
 		}
 
-		row, err := evalRow(
-			nf.Fields,
-			collectionRelationships,
-			variables,
-			state,
-			fullRow,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		return row, nil
+		return evalRow(nf.Fields, collectionRelationships, variables, state, fullRow)
 	case *schema.NestedArray:
 		array, err := schema.EncodeRows(value)
 		if err != nil {
