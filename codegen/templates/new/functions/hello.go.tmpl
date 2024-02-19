@@ -18,7 +18,7 @@ type HelloResult struct {
 	Str string `json:"str"`
 }
 
-// Send hello message
+// FunctionHello sends a hello message
 func FunctionHello(ctx context.Context, state *types.State, arguments *HelloArguments) (*HelloResult, error) {
 	return &HelloResult{
 		Num: 1,
@@ -37,7 +37,7 @@ type CreateAuthorResult struct {
 	Name string `json:"name"`
 }
 
-// A procedure example
+// ProcedureCreateAuthor creates an author
 func ProcedureCreateAuthor(ctx context.Context, state *types.State, arguments *CreateAuthorArguments) (*CreateAuthorResult, error) {
 	return &CreateAuthorResult{
 		ID:   1,

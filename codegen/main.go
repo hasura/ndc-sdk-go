@@ -14,11 +14,11 @@ var cli struct {
 		Module   string `help:"Module name of the connector" short:"m" required:""`
 		Output   string `help:"The location where source codes will be generated" short:"o" default:""`
 		LogLevel string `help:"Log level." enum:"trace,debug,info,warn,error" default:"info"`
-	} `cmd:"" help:"Initialize a NDC connector boilerplate."`
+	} `cmd:"" help:"Initialize an NDC connector boilerplate. For example:\n hasura-ndc-go init -n example -m github.com/foo/example"`
 
 	Generate struct {
 		Path        string   `help:"The base path of the connector's source code" short:"p" default:"."`
-		Directories []string `help:"Folders contain NDC operation functions" short:"d" default:"functions,types"`
+		Directories []string `help:"Folders contain NDC operation functions" short:"d" default:"functions"`
 		LogLevel    string   `help:"Log level." enum:"trace,debug,info,warn,error" default:"info"`
 	} `cmd:"" help:"Generate schema and implementation for the connector from functions."`
 }

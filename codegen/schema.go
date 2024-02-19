@@ -51,6 +51,7 @@ type OperationInfo struct {
 	Kind          OperationKind
 	Name          string
 	OriginName    string
+	PackageName   string
 	Description   string
 	ArgumentsType string
 	Arguments     schema.FunctionInfoArguments
@@ -94,10 +95,11 @@ func (op ProcedureInfo) Schema() schema.ProcedureInfo {
 // RawConnectorSchema represents a readable Go schema object
 // which can encode to NDC schema
 type RawConnectorSchema struct {
-	Scalars    schema.SchemaResponseScalarTypes
-	Objects    schema.SchemaResponseObjectTypes
-	Functions  []FunctionInfo
-	Procedures []ProcedureInfo
+	PackageNames []string
+	Scalars      schema.SchemaResponseScalarTypes
+	Objects      schema.SchemaResponseObjectTypes
+	Functions    []FunctionInfo
+	Procedures   []ProcedureInfo
 }
 
 // Schema converts to a NDC schema
@@ -120,10 +122,11 @@ func (rcs RawConnectorSchema) Schema() *schema.SchemaResponse {
 func parseRawConnectorSchemaFromGoCode(filePath string, folders []string) (*RawConnectorSchema, error) {
 	fset := token.NewFileSet()
 	rawSchema := &RawConnectorSchema{
-		Scalars:    make(schema.SchemaResponseScalarTypes),
-		Objects:    make(schema.SchemaResponseObjectTypes),
-		Functions:  []FunctionInfo{},
-		Procedures: []ProcedureInfo{},
+		PackageNames: make([]string, 0),
+		Scalars:      make(schema.SchemaResponseScalarTypes),
+		Objects:      make(schema.SchemaResponseObjectTypes),
+		Functions:    []FunctionInfo{},
+		Procedures:   []ProcedureInfo{},
 	}
 
 	for _, folder := range folders {
@@ -151,6 +154,7 @@ func parseRawConnectorSchemaFromGoCode(filePath string, folders []string) (*RawC
 			return nil, err
 		}
 
+		rawSchema.PackageNames = append(rawSchema.PackageNames, pkg.Name())
 		err = parseRawConnectorSchema(rawSchema, pkg, files)
 		if err != nil {
 			return nil, err
@@ -174,10 +178,11 @@ func parseRawConnectorSchema(rawSchema *RawConnectorSchema, pkg *types.Package, 
 				continue
 			}
 			opInfo := OperationInfo{
-				Kind:       OperationKind(operationNameResults[1]),
-				Name:       camelCase(operationNameResults[2]),
-				OriginName: operationNameResults[0],
-				Arguments:  make(schema.FunctionInfoArguments),
+				Kind:        OperationKind(operationNameResults[1]),
+				Name:        camelCase(operationNameResults[2]),
+				OriginName:  operationNameResults[0],
+				PackageName: pkg.Name(),
+				Arguments:   make(schema.FunctionInfoArguments),
 			}
 
 			var resultTuple *types.Tuple

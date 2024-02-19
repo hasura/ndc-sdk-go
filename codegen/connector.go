@@ -47,6 +47,10 @@ func generateConnector(rawSchema *RawConnectorSchema, srcPath string, moduleName
 		return err
 	}
 
+	importLines := []string{}
+	for _, pkgName := range rawSchema.PackageNames {
+		importLines = append(importLines, fmt.Sprintf(`"%s/%s"`, moduleName, pkgName))
+	}
 	targetPath := path.Join(srcPath, connectorOutputFile)
 	f, err := os.Create(targetPath)
 	if err != nil {
@@ -58,6 +62,7 @@ func generateConnector(rawSchema *RawConnectorSchema, srcPath string, moduleName
 
 	w := bufio.NewWriter(f)
 	err = fileTemplate.Execute(w, map[string]any{
+		"Imports":    strings.Join(importLines, "\n"),
 		"Module":     moduleName,
 		"Queries":    genConnectorFunctions(rawSchema),
 		"Procedures": genConnectorProcedures(rawSchema),
@@ -78,18 +83,18 @@ func genConnectorFunctions(rawSchema *RawConnectorSchema) string {
 		var argumentStr string
 		var argumentParamStr string
 		if fn.ArgumentsType != "" {
-			argumentStr = fmt.Sprintf(`args, err := schema.ResolveArguments[functions.%s](request.Arguments, variables)
+			argumentStr = fmt.Sprintf(`args, err := schema.ResolveArguments[%s.%s](request.Arguments, variables)
 			if err != nil {
 				return nil, schema.BadRequestError("failed to resolve arguments", map[string]any{
 					"cause": err.Error(),
 				})
-			}`, fn.ArgumentsType)
+			}`, fn.PackageName, fn.ArgumentsType)
 			argumentParamStr = ", args"
 		}
 		fnCase := fmt.Sprintf(`
 	case "%s":
 		%s
-		return functions.%s(ctx, state%s)`, fn.Name, argumentStr, fn.OriginName, argumentParamStr)
+		return %s.%s(ctx, state%s)`, fn.Name, argumentStr, fn.PackageName, fn.OriginName, argumentParamStr)
 		functionCases = append(functionCases, fnCase)
 	}
 
@@ -106,18 +111,18 @@ func genConnectorProcedures(rawSchema *RawConnectorSchema) string {
 		var argumentStr string
 		var argumentParamStr string
 		if fn.ArgumentsType != "" {
-			argumentStr = fmt.Sprintf(`var args functions.%s
+			argumentStr = fmt.Sprintf(`var args %s.%s
 			if err := json.Unmarshal(operation.Arguments, &args); err != nil {
 				return nil, schema.BadRequestError("failed to decode arguments", map[string]any{
 					"cause": err.Error(),
 				})
-			}`, fn.ArgumentsType)
+			}`, fn.PackageName, fn.ArgumentsType)
 			argumentParamStr = ", &args"
 		}
 		fnCase := fmt.Sprintf(`
 	case "%s":
 		%s
-		rawResult, err = functions.%s(ctx, state%s)`, fn.Name, argumentStr, fn.OriginName, argumentParamStr)
+		rawResult, err = %s.%s(ctx, state%s)`, fn.Name, argumentStr, fn.PackageName, fn.OriginName, argumentParamStr)
 		cases = append(cases, fnCase)
 	}
 
