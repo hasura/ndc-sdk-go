@@ -12,7 +12,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/fatih/structtag"
 	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/rs/zerolog/log"
 )
 
 var defaultScalarTypes = schema.SchemaResponseScalarTypes{
@@ -46,12 +48,13 @@ var (
 // FunctionInfo represents a readable Go function info
 // which can convert to a NDC function or procedure schema
 type OperationInfo struct {
-	Kind        OperationKind
-	Name        string
-	OriginName  string
-	Description string
-	Arguments   schema.FunctionInfoArguments
-	ResultType  schema.TypeEncoder
+	Kind          OperationKind
+	Name          string
+	OriginName    string
+	Description   string
+	ArgumentsType string
+	Arguments     schema.FunctionInfoArguments
+	ResultType    schema.TypeEncoder
 }
 
 // FunctionInfo represents a readable Go function info
@@ -142,18 +145,13 @@ func parseRawConnectorSchemaFromGoCode(filePath string, folders []string) (*RawC
 			IgnoreFuncBodies:         true,
 			DisableUnusedImportCheck: true,
 		}
-		info := &types.Info{
-			Defs:   make(map[*ast.Ident]types.Object),
-			Uses:   make(map[*ast.Ident]types.Object),
-			Types:  make(map[ast.Expr]types.TypeAndValue),
-			Scopes: make(map[ast.Node]*types.Scope),
-		}
+		info := &types.Info{}
 		pkg, err := conf.Check("", fset, files, info)
 		if err != nil {
 			return nil, err
 		}
 
-		err = parseRawConnectorSchema(rawSchema, pkg, info, files)
+		err = parseRawConnectorSchema(rawSchema, pkg, files)
 		if err != nil {
 			return nil, err
 		}
@@ -163,7 +161,7 @@ func parseRawConnectorSchemaFromGoCode(filePath string, folders []string) (*RawC
 }
 
 // parse raw connector schema from Go code
-func parseRawConnectorSchema(rawSchema *RawConnectorSchema, pkg *types.Package, info *types.Info, files []*ast.File) error {
+func parseRawConnectorSchema(rawSchema *RawConnectorSchema, pkg *types.Package, files []*ast.File) error {
 
 	for _, name := range pkg.Scope().Names() {
 		switch obj := pkg.Scope().Lookup(name).(type) {
@@ -204,10 +202,11 @@ func parseRawConnectorSchema(rawSchema *RawConnectorSchema, pkg *types.Package, 
 			// ignore 2 first parameters (context and state)
 			if params.Len() == 3 {
 				arg := params.At(2)
-				arguments, err := parseArgumentTypes(rawSchema, arg.Type())
+				arguments, argumentTypeName, err := parseArgumentTypes(rawSchema, arg.Type())
 				if err != nil {
 					return err
 				}
+				opInfo.ArgumentsType = argumentTypeName
 				opInfo.Arguments = arguments
 			}
 
@@ -236,7 +235,28 @@ func camelCase(input string) string {
 	return strings.ToLower(input[0:1]) + input[1:]
 }
 
-func parseArgumentTypes(rawSchema *RawConnectorSchema, ty types.Type) (map[string]schema.ArgumentInfo, error) {
+// format field name by json tag
+// return the struct field name if not exist
+func formatFieldName(name string, tag string) string {
+	if tag == "" {
+		return name
+	}
+	tags, err := structtag.Parse(tag)
+	if err != nil {
+		log.Warn().Err(err).Msgf("failed to parse tag of struct field: %s", name)
+		return name
+	}
+
+	jsonTag, err := tags.Get("json")
+	if err != nil {
+		log.Warn().Err(err).Msgf("json tag does not exist in struct field: %s", name)
+		return name
+	}
+
+	return jsonTag.Name
+}
+
+func parseArgumentTypes(rawSchema *RawConnectorSchema, ty types.Type) (map[string]schema.ArgumentInfo, string, error) {
 	switch inferredType := ty.(type) {
 	case *types.Pointer:
 		return parseArgumentTypes(rawSchema, inferredType.Elem())
@@ -244,19 +264,25 @@ func parseArgumentTypes(rawSchema *RawConnectorSchema, ty types.Type) (map[strin
 		result := make(map[string]schema.ArgumentInfo)
 		for i := 0; i < inferredType.NumFields(); i++ {
 			fieldVar := inferredType.Field(i)
+			fieldTag := inferredType.Tag(i)
 			fieldType, err := parseType(rawSchema, fieldVar.Type(), false)
 			if err != nil {
-				return nil, err
+				return nil, "", err
 			}
-			result[fieldVar.Name()] = schema.ArgumentInfo{
+			fieldName := formatFieldName(fieldVar.Name(), fieldTag)
+			result[fieldName] = schema.ArgumentInfo{
 				Type: fieldType.Encode(),
 			}
 		}
-		return result, nil
+		return result, "", nil
 	case *types.Named:
-		return parseArgumentTypes(rawSchema, inferredType.Obj().Type().Underlying())
+		arguments, _, err := parseArgumentTypes(rawSchema, inferredType.Obj().Type().Underlying())
+		if err != nil {
+			return nil, "", err
+		}
+		return arguments, inferredType.Obj().Name(), nil
 	default:
-		return nil, fmt.Errorf("expected struct type, got %s", ty.String())
+		return nil, "", fmt.Errorf("expected struct type, got %s", ty.String())
 	}
 }
 
@@ -270,11 +296,13 @@ func parseStructType(rawSchema *RawConnectorSchema, name string, ty types.Type) 
 	}
 	for i := 0; i < inferredType.NumFields(); i++ {
 		fieldVar := inferredType.Field(i)
+		fieldTag := inferredType.Tag(i)
 		fieldType, err := parseType(rawSchema, fieldVar.Type(), false)
 		if err != nil {
 			return err
 		}
-		objType.Fields[fieldVar.Name()] = schema.ObjectField{
+		fieldName := formatFieldName(fieldVar.Name(), fieldTag)
+		objType.Fields[fieldName] = schema.ObjectField{
 			Type: fieldType.Encode(),
 		}
 	}

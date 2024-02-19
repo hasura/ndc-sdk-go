@@ -51,6 +51,9 @@ func main() {
 		if err = parseAndGenerateConnector(cli.Generate.Path, cli.Generate.Directories, moduleName); err != nil {
 			log.Fatal().Err(err).Msg("failed to generate connector schema")
 		}
+		if err := execGoFormat("."); err != nil {
+			log.Fatal().Err(err).Msg("failed to format code")
+		}
 		log.Info().Msg("generated successfully")
 	default:
 		log.Fatal().Msgf("unknown command <%s>", cmd.Command())

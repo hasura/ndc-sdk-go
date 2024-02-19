@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"embed"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -42,7 +43,11 @@ func generateNewProject(name string, moduleName string, srcPath string) error {
 		return err
 	}
 
-	return execGoModTidy(srcPath)
+	return errors.Join(
+		execGoModTidy(""),
+		execGoGetUpdate(".", "github.com/hasura/ndc-sdk-go"),
+		execGoFormat("."),
+	)
 }
 
 func generateNewProjectFiles(name string, moduleName string, srcPath string) error {
@@ -88,12 +93,24 @@ func generateNewProjectFiles(name string, moduleName string, srcPath string) err
 }
 
 func execGoModTidy(basePath string) error {
-	cmd := exec.Command("go", "mod", "tidy")
+	return execCommand(basePath, "go", "mod", "tidy")
+}
+
+func execGoFormat(basePath string) error {
+	return execCommand(basePath, "gofmt", "-w", "-s", ".")
+}
+
+func execGoGetUpdate(basePath string, moduleName string) error {
+	return execCommand(basePath, "go", "get", "-u", moduleName)
+}
+
+func execCommand(basePath string, commandName string, args ...string) error {
+	cmd := exec.Command(commandName, args...)
 	if basePath != "" {
 		cmd.Dir = basePath
 	}
 	out, err := cmd.Output()
-	log.Info().Str("result", string(out)).Msg("go mod tidy")
+	log.Debug().Strs("args", args).Str("result", string(out)).Msg(commandName)
 	return err
 }
 

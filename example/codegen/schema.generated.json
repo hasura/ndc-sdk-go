@@ -3,13 +3,13 @@
   "functions": [
     {
       "arguments": {
-        "Num": {
+        "num": {
           "type": {
             "name": "Int",
             "type": "named"
           }
         },
-        "Str": {
+        "str": {
           "type": {
             "name": "String",
             "type": "named"
@@ -24,13 +24,13 @@
     },
     {
       "arguments": {
-        "Num": {
+        "num": {
           "type": {
             "name": "Int",
             "type": "named"
           }
         },
-        "Str": {
+        "str": {
           "type": {
             "name": "String",
             "type": "named"
@@ -50,13 +50,13 @@
   "object_types": {
     "CreateAuthorResult": {
       "fields": {
-        "ID": {
+        "id": {
           "type": {
             "name": "Int",
             "type": "named"
           }
         },
-        "Name": {
+        "name": {
           "type": {
             "name": "String",
             "type": "named"
@@ -66,13 +66,13 @@
     },
     "HelloResult": {
       "fields": {
-        "Num": {
+        "num": {
           "type": {
             "name": "Int",
             "type": "named"
           }
         },
-        "Str": {
+        "str": {
           "type": {
             "name": "String",
             "type": "named"
@@ -84,7 +84,7 @@
   "procedures": [
     {
       "arguments": {
-        "Name": {
+        "name": {
           "type": {
             "name": "String",
             "type": "named"

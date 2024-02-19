@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/alecthomas/kong v0.8.1
+	github.com/fatih/structtag v1.2.0
 	github.com/hasura/ndc-sdk-go v0.0.0-20240218161048-ce1f9dfc50bc
 	github.com/rs/zerolog v1.32.0
 	golang.org/x/mod v0.15.0

@@ -4,8 +4,10 @@ import (
 	"bufio"
 	_ "embed"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path"
+	"strings"
 	"text/template"
 )
 
@@ -56,10 +58,68 @@ func generateConnector(rawSchema *RawConnectorSchema, srcPath string, moduleName
 
 	w := bufio.NewWriter(f)
 	err = fileTemplate.Execute(w, map[string]any{
-		"Module": moduleName,
+		"Module":     moduleName,
+		"Queries":    genConnectorFunctions(rawSchema),
+		"Procedures": genConnectorProcedures(rawSchema),
 	})
 	if err != nil {
 		return err
 	}
 	return w.Flush()
+}
+
+func genConnectorFunctions(rawSchema *RawConnectorSchema) string {
+	if len(rawSchema.Functions) == 0 {
+		return ""
+	}
+
+	var functionCases []string
+	for _, fn := range rawSchema.Functions {
+		var argumentStr string
+		var argumentParamStr string
+		if fn.ArgumentsType != "" {
+			argumentStr = fmt.Sprintf(`args, err := schema.ResolveArguments[functions.%s](request.Arguments, variables)
+			if err != nil {
+				return nil, schema.BadRequestError("failed to resolve arguments", map[string]any{
+					"cause": err.Error(),
+				})
+			}`, fn.ArgumentsType)
+			argumentParamStr = ", args"
+		}
+		fnCase := fmt.Sprintf(`
+	case "%s":
+		%s
+		return functions.%s(ctx, state%s)`, fn.Name, argumentStr, fn.OriginName, argumentParamStr)
+		functionCases = append(functionCases, fnCase)
+	}
+
+	return strings.Join(functionCases, "\n")
+}
+
+func genConnectorProcedures(rawSchema *RawConnectorSchema) string {
+	if len(rawSchema.Procedures) == 0 {
+		return ""
+	}
+
+	var cases []string
+	for _, fn := range rawSchema.Procedures {
+		var argumentStr string
+		var argumentParamStr string
+		if fn.ArgumentsType != "" {
+			argumentStr = fmt.Sprintf(`var args functions.%s
+			if err := json.Unmarshal(operation.Arguments, &args); err != nil {
+				return nil, schema.BadRequestError("failed to decode arguments", map[string]any{
+					"cause": err.Error(),
+				})
+			}`, fn.ArgumentsType)
+			argumentParamStr = ", &args"
+		}
+		fnCase := fmt.Sprintf(`
+	case "%s":
+		%s
+		rawResult, err = functions.%s(ctx, state%s)`, fn.Name, argumentStr, fn.OriginName, argumentParamStr)
+		cases = append(cases, fnCase)
+	}
+
+	return strings.Join(cases, "\n")
 }
