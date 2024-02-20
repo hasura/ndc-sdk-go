@@ -6,33 +6,16 @@ import (
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/swaggest/jsonschema-go"
 )
 
 // Connector abstracts an interface with required methods for the [NDC Specification].
 //
 // [NDC Specification]: https://hasura.github.io/ndc-spec/specification/index.html
-type Connector[RawConfiguration any, Configuration any, State any] interface {
-	// GetRawConfigurationSchema returns jsonschema for the raw configuration for this connector.
-	GetRawConfigurationSchema() *jsonschema.Schema
+type Connector[Configuration any, State any] interface {
 
-	// MakeEmptyConfiguration returns an empty raw configuration, to be manually filled in by the user to allow connection to the data source.
-	// The exact shape depends on your connector's configuration. Example:
-	//
-	//   {
-	//     "connection_string": "",
-	//     "tables": []
-	//   }
-	MakeEmptyConfiguration() *RawConfiguration
-
-	// UpdateConfiguration take a raw configuration, update it where appropriate by connecting to the underlying data source, and otherwise return it as-is
-	// For example, if our configuration includes a list of tables, we may want to fetch an updated list from the data source.
-	// This is also used to "hidrate" an "empty" configuration where a user has provided connection details and little else.
-	UpdateConfiguration(ctx context.Context, rawConfiguration *RawConfiguration) (*RawConfiguration, error)
-
-	// ValidateRawConfiguration validate the raw configuration provided by the user,
-	// returning a configuration error or a validated [`Connector::Configuration`].
-	ValidateRawConfiguration(rawConfiguration *RawConfiguration) (*Configuration, error)
+	// ParseConfiguration validates the configuration files provided by the user, returning a validated 'Configuration',
+	// or throwing an error to prevents Connector startup.
+	ParseConfiguration(configurationDir string) (*Configuration, error)
 
 	// TryInitState initializes the connector's in-memory state.
 	//
@@ -142,13 +125,6 @@ func WithVersion(version string) ServeOption {
 func WithDefaultServiceName(name string) ServeOption {
 	return func(so *serveOptions) {
 		so.serviceName = name
-	}
-}
-
-// WithoutConfig makes the configuration flag optional
-func WithoutConfig() ServeOption {
-	return func(so *serveOptions) {
-		so.withoutConfig = true
 	}
 }
 

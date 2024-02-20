@@ -2,12 +2,11 @@
 
 This SDK is mostly analogous to the Rust SDK, except where necessary.
 
-All functions of the Connector interface are analogous to their Rust counterparts, with the addition of `GetRawConfigurationSchema` which does exactly what it sounds like.
+All functions of the Connector interface are analogous to their Rust counterparts.
 
 ## Components
 
 - Connector HTTP server 
-- Configuration server
 - Authentication
 - Observability with OpenTelemetry and Prometheus
 
@@ -22,7 +21,6 @@ A connector can thus start likes so:
 ```go
 import "github.com/hasura/ndc-sdk-go/connector"
 
-type RawConfiguration struct{ ... }
 type Configuration struct { ... }
 type State struct { ... }
 type Connector struct { ... }
@@ -31,7 +29,7 @@ type Connector struct { ... }
 
 func main() {
   
-	if err := connector.Start[RawConfiguration, Configuration, State](&Connector{}); err != nil {
+	if err := connector.Start[Configuration, State](&Connector{}); err != nil {
 		panic(err)
 	}
 }
@@ -45,23 +43,15 @@ Commands:
     Serve the NDC connector.
 		
     Flags:
-      --configuration=STRING            Configuration file path ($CONFIGURATION).
-      --inline-config                   Inline JSON string or configuration file? ($INLINE_CONFIG)
-      --port=8100                       Serve Port ($PORT).
-      --service-token-secret=STRING     Service token secret ($SERVICE_TOKEN_SECRET).
-      --otlp-endpoint=STRING            OpenTelemetry receiver endpoint that is set as default for all types ($OTLP_ENDPOINT).
-      --otlp-traces-endpoint=STRING     OpenTelemetry endpoint for traces ($OTLP_TRACES_ENDPOINT).
-      --otlp-insecure                   Disable LTS for OpenTelemetry gRPC exporters ($OTLP_INSECURE).
-      --otlp-metrics-endpoint=STRING    OpenTelemetry endpoint for metrics ($OTLP_METRICS_ENDPOINT).
+      --configuration=STRING            Configuration directory ($HASURA_CONFIGURATION_DIRECTORY).
+      --port=8080                       Serve Port ($HASURA_CONNECTOR_PORT).
+      --service-token-secret=STRING     Service token secret ($HASURA_SERVICE_TOKEN_SECRET).
+      --otlp-endpoint=STRING            OpenTelemetry receiver endpoint that is set as default for all types ($OTEL_EXPORTER_OTLP_ENDPOINT).
+      --otlp-traces-endpoint=STRING     OpenTelemetry endpoint for traces ($OTEL_EXPORTER_OTLP_TRACES_ENDPOINT).
+      --otlp-insecure                   Disable LTS for OpenTelemetry gRPC exporters ($OTEL_EXPORTER_OTLP_INSECURE).
+      --otlp-metrics-endpoint=STRING    OpenTelemetry endpoint for metrics ($OTEL_EXPORTER_OTLP_METRICS_ENDPOINT).
       --service-name=STRING             OpenTelemetry service name ($OTEL_SERVICE_NAME).
-      --log-level="info"                Log level ($LOG_LEVEL).
-
-  configuration serve
-    Serve the NDC configuration service.
-		
-    Flags:
-      --port=8100           Serve Port ($PORT).
-      --log-level="info"    Log level ($LOG_LEVEL).
+      --log-level="info"                Log level ($HASURA_LOG_LEVEL).
 ```
 
 Please refer to the [NDC Spec](https://hasura.github.io/ndc-spec/) for details on implementing the Connector interface, or see [examples](./example).  
