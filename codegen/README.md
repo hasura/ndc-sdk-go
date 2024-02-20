@@ -23,8 +23,6 @@ Commands:
     Generate schema and implementation for the connector from functions.
 ```
 
-## Command
-
 ### Initialize connector project
 
 The `init` command generates a boilerplate project for connector development from [template](templates/new) with the following folder structure:
@@ -35,6 +33,13 @@ The `init` command generates a boilerplate project for connector development fro
 - `main.go`: the main function that runs the connector CLI.
 - `go.mod`: the module file with required dependencies.
 - `README.md`: the index README file.
+- `Dockerfile`: the build template for Docker image.
+
+The command requires names of connector and module. By default, the tool creates a new folder with the connector name. If you want to customize the path, or generate files in the current folder. use `--output` (`-o`) argument.
+
+```bash
+hasura-ndc-go init -n example -m github.com/foo/example -o .
+```
 
 ### Generate queries and mutations
 
@@ -42,6 +47,10 @@ The `generate` command parses code in the `functions` folder, finds functions an
 
 - `schema.generated.json`: the generated connector schema in JSON format. 
 - `connector.generated.go`: implement `GetSchema`, `Query` and `Mutation` methods with exposed functions.
+
+```bash
+hasura-ndc-go generate
+```
 
 ## How it works
 
