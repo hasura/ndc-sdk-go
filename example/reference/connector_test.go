@@ -13,8 +13,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func createTestServer(t *testing.T) *connector.Server[RawConfiguration, Configuration, State] {
-	server, err := connector.NewServer[RawConfiguration, Configuration, State](&Connector{}, &connector.ServerOptions{
+func createTestServer(t *testing.T) *connector.Server[Configuration, State] {
+	server, err := connector.NewServer[Configuration, State](&Connector{}, &connector.ServerOptions{
 		Configuration: "{}",
 		InlineConfig:  true,
 	}, connector.WithLogger(zerolog.Nop()), connector.WithoutRecovery())

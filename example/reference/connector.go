@@ -11,10 +11,8 @@ import (
 
 	"github.com/hasura/ndc-sdk-go/connector"
 	"github.com/hasura/ndc-sdk-go/schema"
-	"github.com/swaggest/jsonschema-go"
 )
 
-type RawConfiguration struct{}
 type Configuration struct{}
 
 type Article struct {
@@ -73,17 +71,7 @@ func (s *State) GetLatestArticle() *Article {
 
 type Connector struct{}
 
-func (mc *Connector) GetRawConfigurationSchema() *jsonschema.Schema {
-	return nil
-}
-func (mc *Connector) MakeEmptyConfiguration() *RawConfiguration {
-	return &RawConfiguration{}
-}
-
-func (mc *Connector) UpdateConfiguration(ctx context.Context, rawConfiguration *RawConfiguration) (*RawConfiguration, error) {
-	return &RawConfiguration{}, nil
-}
-func (mc *Connector) ValidateRawConfiguration(rawConfiguration *RawConfiguration) (*Configuration, error) {
+func (mc *Connector) ParseConfiguration(rawConfiguration string) (*Configuration, error) {
 	return &Configuration{}, nil
 }
 func (mc *Connector) TryInitState(configuration *Configuration, metrics *connector.TelemetryState) (*State, error) {

@@ -10,8 +10,8 @@ go run . serve
 
 ## Using the reference connector
 
-The reference connector runs on http://localhost:8100:
+The reference connector runs on http://localhost:8080:
 
 ```sh
-curl http://localhost:8100/schema | jq .
+curl http://localhost:8080/schema | jq .
 ```
