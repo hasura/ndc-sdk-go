@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 
-	"github.com/mitchellh/mapstructure"
+	"github.com/go-viper/mapstructure/v2"
 )
 
 // ToPtr converts a value to its pointer
@@ -118,6 +119,49 @@ func encodeRows[R any](rows any) (R, error) {
 	return result, err
 }
 
+func isNil(value any) bool {
+	if value == nil {
+		return true
+	}
+	v := reflect.ValueOf(value)
+	return v.Kind() == reflect.Ptr && v.IsNil()
+}
+
+// EvalNestedColumnFields evaluate and prune nested fields without relationship
+func EvalNestedColumnFields(fields NestedField, value any) (any, error) {
+	if isNil(value) {
+		return nil, nil
+	}
+
+	iNestedField, err := fields.InterfaceT()
+	switch nf := iNestedField.(type) {
+	case *NestedObject:
+		row, err := EncodeRow(value)
+		if err != nil {
+			return nil, fmt.Errorf("expected object, got %s", reflect.ValueOf(value).Kind())
+		}
+
+		return EvalColumnFields(nf.Fields, row)
+	case *NestedArray:
+		array, err := EncodeRows(value)
+		if err != nil {
+			return nil, err
+		}
+
+		result := []any{}
+		for _, item := range array {
+			val, err := EvalNestedColumnFields(nf.Fields, item)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, val)
+		}
+		return result, nil
+	default:
+		return nil, err
+	}
+}
+
 // EvalColumnFields evaluate and prune column fields without relationship
 func EvalColumnFields(fields map[string]Field, result any) (map[string]any, error) {
 	outputMap, err := EncodeRow(result)
@@ -131,8 +175,7 @@ func EvalColumnFields(fields map[string]Field, result any) (map[string]any, erro
 
 	output := make(map[string]any)
 	for key, field := range fields {
-		f, err := field.Interface()
-		switch fi := f.(type) {
+		switch fi := field.Interface().(type) {
 		case *ColumnField:
 			if col, ok := outputMap[fi.Column]; ok {
 				output[fi.Column] = col
@@ -142,7 +185,7 @@ func EvalColumnFields(fields map[string]Field, result any) (map[string]any, erro
 		case *RelationshipField:
 			return nil, fmt.Errorf("unsupported relationship field,  %s", key)
 		default:
-			return nil, err
+			return nil, fmt.Errorf("invalid column field, %s", key)
 		}
 	}
 
