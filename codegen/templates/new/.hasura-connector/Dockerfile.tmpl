@@ -9,11 +9,7 @@ RUN CGO_ENABLED=0 go build -v -o ndc-cli .
 FROM gcr.io/distroless/base-debian12:nonroot
 
 # Copy the binary to the production image from the builder stage.
-COPY --from=builder /app/ndc-cli /ndc-cli
-
-# Uncomment following env variables if your connector doesn't need configuration
-# ENV INLINE_CONFIG=true
-# ENV CONFIGURATION="{}"
+COPY --from=builder /app/connector /connector
 
 # Run the web service on container startup.
-CMD ["/ndc-cli", "serve"]
+CMD ["/connector", "serve"]

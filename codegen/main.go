@@ -14,7 +14,7 @@ var cli struct {
 		Module   string `help:"Module name of the connector" short:"m" required:""`
 		Output   string `help:"The location where source codes will be generated" short:"o" default:""`
 		LogLevel string `help:"Log level." enum:"trace,debug,info,warn,error" default:"info"`
-	} `cmd:"" help:"Initialize an NDC connector boilerplate. For example:\n hasura-ndc-go init -n example -m github.com/foo/example"`
+	} `cmd:"" help:"Initialize an NDC connector boilerplate. For example:\n ndc-go-sdk init -n example -m github.com/foo/example"`
 
 	Generate struct {
 		Path        string   `help:"The base path of the connector's source code" short:"p" default:"."`

@@ -7,8 +7,8 @@ The generator is inspired by [ndc-typescript-deno](https://github.com/hasura/ndc
 ## How to Use
 
 ```bash
-❯ hasura-ndc-go -h
-Usage: hasura-ndc-go <command>
+❯ ndc-go-sdk -h
+Usage: ndc-go-sdk <command>
 
 Flags:
   -h, --help    Show context-sensitive help.
@@ -17,7 +17,7 @@ Commands:
   init --name=STRING --module=STRING
     Initialize an NDC connector boilerplate. For example:
 
-        hasura-ndc-go init -n example -m github.com/foo/example
+        ndc-go-sdk init -n example -m github.com/foo/example
 
   generate
     Generate schema and implementation for the connector from functions.
@@ -38,7 +38,7 @@ The `init` command generates a boilerplate project for connector development fro
 The command requires names of connector and module. By default, the tool creates a new folder with the connector name. If you want to customize the path, or generate files in the current folder. use `--output` (`-o`) argument.
 
 ```bash
-hasura-ndc-go init -n example -m github.com/foo/example -o .
+ndc-go-sdk init -n example -m github.com/foo/example -o .
 ```
 
 ### Generate queries and mutations
@@ -49,7 +49,7 @@ The `generate` command parses code in the `functions` folder, finds functions an
 - `connector.generated.go`: implement `GetSchema`, `Query` and `Mutation` methods with exposed functions.
 
 ```bash
-hasura-ndc-go generate
+ndc-go-sdk generate
 ```
 
 ## How it works
