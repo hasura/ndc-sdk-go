@@ -21,8 +21,9 @@
 typegen/*
 !typegen/regenerate-schema.sh
 
-# Go workspace file
+# Go workspace files
 go.work
+go.work.sum
 
 .idea/
 coverage.out

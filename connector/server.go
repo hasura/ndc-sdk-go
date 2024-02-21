@@ -3,7 +3,6 @@ package connector
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -18,10 +17,6 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
-)
-
-var (
-	errConfigurationRequired = errors.New("configuration is required")
 )
 
 // ServerOptions presents the configuration object of the connector http server
@@ -39,12 +34,12 @@ type ServerOptions struct {
 // Server implements the [NDC API specification] for the connector
 //
 // [NDC API specification]: https://hasura.github.io/ndc-spec/specification/index.html
-type Server[RawConfiguration any, Configuration any, State any] struct {
+type Server[Configuration any, State any] struct {
 	*serveOptions
 
 	context       context.Context
 	stop          context.CancelFunc
-	connector     Connector[RawConfiguration, Configuration, State]
+	connector     Connector[Configuration, State]
 	state         *State
 	configuration *Configuration
 	options       *ServerOptions
@@ -52,37 +47,13 @@ type Server[RawConfiguration any, Configuration any, State any] struct {
 }
 
 // NewServer creates a Server instance
-func NewServer[RawConfiguration any, Configuration any, State any](connector Connector[RawConfiguration, Configuration, State], options *ServerOptions, others ...ServeOption) (*Server[RawConfiguration, Configuration, State], error) {
+func NewServer[Configuration any, State any](connector Connector[Configuration, State], options *ServerOptions, others ...ServeOption) (*Server[Configuration, State], error) {
 	defaultOptions := defaultServeOptions()
 	for _, opts := range others {
 		opts(defaultOptions)
 	}
 
-	var rawConfiguration RawConfiguration
-	if !defaultOptions.withoutConfig {
-		if options.Configuration == "" {
-			return nil, errConfigurationRequired
-		}
-
-		configBytes := []byte(options.Configuration)
-		if !options.InlineConfig {
-			var err error
-			configBytes, err = os.ReadFile(options.Configuration)
-			if err != nil {
-				return nil, fmt.Errorf("invalid configuration provided: %s", err)
-			}
-
-			if len(configBytes) == 0 {
-				return nil, errConfigurationRequired
-			}
-		}
-
-		if err := json.Unmarshal(configBytes, &rawConfiguration); err != nil {
-			return nil, fmt.Errorf("invalid configuration provided: %s", err)
-		}
-	}
-
-	configuration, err := connector.ValidateRawConfiguration(&rawConfiguration)
+	configuration, err := connector.ParseConfiguration(options.Configuration)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +84,7 @@ func NewServer[RawConfiguration any, Configuration any, State any](connector Con
 		return nil, err
 	}
 
-	return &Server[RawConfiguration, Configuration, State]{
+	return &Server[Configuration, State]{
 		context:       ctx,
 		stop:          stop,
 		connector:     connector,
@@ -125,7 +96,7 @@ func NewServer[RawConfiguration any, Configuration any, State any](connector Con
 	}, nil
 }
 
-func (s *Server[RawConfiguration, Configuration, State]) withAuth(handler http.HandlerFunc) http.HandlerFunc {
+func (s *Server[Configuration, State]) withAuth(handler http.HandlerFunc) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := GetLogger(r.Context())
@@ -149,14 +120,14 @@ func (s *Server[RawConfiguration, Configuration, State]) withAuth(handler http.H
 }
 
 // GetCapabilities get the connector's capabilities. Implement a handler for the /capabilities endpoint, GET method.
-func (s *Server[RawConfiguration, Configuration, State]) GetCapabilities(w http.ResponseWriter, r *http.Request) {
+func (s *Server[Configuration, State]) GetCapabilities(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r.Context())
 	capabilities := s.connector.GetCapabilities(s.configuration)
 	writeJson(w, logger, http.StatusOK, capabilities)
 }
 
 // Health checks the health of the connector. Implement a handler for the /health endpoint, GET method.
-func (s *Server[RawConfiguration, Configuration, State]) Health(w http.ResponseWriter, r *http.Request) {
+func (s *Server[Configuration, State]) Health(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r.Context())
 	if err := s.connector.HealthCheck(r.Context(), s.configuration, s.state); err != nil {
 		writeError(w, logger, err)
@@ -167,7 +138,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Health(w http.ResponseW
 }
 
 // GetSchema implements a handler for the /schema endpoint, GET method.
-func (s *Server[RawConfiguration, Configuration, State]) GetSchema(w http.ResponseWriter, r *http.Request) {
+func (s *Server[Configuration, State]) GetSchema(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r.Context())
 	schemaResult, err := s.connector.GetSchema(s.configuration)
 	if err != nil {
@@ -179,7 +150,7 @@ func (s *Server[RawConfiguration, Configuration, State]) GetSchema(w http.Respon
 }
 
 // Query implements a handler for the /query endpoint, POST method that executes a query.
-func (s *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseWriter, r *http.Request) {
+func (s *Server[Configuration, State]) Query(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
 	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Query", trace.WithSpanKind(trace.SpanKindServer))
@@ -239,7 +210,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Query(w http.ResponseWr
 }
 
 // QueryExplain implements a handler for the /query/explain endpoint, POST method that explains a query by creating an execution plan.
-func (s *Server[RawConfiguration, Configuration, State]) QueryExplain(w http.ResponseWriter, r *http.Request) {
+func (s *Server[Configuration, State]) QueryExplain(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
 	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Query Explain", trace.WithSpanKind(trace.SpanKindServer))
@@ -298,7 +269,7 @@ func (s *Server[RawConfiguration, Configuration, State]) QueryExplain(w http.Res
 }
 
 // MutationExplain implements a handler for the /mutation/explain endpoint, POST method that explains a mutation by creating an execution plan.
-func (s *Server[RawConfiguration, Configuration, State]) MutationExplain(w http.ResponseWriter, r *http.Request) {
+func (s *Server[Configuration, State]) MutationExplain(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
 	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Mutation Explain", trace.WithSpanKind(trace.SpanKindServer))
@@ -361,7 +332,7 @@ func (s *Server[RawConfiguration, Configuration, State]) MutationExplain(w http.
 }
 
 // Mutation implements a handler for the /mutation endpoint, POST method that executes a mutation.
-func (s *Server[RawConfiguration, Configuration, State]) Mutation(w http.ResponseWriter, r *http.Request) {
+func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
 	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Mutation", trace.WithSpanKind(trace.SpanKindServer))
@@ -415,7 +386,7 @@ func (s *Server[RawConfiguration, Configuration, State]) Mutation(w http.Respons
 	s.telemetry.mutationLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds())
 }
 
-func (s *Server[RawConfiguration, Configuration, State]) buildHandler() *http.ServeMux {
+func (s *Server[Configuration, State]) buildHandler() *http.ServeMux {
 	router := newRouter(s.logger, !s.withoutRecovery)
 	router.Use("/capabilities", http.MethodGet, s.withAuth(s.GetCapabilities))
 	router.Use("/schema", http.MethodGet, s.withAuth(s.GetSchema))
@@ -430,14 +401,14 @@ func (s *Server[RawConfiguration, Configuration, State]) buildHandler() *http.Se
 }
 
 // BuildTestServer builds an http test server for testing purpose
-func (s *Server[RawConfiguration, Configuration, State]) BuildTestServer() *httptest.Server {
+func (s *Server[Configuration, State]) BuildTestServer() *httptest.Server {
 	_ = s.telemetry.Shutdown(context.Background())
 	return httptest.NewServer(s.buildHandler())
 }
 
 // ListenAndServe serves the configuration server with the standard http server.
 // You can also replace this method with any router or web framework that is compatible with net/http.
-func (s *Server[RawConfiguration, Configuration, State]) ListenAndServe(port uint) error {
+func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 	defer s.stop()
 	defer func() {
 		if err := s.telemetry.Shutdown(context.Background()); err != nil {

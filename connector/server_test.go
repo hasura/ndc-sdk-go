@@ -6,22 +6,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
-	"os"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/rs/zerolog"
-	"github.com/swaggest/jsonschema-go"
 )
-
-type mockRawConfiguration struct {
-	Version string `json:"version"`
-}
 
 type mockConfiguration struct {
 	Version int `json:"version"`
@@ -118,23 +110,7 @@ var mockSchema = schema.SchemaResponse{
 	},
 }
 
-func (mc *mockConnector) GetRawConfigurationSchema() *jsonschema.Schema {
-	return &jsonschema.Schema{
-		ID: schema.ToPtr("test"),
-	}
-}
-func (mc *mockConnector) MakeEmptyConfiguration() *mockRawConfiguration {
-	return &mockRawConfiguration{
-		Version: "1",
-	}
-}
-
-func (mc *mockConnector) UpdateConfiguration(ctx context.Context, rawConfiguration *mockRawConfiguration) (*mockRawConfiguration, error) {
-	return &mockRawConfiguration{
-		Version: "1",
-	}, nil
-}
-func (mc *mockConnector) ValidateRawConfiguration(rawConfiguration *mockRawConfiguration) (*mockConfiguration, error) {
+func (mc *mockConnector) ParseConfiguration(configurationDir string) (*mockConfiguration, error) {
 	return &mockConfiguration{
 		Version: 1,
 	}, nil
@@ -239,83 +215,9 @@ func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int,
 }
 
 func TestNewServer(t *testing.T) {
-	t.Run("new server with empty config", func(t *testing.T) {
-		_, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{}, WithLogger(zerolog.Nop()), WithVersion("0.1.0"), WithDefaultServiceName("ndc-test"), WithMetricsPrefix("ndc_test"))
-		if err == nil {
-			t.Error("expect error, got nil")
-			t.FailNow()
-		}
-		if errConfigurationRequired != err {
-			t.Errorf("expected error %s, got %s", errConfigurationRequired, err)
-			t.FailNow()
-		}
-	})
-
-	t.Run("new server with file not found", func(t *testing.T) {
-		_, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
-			Configuration: "/tmp/any-file",
-		}, WithLogger(zerolog.Nop()))
-		if err == nil {
-			t.Errorf("expected error, got nil")
-			t.FailNow()
-		}
-		if !strings.Contains(err.Error(), "invalid configuration provided: open /tmp/any-file: no such file or directory") {
-			t.Errorf("expected file not found error, got %s", err)
-			t.FailNow()
-		}
-	})
-
-	t.Run("new server with empty file content", func(t *testing.T) {
-		randomFilePath := fmt.Sprintf("%s/test-%d", os.TempDir(), rand.Int())
-		if err := os.WriteFile(randomFilePath, []byte{}, 0666); err != nil {
-			t.Errorf("NewServerWithEmptyConfigFile: expected no error, got %s", err)
-			t.FailNow()
-		}
-
-		_, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
-			Configuration: randomFilePath,
-		}, WithLogger(zerolog.Nop()))
-		if err == nil {
-			t.Errorf("NewServerWithEmptyConfigFile: expected error, got nil")
-			t.FailNow()
-		}
-		if err != errConfigurationRequired {
-			t.Errorf("NewServerWithEmptyConfigFile: expected required file error, got %s", err)
-			t.FailNow()
-		}
-	})
-
-	t.Run("new server with invalid config file", func(t *testing.T) {
-
-		randomFilePath := fmt.Sprintf("%s/test-%d", os.TempDir(), rand.Int())
-		if err := os.WriteFile(randomFilePath, []byte("{"), 0666); err != nil {
-			t.Errorf("NewServerWithInvalidConfigFile: expected no error, got %s", err)
-			t.FailNow()
-		}
-
-		_, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
-			Configuration: randomFilePath,
-		}, WithLogger(zerolog.Nop()))
-		if err == nil {
-			t.Errorf("NewServerWithInvalidConfigFile: expected error, got nil")
-			t.FailNow()
-		}
-		if !strings.Contains(err.Error(), "invalid configuration provided: unexpected end of JSON input") {
-			t.Errorf("NewServerWithInvalidConfigFile: expected invalid json error, got %s", err)
-			t.FailNow()
-		}
-	})
-
-	t.Run("new server without config", func(t *testing.T) {
-		_, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{}, WithoutConfig(), WithLogger(zerolog.Nop()))
-		if err != nil {
-			t.Errorf("NewServerWithoutConfig: expected no error, got %s", err)
-			t.FailNow()
-		}
-	})
 
 	t.Run("start server", func(t *testing.T) {
-		s, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{}, WithoutConfig(), WithLogger(zerolog.Nop()))
+		s, err := NewServer[mockConfiguration, mockState](&mockConnector{}, &ServerOptions{}, WithLogger(zerolog.Nop()))
 		if err != nil {
 			t.Errorf("NewServerWithoutConfig: expected no error, got %s", err)
 			t.FailNow()
@@ -329,23 +231,10 @@ func TestNewServer(t *testing.T) {
 		time.Sleep(2 * time.Second)
 		s.stop()
 	})
-
-	t.Run("start server failure", func(t *testing.T) {
-		s, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{}, WithoutConfig(), WithLogger(zerolog.Nop()))
-		if err != nil {
-			t.Errorf("NewServerWithoutConfig: expected no error, got %s", err)
-			t.FailNow()
-		}
-
-		if err = s.ListenAndServe(100000); err == nil {
-			t.Errorf("expected server returned error, got %+v", err)
-			t.FailNow()
-		}
-	})
 }
 
 func TestServerAuth(t *testing.T) {
-	server, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
+	server, err := NewServer[mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
 		Configuration:      "{}",
 		InlineConfig:       true,
 		ServiceTokenSecret: "random-secret",
@@ -392,7 +281,7 @@ func TestServerAuth(t *testing.T) {
 }
 
 func TestServerConnector(t *testing.T) {
-	server, err := NewServer[mockRawConfiguration, mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
+	server, err := NewServer[mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
 		Configuration: "{}",
 		InlineConfig:  true,
 	}, WithLogger(zerolog.Nop()))
