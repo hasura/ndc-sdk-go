@@ -235,8 +235,14 @@ func (ty Type) AsPredicate() (*PredicateType, error) {
 	}, nil
 }
 
-// Interface returns the TypeEncoder interface
-func (ty Type) Interface() (TypeEncoder, error) {
+// Interface converts the instance to the TypeEncoder interface
+func (ty Type) Interface() TypeEncoder {
+	result, _ := ty.InterfaceT()
+	return result
+}
+
+// InterfaceT converts the instance to the TypeEncoder interface safely with explicit error
+func (ty Type) InterfaceT() (TypeEncoder, error) {
 	t, err := ty.Type()
 	if err != nil {
 		return nil, err
@@ -735,7 +741,13 @@ func (j Field) AsRelationship() (*RelationshipField, error) {
 }
 
 // Interface converts the comparison value to its generic interface
-func (j Field) Interface() (FieldEncoder, error) {
+func (j Field) Interface() FieldEncoder {
+	result, _ := j.InterfaceT()
+	return result
+}
+
+// InterfaceT converts the comparison value to its generic interface safely with explicit error
+func (j Field) InterfaceT() (FieldEncoder, error) {
 	ty, err := j.Type()
 	if err != nil {
 		return nil, err
@@ -1181,7 +1193,13 @@ func (cv ComparisonValue) AsVariable() (*ComparisonValueVariable, error) {
 }
 
 // Interface converts the comparison value to its generic interface
-func (cv ComparisonValue) Interface() (ComparisonValueEncoder, error) {
+func (cv ComparisonValue) Interface() ComparisonValueEncoder {
+	result, _ := cv.InterfaceT()
+	return result
+}
+
+// InterfaceT converts the comparison value to its generic interface safely with explicit error
+func (cv ComparisonValue) InterfaceT() (ComparisonValueEncoder, error) {
 	ty, err := cv.Type()
 	if err != nil {
 		return nil, err
@@ -1435,7 +1453,13 @@ func (j ExistsInCollection) AsUnrelated() (*ExistsInCollectionUnrelated, error) 
 }
 
 // Interface tries to convert the instance to the ExistsInCollectionEncoder interface
-func (j ExistsInCollection) Interface() (ExistsInCollectionEncoder, error) {
+func (j ExistsInCollection) Interface() ExistsInCollectionEncoder {
+	result, _ := j.InterfaceT()
+	return result
+}
+
+// InterfaceT tries to convert the instance to the ExistsInCollectionEncoder interface safely with explicit error
+func (j ExistsInCollection) InterfaceT() (ExistsInCollectionEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
 		return nil, err
@@ -1824,7 +1848,13 @@ func (j Expression) AsExists() (*ExpressionExists, error) {
 }
 
 // Interface tries to convert the instance to the ExpressionEncoder interface
-func (j Expression) Interface() (ExpressionEncoder, error) {
+func (j Expression) Interface() ExpressionEncoder {
+	result, _ := j.InterfaceT()
+	return result
+}
+
+// InterfaceT tries to convert the instance to the ExpressionEncoder interface safely with explicit error
+func (j Expression) InterfaceT() (ExpressionEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
 		return nil, err
@@ -2166,7 +2196,13 @@ func (j Aggregate) AsColumnCount() (*AggregateColumnCount, error) {
 }
 
 // Interface tries to convert the instance to AggregateEncoder interface
-func (j Aggregate) Interface() (AggregateEncoder, error) {
+func (j Aggregate) Interface() AggregateEncoder {
+	result, _ := j.InterfaceT()
+	return result
+}
+
+// InterfaceT tries to convert the instance to AggregateEncoder interface safely with explicit error
+func (j Aggregate) InterfaceT() (AggregateEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
 		return nil, err
@@ -2504,7 +2540,13 @@ func (j OrderByTarget) AsStarCountAggregate() (*OrderByStarCountAggregate, error
 }
 
 // Interface tries to convert the instance to OrderByTargetEncoder interface
-func (j OrderByTarget) Interface() (OrderByTargetEncoder, error) {
+func (j OrderByTarget) Interface() OrderByTargetEncoder {
+	result, _ := j.InterfaceT()
+	return result
+}
+
+// InterfaceT tries to convert the instance to OrderByTargetEncoder interface safely with explicit error
+func (j OrderByTarget) InterfaceT() (OrderByTargetEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
 		return nil, err
@@ -2746,7 +2788,13 @@ func (j ComparisonOperatorDefinition) AsCustom() (*ComparisonOperatorCustom, err
 }
 
 // Interface tries to convert the instance to ComparisonOperatorDefinitionEncoder interface
-func (j ComparisonOperatorDefinition) Interface() (ComparisonOperatorDefinitionEncoder, error) {
+func (j ComparisonOperatorDefinition) Interface() ComparisonOperatorDefinitionEncoder {
+	result, _ := j.InterfaceT()
+	return result
+}
+
+// InterfaceT tries to convert the instance to ComparisonOperatorDefinitionEncoder interface safely with explicit error
+func (j ComparisonOperatorDefinition) InterfaceT() (ComparisonOperatorDefinitionEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
 		return nil, err
@@ -2991,7 +3039,13 @@ func (j NestedField) AsArray() (*NestedArray, error) {
 }
 
 // Interface tries to convert the instance to NestedFieldEncoder interface
-func (j NestedField) Interface() (NestedFieldEncoder, error) {
+func (j NestedField) Interface() NestedFieldEncoder {
+	result, _ := j.InterfaceT()
+	return result
+}
+
+// Interface tries to convert the instance to NestedFieldEncoder interface safely with explicit error
+func (j NestedField) InterfaceT() (NestedFieldEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
 		return nil, err
@@ -3137,7 +3191,13 @@ func (j MutationOperationResults) AsProcedure() (*ProcedureResult, error) {
 }
 
 // Interface tries to convert the instance to MutationOperationResultsEncoder interface
-func (j MutationOperationResults) Interface() (MutationOperationResultsEncoder, error) {
+func (j MutationOperationResults) Interface() MutationOperationResultsEncoder {
+	result, _ := j.InterfaceT()
+	return result
+}
+
+// InterfaceT tries to convert the instance to MutationOperationResultsEncoder interface safely with explicit error
+func (j MutationOperationResults) InterfaceT() (MutationOperationResultsEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
 		return nil, err

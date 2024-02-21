@@ -11,10 +11,8 @@ import (
 
 	"github.com/hasura/ndc-sdk-go/connector"
 	"github.com/hasura/ndc-sdk-go/schema"
-	"github.com/swaggest/jsonschema-go"
 )
 
-type RawConfiguration struct{}
 type Configuration struct{}
 
 type Article struct {
@@ -73,17 +71,7 @@ func (s *State) GetLatestArticle() *Article {
 
 type Connector struct{}
 
-func (mc *Connector) GetRawConfigurationSchema() *jsonschema.Schema {
-	return nil
-}
-func (mc *Connector) MakeEmptyConfiguration() *RawConfiguration {
-	return &RawConfiguration{}
-}
-
-func (mc *Connector) UpdateConfiguration(ctx context.Context, rawConfiguration *RawConfiguration) (*RawConfiguration, error) {
-	return &RawConfiguration{}, nil
-}
-func (mc *Connector) ValidateRawConfiguration(rawConfiguration *RawConfiguration) (*Configuration, error) {
+func (mc *Connector) ParseConfiguration(rawConfiguration string) (*Configuration, error) {
 	return &Configuration{}, nil
 }
 func (mc *Connector) TryInitState(configuration *Configuration, metrics *connector.TelemetryState) (*State, error) {
@@ -540,8 +528,7 @@ func executeQueryWithVariables(
 }
 
 func evalAggregate(aggregate *schema.Aggregate, paginated []map[string]any) (any, error) {
-	iAgg, err := aggregate.Interface()
-	switch agg := iAgg.(type) {
+	switch agg := aggregate.Interface().(type) {
 	case *schema.AggregateStarCount:
 		return len(paginated), nil
 	case *schema.AggregateColumnCount:
@@ -578,7 +565,9 @@ func evalAggregate(aggregate *schema.Aggregate, paginated []map[string]any) (any
 		}
 		return evalAggregateFunction(agg.Function, values)
 	default:
-		return nil, err
+		return nil, schema.BadRequestError("invalid aggregate field", map[string]any{
+			"value": aggregate,
+		})
 	}
 }
 
@@ -836,8 +825,7 @@ func evalOrderByElement(
 	element *schema.OrderByElement,
 	item map[string]any,
 ) (any, error) {
-	iTarget, err := element.Target.Interface()
-	switch target := iTarget.(type) {
+	switch target := element.Target.Interface().(type) {
 	case *schema.OrderByColumn:
 		return evalOrderByColumn(collectionRelationships, variables, state, item, target.Path, target.Name)
 	case *schema.OrderBySingleColumnAggregate:
@@ -845,7 +833,9 @@ func evalOrderByElement(
 	case *schema.OrderByStarCountAggregate:
 		return evalOrderByStarCountAggregate(collectionRelationships, variables, state, item, target.Path)
 	default:
-		return nil, err
+		return nil, schema.BadRequestError("invalid order by field", map[string]any{
+			"value": element.Target,
+		})
 	}
 }
 
@@ -918,8 +908,7 @@ func evalInCollection(
 	state *State,
 	inCollection schema.ExistsInCollection,
 ) ([]map[string]any, error) {
-	iInCollection, err := inCollection.Interface()
-	switch inCol := iInCollection.(type) {
+	switch inCol := inCollection.Interface().(type) {
 	case *schema.ExistsInCollectionRelated:
 		relationship, ok := collectionRelationships[inCol.Relationship]
 		if !ok {
@@ -941,7 +930,9 @@ func evalInCollection(
 		}
 		return getCollectionByName(inCol.Collection, arguments, state)
 	default:
-		return nil, err
+		return nil, schema.BadRequestError("invalid in collection field", map[string]any{
+			"value": inCollection,
+		})
 	}
 }
 
@@ -972,8 +963,7 @@ func evalNestedField(
 	if isNil(value) {
 		return value, nil
 	}
-	iNestedField, err := nestedField.Interface()
-	switch nf := iNestedField.(type) {
+	switch nf := nestedField.Interface().(type) {
 	case *schema.NestedObject:
 		fullRow, err := schema.EncodeRow(value)
 		if err != nil {
@@ -997,7 +987,9 @@ func evalNestedField(
 		}
 		return result, nil
 	default:
-		return nil, err
+		return nil, schema.BadRequestError("invalid nested field", map[string]any{
+			"value": nestedField,
+		})
 	}
 }
 
@@ -1008,8 +1000,7 @@ func evalField(
 	field schema.Field,
 	row map[string]any,
 ) (any, error) {
-	iField, err := field.Interface()
-	switch f := iField.(type) {
+	switch f := field.Interface().(type) {
 	case *schema.ColumnField:
 		value, ok := row[f.Column]
 		if !ok {
@@ -1033,7 +1024,9 @@ func evalField(
 		return executeQuery(collectionRelationships, variables, state, &f.Query, nil, collection, false)
 
 	default:
-		return nil, err
+		return nil, schema.BadRequestError("invalid field", map[string]any{
+			"value": field,
+		})
 	}
 }
 
@@ -1221,8 +1214,7 @@ func evalComparisonValue(
 	root map[string]any,
 	item map[string]any,
 ) ([]any, error) {
-	iCompValue, err := comparisonValue.Interface()
-	switch compValue := iCompValue.(type) {
+	switch compValue := comparisonValue.Interface().(type) {
 	case *schema.ComparisonValueColumn:
 		return evalComparisonTarget(collectionRelationships, variables, state, &compValue.Column, root, item)
 	case *schema.ComparisonValueScalar:
@@ -1237,7 +1229,9 @@ func evalComparisonValue(
 		}
 		return []any{val}, nil
 	default:
-		return nil, err
+		return nil, schema.BadRequestError("invalid comparison value", map[string]any{
+			"value": comparisonValue,
+		})
 	}
 }
 
@@ -1307,8 +1301,7 @@ func evalExpression(
 	root map[string]any,
 	item map[string]any,
 ) (bool, error) {
-	iExpr, err := expr.Interface()
-	switch expression := iExpr.(type) {
+	switch expression := expr.Interface().(type) {
 	case *schema.ExpressionAnd:
 		for _, exp := range expression.Expressions {
 			ok, err := evalExpression(collectionRelationships, variables, state, exp, root, item)
@@ -1448,7 +1441,9 @@ func evalExpression(
 
 		return len(rowSet.Rows) > 0, nil
 	default:
-		return false, err
+		return false, schema.BadRequestError("invalid expression", map[string]any{
+			"value": expr,
+		})
 	}
 }
 

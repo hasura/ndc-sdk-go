@@ -133,7 +133,7 @@ func EvalNestedColumnFields(fields NestedField, value any) (any, error) {
 		return nil, nil
 	}
 
-	iNestedField, err := fields.Interface()
+	iNestedField, err := fields.InterfaceT()
 	switch nf := iNestedField.(type) {
 	case *NestedObject:
 		row, err := EncodeRow(value)
@@ -175,8 +175,7 @@ func EvalColumnFields(fields map[string]Field, result any) (map[string]any, erro
 
 	output := make(map[string]any)
 	for key, field := range fields {
-		f, err := field.Interface()
-		switch fi := f.(type) {
+		switch fi := field.Interface().(type) {
 		case *ColumnField:
 			if col, ok := outputMap[fi.Column]; ok {
 				output[fi.Column] = col
@@ -186,7 +185,7 @@ func EvalColumnFields(fields map[string]Field, result any) (map[string]any, erro
 		case *RelationshipField:
 			return nil, fmt.Errorf("unsupported relationship field,  %s", key)
 		default:
-			return nil, err
+			return nil, fmt.Errorf("invalid column field, %s", key)
 		}
 	}
 
