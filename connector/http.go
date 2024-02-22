@@ -119,8 +119,6 @@ func (rt *router) Build() *http.ServeMux {
 			if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodPatch {
 				contentType := r.Header.Get(headerContentType)
 				if contentType != contentTypeJson {
-					w.WriteHeader(http.StatusBadRequest)
-
 					err := schema.ErrorResponse{
 						Message: fmt.Sprintf("Invalid content type %s, accept %s only", contentType, contentTypeJson),
 					}

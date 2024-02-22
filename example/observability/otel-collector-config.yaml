@@ -1,8 +1,17 @@
+extensions:
+  bearertokenauth:
+    scheme: "Bearer"
+    token: "randomtoken"
+
 receivers:
   otlp:
     protocols:
       grpc:
+        auth:
+          authenticator: bearertokenauth
       http:
+        auth:
+          authenticator: bearertokenauth
 
 exporters:
   prometheus:
@@ -24,6 +33,8 @@ processors:
     spike_limit_percentage: 20
 
 service:
+  extensions: 
+    - bearertokenauth
   pipelines:
     ## enable traces to DataDogs if require
     ##
