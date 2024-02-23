@@ -67,6 +67,8 @@ OpenTelemetry exporter is disabled by default unless one of `--otlp-endpoint`, `
 
 The SDK can also detect TLS connections via http(s). However, if you want to disable TLS for gRPC, you must add `--otlp-insecure` the flag.
 
+Other configurations are inherited from the [OpenTelemetry Go SDK](https://github.com/open-telemetry/opentelemetry-go). See [Environment Variable Specification](https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/) and [OTLP Exporter Configuration](https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/).
+
 ### Prometheus
 
 Prometheus metrics are exported via the `/metrics` endpoint.

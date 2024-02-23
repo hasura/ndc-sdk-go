@@ -8,8 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-logr/zerologr"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/rs/zerolog"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
@@ -42,8 +44,9 @@ type TelemetryState struct {
 
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.
 // If it does not return an error, make sure to call shutdown for proper cleanup.
-func setupOTelSDK(ctx context.Context, serverOptions *ServerOptions, serviceVersion, metricsPrefix string) (*TelemetryState, error) {
+func setupOTelSDK(ctx context.Context, serverOptions *ServerOptions, serviceVersion, metricsPrefix string, logger zerolog.Logger) (*TelemetryState, error) {
 
+	otel.SetLogger(zerologr.New(&logger))
 	tracesEndpoint := serverOptions.OTLPTracesEndpoint
 	if tracesEndpoint == "" {
 		tracesEndpoint = serverOptions.OTLPEndpoint

@@ -79,7 +79,7 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 		options.ServiceName = defaultOptions.serviceName
 	}
 
-	telemetry, err := setupOTelSDK(ctx, options, defaultOptions.version, defaultOptions.metricsPrefix)
+	telemetry, err := setupOTelSDK(ctx, options, defaultOptions.version, defaultOptions.metricsPrefix, defaultOptions.logger)
 	if err != nil {
 		return nil, err
 	}
