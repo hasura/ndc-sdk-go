@@ -20,8 +20,13 @@ docker-compose up -d
 
 ## Using with connectors
 
-Add the `--otlp-traces-endpoint localhost:14317 --otlp-metrics-endpoint localhost:4317 --otlp-insecure` flag when running connector serve. For example:
+Add `--otlp-xxx` flags or environment variables when running connector serve. For example:
 
 ```sh
-go run ./example/reference serve --otlp-traces-endpoint localhost:14317 --otlp-metrics-endpoint localhost:4317 --otlp-insecure
+OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer randomtoken" \
+OTEL_RESOURCE_ATTRIBUTES="foo=bar" \
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=localhost:14317 \
+OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=localhost:4317 \
+OTEL_EXPORTER_OTLP_INSECURE=true \
+  go run ./example/reference serve
 ```
