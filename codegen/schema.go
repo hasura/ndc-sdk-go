@@ -18,25 +18,17 @@ import (
 )
 
 var defaultScalarTypes = schema.SchemaResponseScalarTypes{
-	"String": schema.ScalarType{
-		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
-	},
-	"Int": schema.ScalarType{
-		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
-	},
-	"Float": schema.ScalarType{
-		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
-	},
-	"Boolean": schema.ScalarType{
-		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
-	},
+	"String":   *schema.NewScalarType(),
+	"Int":      *schema.NewScalarType(),
+	"Float":    *schema.NewScalarType(),
+	"Boolean":  *schema.NewScalarType(),
+	"DateTime": *schema.NewScalarType(),
+	"UUID":     *schema.NewScalarType(),
 }
 
 var ndcOperationNameRegex = regexp.MustCompile(`^(Function|Procedure)([A-Z][A-Za-z0-9]*)$`)
+var ndcOperationCommentRegex = regexp.MustCompile(`^@(function|procedure)(\s+([A-Za-z]\w*))?`)
+var ndcScalarCommentRegex = regexp.MustCompile(`^@scalar(\s+([A-Z]\w*))?`)
 
 type OperationKind string
 
@@ -45,6 +37,15 @@ var (
 	OperationProcedure OperationKind = "Procedure"
 )
 
+type TypeInfo struct {
+	Name        string
+	Description *string
+	PackagePath string
+	PackageName string
+	IsScalar    bool
+	Schema      schema.TypeEncoder
+}
+
 // FunctionInfo represents a readable Go function info
 // which can convert to a NDC function or procedure schema
 type OperationInfo struct {
@@ -52,10 +53,10 @@ type OperationInfo struct {
 	Name          string
 	OriginName    string
 	PackageName   string
-	Description   string
+	Description   *string
 	ArgumentsType string
 	Arguments     schema.FunctionInfoArguments
-	ResultType    schema.TypeEncoder
+	ResultType    *TypeInfo
 }
 
 // FunctionInfo represents a readable Go function info
@@ -65,12 +66,10 @@ type FunctionInfo OperationInfo
 // Schema returns a NDC function schema
 func (op FunctionInfo) Schema() schema.FunctionInfo {
 	result := schema.FunctionInfo{
-		Name:       op.Name,
-		ResultType: op.ResultType.Encode(),
-		Arguments:  op.Arguments,
-	}
-	if op.Description != "" {
-		result.Description = &op.Description
+		Name:        op.Name,
+		Description: op.Description,
+		ResultType:  op.ResultType.Schema.Encode(),
+		Arguments:   op.Arguments,
 	}
 	return result
 }
@@ -82,12 +81,10 @@ type ProcedureInfo FunctionInfo
 // Schema returns a NDC procedure schema
 func (op ProcedureInfo) Schema() schema.ProcedureInfo {
 	result := schema.ProcedureInfo{
-		Name:       op.Name,
-		ResultType: op.ResultType.Encode(),
-		Arguments:  schema.ProcedureInfoArguments(op.Arguments),
-	}
-	if op.Description != "" {
-		result.Description = &op.Description
+		Name:        op.Name,
+		Description: op.Description,
+		ResultType:  op.ResultType.Schema.Encode(),
+		Arguments:   schema.ProcedureInfoArguments(op.Arguments),
 	}
 	return result
 }
@@ -95,11 +92,24 @@ func (op ProcedureInfo) Schema() schema.ProcedureInfo {
 // RawConnectorSchema represents a readable Go schema object
 // which can encode to NDC schema
 type RawConnectorSchema struct {
-	PackageNames []string
-	Scalars      schema.SchemaResponseScalarTypes
-	Objects      schema.SchemaResponseObjectTypes
-	Functions    []FunctionInfo
-	Procedures   []ProcedureInfo
+	Imports    map[string]bool
+	Scalars    schema.SchemaResponseScalarTypes
+	Objects    schema.SchemaResponseObjectTypes
+	Functions  []FunctionInfo
+	Procedures []ProcedureInfo
+	Types      map[string]TypeInfo
+}
+
+// NewRawConnectorSchema creates an empty RawConnectorSchema instance
+func NewRawConnectorSchema() *RawConnectorSchema {
+	return &RawConnectorSchema{
+		Imports:    make(map[string]bool),
+		Scalars:    make(schema.SchemaResponseScalarTypes),
+		Objects:    make(schema.SchemaResponseObjectTypes),
+		Functions:  []FunctionInfo{},
+		Procedures: []ProcedureInfo{},
+		Types:      make(map[string]TypeInfo),
+	}
 }
 
 // Schema converts to a NDC schema
@@ -119,15 +129,15 @@ func (rcs RawConnectorSchema) Schema() *schema.SchemaResponse {
 	return result
 }
 
-func parseRawConnectorSchemaFromGoCode(filePath string, folders []string) (*RawConnectorSchema, error) {
+type SchemaParser struct {
+	moduleName string
+	files      map[string]*ast.File
+	fset       *token.FileSet
+}
+
+func parseRawConnectorSchemaFromGoCode(moduleName string, filePath string, folders []string) (*RawConnectorSchema, error) {
 	fset := token.NewFileSet()
-	rawSchema := &RawConnectorSchema{
-		PackageNames: make([]string, 0),
-		Scalars:      make(schema.SchemaResponseScalarTypes),
-		Objects:      make(schema.SchemaResponseObjectTypes),
-		Functions:    []FunctionInfo{},
-		Procedures:   []ProcedureInfo{},
-	}
+	rawSchema := NewRawConnectorSchema()
 
 	for _, folder := range folders {
 		packages, err := parser.ParseDir(fset, path.Join(filePath, folder), func(fi fs.FileInfo) bool {
@@ -137,26 +147,19 @@ func parseRawConnectorSchemaFromGoCode(filePath string, folders []string) (*RawC
 			return nil, err
 		}
 
-		var files []*ast.File
+		files := make(map[string]*ast.File)
 		for _, pkg := range packages {
-			for _, file := range pkg.Files {
-				files = append(files, file)
+			for n, pFiles := range pkg.Files {
+				files[n] = pFiles
 			}
 		}
-		conf := types.Config{
-			Importer:                 importer.ForCompiler(fset, "source", nil),
-			IgnoreFuncBodies:         true,
-			DisableUnusedImportCheck: true,
-		}
-		info := &types.Info{}
-		pkg, err := conf.Check("", fset, files, info)
-		if err != nil {
-			return nil, err
+		sp := &SchemaParser{
+			moduleName: moduleName,
+			fset:       fset,
+			files:      files,
 		}
 
-		rawSchema.PackageNames = append(rawSchema.PackageNames, pkg.Name())
-		err = parseRawConnectorSchema(rawSchema, pkg, files)
-		if err != nil {
+		if err = sp.checkAndParseRawSchemaFromAstFiles(rawSchema); err != nil {
 			return nil, err
 		}
 	}
@@ -164,26 +167,39 @@ func parseRawConnectorSchemaFromGoCode(filePath string, folders []string) (*RawC
 	return rawSchema, nil
 }
 
+func (sp *SchemaParser) checkAndParseRawSchemaFromAstFiles(rawSchema *RawConnectorSchema) error {
+
+	conf := types.Config{
+		Importer:                 importer.ForCompiler(sp.fset, "source", nil),
+		IgnoreFuncBodies:         true,
+		DisableUnusedImportCheck: true,
+	}
+	info := &types.Info{
+		Types: make(map[ast.Expr]types.TypeAndValue),
+	}
+	fileList := make([]*ast.File, 0, len(sp.files))
+	for _, f := range sp.files {
+		fileList = append(fileList, f)
+	}
+	pkg, err := conf.Check("", sp.fset, fileList, info)
+	if err != nil {
+		return err
+	}
+	rawSchema.Imports[fmt.Sprintf("%s/%s", sp.moduleName, pkg.Name())] = true
+	return sp.parseRawConnectorSchema(rawSchema, pkg)
+}
+
 // parse raw connector schema from Go code
-func parseRawConnectorSchema(rawSchema *RawConnectorSchema, pkg *types.Package, files []*ast.File) error {
+func (sp *SchemaParser) parseRawConnectorSchema(rawSchema *RawConnectorSchema, pkg *types.Package) error {
 
 	for _, name := range pkg.Scope().Names() {
 		switch obj := pkg.Scope().Lookup(name).(type) {
 		case *types.Func:
-			// parse function with following prefixes:
-			// - FunctionXxx as a query function
-			// - ProcedureXxx as a mutation procedure
-			operationNameResults := ndcOperationNameRegex.FindStringSubmatch(obj.Name())
-			if len(operationNameResults) < 3 {
+			opInfo := sp.parseOperationInfo(obj.Name(), obj.Pos())
+			if opInfo == nil {
 				continue
 			}
-			opInfo := OperationInfo{
-				Kind:        OperationKind(operationNameResults[1]),
-				Name:        camelCase(operationNameResults[2]),
-				OriginName:  operationNameResults[0],
-				PackageName: pkg.Name(),
-				Arguments:   make(schema.FunctionInfoArguments),
-			}
+			opInfo.PackageName = pkg.Name()
 
 			var resultTuple *types.Tuple
 			var params *types.Tuple
@@ -207,7 +223,7 @@ func parseRawConnectorSchema(rawSchema *RawConnectorSchema, pkg *types.Package, 
 			// ignore 2 first parameters (context and state)
 			if params.Len() == 3 {
 				arg := params.At(2)
-				arguments, argumentTypeName, err := parseArgumentTypes(rawSchema, arg.Type())
+				arguments, argumentTypeName, err := sp.parseArgumentTypes(rawSchema, arg.Type(), []string{})
 				if err != nil {
 					return err
 				}
@@ -215,21 +231,306 @@ func parseRawConnectorSchema(rawSchema *RawConnectorSchema, pkg *types.Package, 
 				opInfo.Arguments = arguments
 			}
 
-			resultType, err := parseType(rawSchema, resultTuple.At(0).Type(), false)
+			resultType, err := sp.parseType(rawSchema, nil, resultTuple.At(0).Type(), []string{}, false)
 			if err != nil {
 				return err
 			}
 			opInfo.ResultType = resultType
+			rawSchema.Types[resultType.Name] = *resultType
 
 			switch opInfo.Kind {
 			case OperationProcedure:
-				rawSchema.Procedures = append(rawSchema.Procedures, ProcedureInfo(opInfo))
+				rawSchema.Procedures = append(rawSchema.Procedures, ProcedureInfo(*opInfo))
 			case OperationFunction:
-				rawSchema.Functions = append(rawSchema.Functions, FunctionInfo(opInfo))
+				rawSchema.Functions = append(rawSchema.Functions, FunctionInfo(*opInfo))
 			}
 		}
 	}
 
+	return nil
+}
+
+func (sp *SchemaParser) parseArgumentTypes(rawSchema *RawConnectorSchema, ty types.Type, fieldPaths []string) (map[string]schema.ArgumentInfo, string, error) {
+	switch inferredType := ty.(type) {
+	case *types.Pointer:
+		return sp.parseArgumentTypes(rawSchema, inferredType.Elem(), fieldPaths)
+	case *types.Struct:
+		result := make(map[string]schema.ArgumentInfo)
+		for i := 0; i < inferredType.NumFields(); i++ {
+			fieldVar := inferredType.Field(i)
+			fieldTag := inferredType.Tag(i)
+			fieldType, err := sp.parseType(rawSchema, nil, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false)
+			if err != nil {
+				return nil, "", err
+			}
+			if _, ok := rawSchema.Types[fieldType.Name]; !ok {
+				rawSchema.Types[fieldType.Name] = *fieldType
+			}
+			fieldName := formatFieldName(fieldVar.Name(), fieldTag)
+			result[fieldName] = schema.ArgumentInfo{
+				Type: fieldType.Schema.Encode(),
+			}
+		}
+		return result, "", nil
+	case *types.Named:
+		arguments, _, err := sp.parseArgumentTypes(rawSchema, inferredType.Obj().Type().Underlying(), append(fieldPaths, inferredType.Obj().Name()))
+		if err != nil {
+			return nil, "", err
+		}
+		return arguments, inferredType.Obj().Name(), nil
+	default:
+		return nil, "", fmt.Errorf("expected struct type, got %s", ty.String())
+	}
+}
+
+func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeInfo, ty types.Type, fieldPaths []string, skipNullable bool) (*TypeInfo, error) {
+
+	switch inferredType := ty.(type) {
+	case *types.Pointer:
+		if skipNullable {
+			return sp.parseType(rawSchema, rootType, inferredType.Elem(), fieldPaths, false)
+		}
+		innerType, err := sp.parseType(rawSchema, rootType, inferredType.Elem(), fieldPaths, false)
+		if err != nil {
+			return nil, err
+		}
+		return &TypeInfo{
+			Name:        innerType.Name,
+			Description: innerType.Description,
+			PackagePath: innerType.PackagePath,
+			PackageName: innerType.PackageName,
+			Schema:      schema.NewNullableType(innerType.Schema),
+		}, nil
+	case *types.Struct:
+
+		if rootType == nil {
+			name := strings.Join(fieldPaths, "")
+			rootType = &TypeInfo{
+				Name:   name,
+				Schema: schema.NewNamedType(name),
+			}
+		}
+		objType := schema.ObjectType{
+			Description: rootType.Description,
+			Fields:      make(schema.ObjectTypeFields),
+		}
+		for i := 0; i < inferredType.NumFields(); i++ {
+			fieldVar := inferredType.Field(i)
+			fieldTag := inferredType.Tag(i)
+			fieldType, err := sp.parseType(rawSchema, nil, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false)
+			if err != nil {
+				return nil, err
+			}
+			fieldName := formatFieldName(fieldVar.Name(), fieldTag)
+			objType.Fields[fieldName] = schema.ObjectField{
+				Type: fieldType.Schema.Encode(),
+			}
+		}
+		// log.Printf("objType: %s, %s", rootType.Name, *rootType.Description)
+		rawSchema.Objects[rootType.Name] = objType
+
+		return rootType, nil
+	case *types.Named:
+		innerType := inferredType.Obj()
+		if innerType == nil {
+			return nil, fmt.Errorf("failed to parse named type: %s", inferredType.String())
+		}
+		typeInfo := sp.parseTypeInfoFromComments(innerType.Name(), innerType.Pos())
+		typeInfo.Schema = schema.NewNamedType(innerType.Name())
+
+		innerPkg := innerType.Pkg()
+		if innerPkg != nil {
+			typeInfo.PackageName = innerPkg.Name()
+			typeInfo.PackagePath = innerPkg.Path()
+			switch innerPkg.Path() {
+			case "time":
+				switch innerType.Name() {
+				case "Time":
+					scalarName := "DateTime"
+					rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
+					typeInfo.Schema = schema.NewNamedType(scalarName)
+					return typeInfo, nil
+				}
+			case "github.com/google/uuid":
+				switch innerType.Name() {
+				case "UUID":
+					scalarName := "UUID"
+					rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
+					typeInfo.Schema = schema.NewNamedType(scalarName)
+					return typeInfo, nil
+				}
+			}
+		}
+
+		existingType, ok := rawSchema.Types[innerType.Name()]
+		if ok {
+			// TODO: check the type with the same name but different package
+			return &existingType, nil
+		}
+
+		if typeInfo.IsScalar {
+			rawSchema.Types[innerType.Name()] = *typeInfo
+			rawSchema.Scalars[typeInfo.Name] = *schema.NewScalarType()
+			return typeInfo, nil
+		}
+
+		return sp.parseType(rawSchema, typeInfo, innerType.Type().Underlying(), append(fieldPaths, innerType.Name()), false)
+	case *types.Basic:
+		var scalarName string
+		switch inferredType.Kind() {
+		case types.Bool:
+			scalarName = "Boolean"
+			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
+		case types.Int8, types.Int, types.Int16, types.Int32, types.Int64, types.Uint, types.Uint16, types.Uint32, types.Uint64:
+			scalarName = "Int"
+			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
+		case types.Float32, types.Float64, types.Complex64, types.Complex128:
+			scalarName = "Float"
+			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
+		case types.String:
+			scalarName = "String"
+			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
+		default:
+			return nil, fmt.Errorf("unsupported scalar type: %s", inferredType.String())
+		}
+		if rootType == nil {
+			rootType = &TypeInfo{
+				Name: inferredType.Name(),
+			}
+		}
+
+		rootType.Schema = schema.NewNamedType(scalarName)
+		rootType.IsScalar = true
+
+		return rootType, nil
+	case *types.Array:
+		innerType, err := sp.parseType(rawSchema, nil, inferredType.Elem(), fieldPaths, false)
+		if err != nil {
+			return nil, err
+		}
+
+		innerType.Schema = schema.NewArrayType(innerType.Schema)
+		return innerType, nil
+	case *types.Slice:
+		innerType, err := sp.parseType(rawSchema, nil, inferredType.Elem(), fieldPaths, false)
+		if err != nil {
+			return nil, err
+		}
+
+		innerType.Schema = schema.NewArrayType(innerType.Schema)
+		return innerType, nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %s", ty.String())
+	}
+}
+
+func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, pos token.Pos) *TypeInfo {
+	typeInfo := &TypeInfo{
+		Name:     typeName,
+		IsScalar: false,
+	}
+	commentGroup := findCommentsFromPos(sp.fset, sp.files, pos)
+	if commentGroup == nil {
+		return typeInfo
+	}
+	comments := make([]string, 0)
+	for _, line := range commentGroup.List {
+		text := strings.TrimSpace(strings.TrimLeft(line.Text, "/"))
+		if text == "" {
+			continue
+		}
+		matches := ndcScalarCommentRegex.FindStringSubmatch(text)
+		matchesLen := len(matches)
+		if matchesLen < 1 {
+			comments = append(comments, text)
+			continue
+		}
+
+		typeInfo.IsScalar = true
+		if matchesLen > 2 && matches[2] != "" {
+			typeInfo.Name = matches[2]
+		}
+	}
+
+	desc := strings.Join(comments, " ")
+	if desc != "" {
+		typeInfo.Description = &desc
+	}
+
+	return typeInfo
+}
+
+func (sp *SchemaParser) parseOperationInfo(functionName string, pos token.Pos) *OperationInfo {
+
+	result := OperationInfo{
+		OriginName: functionName,
+		Arguments:  make(schema.FunctionInfoArguments),
+	}
+
+	var descriptions []string
+	commentGroup := findCommentsFromPos(sp.fset, sp.files, pos)
+	if commentGroup != nil {
+		for _, comment := range commentGroup.List {
+			text := strings.TrimSpace(strings.TrimLeft(comment.Text, "/"))
+			matches := ndcOperationCommentRegex.FindStringSubmatch(text)
+			matchesLen := len(matches)
+			if matchesLen > 1 {
+				switch matches[1] {
+				case strings.ToLower(string(OperationFunction)):
+					result.Kind = OperationFunction
+				case strings.ToLower(string(OperationProcedure)):
+					result.Kind = OperationProcedure
+				default:
+					log.Debug().Msgf("unsupported operation kind: %s", matches)
+				}
+
+				log.Printf("matches: %v", matches)
+				if matchesLen > 3 && strings.TrimSpace(matches[3]) != "" {
+					result.Name = strings.TrimSpace(matches[3])
+				} else {
+					result.Name = camelCase(functionName)
+				}
+			} else {
+				descriptions = append(descriptions, text)
+			}
+		}
+	}
+
+	// try to parse function with following prefixes:
+	// - FunctionXxx as a query function
+	// - ProcedureXxx as a mutation procedure
+	if result.Kind == "" {
+		operationNameResults := ndcOperationNameRegex.FindStringSubmatch(functionName)
+		if len(operationNameResults) < 3 {
+			return nil
+		}
+		result.Kind = OperationKind(operationNameResults[1])
+		result.Name = camelCase(operationNameResults[2])
+	}
+
+	desc := strings.TrimSpace(strings.Join(descriptions, " "))
+	if desc != "" {
+		result.Description = &desc
+	}
+
+	return &result
+}
+
+func findCommentsFromPos(fset *token.FileSet, files map[string]*ast.File, pos token.Pos) *ast.CommentGroup {
+	for fName, f := range files {
+		position := fset.Position(pos)
+		if position.Filename != fName {
+			continue
+		}
+		offset := pos - 10
+		// log.Printf("file: %s, pos: %v, position: %v", fName, pos, position.Filename)
+		for _, cg := range f.Comments {
+			// log.Printf("text: %s, end: %v, pos: %v - %v", cg.Text(), cg.End(), offset, pos)
+			if len(cg.List) > 0 && (cg.Pos() <= token.Pos(offset) && cg.End() >= token.Pos(offset)) {
+				return cg
+			}
+		}
+	}
 	return nil
 }
 
@@ -260,140 +561,3 @@ func formatFieldName(name string, tag string) string {
 
 	return jsonTag.Name
 }
-
-func parseArgumentTypes(rawSchema *RawConnectorSchema, ty types.Type) (map[string]schema.ArgumentInfo, string, error) {
-	switch inferredType := ty.(type) {
-	case *types.Pointer:
-		return parseArgumentTypes(rawSchema, inferredType.Elem())
-	case *types.Struct:
-		result := make(map[string]schema.ArgumentInfo)
-		for i := 0; i < inferredType.NumFields(); i++ {
-			fieldVar := inferredType.Field(i)
-			fieldTag := inferredType.Tag(i)
-			fieldType, err := parseType(rawSchema, fieldVar.Type(), false)
-			if err != nil {
-				return nil, "", err
-			}
-			fieldName := formatFieldName(fieldVar.Name(), fieldTag)
-			result[fieldName] = schema.ArgumentInfo{
-				Type: fieldType.Encode(),
-			}
-		}
-		return result, "", nil
-	case *types.Named:
-		arguments, _, err := parseArgumentTypes(rawSchema, inferredType.Obj().Type().Underlying())
-		if err != nil {
-			return nil, "", err
-		}
-		return arguments, inferredType.Obj().Name(), nil
-	default:
-		return nil, "", fmt.Errorf("expected struct type, got %s", ty.String())
-	}
-}
-
-func parseStructType(rawSchema *RawConnectorSchema, name string, ty types.Type) error {
-	inferredType, ok := ty.(*types.Struct)
-	if !ok {
-		return fmt.Errorf("expected struct type, got %s", ty.String())
-	}
-	objType := schema.ObjectType{
-		Fields: make(schema.ObjectTypeFields),
-	}
-	for i := 0; i < inferredType.NumFields(); i++ {
-		fieldVar := inferredType.Field(i)
-		fieldTag := inferredType.Tag(i)
-		fieldType, err := parseType(rawSchema, fieldVar.Type(), false)
-		if err != nil {
-			return err
-		}
-		fieldName := formatFieldName(fieldVar.Name(), fieldTag)
-		objType.Fields[fieldName] = schema.ObjectField{
-			Type: fieldType.Encode(),
-		}
-	}
-	rawSchema.Objects[name] = objType
-	return nil
-}
-
-func parseType(rawSchema *RawConnectorSchema, ty types.Type, skipNullable bool) (schema.TypeEncoder, error) {
-
-	switch inferredType := ty.(type) {
-	case *types.Pointer:
-		if skipNullable {
-			return parseType(rawSchema, inferredType.Elem(), false)
-		}
-		innerType, err := parseType(rawSchema, inferredType.Elem(), false)
-		if err != nil {
-			return nil, err
-		}
-		return schema.NewNullableType(innerType), nil
-	case *types.Struct:
-		return schema.NewNamedType(inferredType.String()), nil
-	case *types.Named:
-		innerType := inferredType.Obj()
-		if innerType != nil {
-			// recursively parse object types
-			err := parseStructType(rawSchema, innerType.Name(), innerType.Type().Underlying())
-			if err != nil {
-				return nil, err
-			}
-		}
-		return schema.NewNamedType(innerType.Name()), nil
-	case *types.Basic:
-		var scalarName string
-		switch inferredType.Info() {
-		case types.IsBoolean:
-			scalarName = "Boolean"
-			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
-		case types.IsInteger, types.IsUnsigned:
-			scalarName = "Int"
-			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
-		case types.IsFloat, types.IsComplex:
-			scalarName = "Float"
-			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
-		case types.IsString:
-			scalarName = "String"
-			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
-		default:
-			return nil, fmt.Errorf("unsupported scalar type: %s", inferredType.String())
-		}
-		return schema.NewNamedType(scalarName), nil
-	default:
-		return nil, fmt.Errorf("unsupported type: %s", ty.String())
-	}
-}
-
-// func parseOperationInfoFromComment(functionName string, comments []*ast.Comment) *OperationInfo {
-// 	var result OperationInfo
-// 	var descriptions []string
-// 	for _, comment := range comments {
-// 		text := strings.TrimSpace(strings.TrimLeft(comment.Text, "/"))
-// 		matches := operationNameCommentRegex.FindStringSubmatch(text)
-// 		matchesLen := len(matches)
-// 		if matchesLen > 1 {
-// 			switch matches[1] {
-// 			case string(OperationFunction):
-// 				result.Kind = OperationFunction
-// 			case string(OperationProcedure):
-// 				result.Kind = OperationProcedure
-// 			default:
-// 				log.Println("unsupported operation kind:", matches[0])
-// 			}
-
-// 			if matchesLen > 3 && strings.TrimSpace(matches[3]) != "" {
-// 				result.Name = strings.TrimSpace(matches[3])
-// 			} else {
-// 				result.Name = strings.ToLower(functionName[:1]) + functionName[1:]
-// 			}
-// 		} else {
-// 			descriptions = append(descriptions, text)
-// 		}
-// 	}
-
-// 	if result.Kind == "" {
-// 		return nil
-// 	}
-
-// 	result.Description = strings.TrimSpace(strings.Join(descriptions, " "))
-// 	return &result
-// }

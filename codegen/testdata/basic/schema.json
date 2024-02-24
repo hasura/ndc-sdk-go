@@ -1,0 +1,188 @@
+{
+  "collections": [],
+  "functions": [
+    {
+      "arguments": {
+        "num": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "str": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      },
+      "name": "hello",
+      "description": "FunctionHello sends a hello message",
+      "result_type": {
+        "type": "nullable",
+        "underlying_type": {
+          "name": "HelloResult",
+          "type": "named"
+        }
+      }
+    },
+    {
+      "arguments": {
+        "Limit": {
+          "type": {
+            "name": "Float",
+            "type": "named"
+          }
+        },
+        "ScalarObject": { "type": { "name": "ScalarObject", "type": "named" } }
+      },
+      "name": "getArticles",
+      "result_type": {
+        "type": "array",
+        "element_type": {
+          "name": "GetArticlesResult",
+          "type": "named"
+        }
+      }
+    }
+  ],
+  "object_types": {
+    "Author": {
+      "fields": {
+        "created_at": { "type": { "name": "DateTime", "type": "named" } },
+        "id": { "type": { "name": "String", "type": "named" } }
+      }
+    },
+    "CreateArticleArgumentsAuthor": {
+      "fields": {
+        "created_at": { "type": { "name": "DateTime", "type": "named" } },
+        "id": { "type": { "name": "String", "type": "named" } }
+      }
+    },
+    "CreateArticleResult": {
+      "fields": {
+        "authors": {
+          "type": {
+            "element_type": { "name": "Author", "type": "named" },
+            "type": "array"
+          }
+        },
+        "id": { "type": { "name": "Int", "type": "named" } }
+      }
+    },
+    "CreateAuthorResult": {
+      "description": "A create author result",
+      "fields": {
+        "id": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "name": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "created_at": {
+          "type": {
+            "name": "DateTime",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "GetArticlesResult": {
+      "fields": {
+        "Name": { "type": { "name": "String", "type": "named" } },
+        "id": { "type": { "name": "String", "type": "named" } }
+      }
+    },
+    "HelloResult": {
+      "description": "A hello result",
+      "fields": {
+        "id": {
+          "type": {
+            "name": "UUID",
+            "type": "named"
+          }
+        },
+        "num": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "text": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "scalar_object": {
+          "type": {
+            "name": "ScalarObject",
+            "type": "named"
+          }
+        }
+      }
+    }
+  },
+  "procedures": [
+    {
+      "arguments": {
+        "author": {
+          "type": { "name": "CreateArticleArgumentsAuthor", "type": "named" }
+        }
+      },
+      "name": "create_article",
+      "result_type": { "name": "CreateArticleResult", "type": "named" }
+    },
+    {
+      "arguments": {
+        "name": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      },
+      "name": "createAuthor",
+      "description": "ProcedureCreateAuthor creates an author",
+      "result_type": {
+        "type": "nullable",
+        "underlying_type": {
+          "name": "CreateAuthorResult",
+          "type": "named"
+        }
+      }
+    }
+  ],
+  "scalar_types": {
+    "Int": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "Float": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "String": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "DateTime": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "UUID": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "ScalarObject": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    }
+  }
+}

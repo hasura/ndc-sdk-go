@@ -22,7 +22,8 @@ func parseAndGenerateConnector(basePath string, directories []string, moduleName
 	if err := os.Chdir(basePath); err != nil {
 		return err
 	}
-	sm, err := parseRawConnectorSchemaFromGoCode(".", directories)
+
+	sm, err := parseRawConnectorSchemaFromGoCode(moduleName, ".", directories)
 	if err != nil {
 		return err
 	}
@@ -48,8 +49,8 @@ func generateConnector(rawSchema *RawConnectorSchema, srcPath string, moduleName
 	}
 
 	importLines := []string{}
-	for _, pkgName := range rawSchema.PackageNames {
-		importLines = append(importLines, fmt.Sprintf(`"%s/%s"`, moduleName, pkgName))
+	for importPath := range rawSchema.Imports {
+		importLines = append(importLines, importPath)
 	}
 	targetPath := path.Join(srcPath, connectorOutputFile)
 	f, err := os.Create(targetPath)

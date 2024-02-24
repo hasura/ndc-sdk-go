@@ -3237,3 +3237,11 @@ func NewProcedureResult(result any) *ProcedureResult {
 		Result: result,
 	}
 }
+
+// NewScalarType creates an empty ScalarType instance
+func NewScalarType() *ScalarType {
+	return &ScalarType{
+		AggregateFunctions:  ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]ComparisonOperatorDefinition{},
+	}
+}

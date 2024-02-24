@@ -1,0 +1,55 @@
+package source
+
+import (
+	"context"
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type GetArticlesArguments struct {
+  Limit         float64
+	ScalarObject 	ScalarObject 
+}
+
+type GetArticlesResult struct {
+	ID  string 		`json:"id"`
+  Name Text
+}
+
+// @function
+func GetArticles(ctx context.Context, state *State, arguments *GetArticlesArguments) ([]GetArticlesResult, error) {
+	return []GetArticlesResult{
+    {
+      ID: "1",
+      Name: "Article 1",
+    },
+	}, nil
+}
+
+type CreateArticleArguments struct {
+  Author struct {
+    ID          string `json:"id"`
+    CreatedAt   time.Time `json:"created_at"`
+  } `json:"author"`
+}
+
+type Author struct {
+  ID          string `json:"id"`
+  CreatedAt   time.Time `json:"created_at"`
+}
+
+type CreateArticleResult struct {
+	ID      uint 	  `json:"id"`
+  Authors []Author  `json:"authors"`
+}
+
+// @procedure create_article
+func CreateArticle(ctx context.Context, state *State, arguments *CreateArticleArguments) (CreateArticleResult, error) {
+	return []CreateArticleResult{
+    {
+      ID: 1,
+      Authors: []Author{},
+    },
+	}, nil
+}
