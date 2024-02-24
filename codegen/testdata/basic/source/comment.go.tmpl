@@ -29,7 +29,7 @@ func GetArticles(ctx context.Context, state *State, arguments *GetArticlesArgume
 
 type CreateArticleArguments struct {
   Author struct {
-    ID          string `json:"id"`
+    ID          uuid.UUID `json:"id"`
     CreatedAt   time.Time `json:"created_at"`
   } `json:"author"`
 }
@@ -45,11 +45,9 @@ type CreateArticleResult struct {
 }
 
 // @procedure create_article
-func CreateArticle(ctx context.Context, state *State, arguments *CreateArticleArguments) (CreateArticleResult, error) {
-	return []CreateArticleResult{
-    {
-      ID: 1,
-      Authors: []Author{},
-    },
+func CreateArticle(ctx context.Context, state *State, arguments *CreateArticleArguments) (*CreateArticleResult, error) {
+	return &CreateArticleResult{
+		ID:      1,
+		Authors: []Author{},
 	}, nil
 }

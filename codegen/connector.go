@@ -50,7 +50,7 @@ func generateConnector(rawSchema *RawConnectorSchema, srcPath string, moduleName
 
 	importLines := []string{}
 	for importPath := range rawSchema.Imports {
-		importLines = append(importLines, importPath)
+		importLines = append(importLines, fmt.Sprintf(`"%s"`, importPath))
 	}
 	targetPath := path.Join(srcPath, connectorOutputFile)
 	f, err := os.Create(targetPath)

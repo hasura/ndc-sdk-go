@@ -56,7 +56,7 @@
     "CreateArticleArgumentsAuthor": {
       "fields": {
         "created_at": { "type": { "name": "DateTime", "type": "named" } },
-        "id": { "type": { "name": "String", "type": "named" } }
+        "id": { "type": { "name": "UUID", "type": "named" } }
       }
     },
     "CreateArticleResult": {
@@ -137,7 +137,13 @@
         }
       },
       "name": "create_article",
-      "result_type": { "name": "CreateArticleResult", "type": "named" }
+      "result_type": {
+        "type": "nullable",
+        "underlying_type": {
+          "name": "CreateArticleResult",
+          "type": "named"
+        }
+      }
     },
     {
       "arguments": {

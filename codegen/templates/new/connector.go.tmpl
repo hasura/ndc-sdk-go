@@ -5,7 +5,6 @@ import (
 
 	"github.com/hasura/ndc-sdk-go/connector"
 	"github.com/hasura/ndc-sdk-go/schema"
-	"github.com/swaggest/jsonschema-go"
 	"{{.Module}}/types"
 )
 
@@ -14,7 +13,7 @@ type Connector struct{}
 
 // ParseConfiguration validates the configuration files provided by the user, returning a validated 'Configuration',
 // or throwing an error to prevents Connector startup.
-func ParseConfiguration(configurationDir string) (*types.Configuration, error) {
+func (connector *Connector) ParseConfiguration(configurationDir string) (*types.Configuration, error) {
 	return &types.Configuration{}, nil
 }
 

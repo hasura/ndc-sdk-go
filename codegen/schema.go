@@ -484,7 +484,6 @@ func (sp *SchemaParser) parseOperationInfo(functionName string, pos token.Pos) *
 					log.Debug().Msgf("unsupported operation kind: %s", matches)
 				}
 
-				log.Printf("matches: %v", matches)
 				if matchesLen > 3 && strings.TrimSpace(matches[3]) != "" {
 					result.Name = strings.TrimSpace(matches[3])
 				} else {
@@ -523,9 +522,7 @@ func findCommentsFromPos(fset *token.FileSet, files map[string]*ast.File, pos to
 			continue
 		}
 		offset := pos - 10
-		// log.Printf("file: %s, pos: %v, position: %v", fName, pos, position.Filename)
 		for _, cg := range f.Comments {
-			// log.Printf("text: %s, end: %v, pos: %v - %v", cg.Text(), cg.End(), offset, pos)
 			if len(cg.List) > 0 && (cg.Pos() <= token.Pos(offset) && cg.End() >= token.Pos(offset)) {
 				return cg
 			}
