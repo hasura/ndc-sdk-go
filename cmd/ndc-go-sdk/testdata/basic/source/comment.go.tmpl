@@ -7,9 +7,14 @@ import (
 	"github.com/google/uuid"
 )
 
+// @scalar CommentString
+type CommentText struct {
+	comment string
+}
+
 type GetArticlesArguments struct {
-  Limit         float64
-	ScalarObject 	ScalarObject 
+  Limit     float64
+	Comment 	CommentText 
 }
 
 type GetArticlesResult struct {
@@ -35,12 +40,12 @@ type CreateArticleArguments struct {
 }
 
 type Author struct {
-  ID          string `json:"id"`
+  ID          string    `json:"id"`
   CreatedAt   time.Time `json:"created_at"`
 }
 
 type CreateArticleResult struct {
-	ID      uint 	  `json:"id"`
+	ID      uint 	    `json:"id"`
   Authors []Author  `json:"authors"`
 }
 

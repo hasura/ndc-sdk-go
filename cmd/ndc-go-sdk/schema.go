@@ -28,6 +28,7 @@ var defaultScalarTypes = schema.SchemaResponseScalarTypes{
 
 var ndcOperationNameRegex = regexp.MustCompile(`^(Function|Procedure)([A-Z][A-Za-z0-9]*)$`)
 var ndcOperationCommentRegex = regexp.MustCompile(`^@(function|procedure)(\s+([A-Za-z]\w*))?`)
+var ndcScalarNameRegex = regexp.MustCompile(`^Scalar([A-Z]\w*)$`)
 var ndcScalarCommentRegex = regexp.MustCompile(`^@scalar(\s+([A-Z]\w*))?`)
 
 type OperationKind string
@@ -37,8 +38,10 @@ var (
 	OperationProcedure OperationKind = "Procedure"
 )
 
+// TypeInfo represents the serialization information of a type
 type TypeInfo struct {
 	Name        string
+	SchemaName  string
 	Description *string
 	PackagePath string
 	PackageName string
@@ -195,6 +198,10 @@ func (sp *SchemaParser) parseRawConnectorSchema(rawSchema *RawConnectorSchema, p
 	for _, name := range pkg.Scope().Names() {
 		switch obj := pkg.Scope().Lookup(name).(type) {
 		case *types.Func:
+			// only parse public functions
+			if !obj.Exported() {
+				continue
+			}
 			opInfo := sp.parseOperationInfo(obj.Name(), obj.Pos())
 			if opInfo == nil {
 				continue
@@ -296,18 +303,19 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		}
 		return &TypeInfo{
 			Name:        innerType.Name,
+			SchemaName:  innerType.Name,
 			Description: innerType.Description,
 			PackagePath: innerType.PackagePath,
 			PackageName: innerType.PackageName,
 			Schema:      schema.NewNullableType(innerType.Schema),
 		}, nil
 	case *types.Struct:
-
 		if rootType == nil {
 			name := strings.Join(fieldPaths, "")
 			rootType = &TypeInfo{
-				Name:   name,
-				Schema: schema.NewNamedType(name),
+				Name:       name,
+				SchemaName: name,
+				Schema:     schema.NewNamedType(name),
 			}
 		}
 		objType := schema.ObjectType{
@@ -326,7 +334,6 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 				Type: fieldType.Schema.Encode(),
 			}
 		}
-		// log.Printf("objType: %s, %s", rootType.Name, *rootType.Description)
 		rawSchema.Objects[rootType.Name] = objType
 
 		return rootType, nil
@@ -336,7 +343,6 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			return nil, fmt.Errorf("failed to parse named type: %s", inferredType.String())
 		}
 		typeInfo := sp.parseTypeInfoFromComments(innerType.Name(), innerType.Pos())
-		typeInfo.Schema = schema.NewNamedType(innerType.Name())
 
 		innerPkg := innerType.Pkg()
 		if innerPkg != nil {
@@ -370,7 +376,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 
 		if typeInfo.IsScalar {
 			rawSchema.Types[innerType.Name()] = *typeInfo
-			rawSchema.Scalars[typeInfo.Name] = *schema.NewScalarType()
+			rawSchema.Scalars[typeInfo.SchemaName] = *schema.NewScalarType()
 			return typeInfo, nil
 		}
 
@@ -395,7 +401,8 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		}
 		if rootType == nil {
 			rootType = &TypeInfo{
-				Name: inferredType.Name(),
+				Name:       inferredType.Name(),
+				SchemaName: inferredType.Name(),
 			}
 		}
 
@@ -426,29 +433,43 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 
 func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, pos token.Pos) *TypeInfo {
 	typeInfo := &TypeInfo{
-		Name:     typeName,
-		IsScalar: false,
-	}
-	commentGroup := findCommentsFromPos(sp.fset, sp.files, pos)
-	if commentGroup == nil {
-		return typeInfo
+		Name:       typeName,
+		SchemaName: typeName,
+		IsScalar:   false,
+		Schema:     schema.NewNamedType(typeName),
 	}
 	comments := make([]string, 0)
-	for _, line := range commentGroup.List {
-		text := strings.TrimSpace(strings.TrimLeft(line.Text, "/"))
-		if text == "" {
-			continue
-		}
-		matches := ndcScalarCommentRegex.FindStringSubmatch(text)
-		matchesLen := len(matches)
-		if matchesLen < 1 {
-			comments = append(comments, text)
-			continue
-		}
+	commentGroup := findCommentsFromPos(sp.fset, sp.files, pos)
+	if commentGroup != nil {
+		for _, line := range commentGroup.List {
+			text := strings.TrimSpace(strings.TrimLeft(line.Text, "/"))
+			if text == "" {
+				continue
+			}
+			matches := ndcScalarCommentRegex.FindStringSubmatch(text)
+			matchesLen := len(matches)
+			if matchesLen < 1 {
+				comments = append(comments, text)
+				continue
+			}
 
-		typeInfo.IsScalar = true
-		if matchesLen > 2 && matches[2] != "" {
-			typeInfo.Name = matches[2]
+			typeInfo.IsScalar = true
+			if matchesLen > 2 && matches[2] != "" {
+				typeInfo.SchemaName = matches[2]
+				typeInfo.Schema = schema.NewNamedType(matches[2])
+			}
+		}
+	}
+
+	if !typeInfo.IsScalar {
+		// fallback to parse scalar from type name with Scalar prefix
+		matches := ndcScalarNameRegex.FindStringSubmatch(typeName)
+		matchesLen := len(matches)
+		log.Printf("%s: scalar matches: %v", typeName, matches)
+		if matchesLen > 1 {
+			typeInfo.IsScalar = true
+			typeInfo.SchemaName = matches[1]
+			typeInfo.Schema = schema.NewNamedType(matches[1])
 		}
 	}
 

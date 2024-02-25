@@ -2,20 +2,7 @@
   "collections": [],
   "functions": [
     {
-      "arguments": {
-        "num": {
-          "type": {
-            "name": "Int",
-            "type": "named"
-          }
-        },
-        "str": {
-          "type": {
-            "name": "String",
-            "type": "named"
-          }
-        }
-      },
+      "arguments": {},
       "name": "hello",
       "description": "FunctionHello sends a hello message",
       "result_type": {
@@ -34,7 +21,7 @@
             "type": "named"
           }
         },
-        "ScalarObject": { "type": { "name": "ScalarObject", "type": "named" } }
+        "Comment": { "type": { "name": "CommentString", "type": "named" } }
       },
       "name": "getArticles",
       "result_type": {
@@ -120,9 +107,9 @@
             "type": "named"
           }
         },
-        "scalar_object": {
+        "foo": {
           "type": {
-            "name": "ScalarObject",
+            "name": "Foo",
             "type": "named"
           }
         }
@@ -186,7 +173,11 @@
       "aggregate_functions": {},
       "comparison_operators": {}
     },
-    "ScalarObject": {
+    "Foo": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "CommentString": {
       "aggregate_functions": {},
       "comparison_operators": {}
     }

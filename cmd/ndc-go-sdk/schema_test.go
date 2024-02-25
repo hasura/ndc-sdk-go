@@ -9,8 +9,8 @@ import (
 	"io/fs"
 	"testing"
 
-	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/stretchr/testify/assert"
 )
 
 //go:embed testdata/basic/source
@@ -81,10 +81,11 @@ func TestParseCodesToNdcSchema(t *testing.T) {
 				t.FailNow()
 			}
 
-			if !internal.DeepEqual(schema, *schemaOutput) {
-				t.Errorf("schema output not equal.\nexpected: %+v\ngot: %+v", schema, *schemaOutput)
-				t.FailNow()
-			}
+			assert.Equal(t, schema.Collections, schemaOutput.Collections)
+			assert.Equal(t, schema.Functions, schemaOutput.Functions)
+			assert.Equal(t, schema.Procedures, schemaOutput.Procedures)
+			assert.Equal(t, schema.ScalarTypes, schemaOutput.ScalarTypes)
+			assert.Equal(t, schema.ObjectTypes, schemaOutput.ObjectTypes)
 		})
 	}
 }

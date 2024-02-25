@@ -11,28 +11,20 @@ type State struct{}
 
 type Text string
 
-// ScalarObject
-// @scalar
-type ScalarObject struct {
-	foo string
-}
-
-// A hello argument
-type HelloArguments struct {
-	Num int    `json:"num"`
-	Str string `json:"str"`
+type ScalarFoo struct {
+	bar string
 }
 
 // A hello result
 type HelloResult struct {
-	ID 						uuid.UUID 		`json:"id"`
-	Num 					int    				`json:"num"`
-	Text 					Text 					`json:"text"`
-	ScalarObject 	ScalarObject 	`json:"scalar_object"`
+	ID 		uuid.UUID `json:"id"`
+	Num 	int    		`json:"num"`
+	Text 	Text 			`json:"text"`
+	Foo 	ScalarFoo `json:"foo"`
 }
 
 // FunctionHello sends a hello message
-func FunctionHello(ctx context.Context, state *State, arguments *HelloArguments) (*HelloResult, error) {
+func FunctionHello(ctx context.Context, state *State) (*HelloResult, error) {
 	return &HelloResult{
 		Num: 1,
 		Str: "world",

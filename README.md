@@ -4,7 +4,7 @@ This SDK is mostly analogous to the Rust SDK, except where necessary.
 
 All functions of the Connector interface are analogous to their Rust counterparts.
 
-## Components
+## Features
 
 - Connector HTTP server 
 - Authentication
