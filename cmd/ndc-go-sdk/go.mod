@@ -1,4 +1,4 @@
-module github.com/hasura/ndc-sdk-go/codegen
+module github.com/hasura/ndc-sdk-go/cmd/ndc-go-sdk
 
 go 1.18
 
@@ -19,4 +19,4 @@ require (
 	golang.org/x/sys v0.17.0 // indirect
 )
 
-replace github.com/hasura/ndc-sdk-go => ../
+replace github.com/hasura/ndc-sdk-go => ../../
