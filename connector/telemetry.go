@@ -13,6 +13,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/rs/zerolog"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -28,8 +29,14 @@ import (
 	traceapi "go.opentelemetry.io/otel/trace"
 )
 
+var (
+	userVisibilityAttribute = traceapi.WithAttributes(attribute.String("internal.visibility", "user"))
+	successStatusAttribute  = attribute.String("status", "success")
+	failureStatusAttribute  = attribute.String("status", "failure")
+)
+
 type TelemetryState struct {
-	Tracer                          traceapi.Tracer
+	Tracer                          *Tracer
 	Meter                           metricapi.Meter
 	Shutdown                        func(context.Context) error
 	queryCounter                    metricapi.Int64Counter
@@ -182,7 +189,7 @@ func setupOTelSDK(ctx context.Context, serverOptions *ServerOptions, serviceVers
 	}
 
 	state := &TelemetryState{
-		Tracer:   traceProvider.Tracer(serverOptions.ServiceName),
+		Tracer:   &Tracer{traceProvider.Tracer(serverOptions.ServiceName)},
 		Meter:    meterProvider.Meter(serverOptions.ServiceName),
 		Shutdown: shutdownFunc,
 	}
@@ -278,4 +285,25 @@ func setupMetrics(telemetry *TelemetryState, metricsPrefix string) error {
 	)
 
 	return err
+}
+
+// Tracer is the wrapper of traceapi.Tracer with user visibility on Hasura Console
+type Tracer struct {
+	tracer traceapi.Tracer
+}
+
+// Start creates a span and a context.Context containing the newly-created span
+// with `internal.visibility: "user"` so that it shows up in the Hasura Console.
+func (t *Tracer) Start(ctx context.Context, spanName string, opts ...traceapi.SpanStartOption) (context.Context, traceapi.Span) {
+	return t.tracer.Start(ctx, spanName, append(opts, userVisibilityAttribute)...)
+}
+
+// StartInternal creates a span and a context.Context containing the newly-created span.
+// It won't show up in the Hasura Console
+func (t *Tracer) StartInternal(ctx context.Context, spanName string, opts ...traceapi.SpanStartOption) (context.Context, traceapi.Span) {
+	return t.tracer.Start(ctx, spanName, opts...)
+}
+
+func httpStatusAttribute(code int) attribute.KeyValue {
+	return attribute.Int("http_status", code)
 }
