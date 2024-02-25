@@ -90,7 +90,7 @@ type serveOptions struct {
 func defaultServeOptions() *serveOptions {
 	return &serveOptions{
 		logger:          log.Level(zerolog.GlobalLevel()),
-		serviceName:     "ndc-go",
+		serviceName:     "hasura-ndc-go",
 		version:         "0.1.0",
 		withoutConfig:   false,
 		withoutRecovery: false,

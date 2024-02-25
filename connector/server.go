@@ -109,8 +109,8 @@ func (s *Server[Configuration, State]) withAuth(handler http.HandlerFunc) http.H
 			})
 
 			s.telemetry.queryCounter.Add(r.Context(), 1, metric.WithAttributes(
-				attribute.String("status", "failed"),
-				attribute.String("reason", "unauthorized"),
+				failureStatusAttribute,
+				httpStatusAttribute(http.StatusUnauthorized),
 			))
 			return
 		}
@@ -156,31 +156,14 @@ func (s *Server[Configuration, State]) Query(w http.ResponseWriter, r *http.Requ
 	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Query", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 
-	attributes := []attribute.KeyValue{}
-	_, decodeSpan := s.telemetry.Tracer.Start(ctx, "Decode JSON Body")
-	defer decodeSpan.End()
 	var body schema.QueryRequest
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		writeJson(w, logger, http.StatusBadRequest, schema.ErrorResponse{
-			Message: "failed to decode json request body",
-			Details: map[string]any{
-				"cause": err.Error(),
-			},
-		})
-
-		attributes := []attribute.KeyValue{
-			attribute.String("status", "failed"),
-			attribute.String("reason", "json_decode"),
-		}
-		span.SetAttributes(attributes...)
-		s.telemetry.queryCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
+	if err := s.unmarshalBodyJSON(w, r, ctx, span, s.telemetry.queryCounter, &body); err != nil {
 		return
 	}
-	decodeSpan.End()
 
 	collectionAttr := attribute.String("collection", body.Collection)
-	attributes = append(attributes, collectionAttr)
-	span.SetAttributes(attributes...)
+	span.SetAttributes(collectionAttr)
+
 	execQueryCtx, execQuerySpan := s.telemetry.Tracer.Start(ctx, "Execute Query")
 	defer execQuerySpan.End()
 
@@ -189,22 +172,21 @@ func (s *Server[Configuration, State]) Query(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		status := writeError(w, logger, err)
 		statusAttributes := []attribute.KeyValue{
-			attribute.String("status", "failed"),
-			attribute.String("reason", fmt.Sprintf("%d", status)),
+			failureStatusAttribute,
+			httpStatusAttribute(status),
 		}
-		span.SetAttributes(statusAttributes...)
-		s.telemetry.queryCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttributes...)...))
+		span.SetAttributes(append(statusAttributes, attribute.String("reason", err.Error()))...)
+		s.telemetry.queryCounter.Add(r.Context(), 1, metric.WithAttributes(append(statusAttributes, collectionAttr)...))
 		return
 	}
 	execQuerySpan.End()
 
-	statusAttribute := attribute.String("status", "success")
-	span.SetAttributes(statusAttribute)
+	span.SetAttributes(successStatusAttribute)
 	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
 	writeJson(w, logger, http.StatusOK, response)
 	responseSpan.End()
 
-	s.telemetry.queryCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
+	s.telemetry.queryCounter.Add(r.Context(), 1, metric.WithAttributes(collectionAttr, successStatusAttribute))
 	// record latency for success requests only
 	s.telemetry.queryLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
 }
@@ -216,31 +198,14 @@ func (s *Server[Configuration, State]) QueryExplain(w http.ResponseWriter, r *ht
 	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Query Explain", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 
-	attributes := []attribute.KeyValue{}
-	_, decodeSpan := s.telemetry.Tracer.Start(ctx, "Decode JSON Body")
-	defer decodeSpan.End()
 	var body schema.QueryRequest
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		writeJson(w, logger, http.StatusBadRequest, schema.ErrorResponse{
-			Message: "failed to decode json request body",
-			Details: map[string]any{
-				"cause": err.Error(),
-			},
-		})
-
-		attributes := []attribute.KeyValue{
-			attribute.String("status", "failed"),
-			attribute.String("reason", "json_decode"),
-		}
-		span.SetAttributes(attributes...)
-		s.telemetry.queryExplainCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
+	if err := s.unmarshalBodyJSON(w, r, ctx, span, s.telemetry.queryExplainCounter, &body); err != nil {
 		return
 	}
-	decodeSpan.End()
 
 	collectionAttr := attribute.String("collection", body.Collection)
-	attributes = append(attributes, collectionAttr)
-	span.SetAttributes(attributes...)
+	span.SetAttributes(collectionAttr)
+
 	execCtx, execSpan := s.telemetry.Tracer.Start(ctx, "Execute Explain")
 	defer execSpan.End()
 
@@ -248,21 +213,20 @@ func (s *Server[Configuration, State]) QueryExplain(w http.ResponseWriter, r *ht
 	if err != nil {
 		status := writeError(w, logger, err)
 		statusAttributes := []attribute.KeyValue{
-			attribute.String("status", "failed"),
-			attribute.String("reason", fmt.Sprintf("%d", status)),
+			failureStatusAttribute,
+			httpStatusAttribute(status),
 		}
-		span.SetAttributes(attributes...)
-		s.telemetry.queryExplainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttributes...)...))
+		span.SetAttributes(append(statusAttributes, attribute.String("reason", err.Error()))...)
+		s.telemetry.queryExplainCounter.Add(r.Context(), 1, metric.WithAttributes(append(statusAttributes, collectionAttr)...))
 		return
 	}
 	execSpan.End()
 
-	statusAttribute := attribute.String("status", "success")
-	span.SetAttributes(statusAttribute)
+	span.SetAttributes(successStatusAttribute)
 	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
 	writeJson(w, logger, http.StatusOK, response)
 	responseSpan.End()
-	s.telemetry.queryExplainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
+	s.telemetry.queryExplainCounter.Add(r.Context(), 1, metric.WithAttributes(successStatusAttribute, collectionAttr))
 
 	// record latency for success requests only
 	s.telemetry.queryExplainLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
@@ -275,35 +239,19 @@ func (s *Server[Configuration, State]) MutationExplain(w http.ResponseWriter, r 
 	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Mutation Explain", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 
-	attributes := []attribute.KeyValue{}
-	_, decodeSpan := s.telemetry.Tracer.Start(ctx, "Decode JSON Body")
-	defer decodeSpan.End()
 	var body schema.MutationRequest
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		writeJson(w, logger, http.StatusBadRequest, schema.ErrorResponse{
-			Message: "failed to decode json request body",
-			Details: map[string]any{
-				"cause": err.Error(),
-			},
-		})
-
-		attributes := []attribute.KeyValue{
-			attribute.String("status", "failed"),
-			attribute.String("reason", "json_decode"),
-		}
-		span.SetAttributes(attributes...)
-		s.telemetry.mutationExplainCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
+	if err := s.unmarshalBodyJSON(w, r, ctx, span, s.telemetry.mutationExplainCounter, &body); err != nil {
 		return
 	}
-	decodeSpan.End()
 
 	var operationNames []string
 	for _, op := range body.Operations {
 		operationNames = append(operationNames, op.Name)
 	}
-	collectionAttr := attribute.String("operations", strings.Join(operationNames, ","))
-	attributes = append(attributes, collectionAttr)
-	span.SetAttributes(attributes...)
+
+	operationAttr := attribute.String("operations", strings.Join(operationNames, ","))
+	span.SetAttributes(operationAttr)
+
 	execCtx, execSpan := s.telemetry.Tracer.Start(ctx, "Execute Explain")
 	defer execSpan.End()
 
@@ -311,24 +259,24 @@ func (s *Server[Configuration, State]) MutationExplain(w http.ResponseWriter, r 
 	if err != nil {
 		status := writeError(w, logger, err)
 		statusAttributes := []attribute.KeyValue{
-			attribute.String("status", "failed"),
-			attribute.String("reason", fmt.Sprintf("%d", status)),
+			failureStatusAttribute,
+			httpStatusAttribute(status),
 		}
-		span.SetAttributes(attributes...)
-		s.telemetry.mutationExplainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttributes...)...))
+		span.SetAttributes(append(statusAttributes, attribute.String("reason", err.Error()))...)
+		s.telemetry.mutationExplainCounter.Add(r.Context(), 1, metric.WithAttributes(append(statusAttributes, operationAttr)...))
 		return
 	}
 	execSpan.End()
 
-	statusAttribute := attribute.String("status", "success")
-	span.SetAttributes(statusAttribute)
+	span.SetAttributes(successStatusAttribute)
+
 	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
 	writeJson(w, logger, http.StatusOK, response)
 	responseSpan.End()
-	s.telemetry.mutationExplainCounter.Add(r.Context(), 1, metric.WithAttributes(append(attributes, statusAttribute)...))
+	s.telemetry.mutationExplainCounter.Add(r.Context(), 1, metric.WithAttributes(successStatusAttribute, operationAttr))
 
 	// record latency for success requests only
-	s.telemetry.mutationExplainLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
+	s.telemetry.mutationExplainLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(operationAttr))
 }
 
 // Mutation implements a handler for the /mutation endpoint, POST method that executes a mutation.
@@ -338,11 +286,51 @@ func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.R
 	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Mutation", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 
+	var body schema.MutationRequest
+	if err := s.unmarshalBodyJSON(w, r, ctx, span, s.telemetry.mutationCounter, &body); err != nil {
+		return
+	}
+
+	var operationNames []string
+	for _, op := range body.Operations {
+		operationNames = append(operationNames, op.Name)
+	}
+
+	operationAttr := attribute.String("operations", strings.Join(operationNames, ","))
+	span.SetAttributes(operationAttr)
+
+	execCtx, execSpan := s.telemetry.Tracer.Start(ctx, "Execute Mutation")
+	defer execSpan.End()
+	response, err := s.connector.Mutation(execCtx, s.configuration, s.state, &body)
+	if err != nil {
+		status := writeError(w, logger, err)
+		statusAttributes := []attribute.KeyValue{
+			failureStatusAttribute,
+			httpStatusAttribute(status),
+		}
+		span.SetAttributes(append(statusAttributes, attribute.String("reason", err.Error()))...)
+		s.telemetry.mutationCounter.Add(r.Context(), 1, metric.WithAttributes(append(statusAttributes, operationAttr)...))
+		return
+	}
+	execSpan.End()
+
+	span.SetAttributes(successStatusAttribute)
+	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
+	writeJson(w, logger, http.StatusOK, response)
+	responseSpan.End()
+
+	s.telemetry.mutationCounter.Add(r.Context(), 1, metric.WithAttributes(successStatusAttribute, operationAttr))
+
+	// record latency for success requests only
+	s.telemetry.mutationLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(operationAttr))
+}
+
+// the common unmarshal json body method
+func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, r *http.Request, ctx context.Context, span trace.Span, counter metric.Int64Counter, body any) error {
 	_, decodeSpan := s.telemetry.Tracer.Start(ctx, "Decode JSON Body")
 	defer decodeSpan.End()
-	var body schema.MutationRequest
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		writeJson(w, logger, http.StatusBadRequest, schema.ErrorResponse{
+	if err := json.NewDecoder(r.Body).Decode(body); err != nil {
+		writeJson(w, GetLogger(r.Context()), http.StatusBadRequest, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": err.Error(),
@@ -350,40 +338,15 @@ func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.R
 		})
 
 		attributes := []attribute.KeyValue{
-			attribute.String("status", "failed"),
-			attribute.String("reason", "json_decode"),
+			failureStatusAttribute,
+			httpStatusAttribute(http.StatusBadRequest),
 		}
-		span.SetAttributes(attributes...)
-		s.telemetry.mutationCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
-		return
+		span.SetAttributes(append(attributes, attribute.String("status", "json_decode"))...)
+		s.telemetry.mutationExplainCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
+		return err
 	}
-	decodeSpan.End()
 
-	execCtx, execSpan := s.telemetry.Tracer.Start(ctx, "Execute Mutation")
-	defer execSpan.End()
-	response, err := s.connector.Mutation(execCtx, s.configuration, s.state, &body)
-	if err != nil {
-		status := writeError(w, logger, err)
-		attributes := []attribute.KeyValue{
-			attribute.String("status", "failed"),
-			attribute.String("reason", fmt.Sprintf("%d", status)),
-		}
-		span.SetAttributes(attributes...)
-		s.telemetry.mutationCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
-		return
-	}
-	execSpan.End()
-
-	attributes := attribute.String("status", "success")
-	span.SetAttributes(attributes)
-	_, responseSpan := s.telemetry.Tracer.Start(ctx, "Response")
-	writeJson(w, logger, http.StatusOK, response)
-	responseSpan.End()
-
-	s.telemetry.mutationCounter.Add(r.Context(), 1, metric.WithAttributes(attributes))
-
-	// record latency for success requests only
-	s.telemetry.mutationLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds())
+	return nil
 }
 
 func (s *Server[Configuration, State]) buildHandler() *http.ServeMux {
