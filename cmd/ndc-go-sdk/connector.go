@@ -5,14 +5,11 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"strings"
-	"text/template"
 )
-
-//go:embed templates/connector/connector.go.tmpl
-var connectorTemplate string
 
 const (
 	connectorOutputFile = "connector.generated.go"
@@ -32,11 +29,6 @@ func parseAndGenerateConnector(basePath string, directories []string, moduleName
 }
 
 func generateConnector(rawSchema *RawConnectorSchema, srcPath string, moduleName string) error {
-	fileTemplate, err := template.New(connectorOutputFile).Parse(connectorTemplate)
-	if err != nil {
-		return err
-	}
-
 	// generate schema.generated.json
 	schemaBytes, err := json.MarshalIndent(rawSchema.Schema(), "", "  ")
 	if err != nil {
@@ -48,10 +40,6 @@ func generateConnector(rawSchema *RawConnectorSchema, srcPath string, moduleName
 		return err
 	}
 
-	importLines := []string{}
-	for importPath := range rawSchema.Imports {
-		importLines = append(importLines, fmt.Sprintf(`"%s"`, importPath))
-	}
 	targetPath := path.Join(srcPath, connectorOutputFile)
 	f, err := os.Create(targetPath)
 	if err != nil {
@@ -62,16 +50,25 @@ func generateConnector(rawSchema *RawConnectorSchema, srcPath string, moduleName
 	}()
 
 	w := bufio.NewWriter(f)
-	err = fileTemplate.Execute(w, map[string]any{
+	defer func() {
+		_ = w.Flush()
+	}()
+
+	return genConnectorCodeFromTemplate(w, moduleName, rawSchema)
+}
+
+func genConnectorCodeFromTemplate(w io.Writer, moduleName string, rawSchema *RawConnectorSchema) error {
+	importLines := []string{}
+	for importPath := range rawSchema.Imports {
+		importLines = append(importLines, fmt.Sprintf(`"%s"`, importPath))
+	}
+
+	return connectorTemplate.Execute(w, map[string]any{
 		"Imports":    strings.Join(importLines, "\n"),
 		"Module":     moduleName,
 		"Queries":    genConnectorFunctions(rawSchema),
 		"Procedures": genConnectorProcedures(rawSchema),
 	})
-	if err != nil {
-		return err
-	}
-	return w.Flush()
 }
 
 func genConnectorFunctions(rawSchema *RawConnectorSchema) string {
@@ -85,15 +82,14 @@ func genConnectorFunctions(rawSchema *RawConnectorSchema) string {
 		var argumentParamStr string
 		if fn.ArgumentsType != "" {
 			argumentStr = fmt.Sprintf(`args, err := schema.ResolveArguments[%s.%s](request.Arguments, variables)
-			if err != nil {
-				return nil, schema.BadRequestError("failed to resolve arguments", map[string]any{
-					"cause": err.Error(),
-				})
-			}`, fn.PackageName, fn.ArgumentsType)
+		if err != nil {
+			return nil, schema.BadRequestError("failed to resolve arguments", map[string]any{
+				"cause": err.Error(),
+			})
+		}`, fn.PackageName, fn.ArgumentsType)
 			argumentParamStr = ", args"
 		}
-		fnCase := fmt.Sprintf(`
-	case "%s":
+		fnCase := fmt.Sprintf(`	case "%s":
 		%s
 		return %s.%s(ctx, state%s)`, fn.Name, argumentStr, fn.PackageName, fn.OriginName, argumentParamStr)
 		functionCases = append(functionCases, fnCase)
@@ -113,15 +109,14 @@ func genConnectorProcedures(rawSchema *RawConnectorSchema) string {
 		var argumentParamStr string
 		if fn.ArgumentsType != "" {
 			argumentStr = fmt.Sprintf(`var args %s.%s
-			if err := json.Unmarshal(operation.Arguments, &args); err != nil {
-				return nil, schema.BadRequestError("failed to decode arguments", map[string]any{
-					"cause": err.Error(),
-				})
-			}`, fn.PackageName, fn.ArgumentsType)
+		if err := json.Unmarshal(operation.Arguments, &args); err != nil {
+			return nil, schema.BadRequestError("failed to decode arguments", map[string]any{
+				"cause": err.Error(),
+			})
+		}`, fn.PackageName, fn.ArgumentsType)
 			argumentParamStr = ", &args"
 		}
-		fnCase := fmt.Sprintf(`
-	case "%s":
+		fnCase := fmt.Sprintf(`	case "%s":
 		%s
 		rawResult, err = %s.%s(ctx, state%s)`, fn.Name, argumentStr, fn.PackageName, fn.OriginName, argumentParamStr)
 		cases = append(cases, fnCase)

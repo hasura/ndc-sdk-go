@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"embed"
 	"encoding/json"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"io/fs"
+	"regexp"
 	"testing"
 
 	"github.com/hasura/ndc-sdk-go/schema"
@@ -19,16 +22,23 @@ var basicSource embed.FS
 //go:embed testdata/basic/schema.json
 var basicSchemaBytes []byte
 
-func TestParseCodesToNdcSchema(t *testing.T) {
+//go:embed testdata/basic/expected/connector.go.tmpl
+var basicExpectedContent string
+
+func TestConnectorGeneration(t *testing.T) {
+	trimNewLinesRegexp := regexp.MustCompile(`\n\t*\n`)
+
 	testCases := []struct {
-		Name   string
-		Src    embed.FS
-		Schema []byte
+		Name      string
+		Src       embed.FS
+		Schema    []byte
+		Generated string
 	}{
 		{
-			Name:   "basic",
-			Src:    basicSource,
-			Schema: basicSchemaBytes,
+			Name:      "basic",
+			Src:       basicSource,
+			Schema:    basicSchemaBytes,
+			Generated: basicExpectedContent,
 		},
 	}
 
@@ -63,29 +73,25 @@ func TestParseCodesToNdcSchema(t *testing.T) {
 
 				return nil
 			})
-
-			if err != nil {
-				t.Errorf("failed to read source code: %s", err)
-				t.FailNow()
-			}
-
-			if err := schemaParser.checkAndParseRawSchemaFromAstFiles(rawSchema); err != nil {
-				t.Errorf("failed to parse raw schema: %s", err)
-				t.FailNow()
-			}
+			assert.NoError(t, err)
+			assert.NoError(t, schemaParser.checkAndParseRawSchemaFromAstFiles(rawSchema))
 
 			schemaOutput := rawSchema.Schema()
 			var schema schema.SchemaResponse
-			if err := json.Unmarshal(basicSchemaBytes, &schema); err != nil {
-				t.Errorf("failed to decode expected schema: %s", err)
-				t.FailNow()
-			}
+			assert.NoError(t, json.Unmarshal(basicSchemaBytes, &schema))
 
 			assert.Equal(t, schema.Collections, schemaOutput.Collections)
 			assert.Equal(t, schema.Functions, schemaOutput.Functions)
 			assert.Equal(t, schema.Procedures, schemaOutput.Procedures)
 			assert.Equal(t, schema.ScalarTypes, schemaOutput.ScalarTypes)
 			assert.Equal(t, schema.ObjectTypes, schemaOutput.ObjectTypes)
+
+			var buf bytes.Buffer
+			w := bufio.NewWriter(&buf)
+			assert.NoError(t, genConnectorCodeFromTemplate(w, "hasura.dev/connector", rawSchema))
+			w.Flush()
+			outputText := trimNewLinesRegexp.ReplaceAllString(string(buf.String()), "\n")
+			assert.Equal(t, basicExpectedContent, outputText)
 		})
 	}
 }

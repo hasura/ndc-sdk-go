@@ -18,4 +18,4 @@ lint:
 
 .PHONY: build-codegen
 build-codegen:
-	go build -o _output/ndc-go-sdk ./codegen
+	go build -o _output/ndc-go-sdk ./cmd/ndc-go-sdk

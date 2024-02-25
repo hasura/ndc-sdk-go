@@ -464,9 +464,7 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, pos token.Pos
 	if !typeInfo.IsScalar {
 		// fallback to parse scalar from type name with Scalar prefix
 		matches := ndcScalarNameRegex.FindStringSubmatch(typeName)
-		matchesLen := len(matches)
-		log.Printf("%s: scalar matches: %v", typeName, matches)
-		if matchesLen > 1 {
+		if len(matches) > 1 {
 			typeInfo.IsScalar = true
 			typeInfo.SchemaName = matches[1]
 			typeInfo.Schema = schema.NewNamedType(matches[1])

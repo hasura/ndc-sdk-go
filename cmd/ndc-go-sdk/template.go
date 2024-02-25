@@ -16,12 +16,24 @@ import (
 	"golang.org/x/mod/modfile"
 )
 
-//go:embed templates/new
+//go:embed all:* templates/new
 var initTemplateFS embed.FS
+
+//go:embed templates/connector/connector.go.tmpl
+var connectorTemplateStr string
+var connectorTemplate *template.Template
 
 const (
 	templateNewPath = "templates/new"
 )
+
+func init() {
+	var err error
+	connectorTemplate, err = template.New(connectorOutputFile).Parse(connectorTemplateStr)
+	if err != nil {
+		panic(fmt.Errorf("failed to parse connector template: %s", err))
+	}
+}
 
 func generateNewProject(name string, moduleName string, srcPath string) error {
 	if srcPath == "" {
@@ -57,6 +69,7 @@ func generateNewProjectFiles(name string, moduleName string, srcPath string) err
 			return err
 		}
 
+		log.Info().Msgf("filePath: %s", filePath)
 		if filePath == templateNewPath {
 			return nil
 		}

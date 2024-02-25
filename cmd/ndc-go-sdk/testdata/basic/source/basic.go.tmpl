@@ -1,4 +1,4 @@
-package source
+package functions
 
 import (
 	"context"
@@ -26,8 +26,9 @@ type HelloResult struct {
 // FunctionHello sends a hello message
 func FunctionHello(ctx context.Context, state *State) (*HelloResult, error) {
 	return &HelloResult{
-		Num: 1,
-		Str: "world",
+		ID:   uuid.New(),
+		Num:  1,
+		Text: "world",
 	}, nil
 }
 
@@ -49,4 +50,9 @@ func ProcedureCreateAuthor(ctx context.Context, state *State, arguments *CreateA
 		ID:   1,
 		Name: arguments.Name,
 	}, nil
+}
+
+// FunctionGetBool return an scalar boolean
+func FunctionGetBool(ctx context.Context, state *State) (bool, error) {
+	return true, nil
 }

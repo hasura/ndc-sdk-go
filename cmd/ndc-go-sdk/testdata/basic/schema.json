@@ -3,6 +3,15 @@
   "functions": [
     {
       "arguments": {},
+      "name": "getBool",
+      "description": "FunctionGetBool return an scalar boolean",
+      "result_type": {
+        "name": "Boolean",
+        "type": "named"
+      }
+    },
+    {
+      "arguments": {},
       "name": "hello",
       "description": "FunctionHello sends a hello message",
       "result_type": {
@@ -153,6 +162,10 @@
     }
   ],
   "scalar_types": {
+    "Boolean": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
     "Int": {
       "aggregate_functions": {},
       "comparison_operators": {}

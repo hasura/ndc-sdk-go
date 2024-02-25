@@ -10,6 +10,10 @@ All functions of the Connector interface are analogous to their Rust counterpart
 - Authentication
 - Observability with OpenTelemetry and Prometheus
 
+## Quick start
+
+Checkout the [generation tool](cmd/ndc-go-sdk) to quickly setup and develop data connectors.
+
 ## Using this SDK
 
 The SDK exports a `Start` function, which takes a `connector` object, that is an object that implements the `Connector` interface defined in [connector/types.go](connector/types.go)
