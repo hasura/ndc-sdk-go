@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/go-viper/mapstructure/v2"
 )
@@ -108,8 +109,9 @@ func encodeRows[R any](rows any) (R, error) {
 	}
 
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  &result,
-		TagName: "json",
+		Result:     &result,
+		TagName:    "json",
+		DecodeHook: mapstructure.ComposeDecodeHookFunc(timeDecodeHookFunc()),
 	})
 	if err != nil {
 		return result, err
@@ -178,7 +180,15 @@ func EvalColumnFields(fields map[string]Field, result any) (map[string]any, erro
 		switch fi := field.Interface().(type) {
 		case *ColumnField:
 			if col, ok := outputMap[fi.Column]; ok {
-				output[fi.Column] = col
+				if fi.Fields != nil {
+					nestedValue, err := EvalNestedColumnFields(fi.Fields, col)
+					if err != nil {
+						return nil, err
+					}
+					output[fi.Column] = nestedValue
+				} else {
+					output[fi.Column] = col
+				}
 			} else {
 				output[fi.Column] = nil
 			}
@@ -227,4 +237,27 @@ func ResolveArgumentVariables(arguments map[string]Argument, variables map[strin
 	}
 
 	return results, nil
+}
+
+// timeDecodeHookFunc creates a mapstructure decode hook function to decode time.Time
+func timeDecodeHookFunc() mapstructure.DecodeHookFunc {
+	return func(f reflect.Type, t reflect.Type, data any) (any, error) {
+		if ty, ok := data.(*time.Time); ok {
+			return *ty, nil
+		}
+		if t != reflect.TypeOf(time.Time{}) {
+			return data, nil
+		}
+
+		switch f.Kind() {
+		case reflect.String:
+			return time.Parse(time.RFC3339, data.(string))
+		case reflect.Float64:
+			return time.Unix(0, int64(data.(float64))*int64(time.Millisecond)), nil
+		case reflect.Int64:
+			return time.Unix(0, data.(int64)*int64(time.Millisecond)), nil
+		default:
+			return data, nil
+		}
+	}
 }

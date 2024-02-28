@@ -69,7 +69,7 @@ func generateNewProjectFiles(name string, moduleName string, srcPath string) err
 			return err
 		}
 
-		log.Info().Msgf("filePath: %s", filePath)
+		log.Debug().Msgf("%s", filePath)
 		if filePath == templateNewPath {
 			return nil
 		}
