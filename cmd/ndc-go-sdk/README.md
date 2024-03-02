@@ -1,12 +1,12 @@
 # Native Data Connector code generator
 
-The NDC code generator provides a set of tools to develop data connectors quickly. It's suitable for developers who create connectors for business logic functions (or action in GraphQL Engine v2). 
+The NDC code generator provides a set of tools to develop data connectors quickly. It's suitable for developers who create connectors for business logic functions (or action in GraphQL Engine v2).
 
 The generator is inspired by [ndc-typescript-deno](https://github.com/hasura/ndc-typescript-deno) and [ndc-nodejs-lambda](https://github.com/hasura/ndc-nodejs-lambda) that automatically infer TypeScript functions as NDC functions/procedures for use at runtime. It's possible to do this with Go via reflection. However, code generation is better for performance, type-safe, and no magic.
 
 ## Installation
 
-* **Install from source**: To install with Go 1.18+:
+- **Install from source**: To install with Go 1.18+:
 
 ```bash
 go install github.com/hasura/ndc-sdk-go/cmd/ndc-go-sdk@latest
@@ -53,7 +53,7 @@ ndc-go-sdk init -n example -m github.com/foo/example -o .
 
 The `generate` command parses code in the `functions` folder, finds functions and types that are allowed to expose and generates following files:
 
-- `schema.generated.json`: the generated connector schema in JSON format. 
+- `schema.generated.json`: the generated connector schema in JSON format.
 - `connector.generated.go`: implement `GetSchema`, `Query` and `Mutation` methods with exposed functions.
 
 ```bash
@@ -78,31 +78,32 @@ Or use `@function` or `@procedure` comment tag:
 
 ```go
 // Hello sends a hello message
-// @function  
+// @function
 func Hello(ctx context.Context, state *types.State, arguments *HelloArguments) (*HelloResult, error)
 
 // CreateAuthor creates an author
-// @procedure 
+// @procedure
 func CreateAuthor(ctx context.Context, state *types.State, arguments *CreateAuthorArguments) (*CreateAuthorResult, error)
 
 // you also can set the alias after the tag:
 
 // Foo a bar
-// @function bar 
+// @function bar
 func Foo(ctx context.Context, state *types.State) (*FooResult, error)
 ```
 
 Function and Procedure names will be formatted to `camelCase` by default.
 
-> The generator detects comments by the nearby code position. It isn't perfectly accurate in some use cases. Prefix name in function is highly recommended. 
+> The generator detects comments by the nearby code position. It isn't perfectly accurate in some use cases. Prefix name in function is highly recommended.
 
-A function must have 2 (no argument) or 3 parameters. `Context` and `State` are always present as 2 first parameters. The result is a tuple with a expected output and `error`. 
+A function must have 2 (no argument) or 3 parameters. `Context` and `State` are always present as 2 first parameters. The result is a tuple with a expected output and `error`.
 
 > [Function](https://hasura.github.io/ndc-spec/specification/schema/functions.html) is a type of Query and [Procedure](https://hasura.github.io/ndc-spec/specification/schema/procedures.html) is a type of mutation. [Collection](https://hasura.github.io/ndc-spec/specification/schema/collections.html) is usually used for database queries so it isn't used for business logic.
 
 ### Types
 
 The tool only infers arguments and result types of exposed functions to generate object type schemas:
+
 - Argument type must be a struct with serializable properties.
 - Result type can be a scalar, slice or struct.
 
@@ -146,18 +147,20 @@ the schema will be:
 
 The basic scalar types supported are:
 
-* `string` (NDC scalar type: `String`)
-* `int`, `int8`, `int16`, `int32`, `int64`, `uint`, `uint8`, `uint16`, `uint32`, `uint64` (NDC scalar type: `Int`)
-* `float32`, `float64`, `complex64`, `complex128` (NDC scalar type: `Float`)
-* `bool` (NDC scalar type: `Boolean`)
-* `time.Time` (NDC scalar type: `DateTime`, represented as an [ISO formatted](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString) string in JSON)
-* `github.com/google/uuid.UUID` (NDC scalar type: `UUID`, represented as an UUID string in JSON)
+- `string` (NDC scalar type: `String`)
+- `int`, `int8`, `int16`, `int32`, `int64`, `uint`, `uint8`, `uint16`, `uint32`, `uint64` (NDC scalar type: `Int`)
+- `float32`, `float64` (NDC scalar type: `Float`)
+- `complex64`, `complex128` (NDC scalar type: `Complex`)
+- `bool` (NDC scalar type: `Boolean`)
+- `time.Time` (NDC scalar type: `DateTime`, represented as an [ISO formatted](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString) string in JSON)
+- `time.Duration` (NDC scalar type: `Duration`, represented as a duration string in JSON)
+- `github.com/google/uuid.UUID` (NDC scalar type: `UUID`, represented as an UUID string in JSON)
 
-Alias scalar types will be inferred to the origin type in schema. 
+Alias scalar types will be inferred to the origin type in schema.
 
 ```go
-// the scalar type in schema is still a `String`.  
-type Text string 
+// the scalar type in schema is still a `String`.
+type Text string
 ```
 
 If you want to define a custom scalar type, the type name must have a `Scalar` prefix or `@scalar` tag the comment. The generator doesn't care about the underlying type even it is a struct.
@@ -180,7 +183,7 @@ type Foo struct {}
 // output: Bar
 ```
 
-> The generator detects comments by the nearby position. It isn't perfectly accurate in some use cases. Prefix name in function is highly recommended. 
+> The generator detects comments by the nearby position. It isn't perfectly accurate in some use cases. Prefix name in function is highly recommended.
 
 ### Documentation
 
@@ -196,4 +199,3 @@ func ProcedureCreateAuthor(ctx context.Context, state *types.State, arguments *C
 //   ...
 // }
 ```
-

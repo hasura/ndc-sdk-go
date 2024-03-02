@@ -342,7 +342,7 @@ func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, 
 			httpStatusAttribute(http.StatusBadRequest),
 		}
 		span.SetAttributes(append(attributes, attribute.String("status", "json_decode"))...)
-		s.telemetry.mutationExplainCounter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
+		counter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
 		return err
 	}
 

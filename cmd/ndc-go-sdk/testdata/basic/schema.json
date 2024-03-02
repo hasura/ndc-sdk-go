@@ -30,7 +30,13 @@
             "type": "named"
           }
         },
-        "Comment": { "type": { "name": "CommentString", "type": "named" } }
+        "Comment": { "type": { "name": "CommentString", "type": "named" } },
+        "nullable_str": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": { "name": "String", "type": "named" }
+          }
+        }
       },
       "name": "getArticles",
       "result_type": {
@@ -45,12 +51,14 @@
   "object_types": {
     "Author": {
       "fields": {
+        "duration": { "type": { "name": "Duration", "type": "named" } },
         "created_at": { "type": { "name": "DateTime", "type": "named" } },
         "id": { "type": { "name": "String", "type": "named" } }
       }
     },
     "CreateArticleArgumentsAuthor": {
       "fields": {
+        "decimal": { "type": { "name": "Complex", "type": "named" } },
         "created_at": { "type": { "name": "DateTime", "type": "named" } },
         "id": { "type": { "name": "UUID", "type": "named" } }
       }
@@ -191,6 +199,14 @@
       "comparison_operators": {}
     },
     "CommentString": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "Duration": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "Complex": {
       "aggregate_functions": {},
       "comparison_operators": {}
     }

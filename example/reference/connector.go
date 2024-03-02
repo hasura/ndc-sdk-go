@@ -406,7 +406,7 @@ type UpsertArticleArguments struct {
 	Article Article `json:"article"`
 }
 
-func executeProcedure(ctx context.Context, state *State, collectionRelationships schema.MutationRequestCollectionRelationships, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
+func executeProcedure(_ context.Context, state *State, collectionRelationships schema.MutationRequestCollectionRelationships, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
 	switch operation.Name {
 	case "upsert_article":
 		return executeUpsertArticle(state, operation.Arguments, operation.Fields, collectionRelationships)

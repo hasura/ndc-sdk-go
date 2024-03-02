@@ -20,9 +20,12 @@ import (
 var defaultScalarTypes = schema.SchemaResponseScalarTypes{
 	"String":   *schema.NewScalarType(),
 	"Int":      *schema.NewScalarType(),
+	"BigInt":   *schema.NewScalarType(),
 	"Float":    *schema.NewScalarType(),
+	"Complex":  *schema.NewScalarType(),
 	"Boolean":  *schema.NewScalarType(),
 	"DateTime": *schema.NewScalarType(),
+	"Duration": *schema.NewScalarType(),
 	"UUID":     *schema.NewScalarType(),
 }
 
@@ -348,23 +351,25 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		if innerPkg != nil {
 			typeInfo.PackageName = innerPkg.Name()
 			typeInfo.PackagePath = innerPkg.Path()
+			var scalarName string
 			switch innerPkg.Path() {
 			case "time":
 				switch innerType.Name() {
 				case "Time":
-					scalarName := "DateTime"
-					rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
-					typeInfo.Schema = schema.NewNamedType(scalarName)
-					return typeInfo, nil
+					scalarName = "DateTime"
+				case "Duration":
+					scalarName = "Duration"
 				}
 			case "github.com/google/uuid":
 				switch innerType.Name() {
 				case "UUID":
-					scalarName := "UUID"
-					rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
-					typeInfo.Schema = schema.NewNamedType(scalarName)
-					return typeInfo, nil
+					scalarName = "UUID"
 				}
+			}
+			if scalarName != "" {
+				rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
+				typeInfo.Schema = schema.NewNamedType(scalarName)
+				return typeInfo, nil
 			}
 		}
 
@@ -387,11 +392,17 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		case types.Bool:
 			scalarName = "Boolean"
 			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
-		case types.Int8, types.Int, types.Int16, types.Int32, types.Int64, types.Uint, types.Uint16, types.Uint32, types.Uint64:
+		case types.Int8, types.Int, types.Int16, types.Int32, types.Uint, types.Uint16, types.Uint32:
 			scalarName = "Int"
 			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
-		case types.Float32, types.Float64, types.Complex64, types.Complex128:
+		case types.Int64, types.Uint64:
+			scalarName = "BigInt"
+			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
+		case types.Float32, types.Float64:
 			scalarName = "Float"
+			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
+		case types.Complex64, types.Complex128:
+			scalarName = "Complex"
 			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
 		case types.String:
 			scalarName = "String"

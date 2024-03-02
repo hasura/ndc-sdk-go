@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/alecthomas/kong"
+	"github.com/hasura/ndc-sdk-go/cmd/ndc-go-sdk/version"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -21,6 +23,8 @@ var cli struct {
 		Directories []string `help:"Folders contain NDC operation functions" short:"d" default:"functions"`
 		LogLevel    string   `help:"Log level." enum:"trace,debug,info,warn,error" default:"info"`
 	} `cmd:"" help:"Generate schema and implementation for the connector from functions."`
+
+	Version struct{} `cmd:"" help:"Print the CLI version."`
 }
 
 func main() {
@@ -55,6 +59,8 @@ func main() {
 			log.Fatal().Err(err).Msg("failed to format code")
 		}
 		log.Info().Msg("generated successfully")
+	case "version":
+		_, _ = fmt.Print(version.BuildVersion)
 	default:
 		log.Fatal().Msgf("unknown command <%s>", cmd.Command())
 	}
