@@ -334,3 +334,138 @@ func ToDuration(value any) (time.Duration, error) {
 	}
 	return *result, nil
 }
+
+// GetAny get an unknown value from object by key
+func GetAny(object map[string]any, key string) (any, bool) {
+	if object == nil {
+		return nil, false
+	}
+	value, ok := object[key]
+	return value, ok
+}
+
+// GetIntPtr get an integer pointer from object by key
+func GetIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (*T, error) {
+	value, ok := GetAny(object, key)
+	if !ok || value == nil {
+		return nil, nil
+	}
+	return ToIntPtr[T](value)
+}
+
+// GetInt get an integer value from object by key
+func GetInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (T, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return 0, fmt.Errorf("field `%s` does not exist", key)
+	}
+	return ToInt[T](value)
+}
+
+// GetFloatPtr get a float pointer from object by key
+func GetFloatPtr[T float32 | float64](object map[string]any, key string) (*T, error) {
+	value, ok := GetAny(object, key)
+	if !ok || value == nil {
+		return nil, nil
+	}
+	return ToFloatPtr[T](value)
+}
+
+// GetFloat get a float value from object by key
+func GetFloat[T float32 | float64](object map[string]any, key string) (T, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return 0, fmt.Errorf("field `%s` does not exist", key)
+	}
+	return ToFloat[T](value)
+}
+
+// GetComplexPtr get a complex pointer from object by key
+func GetComplexPtr[T complex64 | complex128](object map[string]any, key string) (*T, error) {
+	value, ok := GetAny(object, key)
+	if !ok || value == nil {
+		return nil, nil
+	}
+	return ToComplexPtr[T](value)
+}
+
+// GetComplex get a complex value from object by key
+func GetComplex[T complex64 | complex128](object map[string]any, key string) (T, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return 0, fmt.Errorf("field `%s` does not exist", key)
+	}
+	return ToComplex[T](value)
+}
+
+// GetStringPtr get a string pointer from object by key
+func GetStringPtr(object map[string]any, key string) (*string, error) {
+	value, ok := GetAny(object, key)
+	if !ok || value == nil {
+		return nil, nil
+	}
+	return ToStringPtr(value)
+}
+
+// GetString get a bool value from object by key
+func GetString(object map[string]any, key string) (string, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return "", fmt.Errorf("field `%s` does not exist", key)
+	}
+	return ToString(value)
+}
+
+// GetBoolPtr get a bool pointer from object by key
+func GetBoolPtr(object map[string]any, key string) (*bool, error) {
+	value, ok := GetAny(object, key)
+	if !ok || value == nil {
+		return nil, nil
+	}
+	return ToBooleanPtr(value)
+}
+
+// GetBool get a bool value from object by key
+func GetBool(object map[string]any, key string) (bool, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return false, fmt.Errorf("field `%s` does not exist", key)
+	}
+	return ToBoolean(value)
+}
+
+// GetDateTimePtr get a time.Time pointer from object by key
+func GetDateTimePtr(object map[string]any, key string) (*time.Time, error) {
+	value, ok := GetAny(object, key)
+	if !ok || value == nil {
+		return nil, nil
+	}
+	return ToDateTimePtr(value)
+}
+
+// GetDateTime get a time.Time value from object by key
+func GetDateTime(object map[string]any, key string) (time.Time, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return time.Time{}, fmt.Errorf("field `%s` does not exist", key)
+	}
+	return ToDateTime(value)
+}
+
+// GetDurationPtr get a time.Duration pointer from object by key
+func GetDurationPtr(object map[string]any, key string) (*time.Duration, error) {
+	value, ok := GetAny(object, key)
+	if !ok || value == nil {
+		return nil, nil
+	}
+	return ToDurationPtr(value)
+}
+
+// GetDuration get a time.Duration value from object by key
+func GetDuration(object map[string]any, key string) (time.Duration, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return 0, fmt.Errorf("field `%s` does not exist", key)
+	}
+	return ToDuration(value)
+}
