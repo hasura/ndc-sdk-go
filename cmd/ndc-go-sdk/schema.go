@@ -66,6 +66,7 @@ type ObjectField struct {
 type ObjectInfo struct {
 	PackagePath string
 	PackageName string
+	IsAnonymous bool
 	Fields      map[string]*ObjectField
 }
 
@@ -366,6 +367,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			Schema:      schema.NewNullableType(innerType.Schema),
 		}, nil
 	case *types.Struct:
+		isAnonymous := false
 		if rootType == nil {
 			rootType = &TypeInfo{}
 		}
@@ -373,6 +375,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		name := strings.Join(fieldPaths, "")
 		if rootType.Name == "" {
 			rootType.Name = name
+			isAnonymous = true
 		}
 		if rootType.SchemaName == "" {
 			rootType.SchemaName = name
@@ -391,6 +394,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		objFields := &ObjectInfo{
 			PackagePath: rootType.PackagePath,
 			PackageName: rootType.PackageName,
+			IsAnonymous: isAnonymous,
 			Fields:      map[string]*ObjectField{},
 		}
 		for i := 0; i < inferredType.NumFields(); i++ {

@@ -6,7 +6,7 @@ import (
 // FromValue decodes values from map
 func (j *GetArticlesArguments) FromValue(input map[string]any) error {
   var err error
-  j.Comment, err = utils.GetValue[CommentText](input, "Comment")
+  err = utils.DecodeObjectValue(&j.Comment, input, "Comment")
   if err != nil {
     return err
   }
@@ -22,50 +22,61 @@ func (j *GetArticlesArguments) FromValue(input map[string]any) error {
 }
 // ToMap encodes the struct to a value map
 func (j Author) ToMap() map[string]any {
-  return map[string]any{
+  resultMap := map[string]any{
     "created_at": j.CreatedAt,
     "duration": j.Duration,
     "id": j.ID,
   }
-}
-// ToMap encodes the struct to a value map
-func (j CreateArticleArgumentsAuthor) ToMap() map[string]any {
-  return map[string]any{
-    "created_at": j.CreatedAt,
-    "decimal": j.Decimal,
-    "id": j.ID,
-  }
+  return resultMap
 }
 // ToMap encodes the struct to a value map
 func (j CreateArticleResult) ToMap() map[string]any {
-  return map[string]any{
-    "authors": j.Authors,
+  resultMap := map[string]any{
+    "authors": utils.EncodeMaps(j.Authors),
     "id": j.ID,
   }
+  return resultMap
 }
 // ToMap encodes the struct to a value map
 func (j CreateAuthorResult) ToMap() map[string]any {
-  return map[string]any{
+  resultMap := map[string]any{
     "created_at": j.CreatedAt,
     "id": j.ID,
     "name": j.Name,
   }
+  return resultMap
 }
 // ToMap encodes the struct to a value map
 func (j GetArticlesResult) ToMap() map[string]any {
-  return map[string]any{
-    "id": j.ID,
-    "Name": j.Name,
+	var _location map[string]any
+	if j.Location != nil {
+    _location = map[string]any{
+    "Lat": j.Location.Lat,
+    "Long": j.Location.Long,
   }
+	}
+	_author := map[string]any{
+		"created_at": j.Author.CreatedAt,
+		"decimal": j.Author.Decimal,
+		"id": j.Author.ID,
+	}
+	resultMap := map[string]any{
+		"author": _author,
+		"id": j.ID,
+		"Location": _location,
+		"Name": j.Name,
+	}
+	return resultMap
 }
 // ToMap encodes the struct to a value map
 func (j HelloResult) ToMap() map[string]any {
-  return map[string]any{
+  resultMap := map[string]any{
     "foo": j.Foo,
     "id": j.ID,
     "num": j.Num,
     "text": j.Text,
   }
+  return resultMap
 }
 // ScalarName get the schema name of the scalar
 func (j CommentText) ScalarName() string {

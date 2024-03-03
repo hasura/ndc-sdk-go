@@ -3,8 +3,8 @@
   "functions": [
     {
       "arguments": {},
-      "name": "getBool",
       "description": "FunctionGetBool return an scalar boolean",
+      "name": "getBool",
       "result_type": {
         "name": "Boolean",
         "type": "named"
@@ -12,8 +12,8 @@
     },
     {
       "arguments": {},
-      "name": "hello",
       "description": "FunctionHello sends a hello message",
+      "name": "hello",
       "result_type": {
         "type": "nullable",
         "underlying_type": {
@@ -24,59 +24,111 @@
     },
     {
       "arguments": {
+        "Comment": {
+          "type": {
+            "name": "CommentString",
+            "type": "named"
+          }
+        },
         "Limit": {
           "type": {
             "name": "Float",
             "type": "named"
           }
         },
-        "Comment": { "type": { "name": "CommentString", "type": "named" } },
         "nullable_str": {
           "type": {
             "type": "nullable",
-            "underlying_type": { "name": "String", "type": "named" }
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
           }
         }
       },
       "name": "getArticles",
       "result_type": {
-        "type": "array",
         "element_type": {
           "name": "GetArticlesResult",
           "type": "named"
-        }
+        },
+        "type": "array"
       }
     }
   ],
   "object_types": {
     "Author": {
       "fields": {
-        "duration": { "type": { "name": "Duration", "type": "named" } },
-        "created_at": { "type": { "name": "DateTime", "type": "named" } },
-        "id": { "type": { "name": "String", "type": "named" } }
+        "created_at": {
+          "type": {
+            "name": "DateTime",
+            "type": "named"
+          }
+        },
+        "duration": {
+          "type": {
+            "name": "Duration",
+            "type": "named"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
       }
     },
     "CreateArticleArgumentsAuthor": {
       "fields": {
-        "decimal": { "type": { "name": "Complex", "type": "named" } },
-        "created_at": { "type": { "name": "DateTime", "type": "named" } },
-        "id": { "type": { "name": "UUID", "type": "named" } }
+        "created_at": {
+          "type": {
+            "name": "DateTime",
+            "type": "named"
+          }
+        },
+        "decimal": {
+          "type": {
+            "name": "Complex",
+            "type": "named"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "UUID",
+            "type": "named"
+          }
+        }
       }
     },
     "CreateArticleResult": {
       "fields": {
         "authors": {
           "type": {
-            "element_type": { "name": "Author", "type": "named" },
+            "element_type": {
+              "name": "Author",
+              "type": "named"
+            },
             "type": "array"
           }
         },
-        "id": { "type": { "name": "Int", "type": "named" } }
+        "id": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        }
       }
     },
     "CreateAuthorResult": {
       "description": "A create author result",
       "fields": {
+        "created_at": {
+          "type": {
+            "name": "DateTime",
+            "type": "named"
+          }
+        },
         "id": {
           "type": {
             "name": "Int",
@@ -86,12 +138,6 @@
         "name": {
           "type": {
             "name": "String",
-            "type": "named"
-          }
-        },
-        "created_at": {
-          "type": {
-            "name": "DateTime",
             "type": "named"
           }
         }
@@ -108,10 +154,23 @@
             }
           }
         },
-        "Name": { "type": { "name": "String", "type": "named" } },
-        "id": { "type": { "name": "String", "type": "named" } },
+        "Name": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
         "author": {
-          "type": { "name": "GetArticlesResultAuthor", "type": "named" }
+          "type": {
+            "name": "GetArticlesResultAuthor",
+            "type": "named"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
         }
       }
     },
@@ -156,6 +215,12 @@
     "HelloResult": {
       "description": "A hello result",
       "fields": {
+        "foo": {
+          "type": {
+            "name": "Foo",
+            "type": "named"
+          }
+        },
         "id": {
           "type": {
             "name": "UUID",
@@ -173,12 +238,6 @@
             "name": "String",
             "type": "named"
           }
-        },
-        "foo": {
-          "type": {
-            "name": "Foo",
-            "type": "named"
-          }
         }
       }
     }
@@ -187,7 +246,10 @@
     {
       "arguments": {
         "author": {
-          "type": { "name": "CreateArticleArgumentsAuthor", "type": "named" }
+          "type": {
+            "name": "CreateArticleArgumentsAuthor",
+            "type": "named"
+          }
         }
       },
       "name": "create_article",
@@ -202,10 +264,9 @@
     {
       "arguments": {},
       "name": "increase",
-      "description": null,
       "result_type": {
-        "type": "named",
-        "name": "Int"
+        "name": "Int",
+        "type": "named"
       }
     },
     {
@@ -217,8 +278,8 @@
           }
         }
       },
-      "name": "createAuthor",
       "description": "ProcedureCreateAuthor creates an author",
+      "name": "createAuthor",
       "result_type": {
         "type": "nullable",
         "underlying_type": {
@@ -231,22 +292,22 @@
       "arguments": {
         "names": {
           "type": {
-            "type": "array",
             "element_type": {
               "name": "String",
               "type": "named"
-            }
+            },
+            "type": "array"
           }
         }
       },
-      "name": "createAuthors",
       "description": "ProcedureCreateAuthors creates a list of authors",
+      "name": "createAuthors",
       "result_type": {
-        "type": "array",
         "element_type": {
           "name": "CreateAuthorResult",
           "type": "named"
-        }
+        },
+        "type": "array"
       }
     }
   ],
@@ -255,15 +316,11 @@
       "aggregate_functions": {},
       "comparison_operators": {}
     },
-    "Int": {
+    "CommentString": {
       "aggregate_functions": {},
       "comparison_operators": {}
     },
-    "Float": {
-      "aggregate_functions": {},
-      "comparison_operators": {}
-    },
-    "String": {
+    "Complex": {
       "aggregate_functions": {},
       "comparison_operators": {}
     },
@@ -271,7 +328,11 @@
       "aggregate_functions": {},
       "comparison_operators": {}
     },
-    "UUID": {
+    "Duration": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "Float": {
       "aggregate_functions": {},
       "comparison_operators": {}
     },
@@ -279,15 +340,15 @@
       "aggregate_functions": {},
       "comparison_operators": {}
     },
-    "CommentString": {
+    "Int": {
       "aggregate_functions": {},
       "comparison_operators": {}
     },
-    "Duration": {
+    "String": {
       "aggregate_functions": {},
       "comparison_operators": {}
     },
-    "Complex": {
+    "UUID": {
       "aggregate_functions": {},
       "comparison_operators": {}
     }

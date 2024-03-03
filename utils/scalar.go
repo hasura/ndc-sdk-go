@@ -3,7 +3,6 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"time"
 )
 
@@ -22,34 +21,29 @@ type ValueDecoder interface {
 	FromValue(value any) error
 }
 
-// ToValuePtr tries to convert an unknown value to a value pointer
-func ToValuePtr[T ValueDecoder](value any) (*T, error) {
+// DecodeValue tries to convert an unknown value to a value
+func DecodeValue(decoder ValueDecoder, value any) error {
 	if IsNil(value) {
-		return nil, nil
+		return nil
 	}
-	var result T
-	if err := result.FromValue(value); err != nil {
-		return nil, err
-	}
-	return &result, nil
+	return decoder.FromValue(value)
 }
 
-// ToValue tries to convert an unknown value to a value
-func ToValue[T ValueDecoder](value any) (T, error) {
-	result, err := ToValuePtr[T](value)
+// DecodeObjectValue get and decode a value from object by key
+func DecodeObjectValue(decoder ValueDecoder, object map[string]any, key string) error {
+	value, ok := GetAny(object, key)
+	if !ok || IsNil(value) {
+		return nil
+	}
+	err := decoder.FromValue(value)
 	if err != nil {
-		var empty T
-		return empty, err
+		return fmt.Errorf("%s: %s", key, err)
 	}
-	if result == nil {
-		var empty T
-		return empty, fmt.Errorf("the value of %s must not be null", reflect.TypeOf(empty).Name())
-	}
-	return *result, nil
+	return nil
 }
 
-// ToIntPtr tries to convert an unknown value to an integer pointer
-func ToIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](value any) (*T, error) {
+// DecodeIntPtr tries to convert an unknown value to an integer pointer
+func DecodeIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](value any) (*T, error) {
 	var result T
 	switch v := value.(type) {
 	case int:
@@ -122,9 +116,9 @@ func ToIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uin
 	return &result, nil
 }
 
-// ToInt tries to convert an unknown value to an integer value
-func ToInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](value any) (T, error) {
-	result, err := ToIntPtr[T](value)
+// DecodeInt tries to convert an unknown value to an integer value
+func DecodeInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](value any) (T, error) {
+	result, err := DecodeIntPtr[T](value)
 	if err != nil {
 		return T(0), err
 	}
@@ -134,8 +128,8 @@ func ToInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32
 	return *result, nil
 }
 
-// ToStringPtr tries to convert an unknown value to a string pointer
-func ToStringPtr(value any) (*string, error) {
+// DecodeStringPtr tries to convert an unknown value to a string pointer
+func DecodeStringPtr(value any) (*string, error) {
 	var result string
 	switch v := value.(type) {
 	case string:
@@ -152,9 +146,9 @@ func ToStringPtr(value any) (*string, error) {
 	return &result, nil
 }
 
-// ToString tries to convert an unknown value to a string value
-func ToString(value any) (string, error) {
-	result, err := ToStringPtr(value)
+// DecodeString tries to convert an unknown value to a string value
+func DecodeString(value any) (string, error) {
+	result, err := DecodeStringPtr(value)
 	if err != nil {
 		return "", err
 	}
@@ -164,8 +158,8 @@ func ToString(value any) (string, error) {
 	return *result, nil
 }
 
-// ToFloatPtr tries to convert an unknown value to a float pointer
-func ToFloatPtr[T float32 | float64](value any) (*T, error) {
+// DecodeFloatPtr tries to convert an unknown value to a float pointer
+func DecodeFloatPtr[T float32 | float64](value any) (*T, error) {
 	var result T
 	switch v := value.(type) {
 	case float32:
@@ -189,9 +183,9 @@ func ToFloatPtr[T float32 | float64](value any) (*T, error) {
 	return &result, nil
 }
 
-// ToFloat tries to convert an unknown value to a float value
-func ToFloat[T float32 | float64](value any) (T, error) {
-	result, err := ToFloatPtr[T](value)
+// DecodeFloat tries to convert an unknown value to a float value
+func DecodeFloat[T float32 | float64](value any) (T, error) {
+	result, err := DecodeFloatPtr[T](value)
 	if err != nil {
 		return T(0), err
 	}
@@ -201,8 +195,8 @@ func ToFloat[T float32 | float64](value any) (T, error) {
 	return *result, nil
 }
 
-// ToComplexPtr tries to convert an unknown value to a complex pointer
-func ToComplexPtr[T complex64 | complex128](value any) (*T, error) {
+// DecodeComplexPtr tries to convert an unknown value to a complex pointer
+func DecodeComplexPtr[T complex64 | complex128](value any) (*T, error) {
 	var result T
 	switch v := value.(type) {
 	case complex64:
@@ -226,9 +220,9 @@ func ToComplexPtr[T complex64 | complex128](value any) (*T, error) {
 	return &result, nil
 }
 
-// ToComplex tries to convert an unknown value to a complex value
-func ToComplex[T complex64 | complex128](value any) (T, error) {
-	result, err := ToComplexPtr[T](value)
+// DecodeComplex tries to convert an unknown value to a complex value
+func DecodeComplex[T complex64 | complex128](value any) (T, error) {
+	result, err := DecodeComplexPtr[T](value)
 	if err != nil {
 		return T(0), err
 	}
@@ -238,8 +232,8 @@ func ToComplex[T complex64 | complex128](value any) (T, error) {
 	return *result, nil
 }
 
-// ToBooleanPtr tries to convert an unknown value to a bool pointer
-func ToBooleanPtr(value any) (*bool, error) {
+// DecodeBooleanPtr tries to convert an unknown value to a bool pointer
+func DecodeBooleanPtr(value any) (*bool, error) {
 	var result bool
 	switch v := value.(type) {
 	case bool:
@@ -256,9 +250,9 @@ func ToBooleanPtr(value any) (*bool, error) {
 	return &result, nil
 }
 
-// ToBoolean tries to convert an unknown value to a bool value
-func ToBoolean(value any) (bool, error) {
-	result, err := ToBooleanPtr(value)
+// DecodeBoolean tries to convert an unknown value to a bool value
+func DecodeBoolean(value any) (bool, error) {
+	result, err := DecodeBooleanPtr(value)
 	if err != nil {
 		return false, err
 	}
@@ -268,8 +262,8 @@ func ToBoolean(value any) (bool, error) {
 	return *result, nil
 }
 
-// ToDateTimePtr tries to convert an unknown value to a time.Time pointer
-func ToDateTimePtr(value any) (*time.Time, error) {
+// DecodeDateTimePtr tries to convert an unknown value to a time.Time pointer
+func DecodeDateTimePtr(value any) (*time.Time, error) {
 	var result time.Time
 	switch v := value.(type) {
 	case time.Time:
@@ -287,7 +281,7 @@ func ToDateTimePtr(value any) (*time.Time, error) {
 		}
 		return parseDateTime(*v)
 	default:
-		i64, err := ToIntPtr[int64](v)
+		i64, err := DecodeIntPtr[int64](v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert DateTime, got %v", value)
 		}
@@ -300,9 +294,9 @@ func ToDateTimePtr(value any) (*time.Time, error) {
 	return &result, nil
 }
 
-// ToDateTime tries to convert an unknown value to a time.Time value
-func ToDateTime(value any) (time.Time, error) {
-	result, err := ToDateTimePtr(value)
+// DecodeDateTime tries to convert an unknown value to a time.Time value
+func DecodeDateTime(value any) (time.Time, error) {
+	result, err := DecodeDateTimePtr(value)
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -325,8 +319,8 @@ func parseDateTime(value string) (*time.Time, error) {
 	return nil, fmt.Errorf("failed to parse time from string: %s", value)
 }
 
-// ToDurationPtr tries to convert an unknown value to a duration pointer
-func ToDurationPtr(value any) (*time.Duration, error) {
+// DecodeDurationPtr tries to convert an unknown value to a duration pointer
+func DecodeDurationPtr(value any) (*time.Duration, error) {
 	var result time.Duration
 	switch v := value.(type) {
 	case time.Duration:
@@ -352,7 +346,7 @@ func ToDurationPtr(value any) (*time.Duration, error) {
 		}
 		result = dur
 	default:
-		i64, err := ToIntPtr[int64](v)
+		i64, err := DecodeIntPtr[int64](v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert DateTime, got %v", value)
 		}
@@ -365,9 +359,9 @@ func ToDurationPtr(value any) (*time.Duration, error) {
 	return &result, nil
 }
 
-// ToDuration tries to convert an unknown value to a duration value
-func ToDuration(value any) (time.Duration, error) {
-	result, err := ToDurationPtr(value)
+// DecodeDuration tries to convert an unknown value to a duration value
+func DecodeDuration(value any) (time.Duration, error) {
+	result, err := DecodeDurationPtr(value)
 	if err != nil {
 		return time.Duration(0), err
 	}
@@ -386,40 +380,13 @@ func GetAny(object map[string]any, key string) (any, bool) {
 	return value, ok
 }
 
-// GetValuePtr get a scalar pointer from object by key
-func GetValuePtr[T ValueDecoder](object map[string]any, key string) (*T, error) {
-	value, ok := GetAny(object, key)
-	if !ok || value == nil {
-		return nil, nil
-	}
-	result, err := ToValuePtr[T](value)
-	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
-	}
-	return result, nil
-}
-
-// GetScalar get a scalar value from object by key
-func GetScalar[T ValueDecoder](object map[string]any, key string) (T, error) {
-	value, ok := GetAny(object, key)
-	if !ok {
-		var empty T
-		return empty, fmt.Errorf("field `%s` does not exist", key)
-	}
-	result, err := ToValue[T](value)
-	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
-	}
-	return result, nil
-}
-
 // GetIntPtr get an integer pointer from object by key
 func GetIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := ToIntPtr[T](value)
+	result, err := DecodeIntPtr[T](value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -432,7 +399,7 @@ func GetInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint3
 	if !ok {
 		return 0, fmt.Errorf("field `%s` does not exist", key)
 	}
-	result, err := ToInt[T](value)
+	result, err := DecodeInt[T](value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -445,7 +412,7 @@ func GetFloatPtr[T float32 | float64](object map[string]any, key string) (*T, er
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := ToFloatPtr[T](value)
+	result, err := DecodeFloatPtr[T](value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -458,7 +425,7 @@ func GetFloat[T float32 | float64](object map[string]any, key string) (T, error)
 	if !ok {
 		return 0, fmt.Errorf("field `%s` does not exist", key)
 	}
-	result, err := ToFloat[T](value)
+	result, err := DecodeFloat[T](value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -471,7 +438,7 @@ func GetComplexPtr[T complex64 | complex128](object map[string]any, key string) 
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := ToComplexPtr[T](value)
+	result, err := DecodeComplexPtr[T](value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -484,7 +451,7 @@ func GetComplex[T complex64 | complex128](object map[string]any, key string) (T,
 	if !ok {
 		return 0, fmt.Errorf("field `%s` does not exist", key)
 	}
-	result, err := ToComplex[T](value)
+	result, err := DecodeComplex[T](value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -497,7 +464,7 @@ func GetStringPtr(object map[string]any, key string) (*string, error) {
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := ToStringPtr(value)
+	result, err := DecodeStringPtr(value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -510,7 +477,7 @@ func GetString(object map[string]any, key string) (string, error) {
 	if !ok {
 		return "", fmt.Errorf("field `%s` does not exist", key)
 	}
-	result, err := ToString(value)
+	result, err := DecodeString(value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -523,7 +490,7 @@ func GetBoolPtr(object map[string]any, key string) (*bool, error) {
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := ToBooleanPtr(value)
+	result, err := DecodeBooleanPtr(value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -536,7 +503,7 @@ func GetBool(object map[string]any, key string) (bool, error) {
 	if !ok {
 		return false, fmt.Errorf("field `%s` does not exist", key)
 	}
-	result, err := ToBoolean(value)
+	result, err := DecodeBoolean(value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -549,7 +516,7 @@ func GetDateTimePtr(object map[string]any, key string) (*time.Time, error) {
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := ToDateTimePtr(value)
+	result, err := DecodeDateTimePtr(value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -562,7 +529,7 @@ func GetDateTime(object map[string]any, key string) (time.Time, error) {
 	if !ok {
 		return time.Time{}, fmt.Errorf("field `%s` does not exist", key)
 	}
-	result, err := ToDateTime(value)
+	result, err := DecodeDateTime(value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -575,7 +542,7 @@ func GetDurationPtr(object map[string]any, key string) (*time.Duration, error) {
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := ToDurationPtr(value)
+	result, err := DecodeDurationPtr(value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -588,7 +555,7 @@ func GetDuration(object map[string]any, key string) (time.Duration, error) {
 	if !ok {
 		return 0, fmt.Errorf("field `%s` does not exist", key)
 	}
-	result, err := ToDuration(value)
+	result, err := DecodeDuration(value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}

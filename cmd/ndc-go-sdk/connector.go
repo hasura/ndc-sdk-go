@@ -266,7 +266,7 @@ func (cg *connectorGenerator) genTypeMethods() error {
 }
 
 func (cg *connectorGenerator) genObjectMethods() error {
-	if len(cg.rawSchema.Functions) == 0 {
+	if len(cg.rawSchema.Objects) == 0 {
 		return nil
 	}
 
@@ -274,22 +274,70 @@ func (cg *connectorGenerator) genObjectMethods() error {
 
 	for _, objectName := range objectKeys {
 		object := cg.rawSchema.Objects[objectName]
+		if object.IsAnonymous {
+			continue
+		}
 		sb := cg.getTypeBuilder(object.PackageName, object.PackageName)
 		_, _ = sb.WriteString(fmt.Sprintf(`
 // ToMap encodes the struct to a value map
 func (j %s) ToMap() map[string]any {
-  return map[string]any{
 `, objectName))
-		fieldKeys := getSortedKeys(object.Fields)
-
-		for _, fieldKey := range fieldKeys {
-			field := object.Fields[fieldKey]
-			_, _ = sb.WriteString(fmt.Sprintf("    \"%s\": j.%s,\n", field.Key, field.Name))
-		}
-		sb.WriteString("  }\n}")
+		lines := cg.genObjectToMap(object, "j", "resultMap", false)
+		sb.WriteString(strings.Join(lines, "\n"))
+		sb.WriteString(`
+	return resultMap
+}`)
 	}
 
 	return nil
+}
+
+func genVariableName(name string) string {
+	return fmt.Sprintf("_%s", camelCase(name))
+}
+
+func (cg *connectorGenerator) genObjectToMap(object *ObjectInfo, selector string, name string, nullable bool) []string {
+
+	fieldKeys := getSortedKeys(object.Fields)
+	var lines []string
+	if nullable {
+		lines = []string{fmt.Sprintf(`  
+  var %s map[string]any
+	if %s != nil {
+    %s = map[string]any{`, name, selector, name)}
+	} else {
+		lines = []string{fmt.Sprintf("  %s := map[string]any{", name)}
+	}
+
+	for _, fieldKey := range fieldKeys {
+		field := object.Fields[fieldKey]
+		if field.Type.IsScalar {
+			lines = append(lines, fmt.Sprintf("    \"%s\": %s.%s,", field.Key, selector, field.Name))
+			continue
+		}
+		innerObject, ok := cg.rawSchema.Objects[field.Type.Name]
+		if !ok {
+			lines = append(lines, fmt.Sprintf("    \"%s\": %s.%s,", field.Key, selector, field.Name))
+			continue
+		}
+		if !innerObject.IsAnonymous {
+			if field.Type.IsArray {
+				lines = append(lines, fmt.Sprintf("    \"%s\": utils.EncodeMaps(%s.%s),", field.Key, selector, field.Name))
+			} else {
+				lines = append(lines, fmt.Sprintf("    \"%s\": utils.EncodeMap(%s.%s),", field.Key, selector, field.Name))
+			}
+			continue
+		}
+		varName := genVariableName(field.Key)
+		childLines := cg.genObjectToMap(innerObject, fmt.Sprintf("%s.%s", selector, field.Name), varName, field.Type.IsNullable)
+		lines = append(childLines, lines...)
+		lines = append(lines, fmt.Sprintf("    \"%s\": %s,", field.Key, varName))
+	}
+	lines = append(lines, "  }")
+	if nullable {
+		lines = append(lines, "  }")
+	}
+	return lines
 }
 
 // generate Scalar implementation for custom scalar types
@@ -383,7 +431,7 @@ func genGetTypeValueDecoder(ty *TypeInfo, key string, fieldName string) string {
 	case "complex64", "complex128":
 		_, _ = sb.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetComplex[%s](input, "%s")`, fieldName, typeName, key))
 	case "*complex64", "*complex128":
-		_, _ = sb.WriteString(fmt.Sprintf(`  j.%s, err = utils.Ptr[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
+		_, _ = sb.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetComplexPtr[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
 	case "time.Time":
 		_, _ = sb.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTime(input, "%s")`, fieldName, key))
 	case "*time.Time":
@@ -395,9 +443,9 @@ func genGetTypeValueDecoder(ty *TypeInfo, key string, fieldName string) string {
 	default:
 		switch ty.Schema.(type) {
 		case *schema.NamedType:
-			_, _ = sb.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetValue[%s](input, "%s")`, fieldName, typeName, key))
+			_, _ = sb.WriteString(fmt.Sprintf(`  err = utils.DecodeObjectValue(&j.%s, input, "%s")`, fieldName, key))
 		case *schema.NullableType:
-			_, _ = sb.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetValuePtr[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
+			_, _ = sb.WriteString(fmt.Sprintf(`  err = utils.DecodeObjectValue(j.%s, input, "%s")`, fieldName, key))
 		}
 	}
 	_, _ = sb.WriteString(textBlockErrorCheck)

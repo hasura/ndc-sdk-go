@@ -2,12 +2,13 @@ package functions
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hasura/ndc-codegen-example/types"
 )
-
-type State struct{}
 
 type Text string
 
@@ -24,14 +25,14 @@ func (s *ScalarFoo) FromValue(value any) error {
 
 // A hello result
 type HelloResult struct {
-	ID 		uuid.UUID `json:"id"`
-	Num 	int    		`json:"num"`
-	Text 	Text 			`json:"text"`
-	Foo 	ScalarFoo `json:"foo"`
+	ID   uuid.UUID `json:"id"`
+	Num  int       `json:"num"`
+	Text Text      `json:"text"`
+	Foo  ScalarFoo `json:"foo"`
 }
 
 // FunctionHello sends a hello message
-func FunctionHello(ctx context.Context, state *State) (*HelloResult, error) {
+func FunctionHello(ctx context.Context, state *types.State) (*HelloResult, error) {
 	return &HelloResult{
 		ID:   uuid.New(),
 		Num:  1,
@@ -51,13 +52,13 @@ type CreateAuthorsArguments struct {
 
 // A create author result
 type CreateAuthorResult struct {
-	ID   			int    `json:"id"`
-	Name 			string `json:"name"`
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
 // ProcedureCreateAuthor creates an author
-func ProcedureCreateAuthor(ctx context.Context, state *State, arguments *CreateAuthorArguments) (*CreateAuthorResult, error) {
+func ProcedureCreateAuthor(ctx context.Context, state *types.State, arguments *CreateAuthorArguments) (*CreateAuthorResult, error) {
 	return &CreateAuthorResult{
 		ID:   1,
 		Name: arguments.Name,
@@ -65,7 +66,7 @@ func ProcedureCreateAuthor(ctx context.Context, state *State, arguments *CreateA
 }
 
 // ProcedureCreateAuthors creates a list of authors
-func ProcedureCreateAuthors(ctx context.Context, state *State, arguments *CreateAuthorsArguments) ([]CreateAuthorResult, error) {
+func ProcedureCreateAuthors(ctx context.Context, state *types.State, arguments *CreateAuthorsArguments) ([]CreateAuthorResult, error) {
 	return []CreateAuthorResult{
 		{
 			ID:   1,
@@ -75,6 +76,6 @@ func ProcedureCreateAuthors(ctx context.Context, state *State, arguments *Create
 }
 
 // FunctionGetBool return an scalar boolean
-func FunctionGetBool(ctx context.Context, state *State) (bool, error) {
+func FunctionGetBool(ctx context.Context, state *types.State) (bool, error) {
 	return true, nil
 }

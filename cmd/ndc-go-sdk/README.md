@@ -197,6 +197,15 @@ type Foo struct {}
 
 > The generator detects comments by the nearby position. It isn't perfectly accurate in some use cases. Prefix name in function is highly recommended.
 
+For custom scalar, you must implement a method to decode `any` value so its data can be set when resolving request query arguments. `UnmarshalJSON` is used when encoding results.
+
+```go
+func (c *ScalarFoo) FromValue(value any) (err error) {
+	c.Bar, err = utils.DecodeString(value)
+	return
+}
+```
+
 ### Documentation
 
 The tool parses comments of functions and types by the nearby code position to description properties in the schema. For example:
@@ -211,3 +220,7 @@ func ProcedureCreateAuthor(ctx context.Context, state *types.State, arguments *C
 //   ...
 // }
 ```
+
+### Example
+
+See [example/codegen](../../example/codegen).

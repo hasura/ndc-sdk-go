@@ -9,8 +9,16 @@ import (
 	"github.com/hasura/ndc-sdk-go/schema"
 )
 
-// ToMaps encodes objects to a slice of map[string]any, using json tag to convert object keys
-func ToMaps[T MapEncoder](inputs []T) []map[string]any {
+// EncodeMap encodes an object to a map[string]any, using json tag to convert object keys
+func EncodeMap[T MapEncoder](input T) map[string]any {
+	if IsNil(input) {
+		return nil
+	}
+	return input.ToMap()
+}
+
+// EncodeMaps encode objects to a slice of map[string]any, using json tag to convert object keys
+func EncodeMaps[T MapEncoder](inputs []T) []map[string]any {
 	var results []map[string]any
 	for _, item := range inputs {
 		results = append(results, item.ToMap())
