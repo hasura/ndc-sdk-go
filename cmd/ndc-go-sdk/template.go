@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"embed"
-	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -55,11 +54,14 @@ func generateNewProject(name string, moduleName string, srcPath string) error {
 		return err
 	}
 
-	return errors.Join(
-		execGoModTidy(""),
-		execGoGetUpdate(".", "github.com/hasura/ndc-sdk-go"),
-		execGoFormat("."),
-	)
+	if err := execGoModTidy(""); err != nil {
+		return err
+	}
+
+	if err := execGoGetUpdate(".", "github.com/hasura/ndc-sdk-go"); err != nil {
+		return err
+	}
+	return execGoFormat(".")
 }
 
 func generateNewProjectFiles(name string, moduleName string, srcPath string) error {
