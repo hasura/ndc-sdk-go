@@ -25,7 +25,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
 	traceapi "go.opentelemetry.io/otel/trace"
 )
 
@@ -182,10 +182,12 @@ func setupOTelSDK(ctx context.Context, serverOptions *ServerOptions, serviceVers
 	otel.SetMeterProvider(meterProvider)
 
 	shutdownFunc := func(ctx context.Context) error {
-		return errors.Join(
-			traceProvider.Shutdown(ctx),
-			meterProvider.Shutdown(ctx),
-		)
+		tErr := traceProvider.Shutdown(ctx)
+		mErr := meterProvider.Shutdown(ctx)
+		if tErr != nil || mErr != nil {
+			return errors.New(strings.Join([]string{tErr.Error(), mErr.Error()}, ","))
+		}
+		return nil
 	}
 
 	state := &TelemetryState{
