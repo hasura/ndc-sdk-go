@@ -49,7 +49,47 @@ type TypeInfo struct {
 	PackagePath string
 	PackageName string
 	IsScalar    bool
+	IsNullable  bool
+	IsArray     bool
+	TypeAST     types.Type
 	Schema      schema.TypeEncoder
+}
+
+// ObjectField represents the serialization information of an object field
+type ObjectField struct {
+	Name string
+	Key  string
+	Type *TypeInfo
+}
+
+// ObjectInfo represents the serialization information of an object type
+type ObjectInfo struct {
+	PackagePath string
+	PackageName string
+	Fields      map[string]*ObjectField
+}
+
+// ArgumentInfo represents the serialization information of an argument type
+type ArgumentInfo struct {
+	FieldName   string
+	Description *string
+	Type        *TypeInfo
+}
+
+// Schema converts to ArgumentInfo schema
+func (ai ArgumentInfo) Schema() schema.ArgumentInfo {
+	return schema.ArgumentInfo{
+		Description: ai.Description,
+		Type:        ai.Type.Schema.Encode(),
+	}
+}
+
+func buildArgumentInfosSchema(input map[string]ArgumentInfo) map[string]schema.ArgumentInfo {
+	result := make(map[string]schema.ArgumentInfo)
+	for k, arg := range input {
+		result[k] = arg.Schema()
+	}
+	return result
 }
 
 // FunctionInfo represents a readable Go function info
@@ -61,7 +101,7 @@ type OperationInfo struct {
 	PackageName   string
 	Description   *string
 	ArgumentsType string
-	Arguments     schema.FunctionInfoArguments
+	Arguments     map[string]ArgumentInfo
 	ResultType    *TypeInfo
 }
 
@@ -75,7 +115,7 @@ func (op FunctionInfo) Schema() schema.FunctionInfo {
 		Name:        op.Name,
 		Description: op.Description,
 		ResultType:  op.ResultType.Schema.Encode(),
-		Arguments:   op.Arguments,
+		Arguments:   buildArgumentInfosSchema(op.Arguments),
 	}
 	return result
 }
@@ -90,7 +130,7 @@ func (op ProcedureInfo) Schema() schema.ProcedureInfo {
 		Name:        op.Name,
 		Description: op.Description,
 		ResultType:  op.ResultType.Schema.Encode(),
-		Arguments:   schema.ProcedureInfoArguments(op.Arguments),
+		Arguments:   schema.ProcedureInfoArguments(buildArgumentInfosSchema(op.Arguments)),
 	}
 	return result
 }
@@ -98,23 +138,23 @@ func (op ProcedureInfo) Schema() schema.ProcedureInfo {
 // RawConnectorSchema represents a readable Go schema object
 // which can encode to NDC schema
 type RawConnectorSchema struct {
-	Imports    map[string]bool
-	Scalars    schema.SchemaResponseScalarTypes
-	Objects    schema.SchemaResponseObjectTypes
-	Functions  []FunctionInfo
-	Procedures []ProcedureInfo
-	Types      map[string]TypeInfo
+	Imports       map[string]bool
+	Scalars       schema.SchemaResponseScalarTypes
+	Objects       map[string]*ObjectInfo
+	ObjectSchemas schema.SchemaResponseObjectTypes
+	Functions     []FunctionInfo
+	Procedures    []ProcedureInfo
 }
 
 // NewRawConnectorSchema creates an empty RawConnectorSchema instance
 func NewRawConnectorSchema() *RawConnectorSchema {
 	return &RawConnectorSchema{
-		Imports:    make(map[string]bool),
-		Scalars:    make(schema.SchemaResponseScalarTypes),
-		Objects:    make(schema.SchemaResponseObjectTypes),
-		Functions:  []FunctionInfo{},
-		Procedures: []ProcedureInfo{},
-		Types:      make(map[string]TypeInfo),
+		Imports:       make(map[string]bool),
+		Scalars:       make(schema.SchemaResponseScalarTypes),
+		Objects:       make(map[string]*ObjectInfo),
+		ObjectSchemas: make(schema.SchemaResponseObjectTypes),
+		Functions:     []FunctionInfo{},
+		Procedures:    []ProcedureInfo{},
 	}
 }
 
@@ -122,7 +162,7 @@ func NewRawConnectorSchema() *RawConnectorSchema {
 func (rcs RawConnectorSchema) Schema() *schema.SchemaResponse {
 	result := &schema.SchemaResponse{
 		ScalarTypes: rcs.Scalars,
-		ObjectTypes: rcs.Objects,
+		ObjectTypes: rcs.ObjectSchemas,
 		Collections: []schema.CollectionInfo{},
 	}
 	for _, function := range rcs.Functions {
@@ -246,7 +286,6 @@ func (sp *SchemaParser) parseRawConnectorSchema(rawSchema *RawConnectorSchema, p
 				return err
 			}
 			opInfo.ResultType = resultType
-			rawSchema.Types[resultType.Name] = *resultType
 
 			switch opInfo.Kind {
 			case OperationProcedure:
@@ -260,25 +299,35 @@ func (sp *SchemaParser) parseRawConnectorSchema(rawSchema *RawConnectorSchema, p
 	return nil
 }
 
-func (sp *SchemaParser) parseArgumentTypes(rawSchema *RawConnectorSchema, ty types.Type, fieldPaths []string) (map[string]schema.ArgumentInfo, string, error) {
+func (sp *SchemaParser) parseArgumentTypes(rawSchema *RawConnectorSchema, ty types.Type, fieldPaths []string) (map[string]ArgumentInfo, string, error) {
+
 	switch inferredType := ty.(type) {
 	case *types.Pointer:
 		return sp.parseArgumentTypes(rawSchema, inferredType.Elem(), fieldPaths)
 	case *types.Struct:
-		result := make(map[string]schema.ArgumentInfo)
+		result := make(map[string]ArgumentInfo)
 		for i := 0; i < inferredType.NumFields(); i++ {
 			fieldVar := inferredType.Field(i)
 			fieldTag := inferredType.Tag(i)
-			fieldType, err := sp.parseType(rawSchema, nil, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false)
+			fieldPackage := fieldVar.Pkg()
+			var typeInfo *TypeInfo
+			if fieldPackage != nil {
+				typeInfo = &TypeInfo{
+					PackageName: fieldPackage.Name(),
+					PackagePath: fieldPackage.Path(),
+				}
+			}
+			fieldType, err := sp.parseType(rawSchema, typeInfo, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false)
 			if err != nil {
 				return nil, "", err
 			}
-			if _, ok := rawSchema.Types[fieldType.Name]; !ok {
-				rawSchema.Types[fieldType.Name] = *fieldType
-			}
 			fieldName := formatFieldName(fieldVar.Name(), fieldTag)
-			result[fieldName] = schema.ArgumentInfo{
-				Type: fieldType.Schema.Encode(),
+			if fieldType.TypeAST == nil {
+				fieldType.TypeAST = fieldVar.Type()
+			}
+			result[fieldName] = ArgumentInfo{
+				FieldName: fieldVar.Name(),
+				Type:      fieldType,
 			}
 		}
 		return result, "", nil
@@ -310,20 +359,37 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			Description: innerType.Description,
 			PackagePath: innerType.PackagePath,
 			PackageName: innerType.PackageName,
+			TypeAST:     ty,
+			IsNullable:  true,
 			Schema:      schema.NewNullableType(innerType.Schema),
 		}, nil
 	case *types.Struct:
 		if rootType == nil {
-			name := strings.Join(fieldPaths, "")
-			rootType = &TypeInfo{
-				Name:       name,
-				SchemaName: name,
-				Schema:     schema.NewNamedType(name),
-			}
+			rootType = &TypeInfo{}
+		}
+
+		name := strings.Join(fieldPaths, "")
+		if rootType.Name == "" {
+			rootType.Name = name
+		}
+		if rootType.SchemaName == "" {
+			rootType.SchemaName = name
+		}
+		if rootType.TypeAST == nil {
+			rootType.TypeAST = ty
+		}
+
+		if rootType.Schema == nil {
+			rootType.Schema = schema.NewNamedType(name)
 		}
 		objType := schema.ObjectType{
 			Description: rootType.Description,
 			Fields:      make(schema.ObjectTypeFields),
+		}
+		objFields := &ObjectInfo{
+			PackagePath: rootType.PackagePath,
+			PackageName: rootType.PackageName,
+			Fields:      map[string]*ObjectField{},
 		}
 		for i := 0; i < inferredType.NumFields(); i++ {
 			fieldVar := inferredType.Field(i)
@@ -332,12 +398,18 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			if err != nil {
 				return nil, err
 			}
-			fieldName := formatFieldName(fieldVar.Name(), fieldTag)
-			objType.Fields[fieldName] = schema.ObjectField{
+			fieldKey := formatFieldName(fieldVar.Name(), fieldTag)
+			objType.Fields[fieldKey] = schema.ObjectField{
 				Type: fieldType.Schema.Encode(),
 			}
+			objFields.Fields[fieldVar.Name()] = &ObjectField{
+				Name: fieldVar.Name(),
+				Key:  fieldKey,
+				Type: fieldType,
+			}
 		}
-		rawSchema.Objects[rootType.Name] = objType
+		rawSchema.ObjectSchemas[rootType.Name] = objType
+		rawSchema.Objects[rootType.Name] = objFields
 
 		return rootType, nil
 	case *types.Named:
@@ -373,14 +445,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			}
 		}
 
-		existingType, ok := rawSchema.Types[innerType.Name()]
-		if ok {
-			// TODO: check the type with the same name but different package
-			return &existingType, nil
-		}
-
 		if typeInfo.IsScalar {
-			rawSchema.Types[innerType.Name()] = *typeInfo
 			rawSchema.Scalars[typeInfo.SchemaName] = *schema.NewScalarType()
 			return typeInfo, nil
 		}
@@ -414,6 +479,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			rootType = &TypeInfo{
 				Name:       inferredType.Name(),
 				SchemaName: inferredType.Name(),
+				TypeAST:    ty,
 			}
 		}
 
@@ -435,6 +501,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			return nil, err
 		}
 
+		innerType.IsArray = true
 		innerType.Schema = schema.NewArrayType(innerType.Schema)
 		return innerType, nil
 	default:
@@ -494,7 +561,7 @@ func (sp *SchemaParser) parseOperationInfo(functionName string, pos token.Pos) *
 
 	result := OperationInfo{
 		OriginName: functionName,
-		Arguments:  make(schema.FunctionInfoArguments),
+		Arguments:  make(map[string]ArgumentInfo),
 	}
 
 	var descriptions []string

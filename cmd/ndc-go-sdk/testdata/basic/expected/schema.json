@@ -167,6 +167,28 @@
           "type": "named"
         }
       }
+    },
+    {
+      "arguments": {
+        "names": {
+          "type": {
+            "type": "array",
+            "element_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        }
+      },
+      "name": "createAuthors",
+      "description": "ProcedureCreateAuthors creates a list of authors",
+      "result_type": {
+        "type": "array",
+        "element_type": {
+          "name": "CreateAuthorResult",
+          "type": "named"
+        }
+      }
     }
   ],
   "scalar_types": {

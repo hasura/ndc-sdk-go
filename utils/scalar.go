@@ -3,10 +3,47 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 )
 
-// ToIntPtr tries to convert an interface to an integer pointer
+// MapEncoder abstracts a type with the ToMap method to encode type to map
+type MapEncoder interface {
+	ToMap() map[string]any
+}
+
+// ValueDecoder abstracts a type with the FromValue method to decode any value
+type ValueDecoder interface {
+	FromValue(value any) error
+}
+
+// ToValuePtr tries to convert an unknown value to a value pointer
+func ToValuePtr[T ValueDecoder](value any) (*T, error) {
+	if IsNil(value) {
+		return nil, nil
+	}
+	var result T
+	if err := result.FromValue(value); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// ToValue tries to convert an unknown value to a value
+func ToValue[T ValueDecoder](value any) (T, error) {
+	result, err := ToValuePtr[T](value)
+	if err != nil {
+		var empty T
+		return empty, err
+	}
+	if result == nil {
+		var empty T
+		return empty, fmt.Errorf("the value of %s must not be null", reflect.TypeOf(empty).Name())
+	}
+	return *result, nil
+}
+
+// ToIntPtr tries to convert an unknown value to an integer pointer
 func ToIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](value any) (*T, error) {
 	var result T
 	switch v := value.(type) {
@@ -80,7 +117,7 @@ func ToIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uin
 	return &result, nil
 }
 
-// ToInt tries to convert an interface to an integer value
+// ToInt tries to convert an unknown value to an integer value
 func ToInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](value any) (T, error) {
 	result, err := ToIntPtr[T](value)
 	if err != nil {
@@ -92,7 +129,7 @@ func ToInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32
 	return *result, nil
 }
 
-// ToStringPtr tries to convert an interface to a string pointer
+// ToStringPtr tries to convert an unknown value to a string pointer
 func ToStringPtr(value any) (*string, error) {
 	var result string
 	switch v := value.(type) {
@@ -110,7 +147,7 @@ func ToStringPtr(value any) (*string, error) {
 	return &result, nil
 }
 
-// ToString tries to convert an interface to a string value
+// ToString tries to convert an unknown value to a string value
 func ToString(value any) (string, error) {
 	result, err := ToStringPtr(value)
 	if err != nil {
@@ -122,7 +159,7 @@ func ToString(value any) (string, error) {
 	return *result, nil
 }
 
-// ToFloatPtr tries to convert an interface to a float pointer
+// ToFloatPtr tries to convert an unknown value to a float pointer
 func ToFloatPtr[T float32 | float64](value any) (*T, error) {
 	var result T
 	switch v := value.(type) {
@@ -147,7 +184,7 @@ func ToFloatPtr[T float32 | float64](value any) (*T, error) {
 	return &result, nil
 }
 
-// ToFloat tries to convert an interface to a float value
+// ToFloat tries to convert an unknown value to a float value
 func ToFloat[T float32 | float64](value any) (T, error) {
 	result, err := ToFloatPtr[T](value)
 	if err != nil {
@@ -159,7 +196,7 @@ func ToFloat[T float32 | float64](value any) (T, error) {
 	return *result, nil
 }
 
-// ToComplexPtr tries to convert an interface to a complex pointer
+// ToComplexPtr tries to convert an unknown value to a complex pointer
 func ToComplexPtr[T complex64 | complex128](value any) (*T, error) {
 	var result T
 	switch v := value.(type) {
@@ -184,7 +221,7 @@ func ToComplexPtr[T complex64 | complex128](value any) (*T, error) {
 	return &result, nil
 }
 
-// ToComplex tries to convert an interface to a complex value
+// ToComplex tries to convert an unknown value to a complex value
 func ToComplex[T complex64 | complex128](value any) (T, error) {
 	result, err := ToComplexPtr[T](value)
 	if err != nil {
@@ -196,7 +233,7 @@ func ToComplex[T complex64 | complex128](value any) (T, error) {
 	return *result, nil
 }
 
-// ToBooleanPtr tries to convert an interface to a bool pointer
+// ToBooleanPtr tries to convert an unknown value to a bool pointer
 func ToBooleanPtr(value any) (*bool, error) {
 	var result bool
 	switch v := value.(type) {
@@ -214,7 +251,7 @@ func ToBooleanPtr(value any) (*bool, error) {
 	return &result, nil
 }
 
-// ToBoolean tries to convert an interface to a bool value
+// ToBoolean tries to convert an unknown value to a bool value
 func ToBoolean(value any) (bool, error) {
 	result, err := ToBooleanPtr(value)
 	if err != nil {
@@ -226,7 +263,7 @@ func ToBoolean(value any) (bool, error) {
 	return *result, nil
 }
 
-// ToDateTimePtr tries to convert an interface to a time.Time pointer
+// ToDateTimePtr tries to convert an unknown value to a time.Time pointer
 func ToDateTimePtr(value any) (*time.Time, error) {
 	var result time.Time
 	switch v := value.(type) {
@@ -258,7 +295,7 @@ func ToDateTimePtr(value any) (*time.Time, error) {
 	return &result, nil
 }
 
-// ToDateTime tries to convert an interface to a time.Time value
+// ToDateTime tries to convert an unknown value to a time.Time value
 func ToDateTime(value any) (time.Time, error) {
 	result, err := ToDateTimePtr(value)
 	if err != nil {
@@ -283,7 +320,7 @@ func parseDateTime(value string) (*time.Time, error) {
 	return nil, fmt.Errorf("failed to parse time from string: %s", value)
 }
 
-// ToDurationPtr tries to convert an interface to a duration pointer
+// ToDurationPtr tries to convert an unknown value to a duration pointer
 func ToDurationPtr(value any) (*time.Duration, error) {
 	var result time.Duration
 	switch v := value.(type) {
@@ -323,7 +360,7 @@ func ToDurationPtr(value any) (*time.Duration, error) {
 	return &result, nil
 }
 
-// ToDuration tries to convert an interface to a duration value
+// ToDuration tries to convert an unknown value to a duration value
 func ToDuration(value any) (time.Duration, error) {
 	result, err := ToDurationPtr(value)
 	if err != nil {
@@ -344,13 +381,44 @@ func GetAny(object map[string]any, key string) (any, bool) {
 	return value, ok
 }
 
+// GetValuePtr get a scalar pointer from object by key
+func GetValuePtr[T ValueDecoder](object map[string]any, key string) (*T, error) {
+	value, ok := GetAny(object, key)
+	if !ok || value == nil {
+		return nil, nil
+	}
+	result, err := ToValuePtr[T](value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+// GetScalar get a scalar value from object by key
+func GetScalar[T ValueDecoder](object map[string]any, key string) (T, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		var empty T
+		return empty, fmt.Errorf("field `%s` does not exist", key)
+	}
+	result, err := ToValue[T](value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
 // GetIntPtr get an integer pointer from object by key
 func GetIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
 	}
-	return ToIntPtr[T](value)
+	result, err := ToIntPtr[T](value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
 }
 
 // GetInt get an integer value from object by key
@@ -359,7 +427,11 @@ func GetInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint3
 	if !ok {
 		return 0, fmt.Errorf("field `%s` does not exist", key)
 	}
-	return ToInt[T](value)
+	result, err := ToInt[T](value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
 }
 
 // GetFloatPtr get a float pointer from object by key
@@ -368,7 +440,11 @@ func GetFloatPtr[T float32 | float64](object map[string]any, key string) (*T, er
 	if !ok || value == nil {
 		return nil, nil
 	}
-	return ToFloatPtr[T](value)
+	result, err := ToFloatPtr[T](value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
 }
 
 // GetFloat get a float value from object by key
@@ -377,7 +453,11 @@ func GetFloat[T float32 | float64](object map[string]any, key string) (T, error)
 	if !ok {
 		return 0, fmt.Errorf("field `%s` does not exist", key)
 	}
-	return ToFloat[T](value)
+	result, err := ToFloat[T](value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
 }
 
 // GetComplexPtr get a complex pointer from object by key
@@ -386,7 +466,11 @@ func GetComplexPtr[T complex64 | complex128](object map[string]any, key string) 
 	if !ok || value == nil {
 		return nil, nil
 	}
-	return ToComplexPtr[T](value)
+	result, err := ToComplexPtr[T](value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
 }
 
 // GetComplex get a complex value from object by key
@@ -395,7 +479,11 @@ func GetComplex[T complex64 | complex128](object map[string]any, key string) (T,
 	if !ok {
 		return 0, fmt.Errorf("field `%s` does not exist", key)
 	}
-	return ToComplex[T](value)
+	result, err := ToComplex[T](value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
 }
 
 // GetStringPtr get a string pointer from object by key
@@ -404,7 +492,11 @@ func GetStringPtr(object map[string]any, key string) (*string, error) {
 	if !ok || value == nil {
 		return nil, nil
 	}
-	return ToStringPtr(value)
+	result, err := ToStringPtr(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
 }
 
 // GetString get a bool value from object by key
@@ -413,7 +505,11 @@ func GetString(object map[string]any, key string) (string, error) {
 	if !ok {
 		return "", fmt.Errorf("field `%s` does not exist", key)
 	}
-	return ToString(value)
+	result, err := ToString(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
 }
 
 // GetBoolPtr get a bool pointer from object by key
@@ -422,7 +518,11 @@ func GetBoolPtr(object map[string]any, key string) (*bool, error) {
 	if !ok || value == nil {
 		return nil, nil
 	}
-	return ToBooleanPtr(value)
+	result, err := ToBooleanPtr(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
 }
 
 // GetBool get a bool value from object by key
@@ -431,7 +531,11 @@ func GetBool(object map[string]any, key string) (bool, error) {
 	if !ok {
 		return false, fmt.Errorf("field `%s` does not exist", key)
 	}
-	return ToBoolean(value)
+	result, err := ToBoolean(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
 }
 
 // GetDateTimePtr get a time.Time pointer from object by key
@@ -440,7 +544,11 @@ func GetDateTimePtr(object map[string]any, key string) (*time.Time, error) {
 	if !ok || value == nil {
 		return nil, nil
 	}
-	return ToDateTimePtr(value)
+	result, err := ToDateTimePtr(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
 }
 
 // GetDateTime get a time.Time value from object by key
@@ -449,7 +557,11 @@ func GetDateTime(object map[string]any, key string) (time.Time, error) {
 	if !ok {
 		return time.Time{}, fmt.Errorf("field `%s` does not exist", key)
 	}
-	return ToDateTime(value)
+	result, err := ToDateTime(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
 }
 
 // GetDurationPtr get a time.Duration pointer from object by key
@@ -458,7 +570,11 @@ func GetDurationPtr(object map[string]any, key string) (*time.Duration, error) {
 	if !ok || value == nil {
 		return nil, nil
 	}
-	return ToDurationPtr(value)
+	result, err := ToDurationPtr(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
 }
 
 // GetDuration get a time.Duration value from object by key
@@ -467,5 +583,9 @@ func GetDuration(object map[string]any, key string) (time.Duration, error) {
 	if !ok {
 		return 0, fmt.Errorf("field `%s` does not exist", key)
 	}
-	return ToDuration(value)
+	result, err := ToDuration(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
 }

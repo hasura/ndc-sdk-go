@@ -2,14 +2,15 @@
 package main
 
 import (
-	"context"
-	_ "embed"
-	"encoding/json"
-	"fmt"
+  "context"
+  _ "embed"
+  "encoding/json"
+  "fmt"
 
-	{{.Imports}}
-	"{{.Module}}/types"
-	"github.com/hasura/ndc-sdk-go/schema"
+  {{.Imports}}
+  "{{.Module}}/types"
+  "github.com/hasura/ndc-sdk-go/schema"
+  "github.com/hasura/ndc-sdk-go/utils"
 )
 
 //go:embed schema.generated.json
@@ -17,98 +18,87 @@ var rawSchema []byte
 var schemaResponse schema.SchemaResponse
 
 func init() {
-	if err := json.Unmarshal(rawSchema, &schemaResponse); err != nil {
-		panic(fmt.Errorf("failed to decode schema: %s", err))
-	}
+  if err := json.Unmarshal(rawSchema, &schemaResponse); err != nil {
+    panic(fmt.Errorf("failed to decode schema: %s", err))
+  }
 }
 
 // GetSchema gets the connector's schema.
 func (c *Connector) GetSchema(configuration *types.Configuration) (*schema.SchemaResponse, error) {
-	return &schemaResponse, nil
+  return &schemaResponse, nil
 }
 
 // Query executes a query.
 func (c *Connector) Query(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.QueryRequest) (schema.QueryResponse, error) {
-	requestVars := request.Variables
-	if len(requestVars) == 0 {
-		requestVars = []schema.QueryRequestVariablesElem{make(schema.QueryRequestVariablesElem)}
-	}
+  requestVars := request.Variables
+  if len(requestVars) == 0 {
+    requestVars = []schema.QueryRequestVariablesElem{make(schema.QueryRequestVariablesElem)}
+  }
 
-	var rowSets []schema.RowSet
+  var rowSets []schema.RowSet
 
-	for _, requestVar := range requestVars {
-		rawResult, err := execQuery(ctx, configuration, state, request, requestVar)
-		if err != nil {
-			return nil, err
-		}
-		result, err := schema.EvalColumnFields(request.Query.Fields, rawResult)
-		if err != nil {
-			return nil, schema.BadRequestError("failed to evaluate selection fields", map[string]any{
-				"cause": err.Error(),
-			})
-		}
-		rowSets = append(rowSets, schema.RowSet{
-			Aggregates: schema.RowSetAggregates{},
-			Rows: []map[string]any{
-				{
-					"__value": result,
-				},
-			},
-		})
-	}
+  for _, requestVar := range requestVars {
+    result, err := execQuery(ctx, configuration, state, request, requestVar)
+    if err != nil {
+      return nil, err
+    }
+    rowSets = append(rowSets, schema.RowSet{
+      Aggregates: schema.RowSetAggregates{},
+      Rows: []map[string]any{
+        {
+          "__value": result,
+        },
+      },
+    })
+  }
 
-	return rowSets, nil
+  return rowSets, nil
 }
 
 // Mutation executes a mutation.
 func (c *Connector) Mutation(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
-	operationResults := make([]schema.MutationOperationResults, 0, len(request.Operations))
+  operationResults := make([]schema.MutationOperationResults, 0, len(request.Operations))
 
-	for _, operation := range request.Operations {
-		switch operation.Type {
-		case schema.MutationOperationProcedure:
-			result, err := execProcedure(ctx, configuration, state, request, &operation)
-			if err != nil {
-				return nil, err
-			}
-			operationResults = append(operationResults, result)
-		default:
-			return nil, schema.BadRequestError(fmt.Sprintf("invalid operation type: %s", operation.Type), nil)
-		}
-	}
+  for _, operation := range request.Operations {
+    switch operation.Type {
+    case schema.MutationOperationProcedure:
+      result, err := execProcedure(ctx, configuration, state, request, &operation)
+      if err != nil {
+        return nil, err
+      }
+      operationResults = append(operationResults, result)
+    default:
+      return nil, schema.BadRequestError(fmt.Sprintf("invalid operation type: %s", operation.Type), nil)
+    }
+  }
 
-	return &schema.MutationResponse{
-		OperationResults: operationResults,
-	}, nil
+  return &schema.MutationResponse{
+    OperationResults: operationResults,
+  }, nil
 }
 
 func execQuery(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.QueryRequest, variables map[string]any) (any, error) {
 
-	switch request.Collection {
+  switch request.Collection {
 {{.Queries}}
-	default:
-		return nil, schema.BadRequestError(fmt.Sprintf("unsupported query: %s", request.Collection), nil)
-	}
+  default:
+    return nil, schema.BadRequestError(fmt.Sprintf("unsupported query: %s", request.Collection), nil)
+  }
 }
 
 func execProcedure(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.MutationRequest, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
 
-	var rawResult any
-	var err error
-	switch operation.Name {
+  var rawResult any
+  var err error
+  switch operation.Name {
 {{.Procedures}}
-	default:
-		return nil, schema.BadRequestError(fmt.Sprintf("unsupported procedure operation: %s", operation.Name), nil)
-	}
+  default:
+    return nil, schema.BadRequestError(fmt.Sprintf("unsupported procedure operation: %s", operation.Name), nil)
+  }
 
-	if err != nil {
-		return nil, err
-	}
+  if err != nil {
+    return nil, err
+  }
 
-	result, err := schema.EvalNestedColumnFields(operation.Fields, rawResult)
-	if err != nil {
-		return nil, err
-	}
-
-	return schema.NewProcedureResult(result).Encode(), nil
+  return schema.NewProcedureResult(result).Encode(), nil
 }

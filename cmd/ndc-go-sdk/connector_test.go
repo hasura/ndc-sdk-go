@@ -3,12 +3,14 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"embed"
 	"encoding/json"
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"io/fs"
+	"os"
+	"path"
+	"path/filepath"
 	"regexp"
 	"testing"
 
@@ -16,34 +18,36 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//go:embed testdata/basic/source
-var basicSource embed.FS
+var (
+	newLinesRegexp = regexp.MustCompile(`\n(\s|\t)*\n`)
+	tabRegexp      = regexp.MustCompile(`\t`)
+)
 
-//go:embed testdata/basic/schema.json
-var basicSchemaBytes []byte
-
-//go:embed testdata/basic/expected/connector.go.tmpl
-var basicExpectedContent string
+func formatTextContent(input string) string {
+	return tabRegexp.ReplaceAllString(newLinesRegexp.ReplaceAllString(input, "\n"), "  ")
+}
 
 func TestConnectorGeneration(t *testing.T) {
-	trimNewLinesRegexp := regexp.MustCompile(`\n\t*\n`)
 
 	testCases := []struct {
-		Name      string
-		Src       embed.FS
-		Schema    []byte
-		Generated string
+		Name       string
+		BasePath   string
+		ModuleName string
 	}{
 		{
-			Name:      "basic",
-			Src:       basicSource,
-			Schema:    basicSchemaBytes,
-			Generated: basicExpectedContent,
+			Name:       "basic",
+			BasePath:   "testdata/basic",
+			ModuleName: "hasura.dev/connector",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
+			schemaBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/schema.json"))
+			assert.NoError(t, err)
+			connectorContentBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/connector.go.tmpl"))
+			assert.NoError(t, err)
+
 			fset := token.NewFileSet()
 			rawSchema := NewRawConnectorSchema()
 			schemaParser := &SchemaParser{
@@ -51,15 +55,15 @@ func TestConnectorGeneration(t *testing.T) {
 				files: make(map[string]*ast.File),
 			}
 
-			err := fs.WalkDir(tc.Src, ".", func(filePath string, d fs.DirEntry, err error) error {
+			err = filepath.Walk(path.Join(tc.BasePath, "source"), func(filePath string, info os.FileInfo, err error) error {
 				if err != nil {
 					return err
 				}
-				if d.IsDir() {
+				if info.IsDir() {
 					return nil
 				}
 
-				contentBytes, err := tc.Src.ReadFile(filePath)
+				contentBytes, err := os.ReadFile(filePath)
 				if err != nil {
 					return err
 				}
@@ -77,8 +81,9 @@ func TestConnectorGeneration(t *testing.T) {
 			assert.NoError(t, schemaParser.checkAndParseRawSchemaFromAstFiles(rawSchema))
 
 			schemaOutput := rawSchema.Schema()
+
 			var schema schema.SchemaResponse
-			assert.NoError(t, json.Unmarshal(basicSchemaBytes, &schema))
+			assert.NoError(t, json.Unmarshal(schemaBytes, &schema))
 
 			assert.Equal(t, schema.Collections, schemaOutput.Collections)
 			assert.Equal(t, schema.Functions, schemaOutput.Functions)
@@ -86,12 +91,22 @@ func TestConnectorGeneration(t *testing.T) {
 			assert.Equal(t, schema.ScalarTypes, schemaOutput.ScalarTypes)
 			assert.Equal(t, schema.ObjectTypes, schemaOutput.ObjectTypes)
 
+			cg := NewConnectorGenerator(".", "hasura.dev/connector", rawSchema)
 			var buf bytes.Buffer
 			w := bufio.NewWriter(&buf)
-			assert.NoError(t, genConnectorCodeFromTemplate(w, "hasura.dev/connector", rawSchema))
+			assert.NoError(t, cg.genConnectorCodeFromTemplate(w))
 			w.Flush()
-			outputText := trimNewLinesRegexp.ReplaceAllString(string(buf.String()), "\n")
-			assert.Equal(t, basicExpectedContent, outputText)
+			outputText := formatTextContent(string(buf.String()))
+			assert.Equal(t, formatTextContent(string(connectorContentBytes)), outputText)
+
+			//
+			cg.genFunctionArgumentConstructors()
+			cg.genObjectMethods()
+			for name, builder := range cg.typeBuilders {
+				fnContent, err := os.ReadFile(path.Join(tc.BasePath, "expected", fmt.Sprintf("%s.go.tmpl", name)))
+				assert.NoError(t, err)
+				assert.Equal(t, formatTextContent(string(fnContent)), formatTextContent(builder.String()), name)
+			}
 		})
 	}
 }
