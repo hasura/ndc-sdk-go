@@ -784,11 +784,15 @@ func (f ColumnField) Encode() Field {
 }
 
 // NewColumnField creates a new ColumnField instance
-func NewColumnField(column string, fields NestedField) *ColumnField {
+func NewColumnField(column string, fields NestedFieldEncoder) *ColumnField {
+	var field NestedField
+	if fields != nil {
+		field = fields.Encode()
+	}
 	return &ColumnField{
 		Type:   FieldTypeColumn,
 		Column: column,
-		Fields: fields,
+		Fields: field,
 	}
 }
 
@@ -3073,10 +3077,14 @@ type NestedObject struct {
 }
 
 // NewNestedObject create a new NestedObject instance
-func NewNestedObject(fields map[string]Field) *NestedObject {
+func NewNestedObject(fields map[string]FieldEncoder) *NestedObject {
+	fieldMap := make(map[string]Field)
+	for k, v := range fields {
+		fieldMap[k] = v.Encode()
+	}
 	return &NestedObject{
 		Type:   NestedFieldTypeObject,
-		Fields: fields,
+		Fields: fieldMap,
 	}
 }
 
@@ -3235,5 +3243,13 @@ func NewProcedureResult(result any) *ProcedureResult {
 	return &ProcedureResult{
 		Type:   MutationOperationProcedure,
 		Result: result,
+	}
+}
+
+// NewScalarType creates an empty ScalarType instance
+func NewScalarType() *ScalarType {
+	return &ScalarType{
+		AggregateFunctions:  ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]ComparisonOperatorDefinition{},
 	}
 }

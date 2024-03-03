@@ -65,7 +65,7 @@ func (rt *router) Use(path string, method string, handler http.HandlerFunc) {
 func (rt *router) Build() *http.ServeMux {
 	mux := http.NewServeMux()
 
-	handleFunc := func(path string, handlers map[string]http.HandlerFunc) http.HandlerFunc {
+	handleFunc := func(handlers map[string]http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			startTime := time.Now()
 			isDebug := rt.logger.GetLevel() <= zerolog.DebugLevel
@@ -167,7 +167,7 @@ func (rt *router) Build() *http.ServeMux {
 	}
 
 	for path, handlers := range rt.routes {
-		handler := handleFunc(path, handlers)
+		handler := handleFunc(handlers)
 		mux.HandleFunc(path, handler)
 	}
 

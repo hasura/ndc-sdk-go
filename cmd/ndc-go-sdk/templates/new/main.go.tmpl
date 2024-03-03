@@ -1,0 +1,16 @@
+package main
+
+import (
+	"github.com/hasura/ndc-sdk-go/connector"
+	"{{.Module}}/types"
+)
+
+func main() {
+	if err := connector.Start[types.Configuration, types.State](
+		&Connector{},
+		connector.WithMetricsPrefix("{{.Name}}"),
+		connector.WithDefaultServiceName("{{.Name}}"),
+	); err != nil {
+		panic(err)
+	}
+}

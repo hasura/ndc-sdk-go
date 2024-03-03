@@ -11,6 +11,7 @@ import (
 
 	"github.com/hasura/ndc-sdk-go/connector"
 	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/utils"
 )
 
 type Configuration struct{}
@@ -406,7 +407,7 @@ type UpsertArticleArguments struct {
 	Article Article `json:"article"`
 }
 
-func executeProcedure(ctx context.Context, state *State, collectionRelationships schema.MutationRequestCollectionRelationships, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
+func executeProcedure(_ context.Context, state *State, collectionRelationships schema.MutationRequestCollectionRelationships, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
 	switch operation.Name {
 	case "upsert_article":
 		return executeUpsertArticle(state, operation.Arguments, operation.Fields, collectionRelationships)
@@ -477,7 +478,7 @@ func executeDeleteArticles(
 
 	var removed []map[string]any
 	for _, article := range state.Articles {
-		encodedArticle, err := schema.EncodeRow(article)
+		encodedArticle, err := utils.EncodeObject(article)
 		if err != nil {
 			return nil, schema.InternalServerError(err.Error(), nil)
 		}
@@ -960,30 +961,19 @@ func evalNestedField(
 	nestedField schema.NestedField,
 ) (any, error) {
 
-	if isNil(value) {
+	if utils.IsNil(value) {
 		return value, nil
 	}
 	switch nf := nestedField.Interface().(type) {
 	case *schema.NestedObject:
-		fullRow, err := schema.EncodeRow(value)
+		fullRow, err := utils.EncodeObject(value)
 		if err != nil {
 			return nil, schema.BadRequestError(fmt.Sprintf("expected object, got %s", reflect.ValueOf(value).Kind()), nil)
 		}
 
-		row, err := evalRow(
-			nf.Fields,
-			collectionRelationships,
-			variables,
-			state,
-			fullRow,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		return row, nil
+		return evalRow(nf.Fields, collectionRelationships, variables, state, fullRow)
 	case *schema.NestedArray:
-		array, err := schema.EncodeRows(value)
+		array, err := utils.EncodeObjects(value)
 		if err != nil {
 			return nil, err
 		}
@@ -1170,7 +1160,7 @@ func getCollectionByName(collectionName string, arguments schema.QueryRequestArg
 		// collections
 	case "articles":
 		for _, item := range state.Articles {
-			row, err := schema.EncodeRow(item)
+			row, err := utils.EncodeObject(item)
 			if err != nil {
 				return nil, err
 			}
@@ -1178,7 +1168,7 @@ func getCollectionByName(collectionName string, arguments schema.QueryRequestArg
 		}
 	case "authors":
 		for _, item := range state.Authors {
-			row, err := schema.EncodeRow(item)
+			row, err := utils.EncodeObject(item)
 			if err != nil {
 				return nil, err
 			}
@@ -1186,7 +1176,7 @@ func getCollectionByName(collectionName string, arguments schema.QueryRequestArg
 		}
 	case "institutions":
 		for _, item := range state.Institutions {
-			row, err := schema.EncodeRow(item)
+			row, err := utils.EncodeObject(item)
 			if err != nil {
 				return nil, err
 			}
@@ -1202,7 +1192,7 @@ func getCollectionByName(collectionName string, arguments schema.QueryRequestArg
 			switch authorIdArg.Type {
 			case schema.ArgumentTypeLiteral:
 				if fmt.Sprint(row.AuthorID) == fmt.Sprint(authorIdArg.Value) {
-					r, err := schema.EncodeRow(row)
+					r, err := utils.EncodeObject(row)
 					if err != nil {
 						return nil, err
 					}
@@ -1488,12 +1478,4 @@ func evalColumnMapping(relationship *schema.Relationship, srcRow map[string]any,
 		}
 	}
 	return true, nil
-}
-
-func isNil(value any) bool {
-	if value == nil {
-		return true
-	}
-	v := reflect.ValueOf(value)
-	return v.Kind() == reflect.Ptr && v.IsNil()
 }

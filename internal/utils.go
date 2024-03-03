@@ -66,7 +66,9 @@ func DeepEqual(v1, v2 any) bool {
 
 			for i, value1 := range values1 {
 				if !DeepEqual(value1, values2[i]) {
-					log.Printf("deep equality is failed at index: %d\n value 1: %+v\n value 2: %v\n", i, value1, values2[i])
+					j1, _ := json.Marshal(value1)
+					j2, _ := json.Marshal(values2[i])
+					log.Printf("deep equality is failed at index: %d\n value 1: %s\n value 2: %s\n", i, string(j1), string(j2))
 					return false
 				}
 			}
@@ -85,7 +87,9 @@ func DeepEqual(v1, v2 any) bool {
 			for k, v1 := range map1 {
 				v2, ok := map2[k]
 				if !ok || !DeepEqual(v1, v2) {
-					log.Printf("deep equality is failed at key: %s\n value 1: %+v\n value 2: %v\n", k, v1, v2)
+					j1, _ := json.Marshal(v1)
+					j2, _ := json.Marshal(v2)
+					log.Printf("deep equality is failed at key: %s\n value 1: %s\n value 2: %s\n", k, string(j1), string(j2))
 					return false
 				}
 			}

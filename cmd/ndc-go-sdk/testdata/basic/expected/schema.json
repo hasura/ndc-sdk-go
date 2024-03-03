@@ -1,0 +1,245 @@
+{
+  "collections": [],
+  "functions": [
+    {
+      "arguments": {},
+      "name": "getBool",
+      "description": "FunctionGetBool return an scalar boolean",
+      "result_type": {
+        "name": "Boolean",
+        "type": "named"
+      }
+    },
+    {
+      "arguments": {},
+      "name": "hello",
+      "description": "FunctionHello sends a hello message",
+      "result_type": {
+        "type": "nullable",
+        "underlying_type": {
+          "name": "HelloResult",
+          "type": "named"
+        }
+      }
+    },
+    {
+      "arguments": {
+        "Limit": {
+          "type": {
+            "name": "Float",
+            "type": "named"
+          }
+        },
+        "Comment": { "type": { "name": "CommentString", "type": "named" } },
+        "nullable_str": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": { "name": "String", "type": "named" }
+          }
+        }
+      },
+      "name": "getArticles",
+      "result_type": {
+        "type": "array",
+        "element_type": {
+          "name": "GetArticlesResult",
+          "type": "named"
+        }
+      }
+    }
+  ],
+  "object_types": {
+    "Author": {
+      "fields": {
+        "duration": { "type": { "name": "Duration", "type": "named" } },
+        "created_at": { "type": { "name": "DateTime", "type": "named" } },
+        "id": { "type": { "name": "String", "type": "named" } }
+      }
+    },
+    "CreateArticleArgumentsAuthor": {
+      "fields": {
+        "decimal": { "type": { "name": "Complex", "type": "named" } },
+        "created_at": { "type": { "name": "DateTime", "type": "named" } },
+        "id": { "type": { "name": "UUID", "type": "named" } }
+      }
+    },
+    "CreateArticleResult": {
+      "fields": {
+        "authors": {
+          "type": {
+            "element_type": { "name": "Author", "type": "named" },
+            "type": "array"
+          }
+        },
+        "id": { "type": { "name": "Int", "type": "named" } }
+      }
+    },
+    "CreateAuthorResult": {
+      "description": "A create author result",
+      "fields": {
+        "id": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "name": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "created_at": {
+          "type": {
+            "name": "DateTime",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "GetArticlesResult": {
+      "fields": {
+        "Name": { "type": { "name": "String", "type": "named" } },
+        "id": { "type": { "name": "String", "type": "named" } }
+      }
+    },
+    "HelloResult": {
+      "description": "A hello result",
+      "fields": {
+        "id": {
+          "type": {
+            "name": "UUID",
+            "type": "named"
+          }
+        },
+        "num": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "text": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "foo": {
+          "type": {
+            "name": "Foo",
+            "type": "named"
+          }
+        }
+      }
+    }
+  },
+  "procedures": [
+    {
+      "arguments": {
+        "author": {
+          "type": { "name": "CreateArticleArgumentsAuthor", "type": "named" }
+        }
+      },
+      "name": "create_article",
+      "result_type": {
+        "type": "nullable",
+        "underlying_type": {
+          "name": "CreateArticleResult",
+          "type": "named"
+        }
+      }
+    },
+    {
+      "arguments": {},
+      "name": "increase",
+      "description": null,
+      "result_type": {
+        "type": "named",
+        "name": "Int"
+      }
+    },
+    {
+      "arguments": {
+        "name": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      },
+      "name": "createAuthor",
+      "description": "ProcedureCreateAuthor creates an author",
+      "result_type": {
+        "type": "nullable",
+        "underlying_type": {
+          "name": "CreateAuthorResult",
+          "type": "named"
+        }
+      }
+    },
+    {
+      "arguments": {
+        "names": {
+          "type": {
+            "type": "array",
+            "element_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        }
+      },
+      "name": "createAuthors",
+      "description": "ProcedureCreateAuthors creates a list of authors",
+      "result_type": {
+        "type": "array",
+        "element_type": {
+          "name": "CreateAuthorResult",
+          "type": "named"
+        }
+      }
+    }
+  ],
+  "scalar_types": {
+    "Boolean": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "Int": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "Float": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "String": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "DateTime": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "UUID": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "Foo": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "CommentString": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "Duration": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "Complex": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    }
+  }
+}
