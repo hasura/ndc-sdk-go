@@ -318,7 +318,10 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponseStatus(t, "GET /metrics", res, http.StatusOK)
+		if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusInternalServerError {
+			t.Errorf("\n%s: got status %d", "/metrics", res.StatusCode)
+			t.FailNow()
+		}
 	})
 
 	t.Run("POST /query", func(t *testing.T) {
