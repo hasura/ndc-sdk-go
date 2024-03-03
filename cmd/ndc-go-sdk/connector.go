@@ -225,18 +225,21 @@ func genConnectorProcedures(rawSchema *RawConnectorSchema) string {
 		}
 
 		if fn.ResultType.IsScalar {
-			_, _ = sb.WriteString(fmt.Sprintf("\n    result, err = %s.%s(ctx, state%s)\n", fn.PackageName, fn.OriginName, argumentParamStr))
-			continue
-		}
-
-		_, _ = sb.WriteString(fmt.Sprintf("\n    rawResult, err = %s.%s(ctx, state%s)\n", fn.PackageName, fn.OriginName, argumentParamStr))
-		genGeneralOperationResult(&sb, fn.ResultType)
-
-		if fn.ResultType.IsArray {
-			_, _ = sb.WriteString("\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)\n")
+			_, _ = sb.WriteString(fmt.Sprintf(`
+    var err error
+    result, err = %s.%s(ctx, state%s)`, fn.PackageName, fn.OriginName, argumentParamStr))
 		} else {
-			_, _ = sb.WriteString("\n    result, err := utils.EvalNestedColumnObject(selection, rawResult)\n")
+			_, _ = sb.WriteString(fmt.Sprintf("\n    rawResult, err := %s.%s(ctx, state%s)\n", fn.PackageName, fn.OriginName, argumentParamStr))
+			genGeneralOperationResult(&sb, fn.ResultType)
+
+			if fn.ResultType.IsArray {
+				_, _ = sb.WriteString("\n    result, err = utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)\n")
+			} else {
+				_, _ = sb.WriteString("\n    result, err = utils.EvalNestedColumnObject(selection, rawResult)\n")
+			}
 		}
+
+		_, _ = sb.WriteString(textBlockErrorCheck2)
 	}
 
 	return sb.String()

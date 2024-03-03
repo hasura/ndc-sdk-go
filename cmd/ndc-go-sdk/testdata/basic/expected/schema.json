@@ -150,6 +150,15 @@
       }
     },
     {
+      "arguments": {},
+      "name": "increase",
+      "description": null,
+      "result_type": {
+        "type": "named",
+        "name": "Int"
+      }
+    },
+    {
       "arguments": {
         "name": {
           "type": {

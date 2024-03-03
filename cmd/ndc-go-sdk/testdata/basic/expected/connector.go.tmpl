@@ -114,8 +114,7 @@ func execQuery(ctx context.Context, configuration *types.Configuration, state *t
   }
 }
 func execProcedure(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.MutationRequest, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
-  var rawResult any
-  var err error
+  var result any
   switch operation.Name {
   case "create_article":
     selection, err := operation.Fields.AsObject()
@@ -130,14 +129,26 @@ func execProcedure(ctx context.Context, configuration *types.Configuration, stat
         "cause": err.Error(),
       })
     }
-    rawResult, err = functions.CreateArticle(ctx, state, &args)
+    rawResult, err := functions.CreateArticle(ctx, state, &args)
     if err != nil {
       return nil, err
     }
     if rawResult == nil {
       return nil, nil
     }
-    result, err := utils.EvalNestedColumnObject(selection, rawResult)
+    result, err = utils.EvalNestedColumnObject(selection, rawResult)
+		if err != nil {
+      return nil, err
+    }
+	case "increase":
+		if len(operation.Fields) > 0 {
+			return nil, schema.BadRequestError("cannot evaluate selection fields for scalar", nil)
+    }
+    var err error
+    result, err = functions.Increase(ctx, state)
+		if err != nil {
+			return nil, err
+		}
   case "createAuthor":
     selection, err := operation.Fields.AsObject()
     if err != nil {
@@ -151,14 +162,17 @@ func execProcedure(ctx context.Context, configuration *types.Configuration, stat
         "cause": err.Error(),
       })
     }
-    rawResult, err = functions.ProcedureCreateAuthor(ctx, state, &args)
+    rawResult, err := functions.ProcedureCreateAuthor(ctx, state, &args)
     if err != nil {
       return nil, err
     }
     if rawResult == nil {
       return nil, nil
     }
-    result, err := utils.EvalNestedColumnObject(selection, rawResult)
+    result, err = utils.EvalNestedColumnObject(selection, rawResult)
+		if err != nil {
+      return nil, err
+    }
 	case "createAuthors":
 		selection, err := operation.Fields.AsArray()
 		if err != nil {
@@ -172,19 +186,19 @@ func execProcedure(ctx context.Context, configuration *types.Configuration, stat
 				"cause": err.Error(),
 			})
 		}
-		rawResult, err = functions.ProcedureCreateAuthors(ctx, state, &args)
+		rawResult, err := functions.ProcedureCreateAuthors(ctx, state, &args)
 		if err != nil {
 			return nil, err
 		}
 		if rawResult == nil {
 			return nil, schema.BadRequestError("expected not null result", nil)
 		}
-		result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)
+		result, err = utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)
+		if err != nil {
+      return nil, err
+    }
   default:
     return nil, schema.BadRequestError(fmt.Sprintf("unsupported procedure operation: %s", operation.Name), nil)
-  }
-  if err != nil {
-    return nil, err
   }
   return schema.NewProcedureResult(result).Encode(), nil
 }
