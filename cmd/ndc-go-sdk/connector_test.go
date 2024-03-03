@@ -100,8 +100,9 @@ func TestConnectorGeneration(t *testing.T) {
 			assert.Equal(t, formatTextContent(string(connectorContentBytes)), outputText)
 
 			//
-			cg.genFunctionArgumentConstructors()
-			cg.genObjectMethods()
+			assert.NoError(t, cg.genFunctionArgumentConstructors())
+			assert.NoError(t, cg.genObjectMethods())
+			assert.NoError(t, cg.genCustomScalarMethods())
 			for name, builder := range cg.typeBuilders {
 				fnContent, err := os.ReadFile(path.Join(tc.BasePath, "expected", fmt.Sprintf("%s.go.tmpl", name)))
 				assert.NoError(t, err)

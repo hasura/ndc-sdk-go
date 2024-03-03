@@ -30,7 +30,7 @@ func (c *Connector) Query(ctx context.Context, configuration *types.Configuratio
   }
   var rowSets []schema.RowSet
   for _, requestVar := range requestVars {
-    result, err := execQuery(ctx, configuration, state, request, requestVar)
+    result, err := execQuery(ctx, state, request, requestVar)
     if err != nil {
       return nil, err
     }
@@ -51,7 +51,7 @@ func (c *Connector) Mutation(ctx context.Context, configuration *types.Configura
   for _, operation := range request.Operations {
     switch operation.Type {
     case schema.MutationOperationProcedure:
-      result, err := execProcedure(ctx, configuration, state, request, &operation)
+      result, err := execProcedure(ctx, state, &operation)
       if err != nil {
         return nil, err
       }
@@ -64,7 +64,7 @@ func (c *Connector) Mutation(ctx context.Context, configuration *types.Configura
     OperationResults: operationResults,
   }, nil
 }
-func execQuery(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.QueryRequest, variables map[string]any) (any, error) {
+func execQuery(ctx context.Context, state *types.State, request *schema.QueryRequest, variables map[string]any) (any, error) {
   switch request.Collection {
   case "getBool":
     if len(request.Query.Fields) > 0 {
@@ -113,7 +113,7 @@ func execQuery(ctx context.Context, configuration *types.Configuration, state *t
     return nil, schema.BadRequestError(fmt.Sprintf("unsupported query: %s", request.Collection), nil)
   }
 }
-func execProcedure(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.MutationRequest, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
+func execProcedure(ctx context.Context, state *types.State, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
   var result any
   switch operation.Name {
   case "create_article":

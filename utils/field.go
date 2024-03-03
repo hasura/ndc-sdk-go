@@ -46,6 +46,10 @@ func encodeObject(input any) (map[string]any, error) {
 		return value, nil
 	case MapEncoder:
 		return value.ToMap(), nil
+	case Scalar:
+		return nil, schema.BadRequestError("cannot encode scalar to object", map[string]any{
+			"value": input,
+		})
 	case bool, string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128, time.Time, time.Duration, time.Ticker, *bool, *string, *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64, *float32, *float64, *complex64, *complex128, *time.Time, *time.Duration, *time.Ticker, []bool, []string, []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64, []float32, []float64, []complex64, []complex128, []time.Time, []time.Duration, []time.Ticker:
 		return nil, schema.BadRequestError("failed to encode object", map[string]any{
 			"value": input,
@@ -87,6 +91,11 @@ func encodeField(input reflect.Value) (any, bool) {
 				}
 				return results[0].Interface(), true
 			}
+			// determine if the type implements the Scalar interface
+			if input.MethodByName("ScalarName").IsValid() {
+				return input.Interface(), true
+			}
+
 			return encodeStruct(input), true
 		}
 	case reflect.Pointer:

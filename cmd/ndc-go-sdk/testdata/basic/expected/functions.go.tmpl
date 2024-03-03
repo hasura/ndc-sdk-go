@@ -67,3 +67,11 @@ func (j HelloResult) ToMap() map[string]any {
     "text": j.Text,
   }
 }
+// ScalarName get the schema name of the scalar
+func (j CommentText) ScalarName() string {
+  return "CommentString"
+}
+// ScalarName get the schema name of the scalar
+func (j ScalarFoo) ScalarName() string {
+  return "Foo"
+}

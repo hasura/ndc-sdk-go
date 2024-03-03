@@ -116,6 +116,14 @@ type CreateAuthorResult struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
+
+// auto generated
+// func (j CreateAuthorResult) ToMap() map[string]any {
+//   return map[string]any{
+//     "id": j.ID,
+//     "name": j.Name,
+//   }
+// }
 ```
 
 the schema will be:
@@ -170,6 +178,10 @@ type ScalarFoo struct {
   Bar string
 }
 // output: Foo
+// auto generated
+// func (j ScalarFoo) ScalarName() string {
+//   return "Foo"
+// }
 
 // @scalar
 type Tag struct {

@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+// Scalar abstracts a scalar interface to determine when evaluating
+type Scalar interface {
+	ScalarName() string
+}
+
 // MapEncoder abstracts a type with the ToMap method to encode type to map
 type MapEncoder interface {
 	ToMap() map[string]any

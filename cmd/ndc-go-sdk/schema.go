@@ -139,7 +139,8 @@ func (op ProcedureInfo) Schema() schema.ProcedureInfo {
 // which can encode to NDC schema
 type RawConnectorSchema struct {
 	Imports       map[string]bool
-	Scalars       schema.SchemaResponseScalarTypes
+	CustomScalars map[string]*TypeInfo
+	ScalarSchemas schema.SchemaResponseScalarTypes
 	Objects       map[string]*ObjectInfo
 	ObjectSchemas schema.SchemaResponseObjectTypes
 	Functions     []FunctionInfo
@@ -150,7 +151,8 @@ type RawConnectorSchema struct {
 func NewRawConnectorSchema() *RawConnectorSchema {
 	return &RawConnectorSchema{
 		Imports:       make(map[string]bool),
-		Scalars:       make(schema.SchemaResponseScalarTypes),
+		CustomScalars: make(map[string]*TypeInfo),
+		ScalarSchemas: make(schema.SchemaResponseScalarTypes),
 		Objects:       make(map[string]*ObjectInfo),
 		ObjectSchemas: make(schema.SchemaResponseObjectTypes),
 		Functions:     []FunctionInfo{},
@@ -161,7 +163,7 @@ func NewRawConnectorSchema() *RawConnectorSchema {
 // Schema converts to a NDC schema
 func (rcs RawConnectorSchema) Schema() *schema.SchemaResponse {
 	result := &schema.SchemaResponse{
-		ScalarTypes: rcs.Scalars,
+		ScalarTypes: rcs.ScalarSchemas,
 		ObjectTypes: rcs.ObjectSchemas,
 		Collections: []schema.CollectionInfo{},
 	}
@@ -439,14 +441,15 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 				}
 			}
 			if scalarName != "" {
-				rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
+				rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
 				typeInfo.Schema = schema.NewNamedType(scalarName)
 				return typeInfo, nil
 			}
 		}
 
 		if typeInfo.IsScalar {
-			rawSchema.Scalars[typeInfo.SchemaName] = *schema.NewScalarType()
+			rawSchema.CustomScalars[typeInfo.SchemaName] = typeInfo
+			rawSchema.ScalarSchemas[typeInfo.SchemaName] = *schema.NewScalarType()
 			return typeInfo, nil
 		}
 
@@ -456,22 +459,22 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		switch inferredType.Kind() {
 		case types.Bool:
 			scalarName = "Boolean"
-			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
+			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
 		case types.Int8, types.Int, types.Int16, types.Int32, types.Uint, types.Uint16, types.Uint32:
 			scalarName = "Int"
-			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
+			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
 		case types.Int64, types.Uint64:
 			scalarName = "BigInt"
-			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
+			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
 		case types.Float32, types.Float64:
 			scalarName = "Float"
-			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
+			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
 		case types.Complex64, types.Complex128:
 			scalarName = "Complex"
-			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
+			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
 		case types.String:
 			scalarName = "String"
-			rawSchema.Scalars[scalarName] = defaultScalarTypes[scalarName]
+			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
 		default:
 			return nil, fmt.Errorf("unsupported scalar type: %s", inferredType.String())
 		}

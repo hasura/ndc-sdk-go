@@ -252,6 +252,9 @@ func (cg *connectorGenerator) genTypeMethods() error {
 	if err := cg.genObjectMethods(); err != nil {
 		return err
 	}
+	if err := cg.genCustomScalarMethods(); err != nil {
+		return err
+	}
 	for folderPath, builder := range cg.typeBuilders {
 		schemaPath := path.Join(cg.basePath, folderPath, typeMethodsOutputFile)
 		if err := os.WriteFile(schemaPath, []byte(builder.String()), 0644); err != nil {
@@ -286,6 +289,27 @@ func (j %s) ToMap() map[string]any {
 		sb.WriteString("  }\n}")
 	}
 
+	return nil
+}
+
+// generate Scalar implementation for custom scalar types
+func (cg *connectorGenerator) genCustomScalarMethods() error {
+	if len(cg.rawSchema.CustomScalars) == 0 {
+		return nil
+	}
+
+	scalarKeys := getSortedKeys(cg.rawSchema.CustomScalars)
+
+	for _, scalarKey := range scalarKeys {
+		scalar := cg.rawSchema.CustomScalars[scalarKey]
+		sb := cg.getTypeBuilder(scalar.PackageName, scalar.PackageName)
+		_, _ = sb.WriteString(fmt.Sprintf(`
+// ScalarName get the schema name of the scalar
+func (j %s) ScalarName() string {
+  return "%s"
+}
+`, scalar.Name, scalar.SchemaName))
+	}
 	return nil
 }
 
