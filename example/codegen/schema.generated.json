@@ -36,6 +36,12 @@
             "type": "named"
           }
         },
+        "Uint": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
         "nullable_str": {
           "type": {
             "type": "nullable",

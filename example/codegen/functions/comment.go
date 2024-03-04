@@ -20,6 +20,7 @@ func (ct *CommentText) FromValue(value any) (err error) {
 }
 
 type GetArticlesArguments struct {
+	Uint        uint
 	Limit       float64
 	Comment     CommentText
 	NullableStr *string `json:"nullable_str"`

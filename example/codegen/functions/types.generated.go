@@ -16,6 +16,10 @@ func (j *GetArticlesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	j.Uint, err = utils.GetUint[uint](input, "Uint")
+	if err != nil {
+		return err
+	}
 	j.NullableStr, err = utils.GetStringPtr(input, "nullable_str")
 	if err != nil {
 		return err

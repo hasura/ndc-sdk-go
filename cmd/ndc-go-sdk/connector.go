@@ -432,10 +432,14 @@ func genGetTypeValueDecoder(ty *TypeInfo, key string, fieldName string) string {
 		_, _ = sb.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetString(input, "%s")`, fieldName, key))
 	case "*string":
 		_, _ = sb.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetStringPtr(input, "%s")`, fieldName, key))
-	case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64", "rune", "byte":
+	case "int", "int8", "int16", "int32", "int64", "rune", "byte":
 		_, _ = sb.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetInt[%s](input, "%s")`, fieldName, typeName, key))
-	case "*int", "*int8", "*int16", "*int32", "*int64", "*uint", "*uint8", "*uint16", "*uint32", "*uint64", "*rune", "*byte":
+	case "uint", "uint8", "uint16", "uint32", "uint64":
+		_, _ = sb.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUint[%s](input, "%s")`, fieldName, typeName, key))
+	case "*int", "*int8", "*int16", "*int32", "*int64", "*rune", "*byte":
 		_, _ = sb.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetIntPtr[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
+	case "*uint", "*uint8", "*uint16", "*uint32", "*uint64":
+		_, _ = sb.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUintPtr[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
 	case "float32", "float64":
 		_, _ = sb.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetFloat[%s](input, "%s")`, fieldName, typeName, key))
 	case "*float32", "*float64":
@@ -450,7 +454,7 @@ func genGetTypeValueDecoder(ty *TypeInfo, key string, fieldName string) string {
 		_, _ = sb.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTimePtr(input, "%s")`, fieldName, key))
 	case "time.Duration":
 		_, _ = sb.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDuration(input, "%s")`, fieldName, key))
-	case "time.DurationPtr":
+	case "*time.Duration":
 		_, _ = sb.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDurationPtr(input, "%s")`, fieldName, key))
 	default:
 		switch ty.Schema.(type) {

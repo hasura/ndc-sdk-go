@@ -464,11 +464,8 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		case types.Bool:
 			scalarName = "Boolean"
 			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
-		case types.Int8, types.Int, types.Int16, types.Int32, types.Uint, types.Uint16, types.Uint32:
+		case types.Int, types.Int8, types.Int16, types.Int32, types.Int64, types.Uint, types.Uint8, types.Uint16, types.Uint32, types.Uint64:
 			scalarName = "Int"
-			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
-		case types.Int64, types.Uint64:
-			scalarName = "BigInt"
 			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
 		case types.Float32, types.Float64:
 			scalarName = "Float"
