@@ -282,29 +282,41 @@ func (cg *connectorGenerator) genObjectMethods() error {
 // ToMap encodes the struct to a value map
 func (j %s) ToMap() map[string]any {
 `, objectName))
-		lines := cg.genObjectToMap(object, "j", "resultMap", false)
+		lines := cg.genObjectToMap(object, "j", "result", false, false)
 		sb.WriteString(strings.Join(lines, "\n"))
 		sb.WriteString(`
-	return resultMap
+	return result
 }`)
 	}
 
 	return nil
 }
 
-func genVariableName(name string) string {
-	return fmt.Sprintf("_%s", camelCase(name))
-}
-
-func (cg *connectorGenerator) genObjectToMap(object *ObjectInfo, selector string, name string, nullable bool) []string {
+func (cg *connectorGenerator) genObjectToMap(object *ObjectInfo, selector string, name string, nullable bool, isArray bool) []string {
 
 	fieldKeys := getSortedKeys(object.Fields)
 	var lines []string
+	if isArray {
+		lines = []string{fmt.Sprintf("  %s := make([]map[string]any, len(%s))", name, selector)}
+		if nullable {
+			lines = append(lines, fmt.Sprintf(`  if %s == nil {
+      %s = nil
+    }`, selector, name))
+		}
+
+		lines = append(lines, fmt.Sprintf("  for i := range %s {", selector))
+		loopLines := cg.genObjectToMap(object, fmt.Sprintf("%s[i]", selector), "item", false, false)
+		lines = append(lines, loopLines...)
+		lines = append(lines, fmt.Sprintf("    %s[i] = item", name))
+		lines = append(lines, "  }")
+		return lines
+	}
+
 	if nullable {
 		lines = []string{fmt.Sprintf(`  
-  var %s map[string]any
+	var %s map[string]any
 	if %s != nil {
-    %s = map[string]any{`, name, selector, name)}
+		%s = map[string]any{`, name, selector, name)}
 	} else {
 		lines = []string{fmt.Sprintf("  %s := map[string]any{", name)}
 	}
@@ -328,8 +340,8 @@ func (cg *connectorGenerator) genObjectToMap(object *ObjectInfo, selector string
 			}
 			continue
 		}
-		varName := genVariableName(field.Key)
-		childLines := cg.genObjectToMap(innerObject, fmt.Sprintf("%s.%s", selector, field.Name), varName, field.Type.IsNullable)
+		varName := fmt.Sprintf("%s_%s", name, fieldKey)
+		childLines := cg.genObjectToMap(innerObject, fmt.Sprintf("%s.%s", selector, field.Name), varName, field.Type.IsNullable, field.Type.IsArray)
 		lines = append(childLines, lines...)
 		lines = append(lines, fmt.Sprintf("    \"%s\": %s,", field.Key, varName))
 	}

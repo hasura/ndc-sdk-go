@@ -22,61 +22,69 @@ func (j *GetArticlesArguments) FromValue(input map[string]any) error {
 }
 // ToMap encodes the struct to a value map
 func (j Author) ToMap() map[string]any {
-  resultMap := map[string]any{
+  result := map[string]any{
     "created_at": j.CreatedAt,
     "duration": j.Duration,
     "id": j.ID,
   }
-  return resultMap
+  return result
 }
 // ToMap encodes the struct to a value map
 func (j CreateArticleResult) ToMap() map[string]any {
-  resultMap := map[string]any{
+  result := map[string]any{
     "authors": utils.EncodeMaps(j.Authors),
     "id": j.ID,
   }
-  return resultMap
+  return result
 }
 // ToMap encodes the struct to a value map
 func (j CreateAuthorResult) ToMap() map[string]any {
-  resultMap := map[string]any{
+  result := map[string]any{
     "created_at": j.CreatedAt,
     "id": j.ID,
     "name": j.Name,
   }
-  return resultMap
+  return result
 }
 // ToMap encodes the struct to a value map
 func (j GetArticlesResult) ToMap() map[string]any {
-	var _location map[string]any
+	var result_Location map[string]any
 	if j.Location != nil {
-    _location = map[string]any{
+    result_Location = map[string]any{
     "Lat": j.Location.Lat,
     "Long": j.Location.Long,
   }
 	}
-	_author := map[string]any{
+  result_Comments := make([]map[string]any, len(j.Comments))
+	for i := range j.Comments {
+  item := map[string]any{
+    "content": j.Comments[i].Content,
+  }
+    result_Comments[i] = item
+	}
+	result_Author := map[string]any{
 		"created_at": j.Author.CreatedAt,
 		"decimal": j.Author.Decimal,
 		"id": j.Author.ID,
 	}
-	resultMap := map[string]any{
-		"author": _author,
+	result := map[string]any{
+		"author": result_Author,
+		"Comments": result_Comments,
 		"id": j.ID,
-		"Location": _location,
+		"Location": result_Location,
 		"Name": j.Name,
 	}
-	return resultMap
+	return result
 }
 // ToMap encodes the struct to a value map
 func (j HelloResult) ToMap() map[string]any {
-  resultMap := map[string]any{
+  result := map[string]any{
     "foo": j.Foo,
     "id": j.ID,
     "num": j.Num,
     "text": j.Text,
   }
-  return resultMap
+  return result
 }
 // ScalarName get the schema name of the scalar
 func (j CommentText) ScalarName() string {

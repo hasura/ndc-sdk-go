@@ -145,6 +145,15 @@
     },
     "GetArticlesResult": {
       "fields": {
+        "Comments": {
+          "type": {
+            "element_type": {
+              "name": "GetArticlesResultComments",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
         "Location": {
           "type": {
             "type": "nullable",
@@ -191,6 +200,16 @@
         "id": {
           "type": {
             "name": "UUID",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "GetArticlesResultComments": {
+      "fields": {
+        "content": {
+          "type": {
+            "name": "String",
             "type": "named"
           }
         }

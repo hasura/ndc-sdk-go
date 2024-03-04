@@ -37,6 +37,9 @@ type GetArticlesResult struct {
 		Long int
 		Lat  int
 	}
+	Comments []struct {
+		Content string `json:"content"`
+	}
 }
 
 // @function

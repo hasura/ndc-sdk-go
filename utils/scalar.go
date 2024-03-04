@@ -3,8 +3,12 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"reflect"
+	"strconv"
 	"time"
 )
+
+type convertFunc[T any] func(value reflect.Value) (*T, error)
 
 // Scalar abstracts a scalar interface to determine when evaluating
 type Scalar interface {
@@ -43,7 +47,57 @@ func DecodeObjectValue(decoder ValueDecoder, object map[string]any, key string) 
 }
 
 // DecodeIntPtr tries to convert an unknown value to an integer pointer
-func DecodeIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](value any) (*T, error) {
+func DecodeIntPtr[T int | int8 | int16 | int32 | int64](value any) (*T, error) {
+	return decodeIntPtr[T](value, func(v reflect.Value) (*T, error) {
+		rawResult, err := strconv.ParseInt(fmt.Sprint(v.Interface()), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		result := T(rawResult)
+		return &result, nil
+	})
+}
+
+// DecodeInt tries to convert an unknown value to an integer value
+func DecodeInt[T int | int8 | int16 | int32 | int64](value any) (T, error) {
+	result, err := DecodeIntPtr[T](value)
+	if err != nil {
+		return T(0), err
+	}
+	if result == nil {
+		return T(0), errors.New("the Int value must not be null")
+	}
+	return *result, nil
+}
+
+// DecodeUintPtr tries to convert an unknown value to an unsigned integer pointer
+func DecodeUintPtr[T uint | uint8 | uint16 | uint32 | uint64](value any) (*T, error) {
+	return decodeIntPtr[T](value, func(v reflect.Value) (*T, error) {
+		rawResult, err := strconv.ParseUint(fmt.Sprint(v.Interface()), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		result := T(rawResult)
+		return &result, nil
+	})
+}
+
+// DecodeUint tries to convert an unknown value to an unsigned integer value
+func DecodeUint[T uint | uint8 | uint16 | uint32 | uint64](value any) (T, error) {
+	result, err := DecodeUintPtr[T](value)
+	if err != nil {
+		return T(0), err
+	}
+	if result == nil {
+		return T(0), errors.New("the Uint value must not be null")
+	}
+	return *result, nil
+}
+
+func decodeIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](value any, convertFn convertFunc[T]) (*T, error) {
+	if IsNil(value) {
+		return nil, nil
+	}
 	var result T
 	switch v := value.(type) {
 	case int:
@@ -64,83 +118,69 @@ func DecodeIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 |
 		result = T(v)
 	case uint32:
 		result = T(v)
+	case uint64:
+		result = T(v)
 	case *int:
-		if v == nil {
-			return nil, nil
-		}
 		result = T(*v)
 	case *int8:
-		if v == nil {
-			return nil, nil
-		}
 		result = T(*v)
 	case *int16:
-		if v == nil {
-			return nil, nil
-		}
 		result = T(*v)
 	case *int32:
-		if v == nil {
-			return nil, nil
-		}
 		result = T(*v)
 	case *int64:
-		if v == nil {
-			return nil, nil
-		}
 		result = T(*v)
 	case *uint:
-		if v == nil {
-			return nil, nil
-		}
 		result = T(*v)
 	case *uint8:
-		if v == nil {
-			return nil, nil
-		}
 		result = T(*v)
 	case *uint16:
-		if v == nil {
-			return nil, nil
-		}
 		result = T(*v)
 	case *uint32:
-		if v == nil {
-			return nil, nil
-		}
 		result = T(*v)
+	case *uint64:
+		result = T(*v)
+	case bool, string, float32, float64, complex128, time.Time, time.Duration, time.Ticker:
+		return nil, fmt.Errorf("failed to convert integer, got: %+v", value)
 	default:
-		return nil, fmt.Errorf("failed to convert Int, got %v", value)
+		inferredValue := reflect.ValueOf(value)
+		originType := inferredValue.Type()
+		for inferredValue.Kind() == reflect.Pointer {
+			inferredValue = inferredValue.Elem()
+		}
+
+		switch inferredValue.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			result = T(inferredValue.Int())
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			result = T(inferredValue.Uint())
+		case reflect.Interface:
+			newVal, parseErr := convertFn(inferredValue)
+			if parseErr != nil {
+				return nil, fmt.Errorf("failed to convert integer, got: %s (%+v)", originType.String(), inferredValue.Interface())
+			}
+			result = T(*newVal)
+		default:
+			return nil, fmt.Errorf("failed to convert integer, got: %s (%+v)", originType.String(), inferredValue.Interface())
+		}
 	}
 
 	return &result, nil
 }
 
-// DecodeInt tries to convert an unknown value to an integer value
-func DecodeInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](value any) (T, error) {
-	result, err := DecodeIntPtr[T](value)
-	if err != nil {
-		return T(0), err
-	}
-	if result == nil {
-		return T(0), errors.New("the Int value must not be null")
-	}
-	return *result, nil
-}
-
 // DecodeStringPtr tries to convert an unknown value to a string pointer
 func DecodeStringPtr(value any) (*string, error) {
+	if IsNil(value) {
+		return nil, nil
+	}
 	var result string
 	switch v := value.(type) {
 	case string:
 		result = v
 	case *string:
-		if v == nil {
-			return nil, nil
-		}
 		result = *v
 	default:
-		return nil, fmt.Errorf("failed to convert String, got %v", value)
+		return nil, fmt.Errorf("failed to convert String, got: %v", value)
 	}
 
 	return &result, nil
@@ -160,6 +200,9 @@ func DecodeString(value any) (string, error) {
 
 // DecodeFloatPtr tries to convert an unknown value to a float pointer
 func DecodeFloatPtr[T float32 | float64](value any) (*T, error) {
+	if IsNil(value) {
+		return nil, nil
+	}
 	var result T
 	switch v := value.(type) {
 	case float32:
@@ -167,17 +210,11 @@ func DecodeFloatPtr[T float32 | float64](value any) (*T, error) {
 	case float64:
 		result = T(v)
 	case *float32:
-		if v == nil {
-			return nil, nil
-		}
 		result = T(*v)
 	case *float64:
-		if v == nil {
-			return nil, nil
-		}
 		result = T(*v)
 	default:
-		return nil, fmt.Errorf("failed to convert Float, got %v", value)
+		return nil, fmt.Errorf("failed to convert Float, got: %v", value)
 	}
 
 	return &result, nil
@@ -197,6 +234,9 @@ func DecodeFloat[T float32 | float64](value any) (T, error) {
 
 // DecodeComplexPtr tries to convert an unknown value to a complex pointer
 func DecodeComplexPtr[T complex64 | complex128](value any) (*T, error) {
+	if IsNil(value) {
+		return nil, nil
+	}
 	var result T
 	switch v := value.(type) {
 	case complex64:
@@ -204,17 +244,11 @@ func DecodeComplexPtr[T complex64 | complex128](value any) (*T, error) {
 	case complex128:
 		result = T(v)
 	case *complex64:
-		if v == nil {
-			return nil, nil
-		}
 		result = T(*v)
 	case *complex128:
-		if v == nil {
-			return nil, nil
-		}
 		result = T(*v)
 	default:
-		return nil, fmt.Errorf("failed to convert Complex, got %v", value)
+		return nil, fmt.Errorf("failed to convert Complex, got: %v", value)
 	}
 
 	return &result, nil
@@ -234,17 +268,18 @@ func DecodeComplex[T complex64 | complex128](value any) (T, error) {
 
 // DecodeBooleanPtr tries to convert an unknown value to a bool pointer
 func DecodeBooleanPtr(value any) (*bool, error) {
+	if IsNil(value) {
+		return nil, nil
+	}
+
 	var result bool
 	switch v := value.(type) {
 	case bool:
 		result = v
 	case *bool:
-		if v == nil {
-			return nil, nil
-		}
 		result = *v
 	default:
-		return nil, fmt.Errorf("failed to convert Boolean, got %v", value)
+		return nil, fmt.Errorf("failed to convert Boolean, got: %v", value)
 	}
 
 	return &result, nil
@@ -264,26 +299,23 @@ func DecodeBoolean(value any) (bool, error) {
 
 // DecodeDateTimePtr tries to convert an unknown value to a time.Time pointer
 func DecodeDateTimePtr(value any) (*time.Time, error) {
+	if IsNil(value) {
+		return nil, nil
+	}
 	var result time.Time
 	switch v := value.(type) {
 	case time.Time:
 		result = v
 	case *time.Time:
-		if v == nil {
-			return nil, nil
-		}
 		result = *v
 	case string:
 		return parseDateTime(v)
 	case *string:
-		if v == nil {
-			return nil, nil
-		}
 		return parseDateTime(*v)
 	default:
 		i64, err := DecodeIntPtr[int64](v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert DateTime, got %v", value)
+			return nil, fmt.Errorf("failed to convert DateTime, got: %v", value)
 		}
 		if i64 == nil {
 			return nil, nil
@@ -309,7 +341,7 @@ func DecodeDateTime(value any) (time.Time, error) {
 // parse date time with fallback ISO8601 formats
 func parseDateTime(value string) (*time.Time, error) {
 	for _, format := range []string{time.RFC3339, "2006-01-02T15:04:05Z0700", "2006-01-02T15:04:05-0700", time.RFC3339Nano} {
-		result, err := time.Parse(value, format)
+		result, err := time.Parse(format, value)
 		if err != nil {
 			continue
 		}
@@ -321,14 +353,14 @@ func parseDateTime(value string) (*time.Time, error) {
 
 // DecodeDurationPtr tries to convert an unknown value to a duration pointer
 func DecodeDurationPtr(value any) (*time.Duration, error) {
+	if IsNil(value) {
+		return nil, nil
+	}
 	var result time.Duration
 	switch v := value.(type) {
 	case time.Duration:
 		result = v
 	case *time.Duration:
-		if v == nil {
-			return nil, nil
-		}
 		result = *v
 	case string:
 		dur, err := time.ParseDuration(v)
@@ -337,9 +369,6 @@ func DecodeDurationPtr(value any) (*time.Duration, error) {
 		}
 		result = dur
 	case *string:
-		if v == nil {
-			return nil, nil
-		}
 		dur, err := time.ParseDuration(*v)
 		if err != nil {
 			return nil, err
@@ -348,7 +377,7 @@ func DecodeDurationPtr(value any) (*time.Duration, error) {
 	default:
 		i64, err := DecodeIntPtr[int64](v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert DateTime, got %v", value)
+			return nil, fmt.Errorf("failed to convert Duration, got: %v", value)
 		}
 		if i64 == nil {
 			return nil, nil
@@ -381,7 +410,7 @@ func GetAny(object map[string]any, key string) (any, bool) {
 }
 
 // GetIntPtr get an integer pointer from object by key
-func GetIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (*T, error) {
+func GetIntPtr[T int | int8 | int16 | int32 | int64](object map[string]any, key string) (*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
@@ -394,7 +423,7 @@ func GetIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | ui
 }
 
 // GetInt get an integer value from object by key
-func GetInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (T, error) {
+func GetInt[T int | int8 | int16 | int32 | int64](object map[string]any, key string) (T, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return 0, fmt.Errorf("field `%s` does not exist", key)
