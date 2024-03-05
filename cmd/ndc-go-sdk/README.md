@@ -158,7 +158,6 @@ The basic scalar types supported are:
 - `string` (NDC scalar type: `String`)
 - `int`, `int8`, `int16`, `int32`, `int64`, `uint`, `uint8`, `uint16`, `uint32`, `uint64` (NDC scalar type: `Int`)
 - `float32`, `float64` (NDC scalar type: `Float`)
-- `complex64`, `complex128` (NDC scalar type: `Complex`)
 - `bool` (NDC scalar type: `Boolean`)
 - `time.Time` (NDC scalar type: `DateTime`, represented as an [ISO formatted](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString) string in JSON)
 - `time.Duration` (NDC scalar type: `Duration`, represented as a duration string in JSON)

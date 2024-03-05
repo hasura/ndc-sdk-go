@@ -2,6 +2,7 @@ package functions
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,6 +13,21 @@ import (
 // @scalar CommentString
 type CommentText struct {
 	comment string
+}
+
+func (c CommentText) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.comment)
+}
+
+func (c *CommentText) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	c.comment = s
+
+	return nil
 }
 
 func (ct *CommentText) FromValue(value any) (err error) {
@@ -40,9 +56,8 @@ func GetArticles(ctx context.Context, state *types.State, arguments *GetArticles
 
 type CreateArticleArguments struct {
 	Author struct {
-		ID        uuid.UUID  `json:"id"`
-		Decimal   complex128 `json:"decimal"`
-		CreatedAt time.Time  `json:"created_at"`
+		ID        uuid.UUID `json:"id"`
+		CreatedAt time.Time `json:"created_at"`
 	} `json:"author"`
 }
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-codegen-example/types"
+	"github.com/hasura/ndc-sdk-go/schema"
 )
 
 type Text string
@@ -96,8 +97,6 @@ type GetTypesArguments struct {
 	Uint64       uint64
 	Float32      float32
 	Float64      float64
-	Complex64    complex64
-	Complex128   complex128
 	Time         time.Time
 	Duration     time.Duration
 	CustomScalar CommentText
@@ -117,15 +116,14 @@ type GetTypesArguments struct {
 	Uint64Ptr       *uint64
 	Float32Ptr      *float32
 	Float64Ptr      *float64
-	Complex64Ptr    *complex64
-	Complex128Ptr   *complex128
+	TimePtr         *time.Time
+	DurationPtr     *time.Duration
 	CustomScalarPtr *CommentText
 
 	Object struct {
-		ID        uuid.UUID  `json:"id"`
-		Decimal   complex128 `json:"decimal"`
-		CreatedAt time.Time  `json:"created_at"`
-	} `json:"author"`
+		ID        uuid.UUID `json:"id"`
+		CreatedAt time.Time `json:"created_at"`
+	}
 	ObjectPtr *struct {
 		Long int
 		Lat  int
@@ -139,5 +137,83 @@ type GetTypesArguments struct {
 }
 
 func FunctionGetTypes(ctx context.Context, state *types.State, arguments *GetTypesArguments) (*GetTypesArguments, error) {
-	return &GetTypesArguments{}, nil
+	return &GetTypesArguments{
+		UUID:     uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5a"),
+		Bool:     true,
+		String:   "hello",
+		Int:      1,
+		Int8:     2,
+		Int16:    3,
+		Int32:    4,
+		Int64:    5,
+		Uint:     6,
+		Uint8:    7,
+		Uint16:   8,
+		Uint32:   9,
+		Uint64:   10,
+		Float32:  1.1,
+		Float64:  2.2,
+		Time:     time.Date(2023, 3, 5, 7, 0, 56, 0, time.UTC),
+		Duration: 10 * time.Second,
+		CustomScalar: CommentText{
+			comment: "a comment",
+		},
+		UUIDPtr:     schema.ToPtr(uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5b")),
+		BoolPtr:     schema.ToPtr(true),
+		IntPtr:      schema.ToPtr(11),
+		Int8Ptr:     schema.ToPtr(int8(12)),
+		Int16Ptr:    schema.ToPtr(int16(13)),
+		Int32Ptr:    schema.ToPtr(int32(14)),
+		Int64Ptr:    schema.ToPtr(int64(15)),
+		UintPtr:     schema.ToPtr(uint(16)),
+		Uint8Ptr:    schema.ToPtr(uint8(17)),
+		Uint16Ptr:   schema.ToPtr(uint16(18)),
+		Uint32Ptr:   schema.ToPtr(uint32(19)),
+		Uint64Ptr:   schema.ToPtr(uint64(20)),
+		Float32Ptr:  schema.ToPtr(float32(3.3)),
+		Float64Ptr:  schema.ToPtr(float64(4.4)),
+		TimePtr:     schema.ToPtr(time.Date(2023, 3, 5, 7, 0, 0, 0, time.UTC)),
+		DurationPtr: schema.ToPtr(time.Minute),
+		CustomScalarPtr: &CommentText{
+			comment: "a comment pointer",
+		},
+		Object: struct {
+			ID        uuid.UUID `json:"id"`
+			CreatedAt time.Time `json:"created_at"`
+		}{
+			ID:        uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5c"),
+			CreatedAt: time.Date(2023, 3, 5, 6, 0, 0, 0, time.UTC),
+		},
+		ObjectPtr: &struct {
+			Long int
+			Lat  int
+		}{
+			Long: 1,
+			Lat:  2,
+		},
+		ArrayObject: []struct {
+			Content string "json:\"content\""
+		}{
+			{
+				Content: "a content",
+			},
+		},
+		NamedObject: Author{
+			ID:        "1",
+			Duration:  10 * time.Minute,
+			CreatedAt: time.Date(2023, 3, 5, 5, 0, 0, 0, time.UTC),
+		},
+		NamedObjectPtr: &Author{
+			ID:        "2",
+			Duration:  11 * time.Minute,
+			CreatedAt: time.Date(2023, 3, 5, 4, 0, 0, 0, time.UTC),
+		},
+		NamedArray: []Author{
+			{
+				ID:        "3",
+				Duration:  12 * time.Minute,
+				CreatedAt: time.Date(2023, 3, 5, 3, 0, 0, 0, time.UTC),
+			},
+		},
+	}, nil
 }

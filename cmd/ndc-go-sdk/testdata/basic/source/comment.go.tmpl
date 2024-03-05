@@ -34,7 +34,6 @@ func GetArticles(ctx context.Context, state *State, arguments *GetArticlesArgume
 type CreateArticleArguments struct {
   Author struct {
     ID          uuid.UUID `json:"id"`
-    Decimal     complex128 `json:"decimal"`
     CreatedAt   time.Time `json:"created_at"`
   } `json:"author"`
 }

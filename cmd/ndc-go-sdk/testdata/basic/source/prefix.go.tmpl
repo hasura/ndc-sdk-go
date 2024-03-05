@@ -96,8 +96,6 @@ type GetTypesArguments struct {
 	Uint64       uint64
 	Float32      float32
 	Float64      float64
-	Complex64    complex64
-	Complex128   complex128
 	Time         time.Time
 	Duration     time.Duration
 	CustomScalar CommentText
@@ -117,13 +115,10 @@ type GetTypesArguments struct {
 	Uint64Ptr       *uint64
 	Float32Ptr      *float32
 	Float64Ptr      *float64
-	Complex64Ptr    *complex64
-	Complex128Ptr   *complex128
 	CustomScalarPtr *CommentText
 
 	Object struct {
 		ID        uuid.UUID  `json:"id"`
-		Decimal   complex128 `json:"decimal"`
 		CreatedAt time.Time  `json:"created_at"`
 	} `json:"author"`
 	ObjectPtr *struct {

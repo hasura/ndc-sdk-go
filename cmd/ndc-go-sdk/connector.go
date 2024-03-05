@@ -445,6 +445,10 @@ package %s
 
 func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, ty *TypeInfo, key string, fieldName string) {
 	typeName := ty.TypeAST.String()
+	if strings.Contains(typeName, "complex64") || strings.Contains(typeName, "complex128") {
+		panic("unsupported complex64 and complex128")
+	}
+
 	switch typeName {
 	case "bool":
 		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetBool(input, "%s")`, fieldName, key))
@@ -466,10 +470,6 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetFloat[%s](input, "%s")`, fieldName, typeName, key))
 	case "*float32", "*float64":
 		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetFloatPtr[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
-	case "complex64", "complex128":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetComplex[%s](input, "%s")`, fieldName, typeName, key))
-	case "*complex64", "*complex128":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetComplexPtr[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
 	case "time.Time":
 		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTime(input, "%s")`, fieldName, key))
 	case "*time.Time":
@@ -480,7 +480,12 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDurationPtr(input, "%s")`, fieldName, key))
 	default:
 		if ty.IsNullable {
-			_, _ = sb.builder.WriteString(fmt.Sprintf(`  err = utils.DecodeObjectValue(j.%s, input, "%s")`, fieldName, key))
+			pkgName, tyName := extractPackageAndTypeName(typeName)
+			if pkgName != "" {
+				sb.imports[pkgName] = ""
+			}
+			_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s = new(%s)
+  err = utils.DecodeObjectValue(j.%s, input, "%s")`, fieldName, tyName, fieldName, key))
 		} else {
 			_, _ = sb.builder.WriteString(fmt.Sprintf(`  err = utils.DecodeObjectValue(&j.%s, input, "%s")`, fieldName, key))
 		}
@@ -488,20 +493,19 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 	_, _ = sb.builder.WriteString(textBlockErrorCheck)
 }
 
-// TODO: will use in the future
-// func extractModuleAndTypeName(name string) (string, string) {
-// 	parts := strings.Split(strings.TrimPrefix(name, "*"), "/")
-// 	typeName := parts[len(parts)-1]
-// 	typeNameParts := strings.Split(typeName, ".")
-// 	if len(typeNameParts) < 2 {
-// 		return "", typeName
-// 	}
-// 	if len(parts) == 1 {
-// 		return typeNameParts[0], typeName
-// 	}
+func extractPackageAndTypeName(name string) (string, string) {
+	parts := strings.Split(strings.TrimPrefix(name, "*"), "/")
+	typeName := parts[len(parts)-1]
+	typeNameParts := strings.Split(typeName, ".")
+	if len(typeNameParts) < 2 {
+		return "", typeName
+	}
+	if len(parts) == 1 {
+		return typeNameParts[0], typeName
+	}
 
-// 	return strings.Join(append(parts[:len(parts)-1], typeNameParts[0]), "/"), typeName
-// }
+	return strings.Join(append(parts[:len(parts)-1], typeNameParts[0]), "/"), typeName
+}
 
 func getSortedKeys[V any](input map[string]V) []string {
 	var results []string

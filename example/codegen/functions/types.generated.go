@@ -2,6 +2,7 @@
 package functions
 
 import (
+	"github.com/google/uuid"
 	"github.com/hasura/ndc-sdk-go/utils"
 )
 
@@ -20,31 +21,20 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.Complex128, err = utils.GetComplex[complex128](input, "Complex128")
-	if err != nil {
-		return err
-	}
-	j.Complex128Ptr, err = utils.GetComplexPtr[complex128](input, "Complex128Ptr")
-	if err != nil {
-		return err
-	}
-	j.Complex64, err = utils.GetComplex[complex64](input, "Complex64")
-	if err != nil {
-		return err
-	}
-	j.Complex64Ptr, err = utils.GetComplexPtr[complex64](input, "Complex64Ptr")
-	if err != nil {
-		return err
-	}
 	err = utils.DecodeObjectValue(&j.CustomScalar, input, "CustomScalar")
 	if err != nil {
 		return err
 	}
+	j.CustomScalarPtr = new(CommentText)
 	err = utils.DecodeObjectValue(j.CustomScalarPtr, input, "CustomScalarPtr")
 	if err != nil {
 		return err
 	}
 	j.Duration, err = utils.GetDuration(input, "Duration")
+	if err != nil {
+		return err
+	}
+	j.DurationPtr, err = utils.GetDurationPtr(input, "DurationPtr")
 	if err != nil {
 		return err
 	}
@@ -112,10 +102,19 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	j.NamedObjectPtr = new(Author)
 	err = utils.DecodeObjectValue(j.NamedObjectPtr, input, "NamedObjectPtr")
 	if err != nil {
 		return err
 	}
+	err = utils.DecodeObjectValue(&j.Object, input, "Object")
+	if err != nil {
+		return err
+	}
+	j.ObjectPtr = new(struct {
+		Long int
+		Lat  int
+	})
 	err = utils.DecodeObjectValue(j.ObjectPtr, input, "ObjectPtr")
 	if err != nil {
 		return err
@@ -132,10 +131,15 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	j.TimePtr, err = utils.GetDateTimePtr(input, "TimePtr")
+	if err != nil {
+		return err
+	}
 	err = utils.DecodeObjectValue(&j.UUID, input, "UUID")
 	if err != nil {
 		return err
 	}
+	j.UUIDPtr = new(uuid.UUID)
 	err = utils.DecodeObjectValue(j.UUIDPtr, input, "UUIDPtr")
 	if err != nil {
 		return err
@@ -177,10 +181,6 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 		return err
 	}
 	j.UintPtr, err = utils.GetUintPtr[uint](input, "UintPtr")
-	if err != nil {
-		return err
-	}
-	err = utils.DecodeObjectValue(&j.Object, input, "author")
 	if err != nil {
 		return err
 	}
@@ -247,7 +247,6 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	}
 	result_Object := map[string]any{
 		"created_at": j.Object.CreatedAt,
-		"decimal":    j.Object.Decimal,
 		"id":         j.Object.ID,
 	}
 	result_ArrayObject := make([]map[string]any, len(j.ArrayObject))
@@ -261,13 +260,10 @@ func (j GetTypesArguments) ToMap() map[string]any {
 		"ArrayObject":     result_ArrayObject,
 		"Bool":            j.Bool,
 		"BoolPtr":         j.BoolPtr,
-		"Complex128":      j.Complex128,
-		"Complex128Ptr":   j.Complex128Ptr,
-		"Complex64":       j.Complex64,
-		"Complex64Ptr":    j.Complex64Ptr,
 		"CustomScalar":    j.CustomScalar,
 		"CustomScalarPtr": j.CustomScalarPtr,
 		"Duration":        j.Duration,
+		"DurationPtr":     j.DurationPtr,
 		"Float32":         j.Float32,
 		"Float32Ptr":      j.Float32Ptr,
 		"Float64":         j.Float64,
@@ -285,11 +281,12 @@ func (j GetTypesArguments) ToMap() map[string]any {
 		"NamedArray":      utils.EncodeMaps(j.NamedArray),
 		"NamedObject":     utils.EncodeMap(j.NamedObject),
 		"NamedObjectPtr":  utils.EncodeMap(j.NamedObjectPtr),
-		"author":          result_Object,
+		"Object":          result_Object,
 		"ObjectPtr":       result_ObjectPtr,
 		"String":          j.String,
 		"StringPtr":       j.StringPtr,
 		"Time":            j.Time,
+		"TimePtr":         j.TimePtr,
 		"UUID":            j.UUID,
 		"UUIDPtr":         j.UUIDPtr,
 		"Uint":            j.Uint,

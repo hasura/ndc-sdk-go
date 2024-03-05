@@ -36,36 +36,6 @@
             }
           }
         },
-        "Complex128": {
-          "type": {
-            "name": "Complex",
-            "type": "named"
-          }
-        },
-        "Complex128Ptr": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": {
-              "name": "Complex",
-              "type": "named"
-            }
-          }
-        },
-        "Complex64": {
-          "type": {
-            "name": "Complex",
-            "type": "named"
-          }
-        },
-        "Complex64Ptr": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": {
-              "name": "Complex",
-              "type": "named"
-            }
-          }
-        },
         "CustomScalar": {
           "type": {
             "name": "CommentString",
@@ -414,12 +384,6 @@
             "type": "named"
           }
         },
-        "decimal": {
-          "type": {
-            "name": "Complex",
-            "type": "named"
-          }
-        },
         "id": {
           "type": {
             "name": "UUID",
@@ -508,36 +472,6 @@
             "type": "nullable",
             "underlying_type": {
               "name": "Boolean",
-              "type": "named"
-            }
-          }
-        },
-        "Complex128": {
-          "type": {
-            "name": "Complex",
-            "type": "named"
-          }
-        },
-        "Complex128Ptr": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": {
-              "name": "Complex",
-              "type": "named"
-            }
-          }
-        },
-        "Complex64": {
-          "type": {
-            "name": "Complex",
-            "type": "named"
-          }
-        },
-        "Complex64Ptr": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": {
-              "name": "Complex",
               "type": "named"
             }
           }
@@ -838,12 +772,6 @@
             "type": "named"
           }
         },
-        "decimal": {
-          "type": {
-            "name": "Complex",
-            "type": "named"
-          }
-        },
         "id": {
           "type": {
             "name": "UUID",
@@ -973,10 +901,6 @@
       "comparison_operators": {}
     },
     "CommentString": {
-      "aggregate_functions": {},
-      "comparison_operators": {}
-    },
-    "Complex": {
       "aggregate_functions": {},
       "comparison_operators": {}
     },

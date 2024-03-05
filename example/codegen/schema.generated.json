@@ -36,36 +36,6 @@
             }
           }
         },
-        "Complex128": {
-          "type": {
-            "name": "Complex",
-            "type": "named"
-          }
-        },
-        "Complex128Ptr": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": {
-              "name": "Complex",
-              "type": "named"
-            }
-          }
-        },
-        "Complex64": {
-          "type": {
-            "name": "Complex",
-            "type": "named"
-          }
-        },
-        "Complex64Ptr": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": {
-              "name": "Complex",
-              "type": "named"
-            }
-          }
-        },
         "CustomScalar": {
           "type": {
             "name": "CommentString",
@@ -85,6 +55,15 @@
           "type": {
             "name": "Duration",
             "type": "named"
+          }
+        },
+        "DurationPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Duration",
+              "type": "named"
+            }
           }
         },
         "Float32": {
@@ -216,6 +195,12 @@
             }
           }
         },
+        "Object": {
+          "type": {
+            "name": "GetTypesArgumentsObject",
+            "type": "named"
+          }
+        },
         "ObjectPtr": {
           "type": {
             "type": "nullable",
@@ -244,6 +229,15 @@
           "type": {
             "name": "DateTime",
             "type": "named"
+          }
+        },
+        "TimePtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "DateTime",
+              "type": "named"
+            }
           }
         },
         "UUID": {
@@ -335,12 +329,6 @@
               "type": "named"
             }
           }
-        },
-        "author": {
-          "type": {
-            "name": "GetTypesArgumentsObject",
-            "type": "named"
-          }
         }
       },
       "name": "getTypes",
@@ -411,12 +399,6 @@
         "created_at": {
           "type": {
             "name": "DateTime",
-            "type": "named"
-          }
-        },
-        "decimal": {
-          "type": {
-            "name": "Complex",
             "type": "named"
           }
         },
@@ -512,36 +494,6 @@
             }
           }
         },
-        "Complex128": {
-          "type": {
-            "name": "Complex",
-            "type": "named"
-          }
-        },
-        "Complex128Ptr": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": {
-              "name": "Complex",
-              "type": "named"
-            }
-          }
-        },
-        "Complex64": {
-          "type": {
-            "name": "Complex",
-            "type": "named"
-          }
-        },
-        "Complex64Ptr": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": {
-              "name": "Complex",
-              "type": "named"
-            }
-          }
-        },
         "CustomScalar": {
           "type": {
             "name": "CommentString",
@@ -561,6 +513,15 @@
           "type": {
             "name": "Duration",
             "type": "named"
+          }
+        },
+        "DurationPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Duration",
+              "type": "named"
+            }
           }
         },
         "Float32": {
@@ -692,6 +653,12 @@
             }
           }
         },
+        "Object": {
+          "type": {
+            "name": "GetTypesArgumentsObject",
+            "type": "named"
+          }
+        },
         "ObjectPtr": {
           "type": {
             "type": "nullable",
@@ -720,6 +687,15 @@
           "type": {
             "name": "DateTime",
             "type": "named"
+          }
+        },
+        "TimePtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "DateTime",
+              "type": "named"
+            }
           }
         },
         "UUID": {
@@ -811,12 +787,6 @@
               "type": "named"
             }
           }
-        },
-        "author": {
-          "type": {
-            "name": "GetTypesArgumentsObject",
-            "type": "named"
-          }
         }
       }
     },
@@ -835,12 +805,6 @@
         "created_at": {
           "type": {
             "name": "DateTime",
-            "type": "named"
-          }
-        },
-        "decimal": {
-          "type": {
-            "name": "Complex",
             "type": "named"
           }
         },
@@ -973,10 +937,6 @@
       "comparison_operators": {}
     },
     "CommentString": {
-      "aggregate_functions": {},
-      "comparison_operators": {}
-    },
-    "Complex": {
       "aggregate_functions": {},
       "comparison_operators": {}
     },

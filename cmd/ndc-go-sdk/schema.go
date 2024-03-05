@@ -22,7 +22,6 @@ var defaultScalarTypes = schema.SchemaResponseScalarTypes{
 	"Int":      *schema.NewScalarType(),
 	"BigInt":   *schema.NewScalarType(),
 	"Float":    *schema.NewScalarType(),
-	"Complex":  *schema.NewScalarType(),
 	"Boolean":  *schema.NewScalarType(),
 	"DateTime": *schema.NewScalarType(),
 	"Duration": *schema.NewScalarType(),
@@ -376,6 +375,8 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			PackageName: innerType.PackageName,
 			TypeAST:     ty,
 			IsNullable:  true,
+			IsScalar:    innerType.IsScalar,
+			IsArray:     innerType.IsArray,
 			Schema:      schema.NewNullableType(innerType.Schema),
 		}, nil
 	case *types.Struct:
@@ -485,9 +486,6 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
 		case types.Float32, types.Float64:
 			scalarName = "Float"
-			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
-		case types.Complex64, types.Complex128:
-			scalarName = "Complex"
 			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
 		case types.String:
 			scalarName = "String"

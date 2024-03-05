@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -46,7 +47,7 @@ func DecodeObjectValue(target any, object map[string]any, key string) error {
 
 // DecodeValue tries to convert and set an unknown value into the target,
 // fallback to mapstructure decoder
-func DecodeValue(target any, value any) error {
+func DecodeValue(target any, value any, decodeHooks ...mapstructure.DecodeHookFunc) error {
 	if IsNil(target) {
 		return errors.New("the decoded target must be not null")
 	}
@@ -63,9 +64,9 @@ func DecodeValue(target any, value any) error {
 		if decoder, ok := target.(ObjectDecoder); ok {
 			return decoder.FromValue(v)
 		}
-		return decodeMapStructure(target, value)
+		return decodeAnyValue(target, value, decodeHooks...)
 	default:
-		return decodeMapStructure(target, value)
+		return decodeAnyValue(target, value, decodeHooks...)
 	}
 }
 
@@ -143,6 +144,10 @@ func decodeIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 |
 		result = T(v)
 	case uint64:
 		result = T(v)
+	case float32:
+		result = T(v)
+	case float64:
+		result = T(v)
 	case *int:
 		result = T(*v)
 	case *int8:
@@ -163,7 +168,11 @@ func decodeIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 |
 		result = T(*v)
 	case *uint64:
 		result = T(*v)
-	case bool, string, float32, float64, complex64, complex128, time.Time, time.Duration, time.Ticker, *bool, *string, *float32, *float64, *complex64, *complex128, *time.Time, *time.Duration, *time.Ticker, []bool, []string, []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64, []float32, []float64, []complex64, []complex128, []time.Time, []time.Duration, []time.Ticker:
+	case *float32:
+		result = T(*v)
+	case *float64:
+		result = T(*v)
+	case bool, string, complex64, complex128, time.Time, time.Duration, time.Ticker, *bool, *string, *complex64, *complex128, *time.Time, *time.Duration, *time.Ticker, []bool, []string, []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64, []float32, []float64, []complex64, []complex128, []time.Time, []time.Duration, []time.Ticker:
 		return nil, fmt.Errorf("failed to convert integer, got: %+v", value)
 	default:
 		inferredValue := reflect.ValueOf(value)
@@ -314,59 +323,6 @@ func DecodeFloat[T float32 | float64](value any) (T, error) {
 	}
 	if result == nil {
 		return T(0), errors.New("the Float value must not be null")
-	}
-	return *result, nil
-}
-
-// DecodeComplexPtr tries to convert an unknown value to a complex pointer
-func DecodeComplexPtr[T complex64 | complex128](value any) (*T, error) {
-	if IsNil(value) {
-		return nil, nil
-	}
-	var result T
-	switch v := value.(type) {
-	case complex64:
-		result = T(v)
-	case complex128:
-		result = T(v)
-	case *complex64:
-		result = T(*v)
-	case *complex128:
-		result = T(*v)
-	case bool, string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, time.Time, time.Duration, time.Ticker, *bool, *string, *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64, *float32, *float64, *time.Time, *time.Duration, *time.Ticker, []bool, []string, []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64, []float32, []float64, []complex64, []complex128, []time.Time, []time.Duration, []time.Ticker:
-		return nil, fmt.Errorf("failed to convert Complex, got: %+v", value)
-	default:
-		inferredValue := reflect.ValueOf(value)
-		originType := inferredValue.Type()
-		for inferredValue.Kind() == reflect.Pointer {
-			inferredValue = inferredValue.Elem()
-		}
-
-		switch inferredValue.Kind() {
-		case reflect.Complex64, reflect.Complex128:
-			result = T(inferredValue.Complex())
-		case reflect.Interface:
-			newVal, parseErr := strconv.ParseComplex(fmt.Sprint(inferredValue.Interface()), 128)
-			if parseErr != nil {
-				return nil, fmt.Errorf("failed to convert Complex, got: %s (%+v)", originType.String(), inferredValue.Interface())
-			}
-			result = T(newVal)
-		default:
-			return nil, fmt.Errorf("failed to convert Complex, got: %s (%+v)", originType.String(), inferredValue.Interface())
-		}
-	}
-
-	return &result, nil
-}
-
-// DecodeComplex tries to convert an unknown value to a complex value
-func DecodeComplex[T complex64 | complex128](value any) (T, error) {
-	result, err := DecodeComplexPtr[T](value)
-	if err != nil {
-		return T(0), err
-	}
-	if result == nil {
-		return T(0), errors.New("the Complex value must not be null")
 	}
 	return *result, nil
 }
@@ -592,32 +548,6 @@ func GetFloat[T float32 | float64](object map[string]any, key string) (T, error)
 	return result, nil
 }
 
-// GetComplexPtr get a complex pointer from object by key
-func GetComplexPtr[T complex64 | complex128](object map[string]any, key string) (*T, error) {
-	value, ok := GetAny(object, key)
-	if !ok || value == nil {
-		return nil, nil
-	}
-	result, err := DecodeComplexPtr[T](value)
-	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
-	}
-	return result, nil
-}
-
-// GetComplex get a complex value from object by key
-func GetComplex[T complex64 | complex128](object map[string]any, key string) (T, error) {
-	value, ok := GetAny(object, key)
-	if !ok {
-		return 0, fmt.Errorf("field `%s` does not exist", key)
-	}
-	result, err := DecodeComplex[T](value)
-	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
-	}
-	return result, nil
-}
-
 // GetStringPtr get a string pointer from object by key
 func GetStringPtr(object map[string]any, key string) (*string, error) {
 	value, ok := GetAny(object, key)
@@ -722,28 +652,46 @@ func GetDuration(object map[string]any, key string) (time.Duration, error) {
 	return result, nil
 }
 
-func decodeMapStructure(target any, value any) error {
+func decodeAnyValue(target any, value any, decodeHooks ...mapstructure.DecodeHookFunc) error {
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		Result:     target,
 		TagName:    "json",
-		DecodeHook: decodeTimeHookFunc,
+		DecodeHook: mapstructure.ComposeDecodeHookFunc(append(decodeHooks, decodeTimeHookFunc())...),
 	})
 	if err != nil {
 		return err
 	}
-	return decoder.Decode(value)
+	err = decoder.Decode(value)
+	if err == nil {
+		return nil
+	}
+
+	// fallback to json encoding
+	rawBytes, marshalErr := json.Marshal(value)
+	if marshalErr != nil {
+		return err
+	}
+	return json.Unmarshal(rawBytes, target)
 }
 
 func decodeTimeHookFunc() mapstructure.DecodeHookFunc {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
-		if t != reflect.TypeOf(time.Time{}) {
-			return data, nil
+	return func(from reflect.Value, to reflect.Value) (any, error) {
+		if to.Type().Name() != "time.Time" {
+			return from.Interface(), nil
 		}
 
-		result, err := DecodeDateTimePtr(data)
-		if err != nil {
-			return nil, err
+		kind := from.Type().Kind()
+		switch kind {
+		case reflect.String:
+			return parseDateTime(from.String())
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return time.UnixMilli(from.Int()), nil
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			return time.UnixMilli(int64(from.Uint())), nil
+		case reflect.Float32, reflect.Float64:
+			return time.UnixMilli(int64(from.Float())), nil
+		default:
+			return nil, fmt.Errorf("failed to decode time.Time, got: %s", kind.String())
 		}
-		return *result, nil
 	}
 }
