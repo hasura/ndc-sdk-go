@@ -25,10 +25,6 @@ lint:
 clean:
 	rm -rf "$(OUTPUT_DIR)"
 
-.PHONY: goto-codegen
-goto-codegen:
-	cd ./cmd/ndc-go-sdk
-
 .PHONY: build-codegen
 build-codegen:
 	cd ./cmd/ndc-go-sdk && go build -o ../../_output/ndc-go-sdk .
