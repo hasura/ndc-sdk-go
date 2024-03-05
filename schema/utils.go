@@ -10,15 +10,6 @@ func ToPtr[V any](value V) *V {
 	return &value
 }
 
-// ToAnySlice converts a typed slice to any slice
-func ToAnySlice[V any](slice []V) []any {
-	results := make([]any, len(slice))
-	for i, v := range slice {
-		results[i] = v
-	}
-	return results
-}
-
 // Index returns the index of the first occurrence of item in slice,
 // or -1 if not present.
 func Index[E comparable](s []E, v E) int {

@@ -20,27 +20,12 @@ func (ct *CommentText) FromValue(value any) (err error) {
 }
 
 type GetArticlesArguments struct {
-	Uint        uint
-	Limit       float64
-	Comment     CommentText
-	NullableStr *string `json:"nullable_str"`
+	Limit float64
 }
 
 type GetArticlesResult struct {
-	ID     string `json:"id"`
-	Name   Text
-	Author struct {
-		ID        uuid.UUID  `json:"id"`
-		Decimal   complex128 `json:"decimal"`
-		CreatedAt time.Time  `json:"created_at"`
-	} `json:"author"`
-	Location *struct {
-		Long int
-		Lat  int
-	}
-	Comments []struct {
-		Content string `json:"content"`
-	}
+	ID   string `json:"id"`
+	Name Text
 }
 
 // @function

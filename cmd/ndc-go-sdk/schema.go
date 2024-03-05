@@ -26,7 +26,6 @@ var defaultScalarTypes = schema.SchemaResponseScalarTypes{
 	"Boolean":  *schema.NewScalarType(),
 	"DateTime": *schema.NewScalarType(),
 	"Duration": *schema.NewScalarType(),
-	"UUID":     *schema.NewScalarType(),
 }
 
 var ndcOperationNameRegex = regexp.MustCompile(`^(Function|Procedure)([A-Z][A-Za-z0-9]*)$`)
@@ -36,10 +35,12 @@ var ndcScalarCommentRegex = regexp.MustCompile(`^@scalar(\s+([A-Z]\w*))?`)
 
 type OperationKind string
 
-var (
+const (
 	OperationFunction  OperationKind = "Function"
 	OperationProcedure OperationKind = "Procedure"
 )
+
+type TypeKind string
 
 // TypeInfo represents the serialization information of a type
 type TypeInfo struct {
@@ -176,6 +177,17 @@ func (rcs RawConnectorSchema) Schema() *schema.SchemaResponse {
 	}
 
 	return result
+}
+
+// IsCustomType checks if the type name is a custom scalar or an exported object
+func (rcs RawConnectorSchema) IsCustomType(name string) bool {
+	if _, ok := rcs.CustomScalars[name]; ok {
+		return true
+	}
+	if obj, ok := rcs.Objects[name]; ok {
+		return !obj.IsAnonymous
+	}
+	return false
 }
 
 type SchemaParser struct {
@@ -445,14 +457,18 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 				}
 			}
 			if scalarName != "" {
-				rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
+				if scalar, ok := defaultScalarTypes[scalarName]; ok {
+					rawSchema.ScalarSchemas[scalarName] = scalar
+				} else {
+					rawSchema.ScalarSchemas[scalarName] = *schema.NewScalarType()
+				}
 				typeInfo.Schema = schema.NewNamedType(scalarName)
 				return typeInfo, nil
 			}
 		}
 
 		if typeInfo.IsScalar {
-			rawSchema.CustomScalars[typeInfo.SchemaName] = typeInfo
+			rawSchema.CustomScalars[typeInfo.Name] = typeInfo
 			rawSchema.ScalarSchemas[typeInfo.SchemaName] = *schema.NewScalarType()
 			return typeInfo, nil
 		}

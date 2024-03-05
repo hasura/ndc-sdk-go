@@ -79,3 +79,65 @@ func ProcedureCreateAuthors(ctx context.Context, state *types.State, arguments *
 func FunctionGetBool(ctx context.Context, state *types.State) (bool, error) {
 	return true, nil
 }
+
+type GetTypesArguments struct {
+	UUID         uuid.UUID
+	Bool         bool
+	String       string
+	Int          int
+	Int8         int8
+	Int16        int16
+	Int32        int32
+	Int64        int64
+	Uint         uint
+	Uint8        uint8
+	Uint16       uint16
+	Uint32       uint32
+	Uint64       uint64
+	Float32      float32
+	Float64      float64
+	Complex64    complex64
+	Complex128   complex128
+	Time         time.Time
+	Duration     time.Duration
+	CustomScalar CommentText
+
+	UUIDPtr         *uuid.UUID
+	BoolPtr         *bool
+	StringPtr       *string
+	IntPtr          *int
+	Int8Ptr         *int8
+	Int16Ptr        *int16
+	Int32Ptr        *int32
+	Int64Ptr        *int64
+	UintPtr         *uint
+	Uint8Ptr        *uint8
+	Uint16Ptr       *uint16
+	Uint32Ptr       *uint32
+	Uint64Ptr       *uint64
+	Float32Ptr      *float32
+	Float64Ptr      *float64
+	Complex64Ptr    *complex64
+	Complex128Ptr   *complex128
+	CustomScalarPtr *CommentText
+
+	Object struct {
+		ID        uuid.UUID  `json:"id"`
+		Decimal   complex128 `json:"decimal"`
+		CreatedAt time.Time  `json:"created_at"`
+	} `json:"author"`
+	ObjectPtr *struct {
+		Long int
+		Lat  int
+	}
+	ArrayObject []struct {
+		Content string `json:"content"`
+	}
+	NamedObject    Author
+	NamedObjectPtr *Author
+	NamedArray     []Author
+}
+
+func FunctionGetTypes(ctx context.Context, state *types.State, arguments *GetTypesArguments) (*GetTypesArguments, error) {
+	return &GetTypesArguments{}, nil
+}

@@ -6,49 +6,72 @@ import (
 	"reflect"
 	"strconv"
 	"time"
+
+	"github.com/go-viper/mapstructure/v2"
 )
 
 type convertFunc[T any] func(value reflect.Value) (*T, error)
-
-// Scalar abstracts a scalar interface to determine when evaluating
-type Scalar interface {
-	ScalarName() string
-}
-
-// MapEncoder abstracts a type with the ToMap method to encode type to map
-type MapEncoder interface {
-	ToMap() map[string]any
-}
 
 // ValueDecoder abstracts a type with the FromValue method to decode any value
 type ValueDecoder interface {
 	FromValue(value any) error
 }
 
-// DecodeValue tries to convert an unknown value to a value
-func DecodeValue(decoder ValueDecoder, value any) error {
-	if IsNil(value) {
-		return nil
+// ObjectDecoder abstracts a type with the FromValue method to decode an object value
+type ObjectDecoder interface {
+	FromValue(value map[string]any) error
+}
+
+// IsNil a safe function to check null value
+func IsNil(value any) bool {
+	if value == nil {
+		return true
 	}
-	return decoder.FromValue(value)
+	v := reflect.ValueOf(value)
+	return v.Kind() == reflect.Ptr && v.IsNil()
 }
 
 // DecodeObjectValue get and decode a value from object by key
-func DecodeObjectValue(decoder ValueDecoder, object map[string]any, key string) error {
+func DecodeObjectValue(target any, object map[string]any, key string) error {
 	value, ok := GetAny(object, key)
 	if !ok || IsNil(value) {
 		return nil
 	}
-	err := decoder.FromValue(value)
+	err := DecodeValue(target, value)
 	if err != nil {
 		return fmt.Errorf("%s: %s", key, err)
 	}
 	return nil
 }
 
+// DecodeValue tries to convert and set an unknown value into the target,
+// fallback to mapstructure decoder
+func DecodeValue(target any, value any) error {
+	if IsNil(target) {
+		return errors.New("the decoded target must be not null")
+	}
+	if IsNil(value) {
+		return nil
+	}
+
+	if decoder, ok := target.(ValueDecoder); ok {
+		return decoder.FromValue(value)
+	}
+
+	switch v := value.(type) {
+	case map[string]any:
+		if decoder, ok := target.(ObjectDecoder); ok {
+			return decoder.FromValue(v)
+		}
+		return decodeMapStructure(target, value)
+	default:
+		return decodeMapStructure(target, value)
+	}
+}
+
 // DecodeIntPtr tries to convert an unknown value to an integer pointer
 func DecodeIntPtr[T int | int8 | int16 | int32 | int64](value any) (*T, error) {
-	return decodeIntPtr[T](value, func(v reflect.Value) (*T, error) {
+	return decodeIntPtr(value, func(v reflect.Value) (*T, error) {
 		rawResult, err := strconv.ParseInt(fmt.Sprint(v.Interface()), 10, 64)
 		if err != nil {
 			return nil, err
@@ -72,7 +95,7 @@ func DecodeInt[T int | int8 | int16 | int32 | int64](value any) (T, error) {
 
 // DecodeUintPtr tries to convert an unknown value to an unsigned integer pointer
 func DecodeUintPtr[T uint | uint8 | uint16 | uint32 | uint64](value any) (*T, error) {
-	return decodeIntPtr[T](value, func(v reflect.Value) (*T, error) {
+	return decodeIntPtr(value, func(v reflect.Value) (*T, error) {
 		rawResult, err := strconv.ParseUint(fmt.Sprint(v.Interface()), 10, 64)
 		if err != nil {
 			return nil, err
@@ -697,4 +720,30 @@ func GetDuration(object map[string]any, key string) (time.Duration, error) {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
 	return result, nil
+}
+
+func decodeMapStructure(target any, value any) error {
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result:     target,
+		TagName:    "json",
+		DecodeHook: decodeTimeHookFunc,
+	})
+	if err != nil {
+		return err
+	}
+	return decoder.Decode(value)
+}
+
+func decodeTimeHookFunc() mapstructure.DecodeHookFunc {
+	return func(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
+		if t != reflect.TypeOf(time.Time{}) {
+			return data, nil
+		}
+
+		result, err := DecodeDateTimePtr(data)
+		if err != nil {
+			return nil, err
+		}
+		return *result, nil
+	}
 }

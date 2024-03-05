@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/alecthomas/kong v0.8.1
 	github.com/go-logr/zerologr v1.2.3
+	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1
 	github.com/prometheus/client_golang v1.16.0
 	github.com/rs/zerolog v1.32.0
 	github.com/swaggest/jsonschema-go v0.3.66

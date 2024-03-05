@@ -3,17 +3,359 @@
   "functions": [
     {
       "arguments": {},
-      "name": "getBool",
       "description": "FunctionGetBool return an scalar boolean",
+      "name": "getBool",
       "result_type": {
         "name": "Boolean",
         "type": "named"
       }
     },
     {
+      "arguments": {
+        "ArrayObject": {
+          "type": {
+            "element_type": {
+              "name": "GetTypesArgumentsArrayObject",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "Bool": {
+          "type": {
+            "name": "Boolean",
+            "type": "named"
+          }
+        },
+        "BoolPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Boolean",
+              "type": "named"
+            }
+          }
+        },
+        "Complex128": {
+          "type": {
+            "name": "Complex",
+            "type": "named"
+          }
+        },
+        "Complex128Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Complex",
+              "type": "named"
+            }
+          }
+        },
+        "Complex64": {
+          "type": {
+            "name": "Complex",
+            "type": "named"
+          }
+        },
+        "Complex64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Complex",
+              "type": "named"
+            }
+          }
+        },
+        "CustomScalar": {
+          "type": {
+            "name": "CommentString",
+            "type": "named"
+          }
+        },
+        "CustomScalarPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "CommentString",
+              "type": "named"
+            }
+          }
+        },
+        "Duration": {
+          "type": {
+            "name": "Duration",
+            "type": "named"
+          }
+        },
+        "Float32": {
+          "type": {
+            "name": "Float",
+            "type": "named"
+          }
+        },
+        "Float32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Float",
+              "type": "named"
+            }
+          }
+        },
+        "Float64": {
+          "type": {
+            "name": "Float",
+            "type": "named"
+          }
+        },
+        "Float64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Float",
+              "type": "named"
+            }
+          }
+        },
+        "Int": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Int16": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Int16Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "Int32": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Int32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "Int64": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Int64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "Int8": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Int8Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "IntPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "NamedArray": {
+          "type": {
+            "element_type": {
+              "name": "Author",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "NamedObject": {
+          "type": {
+            "name": "Author",
+            "type": "named"
+          }
+        },
+        "NamedObjectPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Author",
+              "type": "named"
+            }
+          }
+        },
+        "ObjectPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "GetTypesArgumentsObjectPtr",
+              "type": "named"
+            }
+          }
+        },
+        "String": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "StringPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "Time": {
+          "type": {
+            "name": "DateTime",
+            "type": "named"
+          }
+        },
+        "UUID": {
+          "type": {
+            "name": "UUID",
+            "type": "named"
+          }
+        },
+        "UUIDPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "UUID",
+              "type": "named"
+            }
+          }
+        },
+        "Uint": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Uint16": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Uint16Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "Uint32": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Uint32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "Uint64": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Uint64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "Uint8": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Uint8Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "UintPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "author": {
+          "type": {
+            "name": "GetTypesArgumentsObject",
+            "type": "named"
+          }
+        }
+      },
+      "name": "getTypes",
+      "result_type": {
+        "type": "nullable",
+        "underlying_type": {
+          "name": "GetTypesArguments",
+          "type": "named"
+        }
+      }
+    },
+    {
       "arguments": {},
-      "name": "hello",
       "description": "FunctionHello sends a hello message",
+      "name": "hello",
       "result_type": {
         "type": "nullable",
         "underlying_type": {
@@ -29,108 +371,42 @@
             "name": "Float",
             "type": "named"
           }
-        },
-        "Comment": { "type": { "name": "CommentString", "type": "named" } },
-        "Uint": {
-          "type": {
-            "name": "Int",
-            "type": "named"
-          }
-        },
-        "nullable_str": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": { "name": "String", "type": "named" }
-          }
         }
       },
       "name": "getArticles",
       "result_type": {
-        "type": "array",
         "element_type": {
           "name": "GetArticlesResult",
           "type": "named"
-        }
+        },
+        "type": "array"
       }
     }
   ],
   "object_types": {
     "Author": {
       "fields": {
-        "duration": { "type": { "name": "Duration", "type": "named" } },
-        "created_at": { "type": { "name": "DateTime", "type": "named" } },
-        "id": { "type": { "name": "String", "type": "named" } }
-      }
-    },
-    "CreateArticleArgumentsAuthor": {
-      "fields": {
-        "decimal": { "type": { "name": "Complex", "type": "named" } },
-        "created_at": { "type": { "name": "DateTime", "type": "named" } },
-        "id": { "type": { "name": "UUID", "type": "named" } }
-      }
-    },
-    "CreateArticleResult": {
-      "fields": {
-        "authors": {
-          "type": {
-            "element_type": { "name": "Author", "type": "named" },
-            "type": "array"
-          }
-        },
-        "id": { "type": { "name": "Int", "type": "named" } }
-      }
-    },
-    "CreateAuthorResult": {
-      "description": "A create author result",
-      "fields": {
-        "id": {
-          "type": {
-            "name": "Int",
-            "type": "named"
-          }
-        },
-        "name": {
-          "type": {
-            "name": "String",
-            "type": "named"
-          }
-        },
         "created_at": {
           "type": {
             "name": "DateTime",
             "type": "named"
           }
+        },
+        "duration": {
+          "type": {
+            "name": "Duration",
+            "type": "named"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
         }
       }
     },
-    "GetArticlesResult": {
-      "fields": {
-        "Comments": {
-          "type": {
-            "element_type": {
-              "name": "GetArticlesResultComments",
-              "type": "named"
-            },
-            "type": "array"
-          }
-        },
-        "Location": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": {
-              "name": "GetArticlesResultLocation",
-              "type": "named"
-            }
-          }
-        },
-        "Name": { "type": { "name": "String", "type": "named" } },
-        "id": { "type": { "name": "String", "type": "named" } },
-        "author": {
-          "type": { "name": "GetArticlesResultAuthor", "type": "named" }
-        }
-      }
-    },
-    "GetArticlesResultAuthor": {
+    "CreateArticleArgumentsAuthor": {
       "fields": {
         "created_at": {
           "type": {
@@ -152,7 +428,399 @@
         }
       }
     },
-    "GetArticlesResultComments": {
+    "CreateArticleResult": {
+      "fields": {
+        "authors": {
+          "type": {
+            "element_type": {
+              "name": "Author",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "CreateAuthorResult": {
+      "description": "A create author result",
+      "fields": {
+        "created_at": {
+          "type": {
+            "name": "DateTime",
+            "type": "named"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "name": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "GetArticlesResult": {
+      "fields": {
+        "Name": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "GetTypesArguments": {
+      "fields": {
+        "ArrayObject": {
+          "type": {
+            "element_type": {
+              "name": "GetTypesArgumentsArrayObject",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "Bool": {
+          "type": {
+            "name": "Boolean",
+            "type": "named"
+          }
+        },
+        "BoolPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Boolean",
+              "type": "named"
+            }
+          }
+        },
+        "Complex128": {
+          "type": {
+            "name": "Complex",
+            "type": "named"
+          }
+        },
+        "Complex128Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Complex",
+              "type": "named"
+            }
+          }
+        },
+        "Complex64": {
+          "type": {
+            "name": "Complex",
+            "type": "named"
+          }
+        },
+        "Complex64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Complex",
+              "type": "named"
+            }
+          }
+        },
+        "CustomScalar": {
+          "type": {
+            "name": "CommentString",
+            "type": "named"
+          }
+        },
+        "CustomScalarPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "CommentString",
+              "type": "named"
+            }
+          }
+        },
+        "Duration": {
+          "type": {
+            "name": "Duration",
+            "type": "named"
+          }
+        },
+        "Float32": {
+          "type": {
+            "name": "Float",
+            "type": "named"
+          }
+        },
+        "Float32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Float",
+              "type": "named"
+            }
+          }
+        },
+        "Float64": {
+          "type": {
+            "name": "Float",
+            "type": "named"
+          }
+        },
+        "Float64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Float",
+              "type": "named"
+            }
+          }
+        },
+        "Int": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Int16": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Int16Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "Int32": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Int32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "Int64": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Int64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "Int8": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Int8Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "IntPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "NamedArray": {
+          "type": {
+            "element_type": {
+              "name": "Author",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "NamedObject": {
+          "type": {
+            "name": "Author",
+            "type": "named"
+          }
+        },
+        "NamedObjectPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Author",
+              "type": "named"
+            }
+          }
+        },
+        "ObjectPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "GetTypesArgumentsObjectPtr",
+              "type": "named"
+            }
+          }
+        },
+        "String": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "StringPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "Time": {
+          "type": {
+            "name": "DateTime",
+            "type": "named"
+          }
+        },
+        "UUID": {
+          "type": {
+            "name": "UUID",
+            "type": "named"
+          }
+        },
+        "UUIDPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "UUID",
+              "type": "named"
+            }
+          }
+        },
+        "Uint": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Uint16": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Uint16Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "Uint32": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Uint32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "Uint64": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Uint64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "Uint8": {
+          "type": {
+            "name": "Int",
+            "type": "named"
+          }
+        },
+        "Uint8Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "UintPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int",
+              "type": "named"
+            }
+          }
+        },
+        "author": {
+          "type": {
+            "name": "GetTypesArgumentsObject",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "GetTypesArgumentsArrayObject": {
       "fields": {
         "content": {
           "type": {
@@ -162,7 +830,29 @@
         }
       }
     },
-    "GetArticlesResultLocation": {
+    "GetTypesArgumentsObject": {
+      "fields": {
+        "created_at": {
+          "type": {
+            "name": "DateTime",
+            "type": "named"
+          }
+        },
+        "decimal": {
+          "type": {
+            "name": "Complex",
+            "type": "named"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "UUID",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "GetTypesArgumentsObjectPtr": {
       "fields": {
         "Lat": {
           "type": {
@@ -181,6 +871,12 @@
     "HelloResult": {
       "description": "A hello result",
       "fields": {
+        "foo": {
+          "type": {
+            "name": "Foo",
+            "type": "named"
+          }
+        },
         "id": {
           "type": {
             "name": "UUID",
@@ -198,12 +894,6 @@
             "name": "String",
             "type": "named"
           }
-        },
-        "foo": {
-          "type": {
-            "name": "Foo",
-            "type": "named"
-          }
         }
       }
     }
@@ -212,7 +902,10 @@
     {
       "arguments": {
         "author": {
-          "type": { "name": "CreateArticleArgumentsAuthor", "type": "named" }
+          "type": {
+            "name": "CreateArticleArgumentsAuthor",
+            "type": "named"
+          }
         }
       },
       "name": "create_article",
@@ -227,10 +920,9 @@
     {
       "arguments": {},
       "name": "increase",
-      "description": null,
       "result_type": {
-        "type": "named",
-        "name": "Int"
+        "name": "Int",
+        "type": "named"
       }
     },
     {
@@ -242,8 +934,8 @@
           }
         }
       },
-      "name": "createAuthor",
       "description": "ProcedureCreateAuthor creates an author",
+      "name": "createAuthor",
       "result_type": {
         "type": "nullable",
         "underlying_type": {
@@ -256,22 +948,22 @@
       "arguments": {
         "names": {
           "type": {
-            "type": "array",
             "element_type": {
               "name": "String",
               "type": "named"
-            }
+            },
+            "type": "array"
           }
         }
       },
-      "name": "createAuthors",
       "description": "ProcedureCreateAuthors creates a list of authors",
+      "name": "createAuthors",
       "result_type": {
-        "type": "array",
         "element_type": {
           "name": "CreateAuthorResult",
           "type": "named"
-        }
+        },
+        "type": "array"
       }
     }
   ],
@@ -280,15 +972,11 @@
       "aggregate_functions": {},
       "comparison_operators": {}
     },
-    "Int": {
+    "CommentString": {
       "aggregate_functions": {},
       "comparison_operators": {}
     },
-    "Float": {
-      "aggregate_functions": {},
-      "comparison_operators": {}
-    },
-    "String": {
+    "Complex": {
       "aggregate_functions": {},
       "comparison_operators": {}
     },
@@ -296,7 +984,11 @@
       "aggregate_functions": {},
       "comparison_operators": {}
     },
-    "UUID": {
+    "Duration": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "Float": {
       "aggregate_functions": {},
       "comparison_operators": {}
     },
@@ -304,15 +996,15 @@
       "aggregate_functions": {},
       "comparison_operators": {}
     },
-    "CommentString": {
+    "Int": {
       "aggregate_functions": {},
       "comparison_operators": {}
     },
-    "Duration": {
+    "String": {
       "aggregate_functions": {},
       "comparison_operators": {}
     },
-    "Complex": {
+    "UUID": {
       "aggregate_functions": {},
       "comparison_operators": {}
     }
