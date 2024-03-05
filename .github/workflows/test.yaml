@@ -59,8 +59,8 @@ jobs:
       - name: Go coverage format
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          go get github.com/boumenot/gocover-cobertura
-          go install github.com/boumenot/gocover-cobertura
+          go get github.com/boumenot/gocover-cobertura@master
+          go install github.com/boumenot/gocover-cobertura@master
           sed '1d' coverage-codegen.out >> coverage.out
           sed '1d' coverage-codegen-example.out >> coverage.out
           gocover-cobertura < coverage.out > coverage.xml
