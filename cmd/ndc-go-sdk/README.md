@@ -51,7 +51,7 @@ The `init` command generates a boilerplate project for connector development fro
 - `README.md`: the index README file.
 - `Dockerfile`: the build template for Docker image.
 
-The command requires names of connector and module. By default, the tool creates a new folder with the connector name. If you want to customize the path, or generate files in the current folder. use `--output` (`-o`) argument.
+The command requires names of the connector and module. By default, the tool creates a new folder with the connector name. If you want to customize the path or generate files in the current folder. use `--output` (`-o`) argument.
 
 ```bash
 ndc-go-sdk init -n example -m github.com/foo/example -o .
@@ -59,7 +59,7 @@ ndc-go-sdk init -n example -m github.com/foo/example -o .
 
 ### Generate queries and mutations
 
-The `generate` command parses code in the `functions` folder, finds functions and types that are allowed to expose and generates following files:
+The `generate` command parses code in the `functions` folder, finds functions and types that are allowed to be exposed and generates the following files:
 
 - `schema.generated.json`: the generated connector schema in JSON format.
 - `connector.generated.go`: implement `GetSchema`, `Query` and `Mutation` methods with exposed functions.
@@ -72,7 +72,7 @@ ndc-go-sdk generate
 
 ### Functions
 
-Functions which are allowed to expose as queries or mutations need to have `Function` or `Procedure` prefix in name. For example:
+Functions that are allowed to be exposed as queries or mutations need to have a `Function` or `Procedure` prefix in the name. For example:
 
 ```go
 // FunctionHello sends a hello message
@@ -102,9 +102,9 @@ func Foo(ctx context.Context, state *types.State) (*FooResult, error)
 
 Function and Procedure names will be formatted to `camelCase` by default.
 
-> The generator detects comments by the nearby code position. It isn't perfectly accurate in some use cases. Prefix name in function is highly recommended.
+> The generator detects comments by the nearby code position. It isn't perfectly accurate in some use cases. Prefixing name in the function is highly recommended.
 
-A function must have 2 (no argument) or 3 parameters. `Context` and `State` are always present as 2 first parameters. The result is a tuple with a expected output and `error`.
+A function must have 2 (no argument) or 3 parameters. `Context` and `State` are always present as 2 first parameters. The result is a tuple with an expected output and `error`.
 
 > [Function](https://hasura.github.io/ndc-spec/specification/schema/functions.html) is a type of Query and [Procedure](https://hasura.github.io/ndc-spec/specification/schema/procedures.html) is a type of mutation. [Collection](https://hasura.github.io/ndc-spec/specification/schema/collections.html) is usually used for database queries so it isn't used for business logic.
 
@@ -113,7 +113,7 @@ A function must have 2 (no argument) or 3 parameters. `Context` and `State` are 
 The tool only infers arguments and result types of exposed functions to generate object type schemas:
 
 - Argument type must be a struct with serializable properties.
-- Result type can be a scalar, slice or struct.
+- Result type can be a scalar, slice, or struct.
 
 #### Object Types
 
@@ -125,7 +125,7 @@ type CreateAuthorResult struct {
 	Name string `json:"name"`
 }
 
-// auto generated
+// auto-generated
 // func (j CreateAuthorResult) ToMap() map[string]any {
 //   return map[string]any{
 //     "id": j.ID,
@@ -179,24 +179,24 @@ The basic scalar types supported are:
 - `float32`, `float64` (NDC scalar type: `Float`)
 - `bool` (NDC scalar type: `Boolean`)
 - `time.Time` (NDC scalar type: `DateTime`, represented as an [ISO formatted](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString) string in JSON)
-- `time.Duration` (NDC scalar type: `Duration`, represented as a int64 nanosecond duration in JSON)
-- `github.com/google/uuid.UUID` (NDC scalar type: `UUID`, represented as an UUID string in JSON)
+- `time.Duration` (NDC scalar type: `Duration`, represented as an int64 nanosecond duration in JSON)
+- `github.com/google/uuid.UUID` (NDC scalar type: `UUID`, represented as a UUID string in JSON)
 
-Alias scalar types will be inferred to the origin type in schema.
+Alias scalar types will be inferred to the origin type in the schema.
 
 ```go
 // the scalar type in schema is still a `String`.
 type Text string
 ```
 
-If you want to define a custom scalar type, the type name must have a `Scalar` prefix or `@scalar` tag the comment. The generator doesn't care about the underlying type even it is a struct.
+If you want to define a custom scalar type, the type name must have a `Scalar` prefix or `@scalar` tag in the comment. The generator doesn't care about the underlying type even if it is a struct.
 
 ```go
 type ScalarFoo struct {
   bar string
 }
 // output: Foo
-// auto generated
+// auto-generated
 // func (j ScalarFoo) ScalarName() string {
 //   return "Foo"
 // }
@@ -213,7 +213,7 @@ type Foo struct {}
 // output: Bar
 ```
 
-> The generator detects comments by the nearby position. It isn't perfectly accurate in some use cases. Prefix name in function is highly recommended.
+> The generator detects comments by the nearby position. It isn't perfectly accurate in some use cases. Prefix name in the function is highly recommended.
 
 For custom scalar, you must implement a method to decode `any` value so its data can be set when resolving request query arguments. `UnmarshalJSON` is also used when encoding results.
 
@@ -237,7 +237,7 @@ func (c *ScalarFoo) UnmarshalJSON(b []byte) error {
 
 ### Documentation
 
-The tool parses comments of functions and types by the nearby code position to description properties in the schema. For example:
+The tool parses comments of functions and types by the nearby code position to describe properties in the schema. For example:
 
 ```go
 // Creates an author
