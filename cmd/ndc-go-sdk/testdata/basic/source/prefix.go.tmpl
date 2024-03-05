@@ -3,8 +3,6 @@ package functions
 import (
 	"context"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type State struct{}
@@ -24,7 +22,7 @@ func (s *ScalarFoo) FromValue(value any) error {
 
 // A hello result
 type HelloResult struct {
-	ID 		uuid.UUID `json:"id"`
+	ID 		string `json:"id"`
 	Num 	int    		`json:"num"`
 	Text 	Text 			`json:"text"`
 	Foo 	ScalarFoo `json:"foo"`
@@ -33,7 +31,7 @@ type HelloResult struct {
 // FunctionHello sends a hello message
 func FunctionHello(ctx context.Context, state *State) (*HelloResult, error) {
 	return &HelloResult{
-		ID:   uuid.New(),
+		ID:   "id",
 		Num:  1,
 		Text: "world",
 	}, nil
@@ -81,7 +79,6 @@ func FunctionGetBool(ctx context.Context, state *State) (bool, error) {
 
 
 type GetTypesArguments struct {
-	UUID         uuid.UUID
 	Bool         bool
 	String       string
 	Int          int
@@ -100,7 +97,6 @@ type GetTypesArguments struct {
 	Duration     time.Duration
 	CustomScalar CommentText
 
-	UUIDPtr         *uuid.UUID
 	BoolPtr         *bool
 	StringPtr       *string
 	IntPtr          *int
@@ -120,7 +116,7 @@ type GetTypesArguments struct {
 	CustomScalarPtr *CommentText
 
 	Object struct {
-		ID        uuid.UUID `json:"id"`
+		ID        string `json:"id"`
 		CreatedAt time.Time `json:"created_at"`
 	}
 	ObjectPtr *struct {
@@ -130,9 +126,13 @@ type GetTypesArguments struct {
 	ArrayObject []struct {
 		Content string `json:"content"`
 	}
+	ArrayObjectPtr *[]struct {
+		Content string `json:"content"`
+	}
 	NamedObject    Author
 	NamedObjectPtr *Author
 	NamedArray     []Author
+	NamedArrayPtr  *[]Author
 }
 
 func FunctionGetTypes(ctx context.Context, state *State, arguments *GetTypesArguments) (*GetTypesArguments, error) {

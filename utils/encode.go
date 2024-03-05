@@ -31,6 +31,18 @@ func EncodeMaps[T MapEncoder](inputs []T) []map[string]any {
 	return results
 }
 
+// EncodeNullableMaps encode objects to a slice of map[string]any, using json tag to convert object keys
+func EncodeNullableMaps[T MapEncoder](inputs *[]T) []map[string]any {
+	if inputs == nil {
+		return nil
+	}
+	var results []map[string]any
+	for _, item := range *inputs {
+		results = append(results, item.ToMap())
+	}
+	return results
+}
+
 // EncodeObject encodes an unknown type to a map[string]any, using json tag to convert object keys
 func EncodeObject(input any) (map[string]any, error) {
 	if IsNil(input) {

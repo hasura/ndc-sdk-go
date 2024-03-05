@@ -205,6 +205,10 @@ func TestQueryGetTypes(t *testing.T) {
 							"type": "literal",
 							"value": []
 						},
+						"ArrayObjectPtr": {
+							"type": "literal",
+							"value": [{"content": "a content pointer"}]
+						},
 						"NamedObject": {
 							"type": "literal",
 							"value": {
@@ -380,6 +384,10 @@ func TestQueryGetTypes(t *testing.T) {
 									"type": "column",
 									"column": "ArrayObject"
 								},
+								"ArrayObjectPtr": {
+									"type": "column",
+									"column": "ArrayObjectPtr"
+								},
 								"NamedObject": {
 									"type": "column",
 									"column": "NamedObject"
@@ -451,6 +459,13 @@ func TestQueryGetTypes(t *testing.T) {
 				}{
 					{
 						Content: "a content",
+					},
+				},
+				ArrayObjectPtr: &[]struct {
+					Content string "json:\"content\""
+				}{
+					{
+						Content: "a content pointer",
 					},
 				},
 				NamedObject: functions.Author{

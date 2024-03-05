@@ -131,9 +131,13 @@ type GetTypesArguments struct {
 	ArrayObject []struct {
 		Content string `json:"content"`
 	}
+	ArrayObjectPtr *[]struct {
+		Content string `json:"content"`
+	}
 	NamedObject    Author
 	NamedObjectPtr *Author
 	NamedArray     []Author
+	NamedArrayPtr  *[]Author
 }
 
 func FunctionGetTypes(ctx context.Context, state *types.State, arguments *GetTypesArguments) (*GetTypesArguments, error) {
@@ -198,6 +202,13 @@ func FunctionGetTypes(ctx context.Context, state *types.State, arguments *GetTyp
 				Content: "a content",
 			},
 		},
+		ArrayObjectPtr: &[]struct {
+			Content string "json:\"content\""
+		}{
+			{
+				Content: "a content pointer",
+			},
+		},
 		NamedObject: Author{
 			ID:        "1",
 			Duration:  10 * time.Minute,
@@ -215,5 +226,6 @@ func FunctionGetTypes(ctx context.Context, state *types.State, arguments *GetTyp
 				CreatedAt: time.Date(2023, 3, 5, 3, 0, 0, 0, time.UTC),
 			},
 		},
+		NamedArrayPtr: nil,
 	}, nil
 }

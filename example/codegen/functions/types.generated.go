@@ -13,6 +13,13 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	j.ArrayObjectPtr = new([]struct {
+		Content string "json:\"content\""
+	})
+	err = utils.DecodeNullableObjectValue(j.ArrayObjectPtr, input, "ArrayObjectPtr")
+	if err != nil {
+		return err
+	}
 	j.Bool, err = utils.GetBool(input, "Bool")
 	if err != nil {
 		return err
@@ -95,6 +102,11 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 		return err
 	}
 	err = utils.DecodeObjectValue(&j.NamedArray, input, "NamedArray")
+	if err != nil {
+		return err
+	}
+	j.NamedArrayPtr = new([]Author)
+	err = utils.DecodeNullableObjectValue(j.NamedArrayPtr, input, "NamedArrayPtr")
 	if err != nil {
 		return err
 	}
@@ -249,15 +261,27 @@ func (j GetTypesArguments) ToMap() map[string]any {
 		"created_at": j.Object.CreatedAt,
 		"id":         j.Object.ID,
 	}
-	result_ArrayObject := make([]map[string]any, len(j.ArrayObject))
-	for i := range j.ArrayObject {
+	var result_ArrayObjectPtr []map[string]any
+	if j.ArrayObjectPtr != nil {
+		result_ArrayObjectPtr = make([]map[string]any, len(*j.ArrayObjectPtr))
+		for i, _item := range *j.ArrayObjectPtr {
+			item := map[string]any{
+				"content": _item.Content,
+			}
+			result_ArrayObjectPtr[i] = item
+		}
+	}
+	var result_ArrayObject []map[string]any
+	result_ArrayObject = make([]map[string]any, len(j.ArrayObject))
+	for i, _item := range j.ArrayObject {
 		item := map[string]any{
-			"content": j.ArrayObject[i].Content,
+			"content": _item.Content,
 		}
 		result_ArrayObject[i] = item
 	}
 	result := map[string]any{
 		"ArrayObject":     result_ArrayObject,
+		"ArrayObjectPtr":  result_ArrayObjectPtr,
 		"Bool":            j.Bool,
 		"BoolPtr":         j.BoolPtr,
 		"CustomScalar":    j.CustomScalar,
@@ -279,6 +303,7 @@ func (j GetTypesArguments) ToMap() map[string]any {
 		"Int8Ptr":         j.Int8Ptr,
 		"IntPtr":          j.IntPtr,
 		"NamedArray":      utils.EncodeMaps(j.NamedArray),
+		"NamedArrayPtr":   utils.EncodeNullableMaps(j.NamedArrayPtr),
 		"NamedObject":     utils.EncodeMap(j.NamedObject),
 		"NamedObjectPtr":  utils.EncodeMap(j.NamedObjectPtr),
 		"Object":          result_Object,

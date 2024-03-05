@@ -318,18 +318,20 @@ func (cg *connectorGenerator) genObjectToMap(object *ObjectInfo, selector string
 	fieldKeys := getSortedKeys(object.Fields)
 	var lines []string
 	if isArray {
-		lines = []string{fmt.Sprintf("  %s := make([]map[string]any, len(%s))", name, selector)}
+		lines = []string{fmt.Sprintf("  var %s []map[string]any", name)}
 		if nullable {
-			lines = append(lines, fmt.Sprintf(`  if %s == nil {
-      %s = nil
-    }`, selector, name))
+			lines = append(lines, fmt.Sprintf("  if %s != nil {", selector))
+			selector = fmt.Sprintf("*%s", selector)
 		}
-
-		lines = append(lines, fmt.Sprintf("  for i := range %s {", selector))
-		loopLines := cg.genObjectToMap(object, fmt.Sprintf("%s[i]", selector), "item", false, false)
+		lines = append(lines, fmt.Sprintf("  %s = make([]map[string]any, len(%s))", name, selector))
+		lines = append(lines, fmt.Sprintf("  for i, _item := range %s {", selector))
+		loopLines := cg.genObjectToMap(object, "_item", "item", false, false)
 		lines = append(lines, loopLines...)
 		lines = append(lines, fmt.Sprintf("    %s[i] = item", name))
 		lines = append(lines, "  }")
+		if nullable {
+			lines = append(lines, "}")
+		}
 		return lines
 	}
 
@@ -355,7 +357,11 @@ func (cg *connectorGenerator) genObjectToMap(object *ObjectInfo, selector string
 		}
 		if !innerObject.IsAnonymous {
 			if field.Type.IsArray {
-				lines = append(lines, fmt.Sprintf("    \"%s\": utils.EncodeMaps(%s.%s),", field.Key, selector, field.Name))
+				if field.Type.IsNullable {
+					lines = append(lines, fmt.Sprintf("    \"%s\": utils.EncodeNullableMaps(%s.%s),", field.Key, selector, field.Name))
+				} else {
+					lines = append(lines, fmt.Sprintf("    \"%s\": utils.EncodeMaps(%s.%s),", field.Key, selector, field.Name))
+				}
 			} else {
 				lines = append(lines, fmt.Sprintf("    \"%s\": utils.EncodeMap(%s.%s),", field.Key, selector, field.Name))
 			}

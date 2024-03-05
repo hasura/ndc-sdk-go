@@ -3,8 +3,6 @@ package functions
 import (
 	"context"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // @scalar CommentString
@@ -33,7 +31,7 @@ func GetArticles(ctx context.Context, state *State, arguments *GetArticlesArgume
 
 type CreateArticleArguments struct {
   Author struct {
-    ID          uuid.UUID `json:"id"`
+    ID          string `json:"id"`
     CreatedAt   time.Time `json:"created_at"`
   } `json:"author"`
 }

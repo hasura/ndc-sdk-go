@@ -21,6 +21,18 @@
             "type": "array"
           }
         },
+        "ArrayObjectPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "GetTypesArgumentsArrayObjectPtr",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
         "Bool": {
           "type": {
             "name": "Boolean",
@@ -180,6 +192,18 @@
             "type": "array"
           }
         },
+        "NamedArrayPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Author",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
         "NamedObject": {
           "type": {
             "name": "Author",
@@ -236,21 +260,6 @@
             "type": "nullable",
             "underlying_type": {
               "name": "DateTime",
-              "type": "named"
-            }
-          }
-        },
-        "UUID": {
-          "type": {
-            "name": "UUID",
-            "type": "named"
-          }
-        },
-        "UUIDPtr": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": {
-              "name": "UUID",
               "type": "named"
             }
           }
@@ -404,7 +413,7 @@
         },
         "id": {
           "type": {
-            "name": "UUID",
+            "name": "String",
             "type": "named"
           }
         }
@@ -477,6 +486,18 @@
               "type": "named"
             },
             "type": "array"
+          }
+        },
+        "ArrayObjectPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "GetTypesArgumentsArrayObjectPtr",
+                "type": "named"
+              },
+              "type": "array"
+            }
           }
         },
         "Bool": {
@@ -638,6 +659,18 @@
             "type": "array"
           }
         },
+        "NamedArrayPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Author",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
         "NamedObject": {
           "type": {
             "name": "Author",
@@ -694,21 +727,6 @@
             "type": "nullable",
             "underlying_type": {
               "name": "DateTime",
-              "type": "named"
-            }
-          }
-        },
-        "UUID": {
-          "type": {
-            "name": "UUID",
-            "type": "named"
-          }
-        },
-        "UUIDPtr": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": {
-              "name": "UUID",
               "type": "named"
             }
           }
@@ -800,6 +818,16 @@
         }
       }
     },
+    "GetTypesArgumentsArrayObjectPtr": {
+      "fields": {
+        "content": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    },
     "GetTypesArgumentsObject": {
       "fields": {
         "created_at": {
@@ -810,7 +838,7 @@
         },
         "id": {
           "type": {
-            "name": "UUID",
+            "name": "String",
             "type": "named"
           }
         }
@@ -843,7 +871,7 @@
         },
         "id": {
           "type": {
-            "name": "UUID",
+            "name": "String",
             "type": "named"
           }
         },
@@ -961,10 +989,6 @@
       "comparison_operators": {}
     },
     "String": {
-      "aggregate_functions": {},
-      "comparison_operators": {}
-    },
-    "UUID": {
       "aggregate_functions": {},
       "comparison_operators": {}
     }

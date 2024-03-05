@@ -21,6 +21,18 @@
             "type": "array"
           }
         },
+        "ArrayObjectPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "GetTypesArgumentsArrayObjectPtr",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
         "Bool": {
           "type": {
             "name": "Boolean",
@@ -178,6 +190,18 @@
               "type": "named"
             },
             "type": "array"
+          }
+        },
+        "NamedArrayPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Author",
+                "type": "named"
+              },
+              "type": "array"
+            }
           }
         },
         "NamedObject": {
@@ -479,6 +503,18 @@
             "type": "array"
           }
         },
+        "ArrayObjectPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "GetTypesArgumentsArrayObjectPtr",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
         "Bool": {
           "type": {
             "name": "Boolean",
@@ -638,6 +674,18 @@
             "type": "array"
           }
         },
+        "NamedArrayPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Author",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
         "NamedObject": {
           "type": {
             "name": "Author",
@@ -791,6 +839,16 @@
       }
     },
     "GetTypesArgumentsArrayObject": {
+      "fields": {
+        "content": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "GetTypesArgumentsArrayObjectPtr": {
       "fields": {
         "content": {
           "type": {

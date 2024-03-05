@@ -3,13 +3,17 @@ package functions
 
 import (
 	"github.com/hasura/ndc-sdk-go/utils"
-	"github.com/google/uuid"
 )
 
 // FromValue decodes values from map
 func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	var err error
 	err = utils.DecodeObjectValue(&j.ArrayObject, input, "ArrayObject")
+	if err != nil {
+		return err
+	}
+	j.ArrayObjectPtr = new([]struct{Content string "json:\"content\""})
+	err = utils.DecodeNullableObjectValue(j.ArrayObjectPtr, input, "ArrayObjectPtr")
 	if err != nil {
 		return err
 	}
@@ -98,6 +102,11 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	j.NamedArrayPtr = new([]Author)
+	err = utils.DecodeNullableObjectValue(j.NamedArrayPtr, input, "NamedArrayPtr")
+	if err != nil {
+		return err
+	}
 	err = utils.DecodeObjectValue(&j.NamedObject, input, "NamedObject")
 	if err != nil {
 		return err
@@ -129,15 +138,6 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 		return err
 	}
 	j.TimePtr, err = utils.GetNullableDateTime(input, "TimePtr")
-	if err != nil {
-		return err
-	}
-	err = utils.DecodeObjectValue(&j.UUID, input, "UUID")
-	if err != nil {
-		return err
-	}
-	j.UUIDPtr = new(uuid.UUID)
-	err = utils.DecodeNullableObjectValue(j.UUIDPtr, input, "UUIDPtr")
 	if err != nil {
 		return err
 	}
@@ -234,27 +234,38 @@ func (j GetArticlesResult) ToMap() map[string]any {
 
 // ToMap encodes the struct to a value map
 func (j GetTypesArguments) ToMap() map[string]any {
-
 	var result_ObjectPtr map[string]any
 	if j.ObjectPtr != nil {
 		result_ObjectPtr = map[string]any{
-    "Lat": j.ObjectPtr.Lat,
-    "Long": j.ObjectPtr.Long,
-  }
+		"Lat": j.ObjectPtr.Lat,
+		"Long": j.ObjectPtr.Long,
+	}
 	}
 	result_Object := map[string]any{
 		"created_at": j.Object.CreatedAt,
 		"id": j.Object.ID,
 	}
-	result_ArrayObject := make([]map[string]any, len(j.ArrayObject))
-	for i := range j.ArrayObject {
-  item := map[string]any{
-    "content": j.ArrayObject[i].Content,
-  }
+	var result_ArrayObjectPtr []map[string]any
+	if j.ArrayObjectPtr != nil {
+	result_ArrayObjectPtr = make([]map[string]any, len(*j.ArrayObjectPtr))
+	for i, _item := range *j.ArrayObjectPtr {
+	item := map[string]any{
+		"content": _item.Content,
+	}
+		result_ArrayObjectPtr[i] = item
+	}
+}
+	var result_ArrayObject []map[string]any
+	result_ArrayObject = make([]map[string]any, len(j.ArrayObject))
+	for i, _item := range j.ArrayObject {
+	item := map[string]any{
+		"content": _item.Content,
+	}
 		result_ArrayObject[i] = item
 	}
 	result := map[string]any{
 		"ArrayObject": result_ArrayObject,
+		"ArrayObjectPtr": result_ArrayObjectPtr,
 		"Bool": j.Bool,
 		"BoolPtr": j.BoolPtr,
 		"CustomScalar": j.CustomScalar,
@@ -276,6 +287,7 @@ func (j GetTypesArguments) ToMap() map[string]any {
 		"Int8Ptr": j.Int8Ptr,
 		"IntPtr": j.IntPtr,
 		"NamedArray": utils.EncodeMaps(j.NamedArray),
+		"NamedArrayPtr": utils.EncodeNullableMaps(j.NamedArrayPtr),
 		"NamedObject": utils.EncodeMap(j.NamedObject),
 		"NamedObjectPtr": utils.EncodeMap(j.NamedObjectPtr),
 		"Object": result_Object,
@@ -284,8 +296,6 @@ func (j GetTypesArguments) ToMap() map[string]any {
 		"StringPtr": j.StringPtr,
 		"Time": j.Time,
 		"TimePtr": j.TimePtr,
-		"UUID": j.UUID,
-		"UUIDPtr": j.UUIDPtr,
 		"Uint": j.Uint,
 		"Uint16": j.Uint16,
 		"Uint16Ptr": j.Uint16Ptr,
