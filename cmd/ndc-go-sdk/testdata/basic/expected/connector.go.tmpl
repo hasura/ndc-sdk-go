@@ -71,6 +71,34 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
       return nil, schema.BadRequestError("cannot evaluate selection fields for scalar", nil)
     }
     return functions.FunctionGetBool(ctx, state)
+	case "getTypes":
+		rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
+		if err != nil {
+			return nil, schema.BadRequestError("failed to resolve argument variables", map[string]any{
+				"cause": err.Error(),
+			})
+		}
+
+		var args functions.GetTypesArguments
+		if err = args.FromValue(rawArgs); err != nil {
+			return nil, schema.BadRequestError("failed to resolve arguments", map[string]any{
+				"cause": err.Error(),
+			})
+		}
+		rawResult, err := functions.FunctionGetTypes(ctx, state, &args)
+		if err != nil {
+			return nil, err
+		}
+
+		if rawResult == nil {
+			return nil, nil
+		}
+
+		result, err := utils.EncodeObjectWithColumnSelection(request.Query.Fields, rawResult)
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
   case "hello":
     rawResult, err := functions.FunctionHello(ctx, state)
     if err != nil {

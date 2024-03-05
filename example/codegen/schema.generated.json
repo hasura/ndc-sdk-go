@@ -264,6 +264,21 @@
             }
           }
         },
+        "UUID": {
+          "type": {
+            "name": "UUID",
+            "type": "named"
+          }
+        },
+        "UUIDPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "UUID",
+              "type": "named"
+            }
+          }
+        },
         "Uint": {
           "type": {
             "name": "Int",
@@ -413,7 +428,7 @@
         },
         "id": {
           "type": {
-            "name": "String",
+            "name": "UUID",
             "type": "named"
           }
         }
@@ -731,6 +746,21 @@
             }
           }
         },
+        "UUID": {
+          "type": {
+            "name": "UUID",
+            "type": "named"
+          }
+        },
+        "UUIDPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "UUID",
+              "type": "named"
+            }
+          }
+        },
         "Uint": {
           "type": {
             "name": "Int",
@@ -838,7 +868,7 @@
         },
         "id": {
           "type": {
-            "name": "String",
+            "name": "UUID",
             "type": "named"
           }
         }
@@ -871,7 +901,7 @@
         },
         "id": {
           "type": {
-            "name": "String",
+            "name": "UUID",
             "type": "named"
           }
         },
@@ -989,6 +1019,10 @@
       "comparison_operators": {}
     },
     "String": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "UUID": {
       "aggregate_functions": {},
       "comparison_operators": {}
     }

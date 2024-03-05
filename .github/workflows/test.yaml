@@ -1,6 +1,7 @@
 name: Unit tests
 
 on:
+  pull_request:
   push:
     paths:
       - "**.go"
@@ -20,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.20"
+          go-version: "1.19"
       - uses: actions/cache@v4
         with:
           path: |
@@ -43,8 +44,17 @@ jobs:
           version: latest
           only-new-issues: true
           skip-cache: true
-      - name: Run Go unit tests
-        run: go test -v -coverpkg=./... -race -timeout 3m -coverprofile=coverage.out ./...
+      - name: Run Go unit tests for the SDK
+        run: | 
+          rm cmd/ndc-go-sdk/go.mod
+          rm cmd/ndc-go-sdk/go.sum
+          go mod tidy
+          go test -v -coverpkg=./... -race -timeout 3m -coverprofile=coverage.out ./...
+      - name: Run Go unit tests for the generation example
+        run: |
+          pushd example/codegen
+          go test -v -race -timeout 3m ./...
+          popd
       - name: Go coverage format
         if: ${{ github.event_name == 'pull_request' }}
         run: |

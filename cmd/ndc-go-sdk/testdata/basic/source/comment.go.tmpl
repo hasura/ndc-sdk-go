@@ -3,8 +3,6 @@ package functions
 import (
 	"context"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // @scalar CommentString
@@ -14,8 +12,6 @@ type CommentText struct {
 
 type GetArticlesArguments struct {
   Limit       float64
-	Comment 	  CommentText 
-	NullableStr *string `json:"nullable_str"`
 }
 
 type GetArticlesResult struct {
@@ -35,8 +31,7 @@ func GetArticles(ctx context.Context, state *State, arguments *GetArticlesArgume
 
 type CreateArticleArguments struct {
   Author struct {
-    ID          uuid.UUID `json:"id"`
-    Decimal     complex128 `json:"decimal"`
+    ID          string `json:"id"`
     CreatedAt   time.Time `json:"created_at"`
   } `json:"author"`
 }

@@ -154,94 +154,94 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 		},
 		ObjectTypes: schema.SchemaResponseObjectTypes{
 			"article": schema.ObjectType{
-				Description: schema.ToPtr("An article"),
+				Description: utils.ToPtr("An article"),
 				Fields: schema.ObjectTypeFields{
 					"author_id": schema.ObjectField{
-						Description: schema.ToPtr("The article's author ID"),
+						Description: utils.ToPtr("The article's author ID"),
 						Type:        schema.NewNamedType("Int").Encode(),
 					},
 					"id": {
-						Description: schema.ToPtr("The article's primary key"),
+						Description: utils.ToPtr("The article's primary key"),
 						Type:        schema.NewNamedType("Int").Encode(),
 					},
 					"title": {
-						Description: schema.ToPtr("The article's title"),
+						Description: utils.ToPtr("The article's title"),
 						Type:        schema.NewNamedType("String").Encode(),
 					},
 				},
 			},
 			"author": schema.ObjectType{
-				Description: schema.ToPtr("An author"),
+				Description: utils.ToPtr("An author"),
 				Fields: schema.ObjectTypeFields{
 					"first_name": {
-						Description: schema.ToPtr("The author's first name"),
+						Description: utils.ToPtr("The author's first name"),
 						Type:        schema.NewNamedType("String").Encode(),
 					},
 					"id": {
-						Description: schema.ToPtr("The author's primary key"),
+						Description: utils.ToPtr("The author's primary key"),
 						Type:        schema.NewNamedType("Int").Encode(),
 					},
 					"last_name": {
-						Description: schema.ToPtr("The author's last name"),
+						Description: utils.ToPtr("The author's last name"),
 						Type:        schema.NewNamedType("String").Encode(),
 					},
 				},
 			},
 			"institution": schema.ObjectType{
-				Description: schema.ToPtr("An institution"),
+				Description: utils.ToPtr("An institution"),
 				Fields: schema.ObjectTypeFields{
 					"departments": schema.ObjectField{
-						Description: schema.ToPtr("The institution's departments"),
+						Description: utils.ToPtr("The institution's departments"),
 						Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
 					},
 					"id": schema.ObjectField{
-						Description: schema.ToPtr("The institution's primary key"),
+						Description: utils.ToPtr("The institution's primary key"),
 						Type:        schema.NewNamedType("Int").Encode(),
 					},
 					"location": schema.ObjectField{
-						Description: schema.ToPtr("The institution's location"),
+						Description: utils.ToPtr("The institution's location"),
 						Type:        schema.NewNamedType("location").Encode(),
 					},
 					"name": schema.ObjectField{
-						Description: schema.ToPtr("The institution's name"),
+						Description: utils.ToPtr("The institution's name"),
 						Type:        schema.NewNamedType("String").Encode(),
 					},
 					"staff": schema.ObjectField{
-						Description: schema.ToPtr("The institution's staff"),
+						Description: utils.ToPtr("The institution's staff"),
 						Type:        schema.NewArrayType(schema.NewNamedType("staff_member")).Encode(),
 					},
 				},
 			},
 			"location": schema.ObjectType{
-				Description: schema.ToPtr("A location"),
+				Description: utils.ToPtr("A location"),
 				Fields: schema.ObjectTypeFields{
 					"campuses": schema.ObjectField{
-						Description: schema.ToPtr("The location's campuses"),
+						Description: utils.ToPtr("The location's campuses"),
 						Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
 					},
 					"city": schema.ObjectField{
-						Description: schema.ToPtr("The location's city"),
+						Description: utils.ToPtr("The location's city"),
 						Type:        schema.NewNamedType("String").Encode(),
 					},
 					"country": schema.ObjectField{
-						Description: schema.ToPtr("The location's country"),
+						Description: utils.ToPtr("The location's country"),
 						Type:        schema.NewNamedType("String").Encode(),
 					},
 				},
 			},
 			"staff_member": schema.ObjectType{
-				Description: schema.ToPtr("A staff member"),
+				Description: utils.ToPtr("A staff member"),
 				Fields: schema.ObjectTypeFields{
 					"first_name": schema.ObjectField{
-						Description: schema.ToPtr("The staff member's first name"),
+						Description: utils.ToPtr("The staff member's first name"),
 						Type:        schema.NewNamedType("String").Encode(),
 					},
 					"last_name": schema.ObjectField{
-						Description: schema.ToPtr("The staff member's last name"),
+						Description: utils.ToPtr("The staff member's last name"),
 						Type:        schema.NewNamedType("String").Encode(),
 					},
 					"specialities": schema.ObjectField{
-						Description: schema.ToPtr("The staff member's specialities"),
+						Description: utils.ToPtr("The staff member's specialities"),
 						Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
 					},
 				},
@@ -250,7 +250,7 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 		Collections: []schema.CollectionInfo{
 			{
 				Name:        "articles",
-				Description: schema.ToPtr("A collection of articles"),
+				Description: utils.ToPtr("A collection of articles"),
 				Arguments:   schema.CollectionInfoArguments{},
 				Type:        "article",
 				UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
@@ -269,7 +269,7 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 			},
 			{
 				Name:        "authors",
-				Description: schema.ToPtr("A collection of authors"),
+				Description: utils.ToPtr("A collection of authors"),
 				Arguments:   schema.CollectionInfoArguments{},
 				Type:        "author",
 				UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
@@ -281,7 +281,7 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 			},
 			{
 				Name:        "institutions",
-				Description: schema.ToPtr("A collection of institutions"),
+				Description: utils.ToPtr("A collection of institutions"),
 				Arguments:   schema.CollectionInfoArguments{},
 				Type:        "institution",
 				UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
@@ -293,7 +293,7 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 			},
 			{
 				Name:        "articles_by_author",
-				Description: schema.ToPtr("Articles parameterized by author"),
+				Description: utils.ToPtr("Articles parameterized by author"),
 				Arguments: schema.CollectionInfoArguments{
 					"author_id": schema.ArgumentInfo{
 						Type: schema.NewNamedType("Int").Encode(),
@@ -307,13 +307,13 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 		Functions: []schema.FunctionInfo{
 			{
 				Name:        "latest_article_id",
-				Description: schema.ToPtr("Get the ID of the most recent article"),
+				Description: utils.ToPtr("Get the ID of the most recent article"),
 				Arguments:   schema.FunctionInfoArguments{},
 				ResultType:  schema.NewNullableNamedType("Int").Encode(),
 			},
 			{
 				Name:        "latest_article",
-				Description: schema.ToPtr("Get the most recent article"),
+				Description: utils.ToPtr("Get the most recent article"),
 				Arguments:   schema.FunctionInfoArguments{},
 				ResultType:  schema.NewNullableNamedType("article").Encode(),
 			},
@@ -321,10 +321,10 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 		Procedures: []schema.ProcedureInfo{
 			{
 				Name:        "upsert_article",
-				Description: schema.ToPtr("Insert or update an article"),
+				Description: utils.ToPtr("Insert or update an article"),
 				Arguments: schema.ProcedureInfoArguments{
 					"article": schema.ArgumentInfo{
-						Description: schema.ToPtr("The article to insert or update"),
+						Description: utils.ToPtr("The article to insert or update"),
 						Type:        schema.NewNamedType("article").Encode(),
 					},
 				},
@@ -332,10 +332,10 @@ func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResp
 			},
 			{
 				Name:        "delete_articles",
-				Description: schema.ToPtr("Delete articles which match a predicate"),
+				Description: utils.ToPtr("Delete articles which match a predicate"),
 				Arguments: schema.ProcedureInfoArguments{
 					"where": schema.ArgumentInfo{
-						Description: schema.ToPtr("The predicate"),
+						Description: utils.ToPtr("The predicate"),
 						Type:        schema.NewPredicateType("article").Encode(),
 					},
 				},

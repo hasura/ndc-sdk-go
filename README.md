@@ -6,7 +6,9 @@ All functions of the Connector interface are analogous to their Rust counterpart
 
 ## Features
 
-- Connector HTTP server 
+The SDK fully supports [NDC Specification v0.1.0](https://github.com/hasura/ndc-spec/tree/v0.1.0) and [Connector Deployment spec](https://github.com/hasura/ndc-hub/blob/main/rfcs/0000-deployment.md) with following features:
+
+- Connector HTTP server
 - Authentication
 - Observability with OpenTelemetry and Prometheus
 
@@ -32,20 +34,20 @@ type Connector struct { ... }
 /* implementation of the Connector interface removed for brevity */
 
 func main() {
-  
+
 	if err := connector.Start[Configuration, State](&Connector{}); err != nil {
 		panic(err)
 	}
 }
 ```
 
-The `Start` function create a CLI application with following commands: 
+The `Start` function create a CLI application with following commands:
 
 ```sh
 Commands:
   serve
     Serve the NDC connector.
-		
+
     Flags:
       --configuration=STRING            Configuration directory ($HASURA_CONFIGURATION_DIRECTORY).
       --port=8080                       Serve Port ($HASURA_CONNECTOR_PORT).
@@ -58,7 +60,7 @@ Commands:
       --log-level="info"                Log level ($HASURA_LOG_LEVEL).
 ```
 
-Please refer to the [NDC Spec](https://hasura.github.io/ndc-spec/) for details on implementing the Connector interface, or see [examples](./example).  
+Please refer to the [NDC Spec](https://hasura.github.io/ndc-spec/) for details on implementing the Connector interface, or see [examples](./example).
 
 ## Observability
 

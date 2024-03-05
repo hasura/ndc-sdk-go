@@ -22,11 +22,9 @@ var defaultScalarTypes = schema.SchemaResponseScalarTypes{
 	"Int":      *schema.NewScalarType(),
 	"BigInt":   *schema.NewScalarType(),
 	"Float":    *schema.NewScalarType(),
-	"Complex":  *schema.NewScalarType(),
 	"Boolean":  *schema.NewScalarType(),
 	"DateTime": *schema.NewScalarType(),
 	"Duration": *schema.NewScalarType(),
-	"UUID":     *schema.NewScalarType(),
 }
 
 var ndcOperationNameRegex = regexp.MustCompile(`^(Function|Procedure)([A-Z][A-Za-z0-9]*)$`)
@@ -36,10 +34,12 @@ var ndcScalarCommentRegex = regexp.MustCompile(`^@scalar(\s+([A-Z]\w*))?`)
 
 type OperationKind string
 
-var (
+const (
 	OperationFunction  OperationKind = "Function"
 	OperationProcedure OperationKind = "Procedure"
 )
+
+type TypeKind string
 
 // TypeInfo represents the serialization information of a type
 type TypeInfo struct {
@@ -66,6 +66,7 @@ type ObjectField struct {
 type ObjectInfo struct {
 	PackagePath string
 	PackageName string
+	IsAnonymous bool
 	Fields      map[string]*ObjectField
 }
 
@@ -175,6 +176,17 @@ func (rcs RawConnectorSchema) Schema() *schema.SchemaResponse {
 	}
 
 	return result
+}
+
+// IsCustomType checks if the type name is a custom scalar or an exported object
+func (rcs RawConnectorSchema) IsCustomType(name string) bool {
+	if _, ok := rcs.CustomScalars[name]; ok {
+		return true
+	}
+	if obj, ok := rcs.Objects[name]; ok {
+		return !obj.IsAnonymous
+	}
+	return false
 }
 
 type SchemaParser struct {
@@ -363,9 +375,12 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			PackageName: innerType.PackageName,
 			TypeAST:     ty,
 			IsNullable:  true,
+			IsScalar:    innerType.IsScalar,
+			IsArray:     innerType.IsArray,
 			Schema:      schema.NewNullableType(innerType.Schema),
 		}, nil
 	case *types.Struct:
+		isAnonymous := false
 		if rootType == nil {
 			rootType = &TypeInfo{}
 		}
@@ -373,6 +388,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		name := strings.Join(fieldPaths, "")
 		if rootType.Name == "" {
 			rootType.Name = name
+			isAnonymous = true
 		}
 		if rootType.SchemaName == "" {
 			rootType.SchemaName = name
@@ -391,6 +407,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		objFields := &ObjectInfo{
 			PackagePath: rootType.PackagePath,
 			PackageName: rootType.PackageName,
+			IsAnonymous: isAnonymous,
 			Fields:      map[string]*ObjectField{},
 		}
 		for i := 0; i < inferredType.NumFields(); i++ {
@@ -441,14 +458,18 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 				}
 			}
 			if scalarName != "" {
-				rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
+				if scalar, ok := defaultScalarTypes[scalarName]; ok {
+					rawSchema.ScalarSchemas[scalarName] = scalar
+				} else {
+					rawSchema.ScalarSchemas[scalarName] = *schema.NewScalarType()
+				}
 				typeInfo.Schema = schema.NewNamedType(scalarName)
 				return typeInfo, nil
 			}
 		}
 
 		if typeInfo.IsScalar {
-			rawSchema.CustomScalars[typeInfo.SchemaName] = typeInfo
+			rawSchema.CustomScalars[typeInfo.Name] = typeInfo
 			rawSchema.ScalarSchemas[typeInfo.SchemaName] = *schema.NewScalarType()
 			return typeInfo, nil
 		}
@@ -460,17 +481,11 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		case types.Bool:
 			scalarName = "Boolean"
 			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
-		case types.Int8, types.Int, types.Int16, types.Int32, types.Uint, types.Uint16, types.Uint32:
+		case types.Int, types.Int8, types.Int16, types.Int32, types.Int64, types.Uint, types.Uint8, types.Uint16, types.Uint32, types.Uint64:
 			scalarName = "Int"
-			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
-		case types.Int64, types.Uint64:
-			scalarName = "BigInt"
 			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
 		case types.Float32, types.Float64:
 			scalarName = "Float"
-			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
-		case types.Complex64, types.Complex128:
-			scalarName = "Complex"
 			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
 		case types.String:
 			scalarName = "String"

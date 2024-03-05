@@ -2,6 +2,7 @@
 package functions
 
 import (
+	"github.com/google/uuid"
 	"github.com/hasura/ndc-sdk-go/utils"
 )
 
@@ -12,7 +13,9 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.ArrayObjectPtr = new([]struct{Content string "json:\"content\""})
+	j.ArrayObjectPtr = new([]struct {
+		Content string "json:\"content\""
+	})
 	err = utils.DecodeNullableObjectValue(j.ArrayObjectPtr, input, "ArrayObjectPtr")
 	if err != nil {
 		return err
@@ -120,7 +123,10 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.ObjectPtr = new(struct{Long int; Lat int})
+	j.ObjectPtr = new(struct {
+		Long int
+		Lat  int
+	})
 	err = utils.DecodeNullableObjectValue(j.ObjectPtr, input, "ObjectPtr")
 	if err != nil {
 		return err
@@ -138,6 +144,15 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 		return err
 	}
 	j.TimePtr, err = utils.GetNullableDateTime(input, "TimePtr")
+	if err != nil {
+		return err
+	}
+	err = utils.DecodeObjectValue(&j.UUID, input, "UUID")
+	if err != nil {
+		return err
+	}
+	j.UUIDPtr = new(uuid.UUID)
+	err = utils.DecodeNullableObjectValue(j.UUIDPtr, input, "UUIDPtr")
 	if err != nil {
 		return err
 	}
@@ -198,8 +213,8 @@ func (j *GetArticlesArguments) FromValue(input map[string]any) error {
 func (j Author) ToMap() map[string]any {
 	result := map[string]any{
 		"created_at": j.CreatedAt,
-		"duration": j.Duration,
-		"id": j.ID,
+		"duration":   j.Duration,
+		"id":         j.ID,
 	}
 	return result
 }
@@ -208,7 +223,7 @@ func (j Author) ToMap() map[string]any {
 func (j CreateArticleResult) ToMap() map[string]any {
 	result := map[string]any{
 		"authors": utils.EncodeMaps(j.Authors),
-		"id": j.ID,
+		"id":      j.ID,
 	}
 	return result
 }
@@ -217,8 +232,8 @@ func (j CreateArticleResult) ToMap() map[string]any {
 func (j CreateAuthorResult) ToMap() map[string]any {
 	result := map[string]any{
 		"created_at": j.CreatedAt,
-		"id": j.ID,
-		"name": j.Name,
+		"id":         j.ID,
+		"name":       j.Name,
 	}
 	return result
 }
@@ -226,7 +241,7 @@ func (j CreateAuthorResult) ToMap() map[string]any {
 // ToMap encodes the struct to a value map
 func (j GetArticlesResult) ToMap() map[string]any {
 	result := map[string]any{
-		"id": j.ID,
+		"id":   j.ID,
 		"Name": j.Name,
 	}
 	return result
@@ -234,78 +249,81 @@ func (j GetArticlesResult) ToMap() map[string]any {
 
 // ToMap encodes the struct to a value map
 func (j GetTypesArguments) ToMap() map[string]any {
+
 	var result_ObjectPtr map[string]any
 	if j.ObjectPtr != nil {
 		result_ObjectPtr = map[string]any{
-		"Lat": j.ObjectPtr.Lat,
-		"Long": j.ObjectPtr.Long,
-	}
+			"Lat":  j.ObjectPtr.Lat,
+			"Long": j.ObjectPtr.Long,
+		}
 	}
 	result_Object := map[string]any{
 		"created_at": j.Object.CreatedAt,
-		"id": j.Object.ID,
+		"id":         j.Object.ID,
 	}
 	var result_ArrayObjectPtr []map[string]any
 	if j.ArrayObjectPtr != nil {
-	result_ArrayObjectPtr = make([]map[string]any, len(*j.ArrayObjectPtr))
-	for i, _item := range *j.ArrayObjectPtr {
-	item := map[string]any{
-		"content": _item.Content,
+		result_ArrayObjectPtr = make([]map[string]any, len(*j.ArrayObjectPtr))
+		for i, _item := range *j.ArrayObjectPtr {
+			item := map[string]any{
+				"content": _item.Content,
+			}
+			result_ArrayObjectPtr[i] = item
+		}
 	}
-		result_ArrayObjectPtr[i] = item
-	}
-}
 	var result_ArrayObject []map[string]any
 	result_ArrayObject = make([]map[string]any, len(j.ArrayObject))
 	for i, _item := range j.ArrayObject {
-	item := map[string]any{
-		"content": _item.Content,
-	}
+		item := map[string]any{
+			"content": _item.Content,
+		}
 		result_ArrayObject[i] = item
 	}
 	result := map[string]any{
-		"ArrayObject": result_ArrayObject,
-		"ArrayObjectPtr": result_ArrayObjectPtr,
-		"Bool": j.Bool,
-		"BoolPtr": j.BoolPtr,
-		"CustomScalar": j.CustomScalar,
+		"ArrayObject":     result_ArrayObject,
+		"ArrayObjectPtr":  result_ArrayObjectPtr,
+		"Bool":            j.Bool,
+		"BoolPtr":         j.BoolPtr,
+		"CustomScalar":    j.CustomScalar,
 		"CustomScalarPtr": j.CustomScalarPtr,
-		"Duration": j.Duration,
-		"DurationPtr": j.DurationPtr,
-		"Float32": j.Float32,
-		"Float32Ptr": j.Float32Ptr,
-		"Float64": j.Float64,
-		"Float64Ptr": j.Float64Ptr,
-		"Int": j.Int,
-		"Int16": j.Int16,
-		"Int16Ptr": j.Int16Ptr,
-		"Int32": j.Int32,
-		"Int32Ptr": j.Int32Ptr,
-		"Int64": j.Int64,
-		"Int64Ptr": j.Int64Ptr,
-		"Int8": j.Int8,
-		"Int8Ptr": j.Int8Ptr,
-		"IntPtr": j.IntPtr,
-		"NamedArray": utils.EncodeMaps(j.NamedArray),
-		"NamedArrayPtr": utils.EncodeNullableMaps(j.NamedArrayPtr),
-		"NamedObject": utils.EncodeMap(j.NamedObject),
-		"NamedObjectPtr": utils.EncodeMap(j.NamedObjectPtr),
-		"Object": result_Object,
-		"ObjectPtr": result_ObjectPtr,
-		"String": j.String,
-		"StringPtr": j.StringPtr,
-		"Time": j.Time,
-		"TimePtr": j.TimePtr,
-		"Uint": j.Uint,
-		"Uint16": j.Uint16,
-		"Uint16Ptr": j.Uint16Ptr,
-		"Uint32": j.Uint32,
-		"Uint32Ptr": j.Uint32Ptr,
-		"Uint64": j.Uint64,
-		"Uint64Ptr": j.Uint64Ptr,
-		"Uint8": j.Uint8,
-		"Uint8Ptr": j.Uint8Ptr,
-		"UintPtr": j.UintPtr,
+		"Duration":        j.Duration,
+		"DurationPtr":     j.DurationPtr,
+		"Float32":         j.Float32,
+		"Float32Ptr":      j.Float32Ptr,
+		"Float64":         j.Float64,
+		"Float64Ptr":      j.Float64Ptr,
+		"Int":             j.Int,
+		"Int16":           j.Int16,
+		"Int16Ptr":        j.Int16Ptr,
+		"Int32":           j.Int32,
+		"Int32Ptr":        j.Int32Ptr,
+		"Int64":           j.Int64,
+		"Int64Ptr":        j.Int64Ptr,
+		"Int8":            j.Int8,
+		"Int8Ptr":         j.Int8Ptr,
+		"IntPtr":          j.IntPtr,
+		"NamedArray":      utils.EncodeMaps(j.NamedArray),
+		"NamedArrayPtr":   utils.EncodeNullableMaps(j.NamedArrayPtr),
+		"NamedObject":     utils.EncodeMap(j.NamedObject),
+		"NamedObjectPtr":  utils.EncodeMap(j.NamedObjectPtr),
+		"Object":          result_Object,
+		"ObjectPtr":       result_ObjectPtr,
+		"String":          j.String,
+		"StringPtr":       j.StringPtr,
+		"Time":            j.Time,
+		"TimePtr":         j.TimePtr,
+		"UUID":            j.UUID,
+		"UUIDPtr":         j.UUIDPtr,
+		"Uint":            j.Uint,
+		"Uint16":          j.Uint16,
+		"Uint16Ptr":       j.Uint16Ptr,
+		"Uint32":          j.Uint32,
+		"Uint32Ptr":       j.Uint32Ptr,
+		"Uint64":          j.Uint64,
+		"Uint64Ptr":       j.Uint64Ptr,
+		"Uint8":           j.Uint8,
+		"Uint8Ptr":        j.Uint8Ptr,
+		"UintPtr":         j.UintPtr,
 	}
 	return result
 }
@@ -313,9 +331,9 @@ func (j GetTypesArguments) ToMap() map[string]any {
 // ToMap encodes the struct to a value map
 func (j HelloResult) ToMap() map[string]any {
 	result := map[string]any{
-		"foo": j.Foo,
-		"id": j.ID,
-		"num": j.Num,
+		"foo":  j.Foo,
+		"id":   j.ID,
+		"num":  j.Num,
 		"text": j.Text,
 	}
 	return result

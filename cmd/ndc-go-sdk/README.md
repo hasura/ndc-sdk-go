@@ -158,7 +158,6 @@ The basic scalar types supported are:
 - `string` (NDC scalar type: `String`)
 - `int`, `int8`, `int16`, `int32`, `int64`, `uint`, `uint8`, `uint16`, `uint32`, `uint64` (NDC scalar type: `Int`)
 - `float32`, `float64` (NDC scalar type: `Float`)
-- `complex64`, `complex128` (NDC scalar type: `Complex`)
 - `bool` (NDC scalar type: `Boolean`)
 - `time.Time` (NDC scalar type: `DateTime`, represented as an [ISO formatted](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString) string in JSON)
 - `time.Duration` (NDC scalar type: `Duration`, represented as a duration string in JSON)
@@ -197,6 +196,15 @@ type Foo struct {}
 
 > The generator detects comments by the nearby position. It isn't perfectly accurate in some use cases. Prefix name in function is highly recommended.
 
+For custom scalar, you must implement a method to decode `any` value so its data can be set when resolving request query arguments. `UnmarshalJSON` is used when encoding results.
+
+```go
+func (c *ScalarFoo) FromValue(value any) (err error) {
+	c.Bar, err = utils.DecodeString(value)
+	return
+}
+```
+
 ### Documentation
 
 The tool parses comments of functions and types by the nearby code position to description properties in the schema. For example:
@@ -211,3 +219,7 @@ func ProcedureCreateAuthor(ctx context.Context, state *types.State, arguments *C
 //   ...
 // }
 ```
+
+### Example
+
+See [example/codegen](../../example/codegen).

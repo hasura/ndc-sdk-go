@@ -3,8 +3,6 @@ package functions
 import (
 	"context"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type State struct{}
@@ -24,7 +22,7 @@ func (s *ScalarFoo) FromValue(value any) error {
 
 // A hello result
 type HelloResult struct {
-	ID 		uuid.UUID `json:"id"`
+	ID 		string `json:"id"`
 	Num 	int    		`json:"num"`
 	Text 	Text 			`json:"text"`
 	Foo 	ScalarFoo `json:"foo"`
@@ -33,7 +31,7 @@ type HelloResult struct {
 // FunctionHello sends a hello message
 func FunctionHello(ctx context.Context, state *State) (*HelloResult, error) {
 	return &HelloResult{
-		ID:   uuid.New(),
+		ID:   "id",
 		Num:  1,
 		Text: "world",
 	}, nil
@@ -69,7 +67,7 @@ func ProcedureCreateAuthors(ctx context.Context, state *State, arguments *Create
 	return []CreateAuthorResult{
 		{
 			ID:   1,
-			Name: arguments.Name,
+			Name: strings.Join(arguments.Names, ","),
 		},
 	}, nil
 }
@@ -77,4 +75,66 @@ func ProcedureCreateAuthors(ctx context.Context, state *State, arguments *Create
 // FunctionGetBool return an scalar boolean
 func FunctionGetBool(ctx context.Context, state *State) (bool, error) {
 	return true, nil
+}
+
+
+type GetTypesArguments struct {
+	Bool         bool
+	String       string
+	Int          int
+	Int8         int8
+	Int16        int16
+	Int32        int32
+	Int64        int64
+	Uint         uint
+	Uint8        uint8
+	Uint16       uint16
+	Uint32       uint32
+	Uint64       uint64
+	Float32      float32
+	Float64      float64
+	Time         time.Time
+	Duration     time.Duration
+	CustomScalar CommentText
+
+	BoolPtr         *bool
+	StringPtr       *string
+	IntPtr          *int
+	Int8Ptr         *int8
+	Int16Ptr        *int16
+	Int32Ptr        *int32
+	Int64Ptr        *int64
+	UintPtr         *uint
+	Uint8Ptr        *uint8
+	Uint16Ptr       *uint16
+	Uint32Ptr       *uint32
+	Uint64Ptr       *uint64
+	Float32Ptr      *float32
+	Float64Ptr      *float64
+	TimePtr         *time.Time
+	DurationPtr     *time.Duration
+	CustomScalarPtr *CommentText
+
+	Object struct {
+		ID        string `json:"id"`
+		CreatedAt time.Time `json:"created_at"`
+	}
+	ObjectPtr *struct {
+		Long int
+		Lat  int
+	}
+	ArrayObject []struct {
+		Content string `json:"content"`
+	}
+	ArrayObjectPtr *[]struct {
+		Content string `json:"content"`
+	}
+	NamedObject    Author
+	NamedObjectPtr *Author
+	NamedArray     []Author
+	NamedArrayPtr  *[]Author
+}
+
+func FunctionGetTypes(ctx context.Context, state *State, arguments *GetTypesArguments) (*GetTypesArguments, error) {
+	return &GetTypesArguments{}, nil
 }
