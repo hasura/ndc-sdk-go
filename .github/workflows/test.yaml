@@ -49,20 +49,18 @@ jobs:
       - name: Run Go unit tests for the generation CLI
         run: |
           pushd cmd/ndc-go-sdk
-          go test -v -coverpkg=./... -race -timeout 3m -coverprofile=../../coverage-codegen.out ./...
+          go test -v -race -timeout 3m ./...
           popd
       - name: Run Go unit tests for the generation example
         run: |
           pushd example/codegen
-          go test -v -coverpkg=./... -race -timeout 3m -coverprofile=../../coverage-codegen-example.out ./...
+          go test -v -race -timeout 3m ./...
           popd
       - name: Go coverage format
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          go get github.com/boumenot/gocover-cobertura@master
-          go install github.com/boumenot/gocover-cobertura@master
-          sed '1d' coverage-codegen.out >> coverage.out
-          sed '1d' coverage-codegen-example.out >> coverage.out
+          go get github.com/boumenot/gocover-cobertura
+          go install github.com/boumenot/gocover-cobertura
           gocover-cobertura < coverage.out > coverage.xml
       - name: Code Coverage Summary Report
         uses: irongut/CodeCoverageSummary@v1.3.0
