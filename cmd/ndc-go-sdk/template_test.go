@@ -8,5 +8,5 @@ import (
 
 func TestGenerateNewProject(t *testing.T) {
 	tempDir := t.TempDir()
-	assert.NoError(t, generateNewProject("test", "hasura.dev/connector", tempDir))
+	assert.NoError(t, generateNewProject("test", "hasura.dev/connector", tempDir, true))
 }

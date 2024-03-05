@@ -34,7 +34,7 @@ func init() {
 	}
 }
 
-func generateNewProject(name string, moduleName string, srcPath string) error {
+func generateNewProject(name string, moduleName string, srcPath string, silent bool) error {
 	if srcPath == "" {
 		p, err := os.Getwd()
 		if err != nil {
@@ -55,13 +55,23 @@ func generateNewProject(name string, moduleName string, srcPath string) error {
 	}
 
 	if err := execGoModTidy(""); err != nil {
+		if silent {
+			return nil
+		}
 		return err
 	}
 
 	if err := execGoGetUpdate(".", "github.com/hasura/ndc-sdk-go"); err != nil {
+		if silent {
+			return nil
+		}
 		return err
 	}
-	return execGoFormat(".")
+	err := execGoFormat(".")
+	if err != nil && silent {
+		return nil
+	}
+	return err
 }
 
 func generateNewProjectFiles(name string, moduleName string, srcPath string) error {
@@ -125,7 +135,11 @@ func execCommand(basePath string, commandName string, args ...string) error {
 		cmd.Dir = basePath
 	}
 	out, err := cmd.Output()
-	log.Debug().Strs("args", args).Str("result", string(out)).Msg(commandName)
+	l := log.Debug()
+	if err != nil {
+		l = log.Error().Err(err)
+	}
+	l.Strs("args", args).Str("result", string(out)).Msg(commandName)
 	return err
 }
 
