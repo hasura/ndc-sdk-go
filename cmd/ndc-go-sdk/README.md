@@ -6,10 +6,18 @@ The generator is inspired by [ndc-typescript-deno](https://github.com/hasura/ndc
 
 ## Installation
 
-- **Install from source**: To install with Go 1.19+:
+### Download
+
+Get a release [here](https://github.com/hasura/ndc-sdk-go/releases).
+
+### Install from source
+
+To install with Go 1.19+:
 
 ```bash
-go install github.com/hasura/ndc-sdk-go/cmd/ndc-go-sdk@latest
+git clone github.com/hasura/ndc-sdk-go
+cd cmd/ndc-go-sdk
+go install .
 ```
 
 ## How to Use
