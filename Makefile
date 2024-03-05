@@ -1,5 +1,4 @@
-VERSION ?= $(shell ./scripts/get-CalVer.sh)
-PLUGINS_BRANCH ?= master
+VERSION ?= $(shell date +"%Y%m%d")
 OUTPUT_DIR := _output
 
 .PHONY: typegen

@@ -37,7 +37,7 @@ func main() {
 			Str("module", cli.Init.Module).
 			Str("output", cli.Init.Output).
 			Msg("generating the NDC boilerplate...")
-		if err := generateNewProject(cli.Init.Name, cli.Init.Module, cli.Init.Output); err != nil {
+		if err := generateNewProject(cli.Init.Name, cli.Init.Module, cli.Init.Output, false); err != nil {
 			log.Fatal().Err(err).Msg("failed to generate new project")
 		}
 		log.Info().Msg("generated successfully")
