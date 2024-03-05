@@ -17,7 +17,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.BoolPtr, err = utils.GetBoolPtr(input, "BoolPtr")
+	j.BoolPtr, err = utils.GetNullableBool(input, "BoolPtr")
 	if err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 		return err
 	}
 	j.CustomScalarPtr = new(CommentText)
-	err = utils.DecodeObjectValue(j.CustomScalarPtr, input, "CustomScalarPtr")
+	err = utils.DecodeNullableObjectValue(j.CustomScalarPtr, input, "CustomScalarPtr")
 	if err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.DurationPtr, err = utils.GetDurationPtr(input, "DurationPtr")
+	j.DurationPtr, err = utils.GetNullableDuration(input, "DurationPtr")
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.Float32Ptr, err = utils.GetFloatPtr[float32](input, "Float32Ptr")
+	j.Float32Ptr, err = utils.GetNullableFloat[float32](input, "Float32Ptr")
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.Float64Ptr, err = utils.GetFloatPtr[float64](input, "Float64Ptr")
+	j.Float64Ptr, err = utils.GetNullableFloat[float64](input, "Float64Ptr")
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.Int16Ptr, err = utils.GetIntPtr[int16](input, "Int16Ptr")
+	j.Int16Ptr, err = utils.GetNullableInt[int16](input, "Int16Ptr")
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.Int32Ptr, err = utils.GetIntPtr[int32](input, "Int32Ptr")
+	j.Int32Ptr, err = utils.GetNullableInt[int32](input, "Int32Ptr")
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.Int64Ptr, err = utils.GetIntPtr[int64](input, "Int64Ptr")
+	j.Int64Ptr, err = utils.GetNullableInt[int64](input, "Int64Ptr")
 	if err != nil {
 		return err
 	}
@@ -86,11 +86,11 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.Int8Ptr, err = utils.GetIntPtr[int8](input, "Int8Ptr")
+	j.Int8Ptr, err = utils.GetNullableInt[int8](input, "Int8Ptr")
 	if err != nil {
 		return err
 	}
-	j.IntPtr, err = utils.GetIntPtr[int](input, "IntPtr")
+	j.IntPtr, err = utils.GetNullableInt[int](input, "IntPtr")
 	if err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 		return err
 	}
 	j.NamedObjectPtr = new(Author)
-	err = utils.DecodeObjectValue(j.NamedObjectPtr, input, "NamedObjectPtr")
+	err = utils.DecodeNullableObjectValue(j.NamedObjectPtr, input, "NamedObjectPtr")
 	if err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 		Long int
 		Lat  int
 	})
-	err = utils.DecodeObjectValue(j.ObjectPtr, input, "ObjectPtr")
+	err = utils.DecodeNullableObjectValue(j.ObjectPtr, input, "ObjectPtr")
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.StringPtr, err = utils.GetStringPtr(input, "StringPtr")
+	j.StringPtr, err = utils.GetNullableString(input, "StringPtr")
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.TimePtr, err = utils.GetDateTimePtr(input, "TimePtr")
+	j.TimePtr, err = utils.GetNullableDateTime(input, "TimePtr")
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 		return err
 	}
 	j.UUIDPtr = new(uuid.UUID)
-	err = utils.DecodeObjectValue(j.UUIDPtr, input, "UUIDPtr")
+	err = utils.DecodeNullableObjectValue(j.UUIDPtr, input, "UUIDPtr")
 	if err != nil {
 		return err
 	}
@@ -152,7 +152,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.Uint16Ptr, err = utils.GetUintPtr[uint16](input, "Uint16Ptr")
+	j.Uint16Ptr, err = utils.GetNullableUint[uint16](input, "Uint16Ptr")
 	if err != nil {
 		return err
 	}
@@ -160,7 +160,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.Uint32Ptr, err = utils.GetUintPtr[uint32](input, "Uint32Ptr")
+	j.Uint32Ptr, err = utils.GetNullableUint[uint32](input, "Uint32Ptr")
 	if err != nil {
 		return err
 	}
@@ -168,7 +168,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.Uint64Ptr, err = utils.GetUintPtr[uint64](input, "Uint64Ptr")
+	j.Uint64Ptr, err = utils.GetNullableUint[uint64](input, "Uint64Ptr")
 	if err != nil {
 		return err
 	}
@@ -176,11 +176,11 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.Uint8Ptr, err = utils.GetUintPtr[uint8](input, "Uint8Ptr")
+	j.Uint8Ptr, err = utils.GetNullableUint[uint8](input, "Uint8Ptr")
 	if err != nil {
 		return err
 	}
-	j.UintPtr, err = utils.GetUintPtr[uint](input, "UintPtr")
+	j.UintPtr, err = utils.GetNullableUint[uint](input, "UintPtr")
 	if err != nil {
 		return err
 	}

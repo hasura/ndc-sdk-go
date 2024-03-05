@@ -14,7 +14,7 @@ import (
 	"github.com/hasura/ndc-codegen-example/functions"
 	"github.com/hasura/ndc-codegen-example/types"
 	"github.com/hasura/ndc-sdk-go/connector"
-	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -195,7 +195,7 @@ func TestQueryGetTypes(t *testing.T) {
 						},
 						"Object": {
 							"type": "literal",
-							"value": null
+							"value": {}
 						},
 						"ObjectPtr": {
 							"type": "literal",
@@ -203,11 +203,15 @@ func TestQueryGetTypes(t *testing.T) {
 						},
 						"ArrayObject": {
 							"type": "literal",
-							"value": null
+							"value": []
 						},
 						"NamedObject": {
 							"type": "literal",
-							"value": null
+							"value": {
+								"id":        "1",
+								"duration":  10,
+								"created_at": "2024-03-05T05:00:00Z"
+							}
 						},
 						"NamedObjectPtr": {
 							"type": "literal",
@@ -215,7 +219,7 @@ func TestQueryGetTypes(t *testing.T) {
 						},
 						"NamedArray": {
 							"type": "literal",
-							"value": null
+							"value": []
 						}
 				},
 				"query": {
@@ -411,22 +415,22 @@ func TestQueryGetTypes(t *testing.T) {
 				Time:            time.Date(2023, 3, 5, 7, 0, 56, 0, time.UTC),
 				Duration:        10 * time.Second,
 				CustomScalar:    commentText,
-				UUIDPtr:         schema.ToPtr(uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5b")),
-				BoolPtr:         schema.ToPtr(true),
-				IntPtr:          schema.ToPtr(11),
-				Int8Ptr:         schema.ToPtr(int8(12)),
-				Int16Ptr:        schema.ToPtr(int16(13)),
-				Int32Ptr:        schema.ToPtr(int32(14)),
-				Int64Ptr:        schema.ToPtr(int64(15)),
-				UintPtr:         schema.ToPtr(uint(16)),
-				Uint8Ptr:        schema.ToPtr(uint8(17)),
-				Uint16Ptr:       schema.ToPtr(uint16(18)),
-				Uint32Ptr:       schema.ToPtr(uint32(19)),
-				Uint64Ptr:       schema.ToPtr(uint64(20)),
-				Float32Ptr:      schema.ToPtr(float32(3.3)),
-				Float64Ptr:      schema.ToPtr(float64(4.4)),
-				TimePtr:         schema.ToPtr(time.Date(2023, 3, 5, 7, 0, 0, 0, time.UTC)),
-				DurationPtr:     schema.ToPtr(time.Minute),
+				UUIDPtr:         utils.ToPtr(uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5b")),
+				BoolPtr:         utils.ToPtr(true),
+				IntPtr:          utils.ToPtr(11),
+				Int8Ptr:         utils.ToPtr(int8(12)),
+				Int16Ptr:        utils.ToPtr(int16(13)),
+				Int32Ptr:        utils.ToPtr(int32(14)),
+				Int64Ptr:        utils.ToPtr(int64(15)),
+				UintPtr:         utils.ToPtr(uint(16)),
+				Uint8Ptr:        utils.ToPtr(uint8(17)),
+				Uint16Ptr:       utils.ToPtr(uint16(18)),
+				Uint32Ptr:       utils.ToPtr(uint32(19)),
+				Uint64Ptr:       utils.ToPtr(uint64(20)),
+				Float32Ptr:      utils.ToPtr(float32(3.3)),
+				Float64Ptr:      utils.ToPtr(float64(4.4)),
+				TimePtr:         utils.ToPtr(time.Date(2023, 3, 5, 7, 0, 0, 0, time.UTC)),
+				DurationPtr:     utils.ToPtr(time.Minute),
 				CustomScalarPtr: &commentTextPtr,
 				Object: struct {
 					ID        uuid.UUID `json:"id"`
@@ -493,6 +497,269 @@ func TestQueryGetTypes(t *testing.T) {
 				assert.Equal(t, 1, len(results))
 				assert.Equal(t, 1, len(results[0].Rows))
 				assert.Equal(t, tc.response, results[0].Rows[0].Value)
+			}
+		})
+	}
+}
+
+func TestQueries(t *testing.T) {
+	testCases := []struct {
+		name     string
+		body     string
+		status   int
+		response string
+		errorMsg string
+	}{
+		{
+			name:   "hello_success",
+			status: http.StatusOK,
+			body: `{
+				"collection": "hello",
+				"arguments": {},
+				"query": {
+					"fields": {
+						"num": {
+							"type": "column",
+							"column": "num"
+						},
+						"text": {
+							"type": "column",
+							"column": "text"
+						}
+					}
+				},
+				"collection_relationships": {}
+			}`,
+			response: `{
+				"num": 1,
+				"text": "world"
+			}`,
+		},
+		{
+			name:   "getBool",
+			status: http.StatusOK,
+			body: `{
+				"collection": "getBool",
+				"arguments": {},
+				"query": {},
+				"collection_relationships": {}
+			}`,
+			response: `true`,
+		},
+	}
+
+	testServer := createTestServer(t).BuildTestServer()
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/query", testServer.URL), "application/json", bytes.NewReader([]byte(tc.body)))
+			assert.NoError(t, err, "failed to request query")
+			assert.Equal(t, tc.status, resp.StatusCode)
+			respBody, err := io.ReadAll(resp.Body)
+			if tc.errorMsg != "" {
+				assert.NoError(t, err)
+				assert.Contains(t, string(respBody), tc.errorMsg)
+			} else if resp.StatusCode != http.StatusOK {
+				t.Errorf("expected successful response, got error: %s", string(respBody))
+			} else {
+				log.Print("response: ", string(respBody))
+				var expected any
+				assert.NoError(t, json.Unmarshal([]byte(tc.response), &expected))
+				var results []struct {
+					Rows []struct {
+						Value any `json:"__value"`
+					} `json:"rows,omitempty" mapstructure:"rows,omitempty"`
+				}
+				assert.NoError(t, json.Unmarshal(respBody, &results), "failed to decode response")
+				assert.Equal(t, 1, len(results))
+				assert.Equal(t, 1, len(results[0].Rows))
+				assert.Equal(t, expected, results[0].Rows[0].Value)
+			}
+		})
+	}
+}
+
+func TestProcedures(t *testing.T) {
+	testCases := []struct {
+		name     string
+		body     string
+		status   int
+		response string
+		errorMsg string
+	}{
+		{
+			name:   "create_article_success",
+			status: http.StatusOK,
+			body: `{
+				"operations": [
+					{
+						"type": "procedure",
+						"name": "create_article",
+						"arguments": {},
+						"fields": {
+							"type": "object",
+							"fields": {
+								"id": {
+										"type": "column",
+										"column": "id"
+								}
+							}
+						}
+					}
+				],
+				"collection_relationships": {}
+			}`,
+			response: `{
+				"id": 1
+			}`,
+		},
+		{
+			name:   "create_article_array_400",
+			status: http.StatusBadRequest,
+			body: `{
+				"operations": [
+					{
+						"type": "procedure",
+						"name": "create_article",
+						"arguments": {},
+						"fields": {
+							"type": "array",
+							"fields": {
+								"type": "object",
+								"fields": {
+									"id": {
+										"type": "column",
+										"column": "id"
+									}
+								}
+							}
+						}
+					}
+				],
+				"collection_relationships": {}
+			}`,
+			errorMsg: "the selection field type must be object",
+		},
+		{
+			name:   "createAuthors_success",
+			status: http.StatusOK,
+			body: `{
+				"operations": [
+					{
+						"type": "procedure",
+						"name": "createAuthors",
+						"arguments": {},
+						"fields": {
+							"type": "array",
+							"fields": {
+								"type": "object",
+								"fields": {
+									"id": {
+										"type": "column",
+										"column": "id"
+									}
+								}
+							}
+						}
+					}
+				],
+				"collection_relationships": {}
+			}`,
+			response: `[{
+				"id": 1
+			}]`,
+		},
+		{
+			name:   "createAuthors_object_400",
+			status: http.StatusBadRequest,
+			body: `{
+				"operations": [
+					{
+						"type": "procedure",
+						"name": "createAuthors",
+						"arguments": {},
+						"fields": {
+							"type": "object",
+							"fields": {
+								"id": {
+										"type": "column",
+										"column": "id"
+								}
+							}
+						}
+					}
+				],
+				"collection_relationships": {}
+			}`,
+			errorMsg: "the selection field type must be array",
+		},
+		{
+			name:   "increase_success",
+			status: http.StatusOK,
+			body: `{
+				"operations": [
+					{
+						"type": "procedure",
+						"name": "increase",
+						"arguments": {},
+						"fields": null
+					}
+				],
+				"collection_relationships": {}
+			}`,
+			response: `1`,
+		},
+		{
+			name:   "increase_400",
+			status: http.StatusBadRequest,
+			body: `{
+				"operations": [
+					{
+						"type": "procedure",
+						"name": "increase",
+						"arguments": {},
+						"fields": {
+							"type": "object",
+							"fields": {
+								"id": {
+										"type": "column",
+										"column": "id"
+								}
+							}
+						}
+					}
+				],
+				"collection_relationships": {}
+			}`,
+			errorMsg: "cannot evaluate selection fields for scalar",
+		},
+	}
+
+	testServer := createTestServer(t).BuildTestServer()
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/mutation", testServer.URL), "application/json", bytes.NewReader([]byte(tc.body)))
+			assert.NoError(t, err, "failed to request mutation")
+			assert.Equal(t, tc.status, resp.StatusCode)
+			respBody, err := io.ReadAll(resp.Body)
+			if tc.errorMsg != "" {
+				assert.NoError(t, err)
+				assert.Contains(t, string(respBody), tc.errorMsg)
+			} else if resp.StatusCode != http.StatusOK {
+				t.Errorf("expected successful response, got error: %s", string(respBody))
+			} else {
+				log.Print("response: ", string(respBody))
+				var expected any
+				assert.NoError(t, json.Unmarshal([]byte(tc.response), &expected))
+				var results struct {
+					OperationResults []struct {
+						Result any `json:"result"`
+					} `json:"operation_results"`
+				}
+				assert.NoError(t, json.Unmarshal(respBody, &results), "failed to decode response")
+				assert.Equal(t, 1, len(results.OperationResults))
+				assert.Equal(t, expected, results.OperationResults[0].Result)
 			}
 		})
 	}

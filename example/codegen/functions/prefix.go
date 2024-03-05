@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-codegen-example/types"
-	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/utils"
 )
 
 type Text string
@@ -158,22 +158,22 @@ func FunctionGetTypes(ctx context.Context, state *types.State, arguments *GetTyp
 		CustomScalar: CommentText{
 			comment: "a comment",
 		},
-		UUIDPtr:     schema.ToPtr(uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5b")),
-		BoolPtr:     schema.ToPtr(true),
-		IntPtr:      schema.ToPtr(11),
-		Int8Ptr:     schema.ToPtr(int8(12)),
-		Int16Ptr:    schema.ToPtr(int16(13)),
-		Int32Ptr:    schema.ToPtr(int32(14)),
-		Int64Ptr:    schema.ToPtr(int64(15)),
-		UintPtr:     schema.ToPtr(uint(16)),
-		Uint8Ptr:    schema.ToPtr(uint8(17)),
-		Uint16Ptr:   schema.ToPtr(uint16(18)),
-		Uint32Ptr:   schema.ToPtr(uint32(19)),
-		Uint64Ptr:   schema.ToPtr(uint64(20)),
-		Float32Ptr:  schema.ToPtr(float32(3.3)),
-		Float64Ptr:  schema.ToPtr(float64(4.4)),
-		TimePtr:     schema.ToPtr(time.Date(2023, 3, 5, 7, 0, 0, 0, time.UTC)),
-		DurationPtr: schema.ToPtr(time.Minute),
+		UUIDPtr:     utils.ToPtr(uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5b")),
+		BoolPtr:     utils.ToPtr(true),
+		IntPtr:      utils.ToPtr(11),
+		Int8Ptr:     utils.ToPtr(int8(12)),
+		Int16Ptr:    utils.ToPtr(int16(13)),
+		Int32Ptr:    utils.ToPtr(int32(14)),
+		Int64Ptr:    utils.ToPtr(int64(15)),
+		UintPtr:     utils.ToPtr(uint(16)),
+		Uint8Ptr:    utils.ToPtr(uint8(17)),
+		Uint16Ptr:   utils.ToPtr(uint16(18)),
+		Uint32Ptr:   utils.ToPtr(uint32(19)),
+		Uint64Ptr:   utils.ToPtr(uint64(20)),
+		Float32Ptr:  utils.ToPtr(float32(3.3)),
+		Float64Ptr:  utils.ToPtr(float64(4.4)),
+		TimePtr:     utils.ToPtr(time.Date(2023, 3, 5, 7, 0, 0, 0, time.UTC)),
+		DurationPtr: utils.ToPtr(time.Minute),
 		CustomScalarPtr: &CommentText{
 			comment: "a comment pointer",
 		},

@@ -32,23 +32,16 @@ func assertEqual(t *testing.T, expected any, reality any) {
 	}
 }
 
-// func assertDeepEqual(t *testing.T, expected any, reality any) {
-// 	if !internal.DeepEqual(expected, reality) {
-// 		t.Errorf("not equal, expected: %+v got: %+v", expected, reality)
-// 		t.FailNow()
-// 	}
-// }
-
 func TestDecodeBool(t *testing.T) {
 	value, err := DecodeBoolean(true)
 	assertNoError(t, err)
 	assertEqual(t, true, value)
 
-	ptr, err := DecodeBooleanPtr(true)
+	ptr, err := DecodeNullableBoolean(true)
 	assertNoError(t, err)
 	assertEqual(t, true, *ptr)
 
-	ptr2, err := DecodeBooleanPtr(ptr)
+	ptr2, err := DecodeNullableBoolean(ptr)
 	assertNoError(t, err)
 	assertEqual(t, *ptr, *ptr2)
 
@@ -64,11 +57,11 @@ func TestDecodeString(t *testing.T) {
 	assertNoError(t, err)
 	assertEqual(t, "success", value)
 
-	ptr, err := DecodeStringPtr("pointer")
+	ptr, err := DecodeNullableString("pointer")
 	assertNoError(t, err)
 	assertEqual(t, "pointer", *ptr)
 
-	ptr2, err := DecodeStringPtr(ptr)
+	ptr2, err := DecodeNullableString(ptr)
 	assertNoError(t, err)
 	assertEqual(t, *ptr, *ptr2)
 
@@ -98,7 +91,7 @@ func TestDecodeDateTime(t *testing.T) {
 		assertEqual(t, now.UnixMilli(), value.UnixMilli())
 
 		var nilI64 *int64 = nil
-		ptr, err := DecodeDateTimePtr(nilI64)
+		ptr, err := DecodeNullableDateTime(nilI64)
 		assertNoError(t, err)
 		assertEqual(t, true, IsNil(ptr))
 	})
@@ -119,11 +112,11 @@ func TestDecodeDateTime(t *testing.T) {
 	})
 
 	t.Run("decode_pointer", func(t *testing.T) {
-		ptr, err := DecodeDateTimePtr(&now)
+		ptr, err := DecodeNullableDateTime(&now)
 		assertNoError(t, err)
 		assertEqual(t, now, *ptr)
 
-		ptr2, err := DecodeDateTimePtr(ptr)
+		ptr2, err := DecodeNullableDateTime(ptr)
 		assertNoError(t, err)
 		assertEqual(t, *ptr, *ptr2)
 	})
@@ -176,17 +169,17 @@ func TestDecodeDuration(t *testing.T) {
 		assertError(t, err, "time: invalid duration \"test\"")
 
 		var nilStr *string
-		nilValue, err := DecodeDurationPtr(nilStr)
+		nilValue, err := DecodeNullableDuration(nilStr)
 		assertNoError(t, err)
 		assertEqual(t, true, IsNil(nilValue))
 	})
 
 	t.Run("decode_pointer", func(t *testing.T) {
-		ptr, err := DecodeDurationPtr(&duration)
+		ptr, err := DecodeNullableDuration(&duration)
 		assertNoError(t, err)
 		assertEqual(t, duration, *ptr)
 
-		ptr2, err := DecodeDurationPtr(ptr)
+		ptr2, err := DecodeNullableDuration(ptr)
 		assertNoError(t, err)
 		assertEqual(t, *ptr, *ptr2)
 	})
@@ -211,11 +204,11 @@ func TestDecodeInt(t *testing.T) {
 			assertNoError(t, err)
 			assertEqual(t, fmt.Sprint(expected), fmt.Sprint(value))
 
-			ptr, err := DecodeIntPtr[int64](&expected)
+			ptr, err := DecodeNullableInt[int64](&expected)
 			assertNoError(t, err)
 			assertEqual(t, fmt.Sprint(expected), fmt.Sprint(*ptr))
 
-			ptr2, err := DecodeIntPtr[int64](ptr)
+			ptr2, err := DecodeNullableInt[int64](ptr)
 			assertNoError(t, err)
 			assertEqual(t, fmt.Sprint(*ptr), fmt.Sprint(*ptr2))
 		})
@@ -223,66 +216,66 @@ func TestDecodeInt(t *testing.T) {
 
 	t.Run("decode_pointers", func(t *testing.T) {
 		vInt := int(1)
-		ptr, err := DecodeIntPtr[int64](&vInt)
+		ptr, err := DecodeNullableInt[int64](&vInt)
 		assertNoError(t, err)
 		assertEqual(t, int64(vInt), *ptr)
 
 		ptrInt := &vInt
-		ptr, err = DecodeIntPtr[int64](&ptrInt)
+		ptr, err = DecodeNullableInt[int64](&ptrInt)
 		assertNoError(t, err)
 		assertEqual(t, int64(vInt), *ptr)
 
 		vInt8 := int8(1)
-		ptr, err = DecodeIntPtr[int64](&vInt8)
+		ptr, err = DecodeNullableInt[int64](&vInt8)
 		assertNoError(t, err)
 		assertEqual(t, int64(vInt8), *ptr)
 
 		vInt16 := int16(1)
-		ptr, err = DecodeIntPtr[int64](&vInt16)
+		ptr, err = DecodeNullableInt[int64](&vInt16)
 		assertNoError(t, err)
 		assertEqual(t, int64(vInt16), *ptr)
 
 		vInt32 := int32(1)
-		ptr, err = DecodeIntPtr[int64](&vInt32)
+		ptr, err = DecodeNullableInt[int64](&vInt32)
 		assertNoError(t, err)
 		assertEqual(t, int64(vInt32), *ptr)
 
 		vInt64 := int64(1)
-		ptr, err = DecodeIntPtr[int64](&vInt64)
+		ptr, err = DecodeNullableInt[int64](&vInt64)
 		assertNoError(t, err)
 		assertEqual(t, int64(vInt64), *ptr)
 
 		vUint := uint(1)
-		ptr, err = DecodeIntPtr[int64](&vUint)
+		ptr, err = DecodeNullableInt[int64](&vUint)
 		assertNoError(t, err)
 		assertEqual(t, int64(vUint), *ptr)
 
 		vUint8 := uint8(1)
-		ptr, err = DecodeIntPtr[int64](&vUint8)
+		ptr, err = DecodeNullableInt[int64](&vUint8)
 		assertNoError(t, err)
 		assertEqual(t, int64(vUint8), *ptr)
 
 		vUint16 := uint16(1)
-		ptr, err = DecodeIntPtr[int64](&vUint16)
+		ptr, err = DecodeNullableInt[int64](&vUint16)
 		assertNoError(t, err)
 		assertEqual(t, int64(vUint16), *ptr)
 
 		vUint32 := uint32(1)
-		ptr, err = DecodeIntPtr[int64](&vUint32)
+		ptr, err = DecodeNullableInt[int64](&vUint32)
 		assertNoError(t, err)
 		assertEqual(t, int64(vUint32), *ptr)
 
 		vUint64 := uint64(1)
-		ptr, err = DecodeIntPtr[int64](&vUint64)
+		ptr, err = DecodeNullableInt[int64](&vUint64)
 		assertNoError(t, err)
 		assertEqual(t, int64(vUint64), *ptr)
 
 		var vAny any = float64(1.1)
-		_, err = DecodeIntPtr[int64](&vAny)
+		_, err = DecodeNullableInt[int64](&vAny)
 		assertError(t, err, "failed to convert integer, got: *interface {} (1.1)")
 
 		var vFn any = func() {}
-		_, err = DecodeIntPtr[int64](&vFn)
+		_, err = DecodeNullableInt[int64](&vFn)
 		assertError(t, err, "failed to convert integer")
 	})
 
@@ -306,11 +299,11 @@ func TestDecodeUint(t *testing.T) {
 			assertNoError(t, err)
 			assertEqual(t, fmt.Sprint(expected), fmt.Sprint(value))
 
-			ptr, err := DecodeUintPtr[uint64](&expected)
+			ptr, err := DecodeNullableUint[uint64](&expected)
 			assertNoError(t, err)
 			assertEqual(t, fmt.Sprint(expected), fmt.Sprint(*ptr))
 
-			ptr2, err := DecodeUintPtr[uint64](ptr)
+			ptr2, err := DecodeNullableUint[uint64](ptr)
 			assertNoError(t, err)
 			assertEqual(t, fmt.Sprint(*ptr), fmt.Sprint(*ptr2))
 		})
@@ -318,17 +311,17 @@ func TestDecodeUint(t *testing.T) {
 
 	t.Run("decode_pointers", func(t *testing.T) {
 		vUint := uint(1)
-		ptr, err := DecodeUintPtr[uint64](&vUint)
+		ptr, err := DecodeNullableUint[uint64](&vUint)
 		assertNoError(t, err)
 		assertEqual(t, uint64(vUint), *ptr)
 
 		ptrUint := &vUint
-		ptr, err = DecodeUintPtr[uint64](&ptrUint)
+		ptr, err = DecodeNullableUint[uint64](&ptrUint)
 		assertNoError(t, err)
 		assertEqual(t, uint64(vUint), *ptr)
 
 		var vAny any = float64(1.1)
-		_, err = DecodeUintPtr[uint64](&vAny)
+		_, err = DecodeNullableUint[uint64](&vAny)
 		assertError(t, err, "failed to convert integer, got: *interface {} (1.1)")
 	})
 
@@ -351,11 +344,11 @@ func TestDecodeFloat(t *testing.T) {
 			assertNoError(t, err)
 			assertEqual(t, fmt.Sprint(expected), fmt.Sprintf("%.0f", value))
 
-			ptr, err := DecodeFloatPtr[float64](&expected)
+			ptr, err := DecodeNullableFloat[float64](&expected)
 			assertNoError(t, err)
 			assertEqual(t, fmt.Sprint(expected), fmt.Sprintf("%.0f", *ptr))
 
-			ptr2, err := DecodeFloatPtr[float64](ptr)
+			ptr2, err := DecodeNullableFloat[float64](ptr)
 			assertNoError(t, err)
 			assertEqual(t, fmt.Sprintf("%.1f", *ptr), fmt.Sprintf("%.1f", *ptr2))
 		})
@@ -368,11 +361,11 @@ func TestDecodeFloat(t *testing.T) {
 			assertNoError(t, err)
 			assertEqual(t, fmt.Sprintf("%.1f", expected), fmt.Sprintf("%.1f", value))
 
-			ptr, err := DecodeFloatPtr[float64](&expected)
+			ptr, err := DecodeNullableFloat[float64](&expected)
 			assertNoError(t, err)
 			assertEqual(t, fmt.Sprintf("%.1f", expected), fmt.Sprintf("%.1f", *ptr))
 
-			ptr2, err := DecodeFloatPtr[float64](ptr)
+			ptr2, err := DecodeNullableFloat[float64](ptr)
 			assertNoError(t, err)
 			assertEqual(t, fmt.Sprintf("%.1f", *ptr), fmt.Sprintf("%.1f", *ptr2))
 		})
@@ -381,86 +374,86 @@ func TestDecodeFloat(t *testing.T) {
 	t.Run("decode_pointers", func(t *testing.T) {
 
 		vInt := int(1)
-		ptr, err := DecodeFloatPtr[float64](&vInt)
+		ptr, err := DecodeNullableFloat[float64](&vInt)
 		assertNoError(t, err)
 		assertEqual(t, float64(vInt), *ptr)
 
 		ptrInt := &vInt
-		ptr, err = DecodeFloatPtr[float64](&ptrInt)
+		ptr, err = DecodeNullableFloat[float64](&ptrInt)
 		assertNoError(t, err)
 		assertEqual(t, float64(vInt), *ptr)
 
 		vInt8 := int8(1)
-		ptr, err = DecodeFloatPtr[float64](&vInt8)
+		ptr, err = DecodeNullableFloat[float64](&vInt8)
 		assertNoError(t, err)
 		assertEqual(t, float64(vInt8), *ptr)
 
 		vInt16 := int16(1)
-		ptr, err = DecodeFloatPtr[float64](&vInt16)
+		ptr, err = DecodeNullableFloat[float64](&vInt16)
 		assertNoError(t, err)
 		assertEqual(t, float64(vInt16), *ptr)
 
 		vInt32 := int32(1)
-		ptr, err = DecodeFloatPtr[float64](&vInt32)
+		ptr, err = DecodeNullableFloat[float64](&vInt32)
 		assertNoError(t, err)
 		assertEqual(t, float64(vInt32), *ptr)
 
 		vInt64 := int64(1)
-		ptr, err = DecodeFloatPtr[float64](&vInt64)
+		ptr, err = DecodeNullableFloat[float64](&vInt64)
 		assertNoError(t, err)
 		assertEqual(t, float64(vInt64), *ptr)
 
 		vUint := uint(1)
-		ptr, err = DecodeFloatPtr[float64](&vUint)
+		ptr, err = DecodeNullableFloat[float64](&vUint)
 		assertNoError(t, err)
 		assertEqual(t, float64(vUint), *ptr)
 
 		ptrUint := &vUint
-		ptr, err = DecodeFloatPtr[float64](&ptrUint)
+		ptr, err = DecodeNullableFloat[float64](&ptrUint)
 		assertNoError(t, err)
 		assertEqual(t, float64(vUint), *ptr)
 
 		vUint8 := uint8(1)
-		ptr, err = DecodeFloatPtr[float64](&vUint8)
+		ptr, err = DecodeNullableFloat[float64](&vUint8)
 		assertNoError(t, err)
 		assertEqual(t, float64(vUint8), *ptr)
 
 		vUint16 := uint16(1)
-		ptr, err = DecodeFloatPtr[float64](&vUint16)
+		ptr, err = DecodeNullableFloat[float64](&vUint16)
 		assertNoError(t, err)
 		assertEqual(t, float64(vUint16), *ptr)
 
 		vUint32 := uint32(1)
-		ptr, err = DecodeFloatPtr[float64](&vUint32)
+		ptr, err = DecodeNullableFloat[float64](&vUint32)
 		assertNoError(t, err)
 		assertEqual(t, float64(vUint32), *ptr)
 
 		vUint64 := uint64(1)
-		ptr, err = DecodeFloatPtr[float64](&vUint64)
+		ptr, err = DecodeNullableFloat[float64](&vUint64)
 		assertNoError(t, err)
 		assertEqual(t, float64(vUint64), *ptr)
 
 		vFloat32 := float32(1)
-		ptr, err = DecodeFloatPtr[float64](&vFloat32)
+		ptr, err = DecodeNullableFloat[float64](&vFloat32)
 		assertNoError(t, err)
 		assertEqual(t, float64(vFloat32), *ptr)
 
 		ptrFloat32 := &vFloat32
-		ptr, err = DecodeFloatPtr[float64](&ptrFloat32)
+		ptr, err = DecodeNullableFloat[float64](&ptrFloat32)
 		assertNoError(t, err)
 		assertEqual(t, float64(vFloat32), *ptr)
 
 		vFloat64 := float64(2.2)
-		ptr, err = DecodeFloatPtr[float64](&vFloat64)
+		ptr, err = DecodeNullableFloat[float64](&vFloat64)
 		assertNoError(t, err)
 		assertEqual(t, float64(vFloat64), *ptr)
 
 		var vAny any = "test"
-		_, err = DecodeFloatPtr[float64](&vAny)
+		_, err = DecodeNullableFloat[float64](&vAny)
 		assertError(t, err, "failed to convert Float, got: *interface {} (test)")
 
 		var vFn any = func() {}
-		_, err = DecodeFloatPtr[float64](&vFn)
+		_, err = DecodeNullableFloat[float64](&vFn)
 		assertError(t, err, "failed to convert Float")
 	})
 

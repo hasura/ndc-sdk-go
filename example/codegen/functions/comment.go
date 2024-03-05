@@ -82,5 +82,5 @@ func CreateArticle(ctx context.Context, state *types.State, arguments *CreateArt
 
 // @procedure
 func Increase(ctx context.Context, state *types.State) (int, error) {
-	return 0, nil
+	return 1, nil
 }

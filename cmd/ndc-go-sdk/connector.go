@@ -453,31 +453,31 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 	case "bool":
 		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetBool(input, "%s")`, fieldName, key))
 	case "*bool":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetBoolPtr(input, "%s")`, fieldName, key))
+		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableBool(input, "%s")`, fieldName, key))
 	case "string":
 		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetString(input, "%s")`, fieldName, key))
 	case "*string":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetStringPtr(input, "%s")`, fieldName, key))
+		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableString(input, "%s")`, fieldName, key))
 	case "int", "int8", "int16", "int32", "int64", "rune", "byte":
 		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetInt[%s](input, "%s")`, fieldName, typeName, key))
 	case "uint", "uint8", "uint16", "uint32", "uint64":
 		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUint[%s](input, "%s")`, fieldName, typeName, key))
 	case "*int", "*int8", "*int16", "*int32", "*int64", "*rune", "*byte":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetIntPtr[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
+		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableInt[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
 	case "*uint", "*uint8", "*uint16", "*uint32", "*uint64":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUintPtr[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
+		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUint[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
 	case "float32", "float64":
 		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetFloat[%s](input, "%s")`, fieldName, typeName, key))
 	case "*float32", "*float64":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetFloatPtr[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
+		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableFloat[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
 	case "time.Time":
 		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTime(input, "%s")`, fieldName, key))
 	case "*time.Time":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTimePtr(input, "%s")`, fieldName, key))
+		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableDateTime(input, "%s")`, fieldName, key))
 	case "time.Duration":
 		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDuration(input, "%s")`, fieldName, key))
 	case "*time.Duration":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDurationPtr(input, "%s")`, fieldName, key))
+		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableDuration(input, "%s")`, fieldName, key))
 	default:
 		if ty.IsNullable {
 			pkgName, tyName := extractPackageAndTypeName(typeName)
@@ -485,7 +485,7 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 				sb.imports[pkgName] = ""
 			}
 			_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s = new(%s)
-  err = utils.DecodeObjectValue(j.%s, input, "%s")`, fieldName, tyName, fieldName, key))
+  err = utils.DecodeNullableObjectValue(j.%s, input, "%s")`, fieldName, tyName, fieldName, key))
 		} else {
 			_, _ = sb.builder.WriteString(fmt.Sprintf(`  err = utils.DecodeObjectValue(&j.%s, input, "%s")`, fieldName, key))
 		}

@@ -3,12 +3,8 @@ package schema
 import (
 	"encoding/json"
 	"errors"
+	"reflect"
 )
-
-// ToPtr converts a value to its pointer
-func ToPtr[V any](value V) *V {
-	return &value
-}
 
 // Index returns the index of the first occurrence of item in slice,
 // or -1 if not present.
@@ -26,13 +22,26 @@ func Contains[E comparable](s []E, v E) bool {
 	return Index(s, v) >= 0
 }
 
+// isNil a safe function to check null value
+func isNil(value any) bool {
+	if value == nil {
+		return true
+	}
+	v := reflect.ValueOf(value)
+	return v.Kind() == reflect.Ptr && v.IsNil()
+}
+
+func isNullJSON(value []byte) bool {
+	return len(value) == 0 || string(value) == "null"
+}
+
 func getStringValueByKey(collection map[string]any, key string) string {
-	if collection == nil {
+	if len(collection) == 0 {
 		return ""
 	}
 
 	anyValue, ok := collection[key]
-	if !ok || anyValue == nil {
+	if !ok || isNil(anyValue) {
 		return ""
 	}
 
@@ -53,7 +62,7 @@ func unmarshalStringFromJsonMap(collection map[string]json.RawMessage, key strin
 		return "", errors.New("required")
 	}
 
-	if collection == nil {
+	if len(collection) == 0 {
 		return emptyFn()
 	}
 

@@ -53,6 +53,11 @@ func EncodeObjectSlice[T any](input []T) ([]map[string]any, error) {
 	return results, nil
 }
 
+// ToPtr converts a value to its pointer
+func ToPtr[V any](value V) *V {
+	return &value
+}
+
 func encodeObject(input any) (map[string]any, error) {
 	switch value := input.(type) {
 	case map[string]any:

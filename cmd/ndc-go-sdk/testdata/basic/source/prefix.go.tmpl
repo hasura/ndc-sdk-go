@@ -115,12 +115,14 @@ type GetTypesArguments struct {
 	Uint64Ptr       *uint64
 	Float32Ptr      *float32
 	Float64Ptr      *float64
+	TimePtr         *time.Time
+	DurationPtr     *time.Duration
 	CustomScalarPtr *CommentText
 
 	Object struct {
-		ID        uuid.UUID  `json:"id"`
-		CreatedAt time.Time  `json:"created_at"`
-	} `json:"author"`
+		ID        uuid.UUID `json:"id"`
+		CreatedAt time.Time `json:"created_at"`
+	}
 	ObjectPtr *struct {
 		Long int
 		Lat  int

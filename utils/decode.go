@@ -35,8 +35,8 @@ func IsNil(value any) bool {
 // DecodeObjectValue get and decode a value from object by key
 func DecodeObjectValue(target any, object map[string]any, key string) error {
 	value, ok := GetAny(object, key)
-	if !ok || IsNil(value) {
-		return nil
+	if !ok {
+		return fmt.Errorf("%s: field is required", key)
 	}
 	err := DecodeValue(target, value)
 	if err != nil {
@@ -45,14 +45,40 @@ func DecodeObjectValue(target any, object map[string]any, key string) error {
 	return nil
 }
 
-// DecodeValue tries to convert and set an unknown value into the target,
+// DecodeNullableObjectValue get and decode a nullable value from object by key
+func DecodeNullableObjectValue(target any, object map[string]any, key string) error {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil
+	}
+	err := DecodeNullableValue(target, value)
+	if err != nil {
+		return fmt.Errorf("%s: %s", key, err)
+	}
+	return nil
+}
+
+// DecodeValue tries to convert and set an unknown value into the target, the value must not be null
 // fallback to mapstructure decoder
 func DecodeValue(target any, value any, decodeHooks ...mapstructure.DecodeHookFunc) error {
-	if IsNil(target) {
-		return errors.New("the decoded target must be not null")
+	if IsNil(value) {
+		return errors.New("the value must not be null")
 	}
+	return decodeValue(target, value, decodeHooks...)
+}
+
+// DecodeNullableValue tries to convert and set an unknown value into the target,
+// fallback to mapstructure decoder
+func DecodeNullableValue(target any, value any, decodeHooks ...mapstructure.DecodeHookFunc) error {
 	if IsNil(value) {
 		return nil
+	}
+	return decodeValue(target, value, decodeHooks...)
+}
+
+func decodeValue(target any, value any, decodeHooks ...mapstructure.DecodeHookFunc) error {
+	if IsNil(target) {
+		return errors.New("the decoded target must be not null")
 	}
 
 	if decoder, ok := target.(ValueDecoder); ok {
@@ -70,9 +96,9 @@ func DecodeValue(target any, value any, decodeHooks ...mapstructure.DecodeHookFu
 	}
 }
 
-// DecodeIntPtr tries to convert an unknown value to an integer pointer
-func DecodeIntPtr[T int | int8 | int16 | int32 | int64](value any) (*T, error) {
-	return decodeIntPtr(value, func(v reflect.Value) (*T, error) {
+// DecodeNullableInt tries to convert an unknown value to a nullable integer
+func DecodeNullableInt[T int | int8 | int16 | int32 | int64](value any) (*T, error) {
+	return decodeNullableInt(value, func(v reflect.Value) (*T, error) {
 		rawResult, err := strconv.ParseInt(fmt.Sprint(v.Interface()), 10, 64)
 		if err != nil {
 			return nil, err
@@ -82,9 +108,9 @@ func DecodeIntPtr[T int | int8 | int16 | int32 | int64](value any) (*T, error) {
 	})
 }
 
-// DecodeInt tries to convert an unknown value to an integer value
+// DecodeInt tries to convert an unknown value to a not-null integer value
 func DecodeInt[T int | int8 | int16 | int32 | int64](value any) (T, error) {
-	result, err := DecodeIntPtr[T](value)
+	result, err := DecodeNullableInt[T](value)
 	if err != nil {
 		return T(0), err
 	}
@@ -94,9 +120,9 @@ func DecodeInt[T int | int8 | int16 | int32 | int64](value any) (T, error) {
 	return *result, nil
 }
 
-// DecodeUintPtr tries to convert an unknown value to an unsigned integer pointer
-func DecodeUintPtr[T uint | uint8 | uint16 | uint32 | uint64](value any) (*T, error) {
-	return decodeIntPtr(value, func(v reflect.Value) (*T, error) {
+// DecodeNullableUint tries to convert an unknown value to a nullable unsigned integer pointer
+func DecodeNullableUint[T uint | uint8 | uint16 | uint32 | uint64](value any) (*T, error) {
+	return decodeNullableInt(value, func(v reflect.Value) (*T, error) {
 		rawResult, err := strconv.ParseUint(fmt.Sprint(v.Interface()), 10, 64)
 		if err != nil {
 			return nil, err
@@ -108,7 +134,7 @@ func DecodeUintPtr[T uint | uint8 | uint16 | uint32 | uint64](value any) (*T, er
 
 // DecodeUint tries to convert an unknown value to an unsigned integer value
 func DecodeUint[T uint | uint8 | uint16 | uint32 | uint64](value any) (T, error) {
-	result, err := DecodeUintPtr[T](value)
+	result, err := DecodeNullableUint[T](value)
 	if err != nil {
 		return T(0), err
 	}
@@ -118,7 +144,7 @@ func DecodeUint[T uint | uint8 | uint16 | uint32 | uint64](value any) (T, error)
 	return *result, nil
 }
 
-func decodeIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](value any, convertFn convertFunc[T]) (*T, error) {
+func decodeNullableInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](value any, convertFn convertFunc[T]) (*T, error) {
 	if IsNil(value) {
 		return nil, nil
 	}
@@ -200,8 +226,8 @@ func decodeIntPtr[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 |
 	return &result, nil
 }
 
-// DecodeStringPtr tries to convert an unknown value to a string pointer
-func DecodeStringPtr(value any) (*string, error) {
+// DecodeNullableString tries to convert an unknown value to a string pointer
+func DecodeNullableString(value any) (*string, error) {
 	if IsNil(value) {
 		return nil, nil
 	}
@@ -220,7 +246,7 @@ func DecodeStringPtr(value any) (*string, error) {
 
 // DecodeString tries to convert an unknown value to a string value
 func DecodeString(value any) (string, error) {
-	result, err := DecodeStringPtr(value)
+	result, err := DecodeNullableString(value)
 	if err != nil {
 		return "", err
 	}
@@ -230,8 +256,8 @@ func DecodeString(value any) (string, error) {
 	return *result, nil
 }
 
-// DecodeFloatPtr tries to convert an unknown value to a float pointer
-func DecodeFloatPtr[T float32 | float64](value any) (*T, error) {
+// DecodeNullableFloat tries to convert an unknown value to a float pointer
+func DecodeNullableFloat[T float32 | float64](value any) (*T, error) {
 	if IsNil(value) {
 		return nil, nil
 	}
@@ -317,7 +343,7 @@ func DecodeFloatPtr[T float32 | float64](value any) (*T, error) {
 
 // DecodeFloat tries to convert an unknown value to a float value
 func DecodeFloat[T float32 | float64](value any) (T, error) {
-	result, err := DecodeFloatPtr[T](value)
+	result, err := DecodeNullableFloat[T](value)
 	if err != nil {
 		return T(0), err
 	}
@@ -327,8 +353,8 @@ func DecodeFloat[T float32 | float64](value any) (T, error) {
 	return *result, nil
 }
 
-// DecodeBooleanPtr tries to convert an unknown value to a bool pointer
-func DecodeBooleanPtr(value any) (*bool, error) {
+// DecodeNullableBoolean tries to convert an unknown value to a bool pointer
+func DecodeNullableBoolean(value any) (*bool, error) {
 	if IsNil(value) {
 		return nil, nil
 	}
@@ -348,7 +374,7 @@ func DecodeBooleanPtr(value any) (*bool, error) {
 
 // DecodeBoolean tries to convert an unknown value to a bool value
 func DecodeBoolean(value any) (bool, error) {
-	result, err := DecodeBooleanPtr(value)
+	result, err := DecodeNullableBoolean(value)
 	if err != nil {
 		return false, err
 	}
@@ -358,8 +384,8 @@ func DecodeBoolean(value any) (bool, error) {
 	return *result, nil
 }
 
-// DecodeDateTimePtr tries to convert an unknown value to a time.Time pointer
-func DecodeDateTimePtr(value any) (*time.Time, error) {
+// DecodeNullableDateTime tries to convert an unknown value to a time.Time pointer
+func DecodeNullableDateTime(value any) (*time.Time, error) {
 	var result time.Time
 	switch v := value.(type) {
 	case time.Time:
@@ -374,7 +400,7 @@ func DecodeDateTimePtr(value any) (*time.Time, error) {
 		}
 		return parseDateTime(*v)
 	default:
-		i64, err := DecodeIntPtr[int64](v)
+		i64, err := DecodeNullableInt[int64](v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert DateTime, got: %v", value)
 		}
@@ -389,7 +415,7 @@ func DecodeDateTimePtr(value any) (*time.Time, error) {
 
 // DecodeDateTime tries to convert an unknown value to a time.Time value
 func DecodeDateTime(value any) (time.Time, error) {
-	result, err := DecodeDateTimePtr(value)
+	result, err := DecodeNullableDateTime(value)
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -412,8 +438,8 @@ func parseDateTime(value string) (*time.Time, error) {
 	return nil, fmt.Errorf("failed to parse time from string: %s", value)
 }
 
-// DecodeDurationPtr tries to convert an unknown value to a duration pointer
-func DecodeDurationPtr(value any) (*time.Duration, error) {
+// DecodeNullableDuration tries to convert an unknown value to a duration pointer
+func DecodeNullableDuration(value any) (*time.Duration, error) {
 	var result time.Duration
 	switch v := value.(type) {
 	case time.Duration:
@@ -436,7 +462,7 @@ func DecodeDurationPtr(value any) (*time.Duration, error) {
 		}
 		result = dur
 	default:
-		i64, err := DecodeIntPtr[int64](v)
+		i64, err := DecodeNullableInt[int64](v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert Duration, got: %v", value)
 		}
@@ -451,7 +477,7 @@ func DecodeDurationPtr(value any) (*time.Duration, error) {
 
 // DecodeDuration tries to convert an unknown value to a duration value
 func DecodeDuration(value any) (time.Duration, error) {
-	result, err := DecodeDurationPtr(value)
+	result, err := DecodeNullableDuration(value)
 	if err != nil {
 		return time.Duration(0), err
 	}
@@ -470,13 +496,13 @@ func GetAny(object map[string]any, key string) (any, bool) {
 	return value, ok
 }
 
-// GetIntPtr get an integer pointer from object by key
-func GetIntPtr[T int | int8 | int16 | int32 | int64](object map[string]any, key string) (*T, error) {
+// GetNullableInt get an integer pointer from object by key
+func GetNullableInt[T int | int8 | int16 | int32 | int64](object map[string]any, key string) (*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := DecodeIntPtr[T](value)
+	result, err := DecodeNullableInt[T](value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -496,13 +522,13 @@ func GetInt[T int | int8 | int16 | int32 | int64](object map[string]any, key str
 	return result, nil
 }
 
-// GetUintPtr get an unsigned integer pointer from object by key
-func GetUintPtr[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (*T, error) {
+// GetNullableUint get an unsigned integer pointer from object by key
+func GetNullableUint[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := DecodeUintPtr[T](value)
+	result, err := DecodeNullableUint[T](value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -522,13 +548,13 @@ func GetUint[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, k
 	return result, nil
 }
 
-// GetFloatPtr get a float pointer from object by key
-func GetFloatPtr[T float32 | float64](object map[string]any, key string) (*T, error) {
+// GetNullableFloat get a float pointer from object by key
+func GetNullableFloat[T float32 | float64](object map[string]any, key string) (*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := DecodeFloatPtr[T](value)
+	result, err := DecodeNullableFloat[T](value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -548,13 +574,13 @@ func GetFloat[T float32 | float64](object map[string]any, key string) (T, error)
 	return result, nil
 }
 
-// GetStringPtr get a string pointer from object by key
-func GetStringPtr(object map[string]any, key string) (*string, error) {
+// GetNullableString get a string pointer from object by key
+func GetNullableString(object map[string]any, key string) (*string, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := DecodeStringPtr(value)
+	result, err := DecodeNullableString(value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -574,13 +600,13 @@ func GetString(object map[string]any, key string) (string, error) {
 	return result, nil
 }
 
-// GetBoolPtr get a bool pointer from object by key
-func GetBoolPtr(object map[string]any, key string) (*bool, error) {
+// GetNullableBool get a bool pointer from object by key
+func GetNullableBool(object map[string]any, key string) (*bool, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := DecodeBooleanPtr(value)
+	result, err := DecodeNullableBoolean(value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -600,13 +626,13 @@ func GetBool(object map[string]any, key string) (bool, error) {
 	return result, nil
 }
 
-// GetDateTimePtr get a time.Time pointer from object by key
-func GetDateTimePtr(object map[string]any, key string) (*time.Time, error) {
+// GetNullableDateTime get a time.Time pointer from object by key
+func GetNullableDateTime(object map[string]any, key string) (*time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := DecodeDateTimePtr(value)
+	result, err := DecodeNullableDateTime(value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
@@ -626,13 +652,13 @@ func GetDateTime(object map[string]any, key string) (time.Time, error) {
 	return result, nil
 }
 
-// GetDurationPtr get a time.Duration pointer from object by key
-func GetDurationPtr(object map[string]any, key string) (*time.Duration, error) {
+// GetNullableDuration get a time.Duration pointer from object by key
+func GetNullableDuration(object map[string]any, key string) (*time.Duration, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := DecodeDurationPtr(value)
+	result, err := DecodeNullableDuration(value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}

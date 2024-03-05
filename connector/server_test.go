@@ -12,6 +12,7 @@ import (
 
 	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/utils"
 	"github.com/rs/zerolog"
 )
 
@@ -57,18 +58,18 @@ var mockSchema = schema.SchemaResponse{
 	},
 	ObjectTypes: schema.SchemaResponseObjectTypes{
 		"article": schema.ObjectType{
-			Description: schema.ToPtr("An article"),
+			Description: utils.ToPtr("An article"),
 			Fields: schema.ObjectTypeFields{
 				"id": schema.ObjectField{
-					Description: schema.ToPtr("The article's primary key"),
+					Description: utils.ToPtr("The article's primary key"),
 					Type:        schema.NewNamedType("Int").Encode(),
 				},
 				"title": schema.ObjectField{
-					Description: schema.ToPtr("The article's title"),
+					Description: utils.ToPtr("The article's title"),
 					Type:        schema.NewNamedType("String").Encode(),
 				},
 				"author_id": schema.ObjectField{
-					Description: schema.ToPtr("The article's author ID"),
+					Description: utils.ToPtr("The article's author ID"),
 					Type:        schema.NewNamedType("Int").Encode(),
 				},
 			},
@@ -77,7 +78,7 @@ var mockSchema = schema.SchemaResponse{
 	Collections: []schema.CollectionInfo{
 		{
 			Name:        "articles",
-			Description: schema.ToPtr("A collection of articles"),
+			Description: utils.ToPtr("A collection of articles"),
 			ForeignKeys: schema.CollectionInfoForeignKeys{},
 			Arguments:   schema.CollectionInfoArguments{},
 			UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
@@ -90,7 +91,7 @@ var mockSchema = schema.SchemaResponse{
 	Functions: []schema.FunctionInfo{
 		{
 			Name:        "latest_article_id",
-			Description: schema.ToPtr("Get the ID of the most recent article"),
+			Description: utils.ToPtr("Get the ID of the most recent article"),
 			ResultType:  schema.NewNullableNamedType("Int").Encode(),
 			Arguments:   schema.FunctionInfoArguments{},
 		},
@@ -98,10 +99,10 @@ var mockSchema = schema.SchemaResponse{
 	Procedures: []schema.ProcedureInfo{
 		{
 			Name:        "upsert_article",
-			Description: schema.ToPtr("Insert or update an article"),
+			Description: utils.ToPtr("Insert or update an article"),
 			Arguments: schema.ProcedureInfoArguments{
 				"article": schema.ArgumentInfo{
-					Description: schema.ToPtr("The article to insert or update"),
+					Description: utils.ToPtr("The article to insert or update"),
 					Type:        schema.NewNamedType("article").Encode(),
 				},
 			},

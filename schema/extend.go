@@ -909,7 +909,7 @@ func (j *MutationOperation) UnmarshalJSON(b []byte) error {
 		value.Arguments = rawArguments
 
 		rawFields, ok := raw["fields"]
-		if ok && rawFields != nil {
+		if ok && !isNullJSON(rawFields) {
 			var fields NestedField
 			if err = json.Unmarshal(rawFields, &fields); err != nil {
 				return fmt.Errorf("field fields in MutationOperation: %s", err)
