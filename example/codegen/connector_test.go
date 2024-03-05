@@ -131,79 +131,87 @@ func TestQueryGetTypes(t *testing.T) {
 						},
 						"StringPtr": {
 								"type": "literal",
-								"value": "hello"
+								"value": "world"
 						},
 						"IntPtr": {
 								"type": "literal",
-								"value": 1
+								"value": 11
 						},
 						"Int8Ptr": {
 								"type": "literal",
-								"value": 2
+								"value": 12
 						},
 						"Int16Ptr": {
 								"type": "literal",
-								"value": 3
+								"value": 13
 						},
 						"Int32Ptr": {
 							"type": "literal",
-							"value": 4
+							"value": 14
 						},
 						"Int64Ptr": {
 							"type": "literal",
-							"value": 5
+							"value": 15
 						},
 						"UintPtr": {
 							"type": "literal",
-							"value": 6
+							"value": 16
 						},
 						"Uint8Ptr": {
 							"type": "literal",
-							"value": 7
+							"value": 17
 						},
 						"Uint16Ptr": {
 							"type": "literal",
-							"value": 8
+							"value": 18
 						},
 						"Uint32Ptr": {
 							"type": "literal",
-							"value": 9
+							"value": 19
 						},
 						"Uint64Ptr": {
 							"type": "literal",
-							"value": 10
+							"value": 20
 						},
 						"Float32Ptr": {
 							"type": "literal",
-							"value": 1.1
+							"value": 3.3
 						},
 						"Float64Ptr": {
 							"type": "literal",
-							"value": 2.2
+							"value": 4.4
 						},
 						"TimePtr": {
 							"type": "literal",
-							"value": "2024-03-05T07:00:56Z"
+							"value": "2024-03-05T07:00:00Z"
 						},
 						"DurationPtr": {
 							"type": "literal",
-							"value": "10s"
+							"value": "1m"
 						},
 						"CustomScalarPtr": {
 							"type": "literal",
-							"value": "a comment"
+							"value": "a comment pointer"
 						},
 						"Object": {
 							"type": "literal",
-							"value": {}
+							"value": {
+								"id": "b085b0b9-007c-440e-9661-0d8f2de98a5c",
+								"created_at": "2024-03-05T06:00:00Z"
+							}
 						},
 						"ObjectPtr": {
 							"type": "literal",
-							"value": null
+							"value": {
+								"Long": 1,
+								"Lat": 2
+							}
 						},
 						"ArrayObject": {
 							"type": "literal",
-							"value": []
+							"value": [{
+								"content": "a content"
+							}]
 						},
 						"ArrayObjectPtr": {
 							"type": "literal",
@@ -219,11 +227,19 @@ func TestQueryGetTypes(t *testing.T) {
 						},
 						"NamedObjectPtr": {
 							"type": "literal",
-							"value": null
+							"value": {
+								"id":        "2",
+								"duration":  11,
+								"created_at": "2024-03-05T04:00:00Z"
+							}
 						},
 						"NamedArray": {
 							"type": "literal",
-							"value": []
+							"value": [{
+								"id":        "3",
+								"duration":  12,
+								"created_at": "2024-03-05T03:00:00Z"
+							}]
 						}
 				},
 				"query": {
@@ -420,11 +436,12 @@ func TestQueryGetTypes(t *testing.T) {
 				Uint64:          10,
 				Float32:         1.1,
 				Float64:         2.2,
-				Time:            time.Date(2023, 3, 5, 7, 0, 56, 0, time.UTC),
+				Time:            time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC),
 				Duration:        10 * time.Second,
 				CustomScalar:    commentText,
 				UUIDPtr:         utils.ToPtr(uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5b")),
 				BoolPtr:         utils.ToPtr(true),
+				StringPtr:       utils.ToPtr("world"),
 				IntPtr:          utils.ToPtr(11),
 				Int8Ptr:         utils.ToPtr(int8(12)),
 				Int16Ptr:        utils.ToPtr(int16(13)),
@@ -437,7 +454,7 @@ func TestQueryGetTypes(t *testing.T) {
 				Uint64Ptr:       utils.ToPtr(uint64(20)),
 				Float32Ptr:      utils.ToPtr(float32(3.3)),
 				Float64Ptr:      utils.ToPtr(float64(4.4)),
-				TimePtr:         utils.ToPtr(time.Date(2023, 3, 5, 7, 0, 0, 0, time.UTC)),
+				TimePtr:         utils.ToPtr(time.Date(2024, 3, 5, 7, 0, 0, 0, time.UTC)),
 				DurationPtr:     utils.ToPtr(time.Minute),
 				CustomScalarPtr: &commentTextPtr,
 				Object: struct {
@@ -445,7 +462,7 @@ func TestQueryGetTypes(t *testing.T) {
 					CreatedAt time.Time `json:"created_at"`
 				}{
 					ID:        uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5c"),
-					CreatedAt: time.Date(2023, 3, 5, 6, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2024, 3, 5, 6, 0, 0, 0, time.UTC),
 				},
 				ObjectPtr: &struct {
 					Long int
@@ -455,14 +472,14 @@ func TestQueryGetTypes(t *testing.T) {
 					Lat:  2,
 				},
 				ArrayObject: []struct {
-					Content string "json:\"content\""
+					Content string `json:"content"`
 				}{
 					{
 						Content: "a content",
 					},
 				},
 				ArrayObjectPtr: &[]struct {
-					Content string "json:\"content\""
+					Content string `json:"content"`
 				}{
 					{
 						Content: "a content pointer",
@@ -470,19 +487,19 @@ func TestQueryGetTypes(t *testing.T) {
 				},
 				NamedObject: functions.Author{
 					ID:        "1",
-					Duration:  10 * time.Minute,
-					CreatedAt: time.Date(2023, 3, 5, 5, 0, 0, 0, time.UTC),
+					Duration:  10,
+					CreatedAt: time.Date(2024, 3, 5, 5, 0, 0, 0, time.UTC),
 				},
 				NamedObjectPtr: &functions.Author{
 					ID:        "2",
-					Duration:  11 * time.Minute,
-					CreatedAt: time.Date(2023, 3, 5, 4, 0, 0, 0, time.UTC),
+					Duration:  11,
+					CreatedAt: time.Date(2024, 3, 5, 4, 0, 0, 0, time.UTC),
 				},
 				NamedArray: []functions.Author{
 					{
 						ID:        "3",
-						Duration:  12 * time.Minute,
-						CreatedAt: time.Date(2023, 3, 5, 3, 0, 0, 0, time.UTC),
+						Duration:  12,
+						CreatedAt: time.Date(2024, 3, 5, 3, 0, 0, 0, time.UTC),
 					},
 				},
 			},

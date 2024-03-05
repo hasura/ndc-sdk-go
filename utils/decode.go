@@ -513,7 +513,7 @@ func GetNullableInt[T int | int8 | int16 | int32 | int64](object map[string]any,
 func GetInt[T int | int8 | int16 | int32 | int64](object map[string]any, key string) (T, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
-		return 0, fmt.Errorf("field `%s` does not exist", key)
+		return 0, fmt.Errorf("field `%s` is required", key)
 	}
 	result, err := DecodeInt[T](value)
 	if err != nil {
@@ -539,7 +539,7 @@ func GetNullableUint[T uint | uint8 | uint16 | uint32 | uint64](object map[strin
 func GetUint[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (T, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
-		return 0, fmt.Errorf("field `%s` does not exist", key)
+		return 0, fmt.Errorf("field `%s` is required", key)
 	}
 	result, err := DecodeUint[T](value)
 	if err != nil {
@@ -565,7 +565,7 @@ func GetNullableFloat[T float32 | float64](object map[string]any, key string) (*
 func GetFloat[T float32 | float64](object map[string]any, key string) (T, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
-		return 0, fmt.Errorf("field `%s` does not exist", key)
+		return 0, fmt.Errorf("field `%s` is required", key)
 	}
 	result, err := DecodeFloat[T](value)
 	if err != nil {
@@ -591,7 +591,7 @@ func GetNullableString(object map[string]any, key string) (*string, error) {
 func GetString(object map[string]any, key string) (string, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
-		return "", fmt.Errorf("field `%s` does not exist", key)
+		return "", fmt.Errorf("field `%s` is required", key)
 	}
 	result, err := DecodeString(value)
 	if err != nil {
@@ -617,7 +617,7 @@ func GetNullableBool(object map[string]any, key string) (*bool, error) {
 func GetBool(object map[string]any, key string) (bool, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
-		return false, fmt.Errorf("field `%s` does not exist", key)
+		return false, fmt.Errorf("field `%s` is required", key)
 	}
 	result, err := DecodeBoolean(value)
 	if err != nil {
@@ -643,7 +643,7 @@ func GetNullableDateTime(object map[string]any, key string) (*time.Time, error) 
 func GetDateTime(object map[string]any, key string) (time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
-		return time.Time{}, fmt.Errorf("field `%s` does not exist", key)
+		return time.Time{}, fmt.Errorf("field `%s` is required", key)
 	}
 	result, err := DecodeDateTime(value)
 	if err != nil {
@@ -669,7 +669,7 @@ func GetNullableDuration(object map[string]any, key string) (*time.Duration, err
 func GetDuration(object map[string]any, key string) (time.Duration, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
-		return 0, fmt.Errorf("field `%s` does not exist", key)
+		return 0, fmt.Errorf("field `%s` is required", key)
 	}
 	result, err := DecodeDuration(value)
 	if err != nil {

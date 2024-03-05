@@ -157,6 +157,17 @@ the schema will be:
 }
 ```
 
+#### Arguments
+
+Arguments must be defined as struct types. The generator automatically infers argument types in functions to generate schemas and Encoder and Decoder methods. Value fields are treated as required and pointer fields are optional.
+
+```go
+type HelloArguments struct {
+	Greeting string `json:"greeting"` // value argument will be required
+	Count    *int   `json:"count"`    // pointer arguments are optional
+}
+```
+
 #### Scalar Types
 
 **Supported types**
@@ -168,7 +179,7 @@ The basic scalar types supported are:
 - `float32`, `float64` (NDC scalar type: `Float`)
 - `bool` (NDC scalar type: `Boolean`)
 - `time.Time` (NDC scalar type: `DateTime`, represented as an [ISO formatted](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString) string in JSON)
-- `time.Duration` (NDC scalar type: `Duration`, represented as a duration string in JSON)
+- `time.Duration` (NDC scalar type: `Duration`, represented as a int64 nanosecond duration in JSON)
 - `github.com/google/uuid.UUID` (NDC scalar type: `UUID`, represented as an UUID string in JSON)
 
 Alias scalar types will be inferred to the origin type in schema.
@@ -182,7 +193,7 @@ If you want to define a custom scalar type, the type name must have a `Scalar` p
 
 ```go
 type ScalarFoo struct {
-  Bar string
+  bar string
 }
 // output: Foo
 // auto generated
@@ -204,12 +215,23 @@ type Foo struct {}
 
 > The generator detects comments by the nearby position. It isn't perfectly accurate in some use cases. Prefix name in function is highly recommended.
 
-For custom scalar, you must implement a method to decode `any` value so its data can be set when resolving request query arguments. `UnmarshalJSON` is used when encoding results.
+For custom scalar, you must implement a method to decode `any` value so its data can be set when resolving request query arguments. `UnmarshalJSON` is also used when encoding results.
 
 ```go
 func (c *ScalarFoo) FromValue(value any) (err error) {
 	c.Bar, err = utils.DecodeString(value)
 	return
+}
+
+func (c *ScalarFoo) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	c.bar = s
+
+	return nil
 }
 ```
 
