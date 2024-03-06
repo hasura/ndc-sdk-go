@@ -4,5 +4,4 @@ go 1.21
 
 require (
 	github.com/hasura/ndc-sdk-go v0.1.0
-	github.com/rs/zerolog v1.32.0
 )

@@ -2,10 +2,9 @@ package connector
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/hasura/ndc-sdk-go/schema"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 // Connector abstracts an interface with required methods for the [NDC Specification].
@@ -79,7 +78,7 @@ type Connector[Configuration any, State any] interface {
 
 // the common serve options for the server
 type serveOptions struct {
-	logger          zerolog.Logger
+	logger          *slog.Logger
 	metricsPrefix   string
 	version         string
 	serviceName     string
@@ -89,7 +88,7 @@ type serveOptions struct {
 
 func defaultServeOptions() *serveOptions {
 	return &serveOptions{
-		logger:          log.Level(zerolog.GlobalLevel()),
+		logger:          slog.Default(),
 		serviceName:     "hasura-ndc-go",
 		version:         "0.1.0",
 		withoutConfig:   false,
@@ -101,7 +100,7 @@ func defaultServeOptions() *serveOptions {
 type ServeOption func(*serveOptions)
 
 // WithLogger sets a custom logger option
-func WithLogger(logger zerolog.Logger) ServeOption {
+func WithLogger(logger *slog.Logger) ServeOption {
 	return func(so *serveOptions) {
 		so.logger = logger
 	}

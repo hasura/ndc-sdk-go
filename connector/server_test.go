@@ -13,7 +13,6 @@ import (
 	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
-	"github.com/rs/zerolog"
 )
 
 type mockConfiguration struct {
@@ -218,7 +217,7 @@ func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int,
 func TestNewServer(t *testing.T) {
 
 	t.Run("start server", func(t *testing.T) {
-		s, err := NewServer[mockConfiguration, mockState](&mockConnector{}, &ServerOptions{}, WithLogger(zerolog.Nop()))
+		s, err := NewServer[mockConfiguration, mockState](&mockConnector{}, &ServerOptions{})
 		if err != nil {
 			t.Errorf("NewServerWithoutConfig: expected no error, got %s", err)
 			t.FailNow()
@@ -239,7 +238,7 @@ func TestServerAuth(t *testing.T) {
 		Configuration:      "{}",
 		InlineConfig:       true,
 		ServiceTokenSecret: "random-secret",
-	}, WithLogger(zerolog.Nop()))
+	})
 
 	if err != nil {
 		t.Errorf("NewServerAuth: expected no error, got %s", err)
@@ -285,7 +284,7 @@ func TestServerConnector(t *testing.T) {
 	server, err := NewServer[mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
 		Configuration: "{}",
 		InlineConfig:  true,
-	}, WithLogger(zerolog.Nop()))
+	})
 
 	if err != nil {
 		t.Errorf("NewServer: expected no error, got %s", err)

@@ -5,14 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"runtime/debug"
 	"time"
 
 	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type serverContextKey string
@@ -43,11 +42,11 @@ func (cw *customResponseWriter) Write(body []byte) (int, error) {
 // implements a simple router to reuse for both configuration and connector servers
 type router struct {
 	routes          map[string]map[string]http.HandlerFunc
-	logger          zerolog.Logger
+	logger          *slog.Logger
 	recoveryEnabled bool
 }
 
-func newRouter(logger zerolog.Logger, enableRecovery bool) *router {
+func newRouter(logger *slog.Logger, enableRecovery bool) *router {
 	return &router{
 		routes:          make(map[string]map[string]http.HandlerFunc),
 		logger:          logger,
@@ -68,7 +67,7 @@ func (rt *router) Build() *http.ServeMux {
 	handleFunc := func(handlers map[string]http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			startTime := time.Now()
-			isDebug := rt.logger.GetLevel() <= zerolog.DebugLevel
+			isDebug := rt.logger.Enabled(context.Background(), slog.LevelDebug)
 			requestID := getRequestID(r)
 			requestLogData := map[string]any{
 				"url":            r.URL.String(),
@@ -84,13 +83,14 @@ func (rt *router) Build() *http.ServeMux {
 			if rt.recoveryEnabled {
 				defer func() {
 					if err := recover(); err != nil {
-						rt.logger.Error().
-							Str("request_id", requestID).
-							Dur("latency", time.Since(startTime)).
-							Interface("request", requestLogData).
-							Interface("error", err).
-							Str("stacktrace", string(debug.Stack())).
-							Msg("internal server error")
+						rt.logger.Error(
+							"internal server error",
+							slog.String("request_id", requestID),
+							slog.Duration("latency", time.Since(startTime)),
+							slog.Any("request", requestLogData),
+							slog.Any("error", err),
+							slog.String("stacktrace", string(debug.Stack())),
+						)
 
 						writeJson(w, rt.logger, http.StatusInternalServerError, schema.ErrorResponse{
 							Message: "internal server error",
@@ -105,14 +105,15 @@ func (rt *router) Build() *http.ServeMux {
 			h, ok := handlers[r.Method]
 			if !ok {
 				http.NotFound(w, r)
-				rt.logger.Error().
-					Str("request_id", requestID).
-					Dur("latency", time.Since(startTime)).
-					Interface("request", requestLogData).
-					Interface("response", map[string]any{
+				rt.logger.Error(
+					"handler not found",
+					slog.String("request_id", requestID),
+					slog.Duration("latency", time.Since(startTime)),
+					slog.Any("request", requestLogData),
+					slog.Any("response", map[string]any{
 						"status": 404,
-					}).
-					Msg("")
+					}),
+				)
 				return
 			}
 
@@ -124,20 +125,21 @@ func (rt *router) Build() *http.ServeMux {
 					}
 					writeJson(w, rt.logger, http.StatusBadRequest, err)
 
-					rt.logger.Error().
-						Str("request_id", requestID).
-						Dur("latency", time.Since(startTime)).
-						Interface("request", requestLogData).
-						Interface("response", map[string]any{
-							"status": 404,
+					rt.logger.Error(
+						"invalid content type",
+						slog.String("request_id", requestID),
+						slog.Duration("latency", time.Since(startTime)),
+						slog.Any("request", requestLogData),
+						slog.Any("response", map[string]any{
+							"status": 400,
 							"body":   err,
-						}).
-						Msg("")
+						}),
+					)
 					return
 				}
 			}
 
-			logger := rt.logger.With().Str("request_id", requestID).Logger()
+			logger := rt.logger.With(slog.String("request_id", requestID))
 			req := r.WithContext(context.WithValue(r.Context(), logContextKey, logger))
 			writer := &customResponseWriter{ResponseWriter: w}
 			h(writer, req)
@@ -153,15 +155,19 @@ func (rt *router) Build() *http.ServeMux {
 			}
 
 			if writer.statusCode >= 400 {
-				logger.Error().
-					Dur("latency", time.Since(startTime)).
-					Interface("request", requestLogData).
-					Interface("response", responseLogData).Msg("")
+				logger.Error(
+					http.StatusText(writer.statusCode),
+					slog.Duration("latency", time.Since(startTime)),
+					slog.Any("request", requestLogData),
+					slog.Any("response", responseLogData),
+				)
 			} else {
-				logger.Info().
-					Dur("latency", time.Since(startTime)).
-					Interface("request", requestLogData).
-					Interface("response", responseLogData).Msg("")
+				logger.Info(
+					"success",
+					slog.Duration("latency", time.Since(startTime)),
+					slog.Any("request", requestLogData),
+					slog.Any("response", responseLogData),
+				)
 			}
 		}
 	}
@@ -183,7 +189,7 @@ func getRequestID(r *http.Request) string {
 }
 
 // writeJson writes response data with json encode
-func writeJson(w http.ResponseWriter, logger zerolog.Logger, statusCode int, body any) {
+func writeJson(w http.ResponseWriter, logger *slog.Logger, statusCode int, body any) {
 	if body == nil {
 		w.WriteHeader(statusCode)
 		return
@@ -194,29 +200,29 @@ func writeJson(w http.ResponseWriter, logger zerolog.Logger, statusCode int, bod
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		if _, err := w.Write([]byte(fmt.Sprintf(`{"message": "%s"}`, http.StatusText(http.StatusInternalServerError)))); err != nil {
-			logger.Error().Err(err).Msg("failed to write response")
+			logger.Error("failed to write response", slog.Any("error", err))
 		}
 		return
 	}
 	w.WriteHeader(statusCode)
 	if _, err := w.Write(jsonBytes); err != nil {
-		logger.Error().Err(err).Msg("failed to write response")
+		logger.Error("failed to write response", slog.Any("error", err))
 	}
 }
 
 // GetLogger gets the logger instance from context
-func GetLogger(ctx context.Context) zerolog.Logger {
+func GetLogger(ctx context.Context) *slog.Logger {
 	value := ctx.Value(logContextKey)
 	if value != nil {
-		if logger, ok := value.(zerolog.Logger); ok {
+		if logger, ok := value.(*slog.Logger); ok {
 			return logger
 		}
 	}
 
-	return log.Level(zerolog.GlobalLevel())
+	return slog.Default()
 }
 
-func writeError(w http.ResponseWriter, logger zerolog.Logger, err error) int {
+func writeError(w http.ResponseWriter, logger *slog.Logger, err error) int {
 	w.Header().Add("Content-Type", "application/json")
 
 	var connectorErrorPtr *schema.ConnectorError
