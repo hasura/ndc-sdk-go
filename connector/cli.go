@@ -31,7 +31,7 @@ func Start[Configuration any, State any](connector Connector[Configuration, Stat
 	cmd := kong.Parse(&cli)
 	switch cmd.Command() {
 	case "serve":
-		logger, err := initLogger(cli.Serve.LogLevel)
+		logger, logLevel, err := initLogger(cli.Serve.LogLevel)
 		if err != nil {
 			return err
 		}
@@ -44,7 +44,7 @@ func Start[Configuration any, State any](connector Connector[Configuration, Stat
 			OTLPTracesEndpoint:  cli.Serve.OtlpTracesEndpoint,
 			OTLPMetricsEndpoint: cli.Serve.OtlpMetricsEndpoint,
 			ServiceName:         cli.Serve.ServiceName,
-		}, append([]ServeOption{WithLogger(logger)}, options...)...)
+		}, append([]ServeOption{WithLogger(logger), withLogLevel(logLevel)}, options...)...)
 		if err != nil {
 			return err
 		}
@@ -54,11 +54,11 @@ func Start[Configuration any, State any](connector Connector[Configuration, Stat
 	}
 }
 
-func initLogger(logLevel string) (*slog.Logger, error) {
+func initLogger(logLevel string) (*slog.Logger, slog.Level, error) {
 	var level slog.Level
 	err := level.UnmarshalText([]byte(strings.ToUpper(logLevel)))
 	if err != nil {
-		return nil, err
+		return nil, level, err
 	}
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
@@ -66,5 +66,5 @@ func initLogger(logLevel string) (*slog.Logger, error) {
 	}))
 	slog.SetDefault(logger)
 
-	return logger, nil
+	return logger, level, nil
 }

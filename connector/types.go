@@ -79,6 +79,7 @@ type Connector[Configuration any, State any] interface {
 // the common serve options for the server
 type serveOptions struct {
 	logger          *slog.Logger
+	logLevel        slog.Level
 	metricsPrefix   string
 	version         string
 	serviceName     string
@@ -103,6 +104,13 @@ type ServeOption func(*serveOptions)
 func WithLogger(logger *slog.Logger) ServeOption {
 	return func(so *serveOptions) {
 		so.logger = logger
+	}
+}
+
+// WithLoggerFunc sets a custom logger option with a constructor function
+func WithLoggerFunc(fn func(level slog.Level) *slog.Logger) ServeOption {
+	return func(so *serveOptions) {
+		so.logger = fn(so.logLevel)
 	}
 }
 
@@ -131,5 +139,11 @@ func WithDefaultServiceName(name string) ServeOption {
 func WithoutRecovery() ServeOption {
 	return func(so *serveOptions) {
 		so.withoutRecovery = true
+	}
+}
+
+func withLogLevel(level slog.Level) ServeOption {
+	return func(so *serveOptions) {
+		so.logLevel = level
 	}
 }
