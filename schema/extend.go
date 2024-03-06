@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 )
 
 var (
@@ -32,7 +33,7 @@ var enumValues_Type = []TypeEnum{
 
 // ParseTypeEnum parses a type enum from string
 func ParseTypeEnum(input string) (*TypeEnum, error) {
-	if !Contains(enumValues_Type, TypeEnum(input)) {
+	if !slices.Contains(enumValues_Type, TypeEnum(input)) {
 		return nil, fmt.Errorf("failed to parse TypeEnum, expect one of %v", enumValues_Type)
 	}
 	result := TypeEnum(input)
@@ -42,7 +43,7 @@ func ParseTypeEnum(input string) (*TypeEnum, error) {
 
 // IsValid checks if the value is invalid
 func (j TypeEnum) IsValid() bool {
-	return Contains(enumValues_Type, j)
+	return slices.Contains(enumValues_Type, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -986,7 +987,7 @@ var enumValues_ExpressionType = []ExpressionType{
 
 // ParseExpressionType parses a comparison target type argument type from string
 func ParseExpressionType(input string) (*ExpressionType, error) {
-	if !Contains(enumValues_ExpressionType, ExpressionType(input)) {
+	if !slices.Contains(enumValues_ExpressionType, ExpressionType(input)) {
 		return nil, fmt.Errorf("failed to parse ExpressionType, expect one of %v", enumValues_ExpressionType)
 	}
 	result := ExpressionType(input)
@@ -1027,7 +1028,7 @@ var enumValues_ComparisonValueType = []ComparisonValueType{
 
 // ParseComparisonValueType parses a comparison value type from string
 func ParseComparisonValueType(input string) (*ComparisonValueType, error) {
-	if !Contains(enumValues_ComparisonValueType, ComparisonValueType(input)) {
+	if !slices.Contains(enumValues_ComparisonValueType, ComparisonValueType(input)) {
 		return nil, fmt.Errorf("failed to parse ComparisonValueType, expect one of %v", enumValues_ComparisonValueType)
 	}
 	result := ComparisonValueType(input)
@@ -1283,7 +1284,7 @@ var enumValues_ExistsInCollectionType = []ExistsInCollectionType{
 
 // ParseExistsInCollectionType parses a comparison value type from string
 func ParseExistsInCollectionType(input string) (*ExistsInCollectionType, error) {
-	if !Contains(enumValues_ExistsInCollectionType, ExistsInCollectionType(input)) {
+	if !slices.Contains(enumValues_ExistsInCollectionType, ExistsInCollectionType(input)) {
 		return nil, fmt.Errorf("failed to parse ExistsInCollectionType, expect one of %v", enumValues_ExistsInCollectionType)
 	}
 	result := ExistsInCollectionType(input)
@@ -2011,7 +2012,7 @@ var enumValues_AggregateType = []AggregateType{
 
 // ParseAggregateType parses an aggregate type argument type from string
 func ParseAggregateType(input string) (*AggregateType, error) {
-	if !Contains(enumValues_AggregateType, AggregateType(input)) {
+	if !slices.Contains(enumValues_AggregateType, AggregateType(input)) {
 		return nil, fmt.Errorf("failed to parse AggregateType, expect one of %v", enumValues_AggregateType)
 	}
 	result := AggregateType(input)
@@ -2320,7 +2321,7 @@ var enumValues_OrderByTargetType = []OrderByTargetType{
 
 // ParseOrderByTargetType parses a ordering target type argument type from string
 func ParseOrderByTargetType(input string) (*OrderByTargetType, error) {
-	if !Contains(enumValues_OrderByTargetType, OrderByTargetType(input)) {
+	if !slices.Contains(enumValues_OrderByTargetType, OrderByTargetType(input)) {
 		return nil, fmt.Errorf("failed to parse OrderByTargetType, expect one of %v", enumValues_OrderByTargetType)
 	}
 	result := OrderByTargetType(input)
@@ -2650,7 +2651,7 @@ var enumValues_ComparisonOperatorDefinitionType = []ComparisonOperatorDefinition
 
 // ParseComparisonOperatorDefinitionType parses a type of a comparison operator definition
 func ParseComparisonOperatorDefinitionType(input string) (*ComparisonOperatorDefinitionType, error) {
-	if !Contains(enumValues_ComparisonOperatorDefinitionType, ComparisonOperatorDefinitionType(input)) {
+	if !slices.Contains(enumValues_ComparisonOperatorDefinitionType, ComparisonOperatorDefinitionType(input)) {
 		return nil, fmt.Errorf("failed to parse ComparisonOperatorDefinitionType, expect one of %v", enumValues_ComparisonOperatorDefinitionType)
 	}
 	result := ComparisonOperatorDefinitionType(input)
@@ -2897,7 +2898,7 @@ var enumValues_NestedFieldType = []NestedFieldType{
 
 // ParseNestedFieldType parses the type of nested field
 func ParseNestedFieldType(input string) (*NestedFieldType, error) {
-	if !Contains(enumValues_NestedFieldType, NestedFieldType(input)) {
+	if !slices.Contains(enumValues_NestedFieldType, NestedFieldType(input)) {
 		return nil, fmt.Errorf("failed to parse NestedFieldType, expect one of %v", enumValues_NestedFieldType)
 	}
 	result := NestedFieldType(input)

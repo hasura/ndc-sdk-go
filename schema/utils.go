@@ -6,22 +6,6 @@ import (
 	"reflect"
 )
 
-// Index returns the index of the first occurrence of item in slice,
-// or -1 if not present.
-func Index[E comparable](s []E, v E) int {
-	for i := range s {
-		if v == s[i] {
-			return i
-		}
-	}
-	return -1
-}
-
-// Contains checks whether the value is present in slice.
-func Contains[E comparable](s []E, v E) bool {
-	return Index(s, v) >= 0
-}
-
 // isNil a safe function to check null value
 func isNil(value any) bool {
 	if value == nil {

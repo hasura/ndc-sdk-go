@@ -12,9 +12,15 @@ The SDK fully supports [NDC Specification v0.1.0](https://github.com/hasura/ndc-
 - Authentication
 - Observability with OpenTelemetry and Prometheus
 
+## Prerequisites
+
+- Go 1.21+
+
+> Downgrade to SDK v0.x If you are using Go v1.19+
+
 ## Quick start
 
-Checkout the [generation tool](cmd/ndc-go-sdk) to quickly setup and develop data connectors.
+Check out the [generation tool](cmd/ndc-go-sdk) to quickly setup and develop data connectors.
 
 ## Using this SDK
 
