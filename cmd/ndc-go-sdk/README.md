@@ -30,10 +30,10 @@ Flags:
   -h, --help    Show context-sensitive help.
 
 Commands:
-  init --name=STRING --module=STRING
+  new --name=STRING --module=STRING
     Initialize an NDC connector boilerplate. For example:
 
-        ndc-go-sdk init -n example -m github.com/foo/example
+        ndc-go-sdk new -n example -m github.com/foo/example
 
   generate
     Generate schema and implementation for the connector from functions.
@@ -41,7 +41,7 @@ Commands:
 
 ### Initialize connector project
 
-The `init` command generates a boilerplate project for connector development from [template](templates/new) with the following folder structure:
+The `new` command generates a boilerplate project for connector development from [template](templates/new) with the following folder structure:
 
 - `functions`: the folder contains query and mutation functions. The `generate` command will parse `.go` files in this folder.
 - `types`: the folder contains reusable types such as `RawConfiguration`, `Configuration` and `State`.
@@ -54,7 +54,7 @@ The `init` command generates a boilerplate project for connector development fro
 The command requires names of the connector and module. By default, the tool creates a new folder with the connector name. If you want to customize the path or generate files in the current folder. use `--output` (`-o`) argument.
 
 ```bash
-ndc-go-sdk init -n example -m github.com/foo/example -o .
+ndc-go-sdk new -n example -m github.com/foo/example -o .
 ```
 
 ### Generate queries and mutations

@@ -11,12 +11,12 @@ import (
 )
 
 var cli struct {
-	Init struct {
+	New struct {
 		Name     string `help:"Name of the connector." short:"n" required:""`
 		Module   string `help:"Module name of the connector" short:"m" required:""`
 		Output   string `help:"The location where source codes will be generated" short:"o" default:""`
 		LogLevel string `help:"Log level." enum:"trace,debug,info,warn,error" default:"info"`
-	} `cmd:"" help:"Initialize an NDC connector boilerplate. For example:\n ndc-go-sdk init -n example -m github.com/foo/example"`
+	} `cmd:"" help:"Initialize an NDC connector boilerplate. For example:\n ndc-go-sdk new -n example -m github.com/foo/example"`
 
 	Generate struct {
 		Path        string   `help:"The base path of the connector's source code" short:"p" default:"."`
@@ -30,14 +30,14 @@ var cli struct {
 func main() {
 	cmd := kong.Parse(&cli)
 	switch cmd.Command() {
-	case "init":
-		setupGlobalLogger(cli.Init.LogLevel)
+	case "new":
+		setupGlobalLogger(cli.New.LogLevel)
 		log.Info().
-			Str("name", cli.Init.Name).
-			Str("module", cli.Init.Module).
-			Str("output", cli.Init.Output).
+			Str("name", cli.New.Name).
+			Str("module", cli.New.Module).
+			Str("output", cli.New.Output).
 			Msg("generating the NDC boilerplate...")
-		if err := generateNewProject(cli.Init.Name, cli.Init.Module, cli.Init.Output, false); err != nil {
+		if err := generateNewProject(cli.New.Name, cli.New.Module, cli.New.Output, false); err != nil {
 			log.Fatal().Err(err).Msg("failed to generate new project")
 		}
 		log.Info().Msg("generated successfully")
