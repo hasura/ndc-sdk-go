@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -66,14 +67,15 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 	// Handle SIGINT (CTRL+C) gracefully.
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 
-	defaultOptions.logger.Debug().
-		Str("endpoint", options.OTLPEndpoint).
-		Str("traces_endpoint", options.OTLPTracesEndpoint).
-		Str("metrics_endpoint", options.OTLPMetricsEndpoint).
-		Str("service_name", options.ServiceName).
-		Str("version", defaultOptions.version).
-		Str("metrics_prefix", defaultOptions.metricsPrefix).
-		Msg("initialize OpenTelemetry")
+	defaultOptions.logger.Debug(
+		"initialize OpenTelemetry",
+		slog.String("endpoint", options.OTLPEndpoint),
+		slog.String("traces_endpoint", options.OTLPTracesEndpoint),
+		slog.String("metrics_endpoint", options.OTLPMetricsEndpoint),
+		slog.String("service_name", options.ServiceName),
+		slog.String("version", defaultOptions.version),
+		slog.String("metrics_prefix", defaultOptions.metricsPrefix),
+	)
 
 	if options.ServiceName == "" {
 		options.ServiceName = defaultOptions.serviceName
@@ -375,7 +377,10 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 	defer s.stop()
 	defer func() {
 		if err := s.telemetry.Shutdown(context.Background()); err != nil {
-			s.logger.Error().Err(err).Msg("failed to shutdown OpenTelemetry")
+			s.logger.Error(
+				"failed to shutdown OpenTelemetry",
+				slog.Any("error", err),
+			)
 		}
 	}()
 
@@ -389,7 +394,7 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 
 	serverErr := make(chan error, 1)
 	go func() {
-		s.logger.Info().Msgf("Listening server on %s", server.Addr)
+		s.logger.Info(fmt.Sprintf("Listening server on %s", server.Addr))
 		if err := server.ListenAndServe(); err != http.ErrServerClosed {
 			serverErr <- err
 		}
@@ -402,7 +407,7 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 		return err
 	case <-s.context.Done():
 		// Wait for first CTRL+C.
-		s.logger.Info().Msg("received the quit signal, exiting...")
+		s.logger.Info("received the quit signal, exiting...")
 		// Stop receiving signal notifications as soon as possible.
 		s.stop()
 		// When Shutdown is called, ListenAndServe immediately returns ErrServerClosed.

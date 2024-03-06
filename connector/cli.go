@@ -2,10 +2,11 @@ package connector
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
+	"strings"
 
 	"github.com/alecthomas/kong"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 var cli struct {
@@ -30,7 +31,7 @@ func Start[Configuration any, State any](connector Connector[Configuration, Stat
 	cmd := kong.Parse(&cli)
 	switch cmd.Command() {
 	case "serve":
-		logger, err := initLogger(cli.Serve.LogLevel)
+		logger, logLevel, err := initLogger(cli.Serve.LogLevel)
 		if err != nil {
 			return err
 		}
@@ -43,7 +44,7 @@ func Start[Configuration any, State any](connector Connector[Configuration, Stat
 			OTLPTracesEndpoint:  cli.Serve.OtlpTracesEndpoint,
 			OTLPMetricsEndpoint: cli.Serve.OtlpMetricsEndpoint,
 			ServiceName:         cli.Serve.ServiceName,
-		}, append(options, WithLogger(*logger))...)
+		}, append([]ServeOption{WithLogger(logger), withLogLevel(logLevel)}, options...)...)
 		if err != nil {
 			return err
 		}
@@ -53,13 +54,17 @@ func Start[Configuration any, State any](connector Connector[Configuration, Stat
 	}
 }
 
-func initLogger(logLevel string) (*zerolog.Logger, error) {
-	level, err := zerolog.ParseLevel(logLevel)
+func initLogger(logLevel string) (*slog.Logger, slog.Level, error) {
+	var level slog.Level
+	err := level.UnmarshalText([]byte(strings.ToUpper(logLevel)))
 	if err != nil {
-		return nil, err
+		return nil, level, err
 	}
-	zerolog.SetGlobalLevel(level)
-	logger := log.Level(level)
 
-	return &logger, nil
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: level,
+	}))
+	slog.SetDefault(logger)
+
+	return logger, level, nil
 }

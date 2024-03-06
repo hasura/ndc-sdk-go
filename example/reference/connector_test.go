@@ -10,14 +10,13 @@ import (
 	"github.com/hasura/ndc-sdk-go/connector"
 	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
-	"github.com/rs/zerolog"
 )
 
 func createTestServer(t *testing.T) *connector.Server[Configuration, State] {
 	server, err := connector.NewServer[Configuration, State](&Connector{}, &connector.ServerOptions{
 		Configuration: "{}",
 		InlineConfig:  true,
-	}, connector.WithLogger(zerolog.Nop()), connector.WithoutRecovery())
+	}, connector.WithoutRecovery())
 
 	if err != nil {
 		t.Errorf("NewServer: expected no error, got %s", err)

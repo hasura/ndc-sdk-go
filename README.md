@@ -12,9 +12,15 @@ The SDK fully supports [NDC Specification v0.1.0](https://github.com/hasura/ndc-
 - Authentication
 - Observability with OpenTelemetry and Prometheus
 
+## Prerequisites
+
+- Go 1.21+
+
+> Downgrade to SDK v0.x If you are using Go v1.19+
+
 ## Quick start
 
-Checkout the [generation tool](cmd/ndc-go-sdk) to quickly setup and develop data connectors.
+Check out the [generation tool](cmd/ndc-go-sdk) to quickly setup and develop data connectors.
 
 ## Using this SDK
 
@@ -73,11 +79,15 @@ OpenTelemetry exporter is disabled by default unless one of `--otlp-endpoint`, `
 
 The SDK can also detect TLS connections via http(s). However, if you want to disable TLS for gRPC, you must add `--otlp-insecure` the flag.
 
-Other configurations are inherited from the [OpenTelemetry Go SDK](https://github.com/open-telemetry/opentelemetry-go). See [Environment Variable Specification](https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/) and [OTLP Exporter Configuration](https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/).
+Other configurations are inherited from the [OpenTelemetry Go SDK](https://github.com/open-telemetry/opentelemetry-go). Currently the SDK supports `traces` and `metrics`. See [Environment Variable Specification](https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/) and [OTLP Exporter Configuration](https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/).
 
 ### Prometheus
 
 Prometheus metrics are exported via the `/metrics` endpoint.
+
+### Logging
+
+NDC Go SDK uses the standard [log/slog](https://pkg.go.dev/log/slog) that provides highly customizable and structured logging. By default, the logger is printed in JSON format and configurable level with `--log-level` (HASURA_LOG_LEVEL) flag. You also can replace it with different logging libraries that can wrap the `slog.Handler` interface, and set the logger with the `WithLogger` or `WithLoggerFunc` option.
 
 ## Regenerating Schema Types
 
