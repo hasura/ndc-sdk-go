@@ -218,7 +218,6 @@ func GetLogger(ctx context.Context) *slog.Logger {
 			return logger
 		}
 	}
-
 	return slog.Default()
 }
 

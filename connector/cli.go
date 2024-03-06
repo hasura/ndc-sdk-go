@@ -44,7 +44,7 @@ func Start[Configuration any, State any](connector Connector[Configuration, Stat
 			OTLPTracesEndpoint:  cli.Serve.OtlpTracesEndpoint,
 			OTLPMetricsEndpoint: cli.Serve.OtlpMetricsEndpoint,
 			ServiceName:         cli.Serve.ServiceName,
-		}, append(options, WithLogger(logger))...)
+		}, append([]ServeOption{WithLogger(logger)}, options...)...)
 		if err != nil {
 			return err
 		}
@@ -60,8 +60,11 @@ func initLogger(logLevel string) (*slog.Logger, error) {
 	if err != nil {
 		return nil, err
 	}
-	slog.SetLogLoggerLevel(level)
-	return slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: level,
-	})), nil
+	}))
+	slog.SetDefault(logger)
+
+	return logger, nil
 }
