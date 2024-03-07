@@ -96,7 +96,9 @@ func (rt *router) Build() *http.ServeMux {
 								"cause": err,
 							},
 						})
+						return
 					}
+
 					requestLogData["body"] = string(bodyBytes)
 					r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 				}
