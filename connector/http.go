@@ -1,10 +1,12 @@
 package connector
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"runtime/debug"
 	"time"
@@ -78,6 +80,26 @@ func (rt *router) Build() *http.ServeMux {
 
 			if isDebug {
 				requestLogData["headers"] = r.Header
+				if r.Body != nil {
+					bodyBytes, err := io.ReadAll(r.Body)
+					if err != nil {
+						rt.logger.Error().
+							Str("request_id", requestID).
+							Dur("latency", time.Since(startTime)).
+							Interface("request", requestLogData).
+							Interface("error", err).
+							Msg("failed to read request")
+
+						writeJson(w, rt.logger, http.StatusBadRequest, schema.ErrorResponse{
+							Message: "failed to read request",
+							Details: map[string]any{
+								"cause": err,
+							},
+						})
+					}
+					requestLogData["body"] = string(bodyBytes)
+					r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+				}
 			}
 
 			// recover from panic

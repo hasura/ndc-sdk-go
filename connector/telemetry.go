@@ -316,7 +316,3 @@ func (t *Tracer) StartInternal(ctx context.Context, spanName string, opts ...tra
 func httpStatusAttribute(code int) attribute.KeyValue {
 	return attribute.Int("http_status", code)
 }
-
-func isDebug() bool {
-	return zerolog.GlobalLevel() <= zerolog.DebugLevel
-}
