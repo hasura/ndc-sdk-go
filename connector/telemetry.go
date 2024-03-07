@@ -184,10 +184,17 @@ func setupOTelSDK(ctx context.Context, serverOptions *ServerOptions, serviceVers
 	shutdownFunc := func(ctx context.Context) error {
 		tErr := traceProvider.Shutdown(ctx)
 		mErr := meterProvider.Shutdown(ctx)
-		if tErr != nil || mErr != nil {
-			return errors.New(strings.Join([]string{tErr.Error(), mErr.Error()}, ","))
+		if tErr == nil && mErr == nil {
+			return nil
 		}
-		return nil
+		var errorMsgs []string
+		if tErr != nil {
+			errorMsgs = append(errorMsgs, tErr.Error())
+		}
+		if mErr != nil {
+			errorMsgs = append(errorMsgs, mErr.Error())
+		}
+		return errors.New(strings.Join(errorMsgs, ", "))
 	}
 
 	state := &TelemetryState{
