@@ -10,10 +10,6 @@ The generator is inspired by [ndc-typescript-deno](https://github.com/hasura/ndc
 
 Get a release [here](https://github.com/hasura/ndc-sdk-go/releases).
 
-```sh
-
-```
-
 ### Build from source
 
 To install with Go 1.19+:
@@ -23,8 +19,8 @@ git clone github.com/hasura/ndc-sdk-go
 cd ndc-sdk-go
 make build-codegen
 
-# (optional) move the binary to the /bin
-# sudo mv _output/hasura-ndc-go /bin/hasura-ndc-go
+# (optional) move the binary to /usr/bin
+# sudo mv _output/hasura-ndc-go /usr/bin/hasura-ndc-go
 ```
 
 ## How to Use
