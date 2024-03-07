@@ -2,21 +2,110 @@
 package functions
 
 import (
+	"errors"
+	"fmt"
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-sdk-go/utils"
+	"reflect"
 )
+
+func decodeUUIDHookFunc() mapstructure.DecodeHookFunc {
+	return func(from reflect.Type, to reflect.Type, data any) (any, error) {
+		if to.PkgPath() != "github.com/google/uuid" || to.Name() != "UUID" {
+			return data, nil
+		}
+		result, err := _parseNullableUUID(data)
+		if err != nil || result == nil {
+			return uuid.UUID{}, err
+		}
+
+		return *result, nil
+	}
+}
+
+func _parseUUID(value any) (uuid.UUID, error) {
+	result, err := _parseNullableUUID(value)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	if result == nil {
+		return uuid.UUID{}, errors.New("the uuid value must not be null")
+	}
+	return *result, nil
+}
+
+func _parseNullableUUID(value any) (*uuid.UUID, error) {
+	if utils.IsNil(value) {
+		return nil, nil
+	}
+	switch v := value.(type) {
+	case string:
+		result, err := uuid.Parse(v)
+		if err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case *string:
+		if v == nil {
+			return nil, nil
+		}
+		result, err := uuid.Parse(*v)
+		if err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case [16]byte:
+		result := uuid.UUID(v)
+		return &result, nil
+	case *[16]byte:
+		if v == nil {
+			return nil, nil
+		}
+		result := uuid.UUID(*v)
+		return &result, nil
+	default:
+		return nil, fmt.Errorf("failed to parse uuid, got: %+v", value)
+	}
+}
+
+func _getObjectUUID(object map[string]any, key string) (uuid.UUID, error) {
+	value, ok := utils.GetAny(object, key)
+	if !ok {
+		return uuid.UUID{}, fmt.Errorf("field %s is required", key)
+	}
+	result, err := _parseUUID(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+func _getNullableObjectUUID(object map[string]any, key string) (*uuid.UUID, error) {
+	value, ok := utils.GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := _parseNullableUUID(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+var functions_Decoder = utils.NewDecoder(decodeUUIDHookFunc())
 
 // FromValue decodes values from map
 func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	var err error
-	err = utils.DecodeObjectValue(&j.ArrayObject, input, "ArrayObject")
+	err = functions_Decoder.DecodeObjectValue(&j.ArrayObject, input, "ArrayObject")
 	if err != nil {
 		return err
 	}
 	j.ArrayObjectPtr = new([]struct {
 		Content string "json:\"content\""
 	})
-	err = utils.DecodeNullableObjectValue(j.ArrayObjectPtr, input, "ArrayObjectPtr")
+	err = functions_Decoder.DecodeNullableObjectValue(j.ArrayObjectPtr, input, "ArrayObjectPtr")
 	if err != nil {
 		return err
 	}
@@ -28,20 +117,12 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = utils.DecodeObjectValue(&j.CustomScalar, input, "CustomScalar")
+	err = functions_Decoder.DecodeObjectValue(&j.CustomScalar, input, "CustomScalar")
 	if err != nil {
 		return err
 	}
 	j.CustomScalarPtr = new(CommentText)
-	err = utils.DecodeNullableObjectValue(j.CustomScalarPtr, input, "CustomScalarPtr")
-	if err != nil {
-		return err
-	}
-	j.Duration, err = utils.GetDuration(input, "Duration")
-	if err != nil {
-		return err
-	}
-	j.DurationPtr, err = utils.GetNullableDuration(input, "DurationPtr")
+	err = functions_Decoder.DecodeNullableObjectValue(j.CustomScalarPtr, input, "CustomScalarPtr")
 	if err != nil {
 		return err
 	}
@@ -101,25 +182,25 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = utils.DecodeObjectValue(&j.NamedArray, input, "NamedArray")
+	err = functions_Decoder.DecodeObjectValue(&j.NamedArray, input, "NamedArray")
 	if err != nil {
 		return err
 	}
 	j.NamedArrayPtr = new([]Author)
-	err = utils.DecodeNullableObjectValue(j.NamedArrayPtr, input, "NamedArrayPtr")
+	err = functions_Decoder.DecodeNullableObjectValue(j.NamedArrayPtr, input, "NamedArrayPtr")
 	if err != nil {
 		return err
 	}
-	err = utils.DecodeObjectValue(&j.NamedObject, input, "NamedObject")
+	err = functions_Decoder.DecodeObjectValue(&j.NamedObject, input, "NamedObject")
 	if err != nil {
 		return err
 	}
 	j.NamedObjectPtr = new(Author)
-	err = utils.DecodeNullableObjectValue(j.NamedObjectPtr, input, "NamedObjectPtr")
+	err = functions_Decoder.DecodeNullableObjectValue(j.NamedObjectPtr, input, "NamedObjectPtr")
 	if err != nil {
 		return err
 	}
-	err = utils.DecodeObjectValue(&j.Object, input, "Object")
+	err = functions_Decoder.DecodeObjectValue(&j.Object, input, "Object")
 	if err != nil {
 		return err
 	}
@@ -127,7 +208,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 		Long int
 		Lat  int
 	})
-	err = utils.DecodeNullableObjectValue(j.ObjectPtr, input, "ObjectPtr")
+	err = functions_Decoder.DecodeNullableObjectValue(j.ObjectPtr, input, "ObjectPtr")
 	if err != nil {
 		return err
 	}
@@ -139,6 +220,15 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	err = functions_Decoder.DecodeObjectValue(&j.Text, input, "Text")
+	if err != nil {
+		return err
+	}
+	j.TextPtr = new(Text)
+	err = functions_Decoder.DecodeNullableObjectValue(j.TextPtr, input, "TextPtr")
+	if err != nil {
+		return err
+	}
 	j.Time, err = utils.GetDateTime(input, "Time")
 	if err != nil {
 		return err
@@ -147,12 +237,15 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = utils.DecodeObjectValue(&j.UUID, input, "UUID")
+	j.UUID, err = _getObjectUUID(input, "UUID")
 	if err != nil {
 		return err
 	}
-	j.UUIDPtr = new(uuid.UUID)
-	err = utils.DecodeNullableObjectValue(j.UUIDPtr, input, "UUIDPtr")
+	err = functions_Decoder.DecodeObjectValue(&j.UUIDArray, input, "UUIDArray")
+	if err != nil {
+		return err
+	}
+	j.UUIDPtr, err = _getNullableObjectUUID(input, "UUIDPtr")
 	if err != nil {
 		return err
 	}
@@ -213,7 +306,6 @@ func (j *GetArticlesArguments) FromValue(input map[string]any) error {
 func (j Author) ToMap() map[string]any {
 	result := map[string]any{
 		"created_at": j.CreatedAt,
-		"duration":   j.Duration,
 		"id":         j.ID,
 	}
 	return result
@@ -264,20 +356,20 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	var result_ArrayObjectPtr []map[string]any
 	if j.ArrayObjectPtr != nil {
 		result_ArrayObjectPtr = make([]map[string]any, len(*j.ArrayObjectPtr))
-		for i, _item := range *j.ArrayObjectPtr {
-			item := map[string]any{
-				"content": _item.Content,
+		for i, result_ArrayObjectPtr_value := range *j.ArrayObjectPtr {
+			result_ArrayObjectPtr_item := map[string]any{
+				"content": result_ArrayObjectPtr_value.Content,
 			}
-			result_ArrayObjectPtr[i] = item
+			result_ArrayObjectPtr[i] = result_ArrayObjectPtr_item
 		}
 	}
 	var result_ArrayObject []map[string]any
 	result_ArrayObject = make([]map[string]any, len(j.ArrayObject))
-	for i, _item := range j.ArrayObject {
-		item := map[string]any{
-			"content": _item.Content,
+	for i, result_ArrayObject_value := range j.ArrayObject {
+		result_ArrayObject_item := map[string]any{
+			"content": result_ArrayObject_value.Content,
 		}
-		result_ArrayObject[i] = item
+		result_ArrayObject[i] = result_ArrayObject_item
 	}
 	result := map[string]any{
 		"ArrayObject":     result_ArrayObject,
@@ -286,8 +378,6 @@ func (j GetTypesArguments) ToMap() map[string]any {
 		"BoolPtr":         j.BoolPtr,
 		"CustomScalar":    j.CustomScalar,
 		"CustomScalarPtr": j.CustomScalarPtr,
-		"Duration":        j.Duration,
-		"DurationPtr":     j.DurationPtr,
 		"Float32":         j.Float32,
 		"Float32Ptr":      j.Float32Ptr,
 		"Float64":         j.Float64,
@@ -310,9 +400,12 @@ func (j GetTypesArguments) ToMap() map[string]any {
 		"ObjectPtr":       result_ObjectPtr,
 		"String":          j.String,
 		"StringPtr":       j.StringPtr,
+		"Text":            j.Text,
+		"TextPtr":         j.TextPtr,
 		"Time":            j.Time,
 		"TimePtr":         j.TimePtr,
 		"UUID":            j.UUID,
+		"UUIDArray":       j.UUIDArray,
 		"UUIDPtr":         j.UUIDPtr,
 		"Uint":            j.Uint,
 		"Uint16":          j.Uint16,

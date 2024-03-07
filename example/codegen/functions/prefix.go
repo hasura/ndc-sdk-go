@@ -97,7 +97,7 @@ type GetTypesArguments struct {
 	Float32      float32
 	Float64      float64
 	Time         time.Time
-	Duration     time.Duration
+	Text         Text
 	CustomScalar CommentText
 
 	UUIDPtr         *uuid.UUID
@@ -116,7 +116,7 @@ type GetTypesArguments struct {
 	Float32Ptr      *float32
 	Float64Ptr      *float64
 	TimePtr         *time.Time
-	DurationPtr     *time.Duration
+	TextPtr         *Text
 	CustomScalarPtr *CommentText
 
 	Object struct {
@@ -137,6 +137,7 @@ type GetTypesArguments struct {
 	NamedObjectPtr *Author
 	NamedArray     []Author
 	NamedArrayPtr  *[]Author
+	UUIDArray      []uuid.UUID
 }
 
 func FunctionGetTypes(ctx context.Context, state *types.State, arguments *GetTypesArguments) (*GetTypesArguments, error) {

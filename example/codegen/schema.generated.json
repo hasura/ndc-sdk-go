@@ -63,21 +63,6 @@
             }
           }
         },
-        "Duration": {
-          "type": {
-            "name": "Duration",
-            "type": "named"
-          }
-        },
-        "DurationPtr": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": {
-              "name": "Duration",
-              "type": "named"
-            }
-          }
-        },
         "Float32": {
           "type": {
             "name": "Float",
@@ -249,6 +234,21 @@
             }
           }
         },
+        "Text": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "TextPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
         "Time": {
           "type": {
             "name": "DateTime",
@@ -268,6 +268,15 @@
           "type": {
             "name": "UUID",
             "type": "named"
+          }
+        },
+        "UUIDArray": {
+          "type": {
+            "element_type": {
+              "name": "UUID",
+              "type": "named"
+            },
+            "type": "array"
           }
         },
         "UUIDPtr": {
@@ -401,12 +410,6 @@
         "created_at": {
           "type": {
             "name": "DateTime",
-            "type": "named"
-          }
-        },
-        "duration": {
-          "type": {
-            "name": "Duration",
             "type": "named"
           }
         },
@@ -545,21 +548,6 @@
             }
           }
         },
-        "Duration": {
-          "type": {
-            "name": "Duration",
-            "type": "named"
-          }
-        },
-        "DurationPtr": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": {
-              "name": "Duration",
-              "type": "named"
-            }
-          }
-        },
         "Float32": {
           "type": {
             "name": "Float",
@@ -731,6 +719,21 @@
             }
           }
         },
+        "Text": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "TextPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
         "Time": {
           "type": {
             "name": "DateTime",
@@ -750,6 +753,15 @@
           "type": {
             "name": "UUID",
             "type": "named"
+          }
+        },
+        "UUIDArray": {
+          "type": {
+            "element_type": {
+              "name": "UUID",
+              "type": "named"
+            },
+            "type": "array"
           }
         },
         "UUIDPtr": {
@@ -999,10 +1011,6 @@
       "comparison_operators": {}
     },
     "DateTime": {
-      "aggregate_functions": {},
-      "comparison_operators": {}
-    },
-    "Duration": {
       "aggregate_functions": {},
       "comparison_operators": {}
     },

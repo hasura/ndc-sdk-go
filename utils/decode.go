@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -32,13 +31,25 @@ func IsNil(value any) bool {
 	return v.Kind() == reflect.Ptr && v.IsNil()
 }
 
+// Decoder is a wrapper of mapstructure decoder
+type Decoder struct {
+	decodeHook mapstructure.DecodeHookFunc
+}
+
+// NewDecoder creates a Decoder instance
+func NewDecoder(decodeHooks ...mapstructure.DecodeHookFunc) *Decoder {
+	return &Decoder{
+		decodeHook: mapstructure.ComposeDecodeHookFunc(append(defaultDecodeFuncs, decodeHooks...)...),
+	}
+}
+
 // DecodeObjectValue get and decode a value from object by key
-func DecodeObjectValue(target any, object map[string]any, key string) error {
+func (d Decoder) DecodeObjectValue(target any, object map[string]any, key string) error {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return fmt.Errorf("%s: field is required", key)
 	}
-	err := DecodeValue(target, value)
+	err := d.DecodeValue(target, value)
 	if err != nil {
 		return fmt.Errorf("%s: %s", key, err)
 	}
@@ -46,12 +57,12 @@ func DecodeObjectValue(target any, object map[string]any, key string) error {
 }
 
 // DecodeNullableObjectValue get and decode a nullable value from object by key
-func DecodeNullableObjectValue(target any, object map[string]any, key string) error {
+func (d Decoder) DecodeNullableObjectValue(target any, object map[string]any, key string) error {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return nil
 	}
-	err := DecodeNullableValue(target, value)
+	err := d.DecodeNullableValue(target, value)
 	if err != nil {
 		return fmt.Errorf("%s: %s", key, err)
 	}
@@ -60,40 +71,148 @@ func DecodeNullableObjectValue(target any, object map[string]any, key string) er
 
 // DecodeValue tries to convert and set an unknown value into the target, the value must not be null
 // fallback to mapstructure decoder
-func DecodeValue(target any, value any, decodeHooks ...mapstructure.DecodeHookFunc) error {
+func (d Decoder) DecodeValue(target any, value any) error {
 	if IsNil(value) {
 		return errors.New("the value must not be null")
 	}
-	return decodeValue(target, value, decodeHooks...)
+	return d.decodeValue(target, value)
 }
 
 // DecodeNullableValue tries to convert and set an unknown value into the target,
 // fallback to mapstructure decoder
-func DecodeNullableValue(target any, value any, decodeHooks ...mapstructure.DecodeHookFunc) error {
+func (d Decoder) DecodeNullableValue(target any, value any) error {
 	if IsNil(value) {
 		return nil
 	}
-	return decodeValue(target, value, decodeHooks...)
+	return d.decodeValue(target, value)
 }
 
-func decodeValue(target any, value any, decodeHooks ...mapstructure.DecodeHookFunc) error {
+func (d Decoder) decodeValue(target any, value any) error {
 	if IsNil(target) {
 		return errors.New("the decoded target must be not null")
 	}
-
-	if decoder, ok := target.(ValueDecoder); ok {
-		return decoder.FromValue(value)
+	if IsNil(value) {
+		return nil
 	}
 
-	switch v := value.(type) {
-	case map[string]any:
-		if decoder, ok := target.(ObjectDecoder); ok {
-			return decoder.FromValue(v)
+	switch t := target.(type) {
+	case ObjectDecoder:
+		switch v := value.(type) {
+		case map[string]any:
+			return t.FromValue(v)
+		case MapEncoder:
+			object := v.ToMap()
+			return t.FromValue(object)
+		default:
+			return errors.New("the value must be an object-liked")
 		}
-		return decodeAnyValue(target, value, decodeHooks...)
+	case ValueDecoder:
+		return t.FromValue(value)
+	case bool, string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128, time.Time, time.Duration, time.Ticker:
+		return errors.New("the decoded target must be a pointer")
+	case *complex64, *complex128:
+		return errors.New("unsupported complex types")
+	case *bool:
+		v, err := DecodeNullableBoolean(value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = *v
+	case *string:
+		v, err := DecodeNullableString(value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = *v
+	case *int:
+		v, err := DecodeNullableInt[int](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = *v
+	case *int8:
+		v, err := DecodeNullableInt[int8](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = *v
+	case *int16:
+		v, err := DecodeNullableInt[int16](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = *v
+	case *int32:
+		v, err := DecodeNullableInt[int32](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = *v
+	case *int64:
+		v, err := DecodeNullableInt[int64](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = *v
+	case *uint:
+		v, err := DecodeNullableUint[uint](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = *v
+	case *uint8:
+		v, err := DecodeNullableUint[uint8](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = *v
+	case *uint16:
+		v, err := DecodeNullableUint[uint16](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = *v
+	case *uint32:
+		v, err := DecodeNullableUint[uint32](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = *v
+	case *uint64:
+		v, err := DecodeNullableUint[uint64](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = *v
+	case *float32:
+		v, err := DecodeNullableFloat[float32](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = *v
+	case *float64:
+		v, err := DecodeNullableFloat[float64](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = *v
+	case *time.Time:
+		v, err := DecodeNullableDateTime(value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = *v
+	case *time.Duration:
+		v, err := DecodeNullableDuration(value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = *v
 	default:
-		return decodeAnyValue(target, value, decodeHooks...)
+		return decodeAnyValue(target, value, d.decodeHook)
 	}
+
+	return nil
 }
 
 // DecodeNullableInt tries to convert an unknown value to a nullable integer
@@ -678,31 +797,56 @@ func GetDuration(object map[string]any, key string) (time.Duration, error) {
 	return result, nil
 }
 
-func decodeAnyValue(target any, value any, decodeHooks ...mapstructure.DecodeHookFunc) error {
+func decodeAnyValue(target any, value any, decodeHook mapstructure.DecodeHookFunc) error {
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		Result:     target,
 		TagName:    "json",
-		DecodeHook: mapstructure.ComposeDecodeHookFunc(append(decodeHooks, decodeTimeHookFunc())...),
+		DecodeHook: decodeHook,
 	})
 	if err != nil {
 		return err
 	}
-	err = decoder.Decode(value)
-	if err == nil {
-		return nil
-	}
+	return decoder.Decode(value)
+}
 
-	// fallback to json encoding
-	rawBytes, marshalErr := json.Marshal(value)
-	if marshalErr != nil {
-		return err
+var defaultDecodeFuncs = []mapstructure.DecodeHookFunc{
+	decodeValueHookFunc(),
+	decodeTimeHookFunc(),
+}
+
+func decodeValueHookFunc() mapstructure.DecodeHookFunc {
+	return func(from reflect.Value, to reflect.Value) (any, error) {
+		toValue := to.Interface()
+		fromValue := from.Interface()
+		if IsNil(fromValue) {
+			return fromValue, nil
+		}
+		decoder, ok := toValue.(ValueDecoder)
+		if ok {
+			err := decoder.FromValue(fromValue)
+			return decoder, err
+		}
+
+		if objDecoder, ok := toValue.(ObjectDecoder); ok {
+			switch v := fromValue.(type) {
+			case map[string]any:
+				err := objDecoder.FromValue(v)
+				return objDecoder, err
+			case MapEncoder:
+				mapValue := v.ToMap()
+				err := objDecoder.FromValue(mapValue)
+				return objDecoder, err
+			}
+		}
+
+		return fromValue, nil
 	}
-	return json.Unmarshal(rawBytes, target)
 }
 
 func decodeTimeHookFunc() mapstructure.DecodeHookFunc {
 	return func(from reflect.Value, to reflect.Value) (any, error) {
-		if to.Type().Name() != "time.Time" {
+		toType := to.Type()
+		if toType.PkgPath() != "time" || toType.Name() != "Time" {
 			return from.Interface(), nil
 		}
 
