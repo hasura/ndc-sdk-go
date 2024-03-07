@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -14,8 +15,10 @@ import (
 
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -153,7 +156,7 @@ func (s *Server[Configuration, State]) GetSchema(w http.ResponseWriter, r *http.
 func (s *Server[Configuration, State]) Query(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
-	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Query", trace.WithSpanKind(trace.SpanKindServer))
+	ctx, span := s.telemetry.Tracer.Start(otel.GetTextMapPropagator().Extract(r.Context(), propagation.HeaderCarrier(r.Header)), "Query", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 
 	var body schema.QueryRequest
@@ -195,7 +198,7 @@ func (s *Server[Configuration, State]) Query(w http.ResponseWriter, r *http.Requ
 func (s *Server[Configuration, State]) QueryExplain(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
-	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Query Explain", trace.WithSpanKind(trace.SpanKindServer))
+	ctx, span := s.telemetry.Tracer.Start(otel.GetTextMapPropagator().Extract(r.Context(), propagation.HeaderCarrier(r.Header)), "Query Explain", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 
 	var body schema.QueryRequest
@@ -236,7 +239,7 @@ func (s *Server[Configuration, State]) QueryExplain(w http.ResponseWriter, r *ht
 func (s *Server[Configuration, State]) MutationExplain(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
-	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Mutation Explain", trace.WithSpanKind(trace.SpanKindServer))
+	ctx, span := s.telemetry.Tracer.Start(otel.GetTextMapPropagator().Extract(r.Context(), propagation.HeaderCarrier(r.Header)), "Mutation Explain", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 
 	var body schema.MutationRequest
@@ -283,7 +286,7 @@ func (s *Server[Configuration, State]) MutationExplain(w http.ResponseWriter, r 
 func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
-	ctx, span := s.telemetry.Tracer.Start(r.Context(), "Mutation", trace.WithSpanKind(trace.SpanKindServer))
+	ctx, span := s.telemetry.Tracer.Start(otel.GetTextMapPropagator().Extract(r.Context(), propagation.HeaderCarrier(r.Header)), "Mutation", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 
 	var body schema.MutationRequest
@@ -329,8 +332,21 @@ func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.R
 func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, r *http.Request, ctx context.Context, span trace.Span, counter metric.Int64Counter, body any) error {
 	_, decodeSpan := s.telemetry.Tracer.Start(ctx, "Decode JSON Body")
 	defer decodeSpan.End()
-	if err := json.NewDecoder(r.Body).Decode(body); err != nil {
-		writeJson(w, GetLogger(r.Context()), http.StatusBadRequest, schema.ErrorResponse{
+	var err error
+	logger := GetLogger(r.Context())
+	if isDebug() {
+		var jsonBytes []byte
+		jsonBytes, err = io.ReadAll(r.Body)
+		if err == nil {
+			logger = logger.With().Str("request_body", string(jsonBytes)).Logger()
+			err = json.Unmarshal(jsonBytes, body)
+		}
+	} else {
+		err = json.NewDecoder(r.Body).Decode(body)
+	}
+
+	if err != nil {
+		writeJson(w, logger, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": err.Error(),
