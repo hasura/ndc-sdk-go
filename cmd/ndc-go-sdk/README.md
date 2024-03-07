@@ -10,21 +10,28 @@ The generator is inspired by [ndc-typescript-deno](https://github.com/hasura/ndc
 
 Get a release [here](https://github.com/hasura/ndc-sdk-go/releases).
 
-### Install from source
+```sh
+
+```
+
+### Build from source
 
 To install with Go 1.19+:
 
 ```bash
 git clone github.com/hasura/ndc-sdk-go
-cd cmd/ndc-go-sdk
-go install .
+cd ndc-sdk-go
+make build-codegen
+
+# (optional) move the binary to the /bin
+# sudo mv _output/hasura-ndc-go /bin/hasura-ndc-go
 ```
 
 ## How to Use
 
 ```bash
-❯ ndc-go-sdk -h
-Usage: ndc-go-sdk <command>
+❯ hasura-ndc-go -h
+Usage: hasura-ndc-go <command>
 
 Flags:
   -h, --help    Show context-sensitive help.
@@ -33,7 +40,7 @@ Commands:
   new --name=STRING --module=STRING
     Initialize an NDC connector boilerplate. For example:
 
-        ndc-go-sdk new -n example -m github.com/foo/example
+        hasura-ndc-go new -n example -m github.com/foo/example
 
   generate
     Generate schema and implementation for the connector from functions.
@@ -54,7 +61,7 @@ The `new` command generates a boilerplate project for connector development from
 The command requires names of the connector and module. By default, the tool creates a new folder with the connector name. If you want to customize the path or generate files in the current folder. use `--output` (`-o`) argument.
 
 ```bash
-ndc-go-sdk new -n example -m github.com/foo/example -o .
+hasura-ndc-go new -n example -m github.com/foo/example -o .
 ```
 
 ### Generate queries and mutations
@@ -65,7 +72,7 @@ The `generate` command parses code in the `functions` folder, finds functions an
 - `connector.generated.go`: implement `GetSchema`, `Query` and `Mutation` methods with exposed functions.
 
 ```bash
-ndc-go-sdk generate
+hasura-ndc-go generate
 ```
 
 ## How it works
@@ -179,7 +186,6 @@ The basic scalar types supported are:
 - `float32`, `float64` (NDC scalar type: `Float`)
 - `bool` (NDC scalar type: `Boolean`)
 - `time.Time` (NDC scalar type: `DateTime`, represented as an [ISO formatted](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString) string in JSON)
-- `time.Duration` (NDC scalar type: `Duration`, represented as an int64 nanosecond duration in JSON)
 - `github.com/google/uuid.UUID` (NDC scalar type: `UUID`, represented as a UUID string in JSON)
 
 Alias scalar types will be inferred to the origin type in the schema.

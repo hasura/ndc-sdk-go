@@ -12,34 +12,40 @@ import (
 	"strings"
 )
 
-const (
-	connectorOutputFile   = "connector.generated.go"
-	schemaOutputFile      = "schema.generated.json"
-	typeMethodsOutputFile = "types.generated.go"
-	textBlockErrorCheck   = `
-  if err != nil {
-    return err
-  }
-`
-	textBlockErrorCheck2 = `
-    if err != nil {
-      return nil, err
-    }
-`
-)
-
 type connectorTypeBuilder struct {
 	packageName string
 	imports     map[string]string
 	builder     *strings.Builder
 }
 
+// SetImport sets an import package into the import list
+func (ctb *connectorTypeBuilder) SetImport(value string, alias string) {
+	ctb.imports[value] = alias
+}
+
+// SetUuidImports set required imports for uuid.UUID
+func (ctb *connectorTypeBuilder) SetUuidImports() {
+	ctb.SetImport("fmt", "")
+	ctb.SetImport("errors", "")
+	ctb.SetImport("reflect", "")
+	ctb.SetImport("github.com/go-viper/mapstructure/v2", "")
+	ctb.SetImport(googleUuidPackageName, "")
+}
+
+// GetDecoderName gets the global decoder name
+func (ctb connectorTypeBuilder) GetDecoderName() string {
+	return fmt.Sprintf("%s_Decoder", ctb.packageName)
+}
+
+// String renders generated Go types and methods
 func (ctb connectorTypeBuilder) String() string {
 	var bs strings.Builder
 	bs.WriteString(genFileHeader(ctb.packageName))
 	if len(ctb.imports) > 0 {
 		bs.WriteString("import (\n")
-		for pkg, alias := range ctb.imports {
+		sortedImports := getSortedKeys(ctb.imports)
+		for _, pkg := range sortedImports {
+			alias := ctb.imports[pkg]
 			if alias != "" {
 				alias = alias + " "
 			}
@@ -47,7 +53,15 @@ func (ctb connectorTypeBuilder) String() string {
 		}
 		bs.WriteString(")\n")
 	}
-	_, _ = bs.WriteString(ctb.builder.String())
+
+	decoderName := ctb.GetDecoderName()
+	if _, ok := ctb.imports[googleUuidPackageName]; ok {
+		bs.WriteString(textBlockUUIDParsers)
+		bs.WriteString(fmt.Sprintf("var %s = utils.NewDecoder(decodeUUIDHookFunc())\n", decoderName))
+	} else {
+		bs.WriteString(fmt.Sprintf("var %s = utils.NewDecoder()\n", decoderName))
+	}
+	bs.WriteString(ctb.builder.String())
 	return bs.String()
 }
 
@@ -140,9 +154,9 @@ func genConnectorFunctions(rawSchema *RawConnectorSchema) string {
 	var sb strings.Builder
 	for _, fn := range rawSchema.Functions {
 		var argumentParamStr string
-		_, _ = sb.WriteString(fmt.Sprintf("  case \"%s\":", fn.Name))
+		sb.WriteString(fmt.Sprintf("  case \"%s\":", fn.Name))
 		if fn.ResultType.IsScalar {
-			_, _ = sb.WriteString(`
+			sb.WriteString(`
     if len(request.Query.Fields) > 0 {
       return nil, schema.BadRequestError("cannot evaluate selection fields for scalar", nil)
     }`)
@@ -162,24 +176,23 @@ func genConnectorFunctions(rawSchema *RawConnectorSchema) string {
         "cause": err.Error(),
       })
     }`, fn.PackageName, fn.ArgumentsType)
-			_, _ = sb.WriteString(argumentStr)
+			sb.WriteString(argumentStr)
 			argumentParamStr = ", &args"
 		}
 		if fn.ResultType.IsScalar {
-			_, _ = sb.WriteString(fmt.Sprintf("\n    return %s.%s(ctx, state%s)\n", fn.PackageName, fn.OriginName, argumentParamStr))
+			sb.WriteString(fmt.Sprintf("\n    return %s.%s(ctx, state%s)\n", fn.PackageName, fn.OriginName, argumentParamStr))
 			continue
 		}
-		_, _ = sb.WriteString(fmt.Sprintf("\n    rawResult, err := %s.%s(ctx, state%s)", fn.PackageName, fn.OriginName, argumentParamStr))
+		sb.WriteString(fmt.Sprintf("\n    rawResult, err := %s.%s(ctx, state%s)", fn.PackageName, fn.OriginName, argumentParamStr))
 		genGeneralOperationResult(&sb, fn.ResultType)
 
 		if fn.ResultType.IsArray {
-			_, _ = sb.WriteString("\n    result, err := utils.EncodeObjectsWithColumnSelection(request.Query.Fields, rawResult)")
+			sb.WriteString("\n    result, err := utils.EncodeObjectsWithColumnSelection(request.Query.Fields, rawResult)")
 		} else {
-			_, _ = sb.WriteString("\n    result, err := utils.EncodeObjectWithColumnSelection(request.Query.Fields, rawResult)")
+			sb.WriteString("\n    result, err := utils.EncodeObjectWithColumnSelection(request.Query.Fields, rawResult)")
 		}
-		_, _ = sb.WriteString(textBlockErrorCheck2)
-		_, _ = sb.WriteString("    return result, nil\n")
-
+		sb.WriteString(textBlockErrorCheck2)
+		sb.WriteString("    return result, nil\n")
 	}
 
 	return sb.String()
@@ -188,13 +201,13 @@ func genConnectorFunctions(rawSchema *RawConnectorSchema) string {
 func genGeneralOperationResult(sb *strings.Builder, resultType *TypeInfo) {
 	sb.WriteString(textBlockErrorCheck2)
 	if resultType.IsNullable {
-		_, _ = sb.WriteString(`
+		sb.WriteString(`
     if rawResult == nil {
       return nil, nil
     }
 `)
 	} else {
-		_, _ = sb.WriteString(`
+		sb.WriteString(`
     if rawResult == nil {
       return nil, schema.BadRequestError("expected not null result", nil)
     }
@@ -210,14 +223,14 @@ func genConnectorProcedures(rawSchema *RawConnectorSchema) string {
 	var sb strings.Builder
 	for _, fn := range rawSchema.Procedures {
 		var argumentParamStr string
-		_, _ = sb.WriteString(fmt.Sprintf("  case \"%s\":", fn.Name))
+		sb.WriteString(fmt.Sprintf("  case \"%s\":", fn.Name))
 		if fn.ResultType.IsScalar {
-			_, _ = sb.WriteString(`
+			sb.WriteString(`
     if len(operation.Fields) > 0 {
       return nil, schema.BadRequestError("cannot evaluate selection fields for scalar", nil)
     }`)
 		} else if fn.ResultType.IsArray {
-			_, _ = sb.WriteString(`
+			sb.WriteString(`
     selection, err := operation.Fields.AsArray()
     if err != nil {
       return nil, schema.BadRequestError("the selection field type must be array", map[string]any{
@@ -225,7 +238,7 @@ func genConnectorProcedures(rawSchema *RawConnectorSchema) string {
       })
     }`)
 		} else {
-			_, _ = sb.WriteString(`
+			sb.WriteString(`
     selection, err := operation.Fields.AsObject()
     if err != nil {
       return nil, schema.BadRequestError("the selection field type must be object", map[string]any{
@@ -241,26 +254,26 @@ func genConnectorProcedures(rawSchema *RawConnectorSchema) string {
         "cause": err.Error(),
       })
     }`, fn.PackageName, fn.ArgumentsType)
-			_, _ = sb.WriteString(argumentStr)
+			sb.WriteString(argumentStr)
 			argumentParamStr = ", &args"
 		}
 
 		if fn.ResultType.IsScalar {
-			_, _ = sb.WriteString(fmt.Sprintf(`
+			sb.WriteString(fmt.Sprintf(`
     var err error
     result, err = %s.%s(ctx, state%s)`, fn.PackageName, fn.OriginName, argumentParamStr))
 		} else {
-			_, _ = sb.WriteString(fmt.Sprintf("\n    rawResult, err := %s.%s(ctx, state%s)\n", fn.PackageName, fn.OriginName, argumentParamStr))
+			sb.WriteString(fmt.Sprintf("\n    rawResult, err := %s.%s(ctx, state%s)\n", fn.PackageName, fn.OriginName, argumentParamStr))
 			genGeneralOperationResult(&sb, fn.ResultType)
 
 			if fn.ResultType.IsArray {
-				_, _ = sb.WriteString("\n    result, err = utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)\n")
+				sb.WriteString("\n    result, err = utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)\n")
 			} else {
-				_, _ = sb.WriteString("\n    result, err = utils.EvalNestedColumnObject(selection, rawResult)\n")
+				sb.WriteString("\n    result, err = utils.EvalNestedColumnObject(selection, rawResult)\n")
 			}
 		}
 
-		_, _ = sb.WriteString(textBlockErrorCheck2)
+		sb.WriteString(textBlockErrorCheck2)
 	}
 
 	return sb.String()
@@ -299,7 +312,7 @@ func (cg *connectorGenerator) genObjectMethods() error {
 			continue
 		}
 		sb := cg.getTypeBuilder(object.PackageName, object.PackageName)
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`
+		sb.builder.WriteString(fmt.Sprintf(`
 // ToMap encodes the struct to a value map
 func (j %s) ToMap() map[string]any {
 `, objectName))
@@ -323,11 +336,14 @@ func (cg *connectorGenerator) genObjectToMap(object *ObjectInfo, selector string
 			lines = append(lines, fmt.Sprintf("  if %s != nil {", selector))
 			selector = fmt.Sprintf("*%s", selector)
 		}
+
+		valueName := fmt.Sprintf("%s_value", name)
+		itemName := fmt.Sprintf("%s_item", name)
 		lines = append(lines, fmt.Sprintf("  %s = make([]map[string]any, len(%s))", name, selector))
-		lines = append(lines, fmt.Sprintf("  for i, _item := range %s {", selector))
-		loopLines := cg.genObjectToMap(object, "_item", "item", false, false)
+		lines = append(lines, fmt.Sprintf("  for i, %s := range %s {", valueName, selector))
+		loopLines := cg.genObjectToMap(object, valueName, itemName, false, false)
 		lines = append(lines, loopLines...)
-		lines = append(lines, fmt.Sprintf("    %s[i] = item", name))
+		lines = append(lines, fmt.Sprintf("    %s[i] = %s", name, itemName))
 		lines = append(lines, "  }")
 		if nullable {
 			lines = append(lines, "}")
@@ -390,7 +406,7 @@ func (cg *connectorGenerator) genCustomScalarMethods() error {
 	for _, scalarKey := range scalarKeys {
 		scalar := cg.rawSchema.CustomScalars[scalarKey]
 		sb := cg.getTypeBuilder(scalar.PackageName, scalar.PackageName)
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`
+		sb.builder.WriteString(fmt.Sprintf(`
 // ScalarName get the schema name of the scalar
 func (j %s) ScalarName() string {
   return "%s"
@@ -410,7 +426,7 @@ func (cg *connectorGenerator) genFunctionArgumentConstructors() error {
 			continue
 		}
 		sb := cg.getTypeBuilder(fn.PackageName, fn.PackageName)
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`
+		sb.builder.WriteString(fmt.Sprintf(`
 // FromValue decodes values from map
 func (j *%s) FromValue(input map[string]any) error {
   var err error
@@ -434,7 +450,8 @@ func (cg *connectorGenerator) getTypeBuilder(fileName string, packageName string
 		bs = &connectorTypeBuilder{
 			packageName: packageName,
 			imports: map[string]string{
-				"github.com/hasura/ndc-sdk-go/utils": "",
+				"github.com/go-viper/mapstructure/v2": "",
+				"github.com/hasura/ndc-sdk-go/utils":  "",
 			},
 			builder: &strings.Builder{},
 		}
@@ -451,52 +468,54 @@ package %s
 
 func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, ty *TypeInfo, key string, fieldName string) {
 	typeName := ty.TypeAST.String()
-	if strings.Contains(typeName, "complex64") || strings.Contains(typeName, "complex128") {
-		panic("unsupported complex64 and complex128")
+	if strings.Contains(typeName, "complex64") || strings.Contains(typeName, "complex128") || strings.Contains(typeName, "time.Duration") {
+		panic(fmt.Errorf("unsupported type: %s", typeName))
 	}
 
 	switch typeName {
 	case "bool":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetBool(input, "%s")`, fieldName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetBool(input, "%s")`, fieldName, key))
 	case "*bool":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableBool(input, "%s")`, fieldName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableBool(input, "%s")`, fieldName, key))
 	case "string":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetString(input, "%s")`, fieldName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetString(input, "%s")`, fieldName, key))
 	case "*string":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableString(input, "%s")`, fieldName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableString(input, "%s")`, fieldName, key))
 	case "int", "int8", "int16", "int32", "int64", "rune", "byte":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetInt[%s](input, "%s")`, fieldName, typeName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetInt[%s](input, "%s")`, fieldName, typeName, key))
 	case "uint", "uint8", "uint16", "uint32", "uint64":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUint[%s](input, "%s")`, fieldName, typeName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUint[%s](input, "%s")`, fieldName, typeName, key))
 	case "*int", "*int8", "*int16", "*int32", "*int64", "*rune", "*byte":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableInt[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableInt[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
 	case "*uint", "*uint8", "*uint16", "*uint32", "*uint64":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUint[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUint[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
 	case "float32", "float64":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetFloat[%s](input, "%s")`, fieldName, typeName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetFloat[%s](input, "%s")`, fieldName, typeName, key))
 	case "*float32", "*float64":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableFloat[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableFloat[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
 	case "time.Time":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTime(input, "%s")`, fieldName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTime(input, "%s")`, fieldName, key))
 	case "*time.Time":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableDateTime(input, "%s")`, fieldName, key))
-	case "time.Duration":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDuration(input, "%s")`, fieldName, key))
-	case "*time.Duration":
-		_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableDuration(input, "%s")`, fieldName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableDateTime(input, "%s")`, fieldName, key))
+	case "github.com/google/uuid.UUID":
+		sb.SetUuidImports()
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = _getObjectUUID(input, "%s")`, fieldName, key))
+	case "*github.com/google/uuid.UUID":
+		sb.SetUuidImports()
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = _getNullableObjectUUID(input, "%s")`, fieldName, key))
 	default:
 		if ty.IsNullable {
 			pkgName, tyName := extractPackageAndTypeName(typeName)
 			if pkgName != "" {
 				sb.imports[pkgName] = ""
 			}
-			_, _ = sb.builder.WriteString(fmt.Sprintf(`  j.%s = new(%s)
-  err = utils.DecodeNullableObjectValue(j.%s, input, "%s")`, fieldName, tyName, fieldName, key))
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s = new(%s)
+  err = %s.DecodeNullableObjectValue(j.%s, input, "%s")`, fieldName, tyName, sb.GetDecoderName(), fieldName, key))
 		} else {
-			_, _ = sb.builder.WriteString(fmt.Sprintf(`  err = utils.DecodeObjectValue(&j.%s, input, "%s")`, fieldName, key))
+			sb.builder.WriteString(fmt.Sprintf(`  err = %s.DecodeObjectValue(&j.%s, input, "%s")`, sb.GetDecoderName(), fieldName, key))
 		}
 	}
-	_, _ = sb.builder.WriteString(textBlockErrorCheck)
+	sb.builder.WriteString(textBlockErrorCheck)
 }
 
 func extractPackageAndTypeName(name string) (string, string) {

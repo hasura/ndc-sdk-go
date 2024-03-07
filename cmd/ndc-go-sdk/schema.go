@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/importer"
@@ -24,7 +25,6 @@ var defaultScalarTypes = schema.SchemaResponseScalarTypes{
 	"Float":    *schema.NewScalarType(),
 	"Boolean":  *schema.NewScalarType(),
 	"DateTime": *schema.NewScalarType(),
-	"Duration": *schema.NewScalarType(),
 }
 
 var ndcOperationNameRegex = regexp.MustCompile(`^(Function|Procedure)([A-Z][A-Za-z0-9]*)$`)
@@ -449,7 +449,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 				case "Time":
 					scalarName = "DateTime"
 				case "Duration":
-					scalarName = "Duration"
+					return nil, errors.New("unsupported type time.Duration. Create a scalar type wrapper with FromValue method to decode the any value")
 				}
 			case "github.com/google/uuid":
 				switch innerType.Name() {

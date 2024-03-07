@@ -26,7 +26,7 @@ clean:
 
 .PHONY: build-codegen
 build-codegen:
-	cd ./cmd/ndc-go-sdk && go build -o ../../_output/ndc-go-sdk .
+	cd ./cmd/ndc-go-sdk && go build -o ../../_output/hasura-ndc-go .
 	
 # build the build-codegen cli for all given platform/arch
 .PHONY: build-codegen
@@ -36,5 +36,5 @@ ci-build-codegen: clean
 	go get github.com/mitchellh/gox && \
 	go run github.com/mitchellh/gox -ldflags '-X github.com/hasura/ndc-sdk-go/cmd/ndc-go-sdk/version.BuildVersion=$(VERSION) -s -w -extldflags "-static"' \
 		-osarch="linux/amd64 darwin/amd64 windows/amd64 darwin/arm64" \
-		-output="../../$(OUTPUT_DIR)/$(VERSION)/ndc-go-sdk-{{.OS}}-{{.Arch}}" \
+		-output="../../$(OUTPUT_DIR)/$(VERSION)/hasura-ndc-go-{{.OS}}-{{.Arch}}" \
 		.
