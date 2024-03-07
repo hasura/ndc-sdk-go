@@ -48,402 +48,418 @@ func TestQueryGetTypes(t *testing.T) {
 			body: `{
 				"collection": "getTypes",
 				"arguments": {
-						"UUID": {
-								"type": "literal",
-								"value": "b085b0b9-007c-440e-9661-0d8f2de98a5a"
-						},
-						"Bool": {
-								"type": "literal",
-								"value": true
-						},
-						"String": {
-								"type": "literal",
-								"value": "hello"
-						},
-						"Int": {
-								"type": "literal",
-								"value": 1
-						},
-						"Int8": {
-								"type": "literal",
-								"value": 2
-						},
-						"Int16": {
-								"type": "literal",
-								"value": 3
-						},
-						"Int32": {
-							"type": "literal",
-							"value": 4
-						},
-						"Int64": {
-							"type": "literal",
-							"value": 5
-						},
-						"Uint": {
-							"type": "literal",
-							"value": 6
-						},
-						"Uint8": {
-							"type": "literal",
-							"value": 7
-						},
-						"Uint16": {
-							"type": "literal",
-							"value": 8
-						},
-						"Uint32": {
-							"type": "literal",
-							"value": 9
-						},
-						"Uint64": {
-							"type": "literal",
-							"value": 10
-						},
-						"Float32": {
-							"type": "literal",
-							"value": 1.1
-						},
-						"Float64": {
-							"type": "literal",
-							"value": 2.2
-						},
-						"Time": {
-							"type": "literal",
-							"value": "2024-03-05T07:00:56Z"
-						},
-						"Duration": {
-							"type": "literal",
-							"value": "10s"
-						},
-						"Text": {
-							"type": "literal",
-							"value": "text"
-						},
-						"CustomScalar": {
-							"type": "literal",
-							"value": "a comment"
-						},
-						"UUIDPtr": {
-								"type": "literal",
-								"value": "b085b0b9-007c-440e-9661-0d8f2de98a5b"
-						},
-
-						"BoolPtr": {
-							"type": "literal",
-							"value": true
-						},
-						"StringPtr": {
-								"type": "literal",
-								"value": "world"
-						},
-						"IntPtr": {
-								"type": "literal",
-								"value": 11
-						},
-						"Int8Ptr": {
-								"type": "literal",
-								"value": 12
-						},
-						"Int16Ptr": {
-								"type": "literal",
-								"value": 13
-						},
-						"Int32Ptr": {
-							"type": "literal",
-							"value": 14
-						},
-						"Int64Ptr": {
-							"type": "literal",
-							"value": 15
-						},
-						"UintPtr": {
-							"type": "literal",
-							"value": 16
-						},
-						"Uint8Ptr": {
-							"type": "literal",
-							"value": 17
-						},
-						"Uint16Ptr": {
-							"type": "literal",
-							"value": 18
-						},
-						"Uint32Ptr": {
-							"type": "literal",
-							"value": 19
-						},
-						"Uint64Ptr": {
-							"type": "literal",
-							"value": 20
-						},
-						"Float32Ptr": {
-							"type": "literal",
-							"value": 3.3
-						},
-						"Float64Ptr": {
-							"type": "literal",
-							"value": 4.4
-						},
-						"TimePtr": {
-							"type": "literal",
-							"value": "2024-03-05T07:00:00Z"
-						},
-						"DurationPtr": {
-							"type": "literal",
-							"value": "1m"
-						},
-						"TextPtr": {
-							"type": "literal",
-							"value": "text pointer"
-						},
-						"CustomScalarPtr": {
-							"type": "literal",
-							"value": "a comment pointer"
-						},
-						"Object": {
-							"type": "literal",
-							"value": {
-								"id": "b085b0b9-007c-440e-9661-0d8f2de98a5c",
-								"created_at": "2024-03-05T06:00:00Z"
-							}
-						},
-						"ObjectPtr": {
-							"type": "literal",
-							"value": {
-								"Long": 1,
-								"Lat": 2
-							}
-						},
-						"ArrayObject": {
-							"type": "literal",
-							"value": [{
-								"content": "a content"
-							}]
-						},
-						"ArrayObjectPtr": {
-							"type": "literal",
-							"value": [{"content": "a content pointer"}]
-						},
-						"NamedObject": {
-							"type": "literal",
-							"value": {
-								"id":        "1",
-								"duration":  10,
-								"created_at": "2024-03-05T05:00:00Z"
-							}
-						},
-						"NamedObjectPtr": {
-							"type": "literal",
-							"value": {
-								"id":        "2",
-								"duration":  11,
-								"created_at": "2024-03-05T04:00:00Z"
-							}
-						},
-						"NamedArray": {
-							"type": "literal",
-							"value": [{
-								"id":        "3",
-								"duration":  12,
-								"created_at": "2024-03-05T03:00:00Z"
-							}]
-						},
-						"UUIDArray": {
-							"type": "literal",
-							"value": ["b085b0b9-007c-440e-9661-0d8f2de98a5a", "b085b0b9-007c-440e-9661-0d8f2de98a5b"]
+					"UUID": {
+						"type": "literal",
+						"value": "b085b0b9-007c-440e-9661-0d8f2de98a5a"
+					},
+					"Bool": {
+						"type": "literal",
+						"value": true
+					},
+					"String": {
+						"type": "literal",
+						"value": "hello"
+					},
+					"Int": {
+						"type": "literal",
+						"value": 1
+					},
+					"Int8": {
+						"type": "literal",
+						"value": 2
+					},
+					"Int16": {
+						"type": "literal",
+						"value": 3
+					},
+					"Int32": {
+						"type": "literal",
+						"value": 4
+					},
+					"Int64": {
+						"type": "literal",
+						"value": 5
+					},
+					"Uint": {
+						"type": "literal",
+						"value": 6
+					},
+					"Uint8": {
+						"type": "literal",
+						"value": 7
+					},
+					"Uint16": {
+						"type": "literal",
+						"value": 8
+					},
+					"Uint32": {
+						"type": "literal",
+						"value": 9
+					},
+					"Uint64": {
+						"type": "literal",
+						"value": 10
+					},
+					"Float32": {
+						"type": "literal",
+						"value": 1.1
+					},
+					"Float64": {
+						"type": "literal",
+						"value": 2.2
+					},
+					"Time": {
+						"type": "literal",
+						"value": "2024-03-05T07:00:56Z"
+					},
+					"Duration": {
+						"type": "literal",
+						"value": "10s"
+					},
+					"Text": {
+						"type": "literal",
+						"value": "text"
+					},
+					"CustomScalar": {
+						"type": "literal",
+						"value": "a comment"
+					},
+					"UUIDPtr": {
+						"type": "literal",
+						"value": "b085b0b9-007c-440e-9661-0d8f2de98a5b"
+					},
+			
+					"BoolPtr": {
+						"type": "literal",
+						"value": true
+					},
+					"StringPtr": {
+						"type": "literal",
+						"value": "world"
+					},
+					"IntPtr": {
+						"type": "literal",
+						"value": 11
+					},
+					"Int8Ptr": {
+						"type": "literal",
+						"value": 12
+					},
+					"Int16Ptr": {
+						"type": "literal",
+						"value": 13
+					},
+					"Int32Ptr": {
+						"type": "literal",
+						"value": 14
+					},
+					"Int64Ptr": {
+						"type": "literal",
+						"value": 15
+					},
+					"UintPtr": {
+						"type": "literal",
+						"value": 16
+					},
+					"Uint8Ptr": {
+						"type": "literal",
+						"value": 17
+					},
+					"Uint16Ptr": {
+						"type": "literal",
+						"value": 18
+					},
+					"Uint32Ptr": {
+						"type": "literal",
+						"value": 19
+					},
+					"Uint64Ptr": {
+						"type": "literal",
+						"value": 20
+					},
+					"Float32Ptr": {
+						"type": "literal",
+						"value": 3.3
+					},
+					"Float64Ptr": {
+						"type": "literal",
+						"value": 4.4
+					},
+					"TimePtr": {
+						"type": "literal",
+						"value": "2024-03-05T07:00:00Z"
+					},
+					"DurationPtr": {
+						"type": "literal",
+						"value": "1m"
+					},
+					"TextPtr": {
+						"type": "literal",
+						"value": "text pointer"
+					},
+					"CustomScalarPtr": {
+						"type": "literal",
+						"value": "a comment pointer"
+					},
+					"Object": {
+						"type": "literal",
+						"value": {
+							"id": "b085b0b9-007c-440e-9661-0d8f2de98a5c",
+							"created_at": "2024-03-05T06:00:00Z"
 						}
+					},
+					"ObjectPtr": {
+						"type": "literal",
+						"value": {
+							"Long": 1,
+							"Lat": 2
+						}
+					},
+					"ArrayObject": {
+						"type": "literal",
+						"value": [
+							{
+								"content": "a content"
+							}
+						]
+					},
+					"ArrayObjectPtr": {
+						"type": "literal",
+						"value": [{ "content": "a content pointer" }]
+					},
+					"NamedObject": {
+						"type": "literal",
+						"value": {
+							"id": "1",
+							"duration": 10,
+							"created_at": "2024-03-05T05:00:00Z"
+						}
+					},
+					"NamedObjectPtr": {
+						"type": "literal",
+						"value": {
+							"id": "2",
+							"duration": 11,
+							"created_at": "2024-03-05T04:00:00Z"
+						}
+					},
+					"NamedArray": {
+						"type": "literal",
+						"value": [
+							{
+								"id": "3",
+								"duration": 12,
+								"created_at": "2024-03-05T03:00:00Z"
+							}
+						]
+					},
+					"UUIDArray": {
+						"type": "literal",
+						"value": [
+							"b085b0b9-007c-440e-9661-0d8f2de98a5a",
+							"b085b0b9-007c-440e-9661-0d8f2de98a5b"
+						]
+					}
 				},
 				"query": {
-						"fields": {
-								"UUID": {
+					"fields": {
+						"__value": {
+							"type": "column",
+							"column": "__value",
+							"fields": {
+								"type": "object",
+								"fields": {
+									"UUID": {
 										"type": "column",
 										"column": "UUID"
-								},
-								"Bool": {
+									},
+									"Bool": {
 										"type": "column",
 										"column": "Bool"
-								},
-								"String": {
+									},
+									"String": {
 										"type": "column",
 										"column": "String"
-								},
-								"Int": {
+									},
+									"Int": {
 										"type": "column",
 										"column": "Int"
-								},
-								"Int8": {
+									},
+									"Int8": {
 										"type": "column",
 										"column": "Int8"
-								},
-								"Int16": {
+									},
+									"Int16": {
 										"type": "column",
 										"column": "Int16"
-								},
-								"Int32": {
+									},
+									"Int32": {
 										"type": "column",
 										"column": "Int32"
-								},
-								"Int64": {
+									},
+									"Int64": {
 										"type": "column",
 										"column": "Int64"
-								},
-								"Uint": {
+									},
+									"Uint": {
 										"type": "column",
 										"column": "Uint"
-								},
-								"Uint8": {
+									},
+									"Uint8": {
 										"type": "column",
 										"column": "Uint8"
-								},
-								"Uint16": {
+									},
+									"Uint16": {
 										"type": "column",
 										"column": "Uint16"
-								},
-								"Uint32": {
+									},
+									"Uint32": {
 										"type": "column",
 										"column": "Uint32"
-								},
-								"Uint64": {
+									},
+									"Uint64": {
 										"type": "column",
 										"column": "Uint64"
-								},
-								"Float32": {
+									},
+									"Float32": {
 										"type": "column",
 										"column": "Float32"
-								},
-								"Float64": {
+									},
+									"Float64": {
 										"type": "column",
 										"column": "Float64"
-								},
-								"Time": {
+									},
+									"Time": {
 										"type": "column",
 										"column": "Time"
-								},
-								"Duration": {
+									},
+									"Duration": {
 										"type": "column",
 										"column": "Duration"
-								},
-								"Text": {
-									"type": "column",
-									"column": "Text"
-								},
-								"CustomScalar": {
-									"type": "column",
-									"column": "CustomScalar"
-								},
-								"UUIDPtr": {
+									},
+									"Text": {
+										"type": "column",
+										"column": "Text"
+									},
+									"CustomScalar": {
+										"type": "column",
+										"column": "CustomScalar"
+									},
+									"UUIDPtr": {
 										"type": "column",
 										"column": "UUIDPtr"
-								},
-								"BoolPtr": {
+									},
+									"BoolPtr": {
 										"type": "column",
 										"column": "BoolPtr"
-								},
-								"StringPtr": {
+									},
+									"StringPtr": {
 										"type": "column",
 										"column": "StringPtr"
-								},
-								"IntPtr": {
+									},
+									"IntPtr": {
 										"type": "column",
 										"column": "IntPtr"
-								},
-								"Int8Ptr": {
+									},
+									"Int8Ptr": {
 										"type": "column",
 										"column": "Int8Ptr"
-								},
-								"Int16Ptr": {
+									},
+									"Int16Ptr": {
 										"type": "column",
 										"column": "Int16Ptr"
-								},
-								"Int32Ptr": {
+									},
+									"Int32Ptr": {
 										"type": "column",
 										"column": "Int32Ptr"
-								},
-								"Int64Ptr": {
+									},
+									"Int64Ptr": {
 										"type": "column",
 										"column": "Int64Ptr"
-								},
-								"UintPtr": {
+									},
+									"UintPtr": {
 										"type": "column",
 										"column": "UintPtr"
-								},
-								"Uint8Ptr": {
+									},
+									"Uint8Ptr": {
 										"type": "column",
 										"column": "Uint8Ptr"
-								},
-								"Uint16Ptr": {
+									},
+									"Uint16Ptr": {
 										"type": "column",
 										"column": "Uint16Ptr"
-								},
-								"Uint32Ptr": {
+									},
+									"Uint32Ptr": {
 										"type": "column",
 										"column": "Uint32Ptr"
-								},
-								"Uint64Ptr": {
+									},
+									"Uint64Ptr": {
 										"type": "column",
 										"column": "Uint64Ptr"
-								},
-								"Float32Ptr": {
+									},
+									"Float32Ptr": {
 										"type": "column",
 										"column": "Float32Ptr"
-								},
-								"Float64Ptr": {
+									},
+									"Float64Ptr": {
 										"type": "column",
 										"column": "Float64Ptr"
-								},
-								"TimePtr": {
+									},
+									"TimePtr": {
 										"type": "column",
 										"column": "TimePtr"
-								},
-								"DurationPtr": {
+									},
+									"DurationPtr": {
 										"type": "column",
 										"column": "DurationPtr"
-								},
-								"TextPtr": {
-									"type": "column",
-									"column": "TextPtr"
-								},
-								"CustomScalarPtr": {
-									"type": "column",
-									"column": "CustomScalarPtr"
-								},
-								"Object": {
-									"type": "column",
-									"column": "Object"
-								},
-								"ObjectPtr": {
-									"type": "column",
-									"column": "ObjectPtr"
-								},
-								"ArrayObject": {
-									"type": "column",
-									"column": "ArrayObject"
-								},
-								"ArrayObjectPtr": {
-									"type": "column",
-									"column": "ArrayObjectPtr"
-								},
-								"NamedObject": {
-									"type": "column",
-									"column": "NamedObject"
-								},
-								"NamedObjectPtr": {
-									"type": "column",
-									"column": "NamedObjectPtr"
-								},
-								"NamedArray": {
-									"type": "column",
-									"column": "NamedArray"
-								},
-								"UUIDArray": {
-									"type": "column",
-									"column": "UUIDArray"
+									},
+									"TextPtr": {
+										"type": "column",
+										"column": "TextPtr"
+									},
+									"CustomScalarPtr": {
+										"type": "column",
+										"column": "CustomScalarPtr"
+									},
+									"Object": {
+										"type": "column",
+										"column": "Object"
+									},
+									"ObjectPtr": {
+										"type": "column",
+										"column": "ObjectPtr"
+									},
+									"ArrayObject": {
+										"type": "column",
+										"column": "ArrayObject"
+									},
+									"ArrayObjectPtr": {
+										"type": "column",
+										"column": "ArrayObjectPtr"
+									},
+									"NamedObject": {
+										"type": "column",
+										"column": "NamedObject"
+									},
+									"NamedObjectPtr": {
+										"type": "column",
+										"column": "NamedObjectPtr"
+									},
+									"NamedArray": {
+										"type": "column",
+										"column": "NamedArray"
+									},
+									"UUIDArray": {
+										"type": "column",
+										"column": "UUIDArray"
+									}
 								}
+							}
 						}
+					}
 				},
 				"collection_relationships": {}
-		}`,
+			}`,
 			response: functions.GetTypesArguments{
 				UUID:            uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5a"),
 				Bool:            true,
@@ -572,19 +588,22 @@ func TestQueries(t *testing.T) {
 			status: http.StatusOK,
 			body: `{
 				"collection": "hello",
-				"arguments": {},
 				"query": {
 					"fields": {
-						"num": {
+						"__value": {
 							"type": "column",
-							"column": "num"
-						},
-						"text": {
-							"type": "column",
-							"column": "text"
+							"column": "__value",
+							"fields": {
+								"type": "object",
+								"fields": {
+									"num": { "type": "column", "column": "num", "fields": null },
+									"text": { "type": "column", "column": "text", "fields": null }
+								}
+							}
 						}
 					}
 				},
+				"arguments": {},
 				"collection_relationships": {}
 			}`,
 			response: `{
@@ -593,15 +612,110 @@ func TestQueries(t *testing.T) {
 			}`,
 		},
 		{
+			name:   "hello_failure_array",
+			status: http.StatusBadRequest,
+			body: `{
+				"collection": "hello",
+				"query": {
+					"fields": {
+						"__value": {
+							"type": "column",
+							"column": "__value",
+							"fields": {
+								"type": "array",
+								"fields": {
+									"type": "object",
+									"fields": {
+										"num": { "type": "column", "column": "num", "fields": null },
+										"text": { "type": "column", "column": "text", "fields": null }
+									}
+								}
+							}
+						}
+					}
+				},
+				"arguments": {},
+				"collection_relationships": {}
+			}`,
+			errorMsg: "the selection field type must be object",
+		},
+		{
 			name:   "getBool",
 			status: http.StatusOK,
 			body: `{
 				"collection": "getBool",
 				"arguments": {},
-				"query": {},
+				"query": {
+					"fields": {
+						"__value": {
+							"type": "column",
+							"column": "__value",
+							"fields": null
+						}
+					}
+				},
 				"collection_relationships": {}
 			}`,
 			response: `true`,
+		},
+		{
+			name:   "getArticles_failure_object",
+			status: http.StatusBadRequest,
+			body: `{
+				"collection": "getArticles",
+				"query": {
+					"fields": {
+						"__value": {
+							"type": "column",
+							"column": "__value",
+							"fields": {
+								"type": "object",
+								"fields": {
+									"num": { "type": "column", "column": "num", "fields": null },
+									"text": { "type": "column", "column": "text", "fields": null }
+								}
+							}
+						}
+					}
+				},
+				"arguments": {},
+				"collection_relationships": {}
+			}`,
+			errorMsg: "the selection field type must be array",
+		},
+		{
+			name:   "getArticles_success",
+			status: http.StatusOK,
+			body: `{
+				"collection": "getArticles",
+				"query": {
+					"fields": {
+						"__value": {
+							"type": "column",
+							"column": "__value",
+							"fields": {
+								"type": "array",
+								"fields": {
+									"type": "object",
+									"fields": {
+										"id": { "type": "column", "column": "id" }
+									}
+								}
+							}
+						}
+					}
+				},
+				"arguments": {
+					"Limit": {
+						"type": "literal",
+						"value": 1
+					}
+				},
+				"collection_relationships": {}
+			}`,
+			response: `[{
+				"id": "1"
+			}]`,
 		},
 	}
 

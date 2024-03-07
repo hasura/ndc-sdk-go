@@ -611,7 +611,7 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 		// decode fields
 		var fields NestedField
 		rawFields, ok := raw["fields"]
-		if ok {
+		if ok && !isNullJSON(rawFields) {
 			if err = json.Unmarshal(rawFields, &fields); err != nil {
 				return fmt.Errorf("field fields in Field: %s", err)
 			}
@@ -689,7 +689,7 @@ func (j Field) AsColumn() (*ColumnField, error) {
 		Column: column,
 	}
 	rawFields, ok := j["fields"]
-	if ok && rawFields != nil {
+	if ok && !isNil(rawFields) {
 		fields, ok := rawFields.(NestedField)
 		if !ok {
 			return nil, fmt.Errorf("invalid ColumnField.fields type; expected NestedField, got %+v", rawFields)
@@ -786,7 +786,7 @@ func (f ColumnField) Encode() Field {
 // NewColumnField creates a new ColumnField instance
 func NewColumnField(column string, fields NestedFieldEncoder) *ColumnField {
 	var field NestedField
-	if fields != nil {
+	if !isNil(fields) {
 		field = fields.Encode()
 	}
 	return &ColumnField{
@@ -1841,7 +1841,7 @@ func (j Expression) AsExists() (*ExpressionExists, error) {
 		InCollection: inCollection,
 	}
 	rawPredicate, ok := j["predicate"]
-	if ok && rawPredicate != nil {
+	if ok && !isNil(rawPredicate) {
 		predicate, ok := rawPredicate.(Expression)
 		if !ok {
 			return nil, fmt.Errorf("invalid ExpressionExists.predicate type; expected: Expression, got: %+v", rawPredicate)
@@ -2924,8 +2924,16 @@ func (j *NestedFieldType) UnmarshalJSON(b []byte) error {
 // NestedField represents a nested field
 type NestedField map[string]any
 
+// IsNil checks if the field is null or empty
+func (j NestedField) IsNil() bool {
+	return len(j) == 0
+}
+
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *NestedField) UnmarshalJSON(b []byte) error {
+	if isNullJSON(b) {
+		return nil
+	}
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
