@@ -450,8 +450,7 @@ func (cg *connectorGenerator) getTypeBuilder(fileName string, packageName string
 		bs = &connectorTypeBuilder{
 			packageName: packageName,
 			imports: map[string]string{
-				"github.com/go-viper/mapstructure/v2": "",
-				"github.com/hasura/ndc-sdk-go/utils":  "",
+				"github.com/hasura/ndc-sdk-go/utils": "",
 			},
 			builder: &strings.Builder{},
 		}
