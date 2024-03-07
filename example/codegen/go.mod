@@ -3,8 +3,9 @@ module github.com/hasura/ndc-codegen-example
 go 1.19
 
 require (
+	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1
 	github.com/google/uuid v1.6.0
-	github.com/hasura/ndc-sdk-go v0.1.0
+	github.com/hasura/ndc-sdk-go v0.1.1
 	github.com/stretchr/testify v1.8.4
 )
 
@@ -17,7 +18,6 @@ require (
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-logr/zerologr v1.2.3 // indirect
-	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
