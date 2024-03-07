@@ -1,10 +1,15 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
 	"github.com/hasura/ndc-sdk-go/schema"
+)
+
+const (
+	errFunctionValueFieldRequired = "__value field is required in query function type"
 )
 
 // Scalar abstracts a scalar interface to determine when evaluating
@@ -158,4 +163,41 @@ func ResolveArgumentVariables(arguments map[string]schema.Argument, variables ma
 	}
 
 	return results, nil
+}
+
+// EvalFunctionSelectionFieldValue evaluates the __value field in a function query
+// According to the [NDC spec], selection fields of the function type must follow this structure:
+//
+//	{
+//		"fields": {
+//			"__value": {
+//				"type": "column",
+//				"column": "__value",
+//				"fields": {
+//					"type": "object",
+//					"fields": {
+//						"fieldA": { "type": "column", "column": "fieldA", "fields": null }
+//					} // or null
+//				}
+//			}
+//		}
+//	}
+//
+// [NDC spec]: https://hasura.github.io/ndc-spec/specification/queries/functions.html
+func EvalFunctionSelectionFieldValue(request *schema.QueryRequest) (schema.NestedField, error) {
+	if len(request.Query.Fields) == 0 {
+		return nil, errors.New(errFunctionValueFieldRequired)
+	}
+	valueField, ok := request.Query.Fields["__value"]
+	if !ok {
+		return nil, errors.New(errFunctionValueFieldRequired)
+	}
+	valueColumn, err := valueField.AsColumn()
+	if err != nil {
+		return nil, schema.BadRequestError(fmt.Sprintf("__value: %s", err), nil)
+	}
+	if valueColumn.Column != "__value" {
+		return nil, errors.New(errFunctionValueFieldRequired)
+	}
+	return valueColumn.Fields, nil
 }
