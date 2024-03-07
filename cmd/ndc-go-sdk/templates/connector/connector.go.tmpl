@@ -30,6 +30,10 @@ func (c *Connector) GetSchema(configuration *types.Configuration) (*schema.Schem
 
 // Query executes a query.
 func (c *Connector) Query(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.QueryRequest) (schema.QueryResponse, error) {
+  valueField, err := utils.EvalFunctionSelectionFieldValue(request)
+  if err != nil {
+ 		return nil, schema.BadRequestError(err.Error(), nil)
+  }
   requestVars := request.Variables
   if len(requestVars) == 0 {
     requestVars = []schema.QueryRequestVariablesElem{make(schema.QueryRequestVariablesElem)}
@@ -38,7 +42,7 @@ func (c *Connector) Query(ctx context.Context, configuration *types.Configuratio
   var rowSets []schema.RowSet
 
   for _, requestVar := range requestVars {
-    result, err := execQuery(ctx, state, request, requestVar)
+    result, err := execQuery(ctx, state, request, valueField, requestVar)
     if err != nil {
       return nil, err
     }
@@ -77,7 +81,7 @@ func (c *Connector) Mutation(ctx context.Context, configuration *types.Configura
   }, nil
 }
 
-func execQuery(ctx context.Context, state *types.State, request *schema.QueryRequest, variables map[string]any) (any, error) {
+func execQuery(ctx context.Context, state *types.State, request *schema.QueryRequest, queryFields schema.NestedField, variables map[string]any) (any, error) {
 
   switch request.Collection {
 {{.Queries}}

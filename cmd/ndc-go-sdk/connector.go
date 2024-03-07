@@ -157,10 +157,27 @@ func genConnectorFunctions(rawSchema *RawConnectorSchema) string {
 		sb.WriteString(fmt.Sprintf("  case \"%s\":", fn.Name))
 		if fn.ResultType.IsScalar {
 			sb.WriteString(`
-    if len(request.Query.Fields) > 0 {
+    if len(queryFields) > 0 {
       return nil, schema.BadRequestError("cannot evaluate selection fields for scalar", nil)
     }`)
+		} else if fn.ResultType.IsArray {
+			sb.WriteString(`
+    selection, err := queryFields.AsArray()
+    if err != nil {
+      return nil, schema.BadRequestError("the selection field type must be array", map[string]any{
+        "cause": err.Error(),
+      })
+    }`)
+		} else {
+			sb.WriteString(`
+    selection, err := queryFields.AsObject()
+    if err != nil {
+      return nil, schema.BadRequestError("the selection field type must be object", map[string]any{
+        "cause": err.Error(),
+      })
+    }`)
 		}
+
 		if fn.ArgumentsType != "" {
 			argumentStr := fmt.Sprintf(`
     rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
@@ -187,9 +204,9 @@ func genConnectorFunctions(rawSchema *RawConnectorSchema) string {
 		genGeneralOperationResult(&sb, fn.ResultType)
 
 		if fn.ResultType.IsArray {
-			sb.WriteString("\n    result, err := utils.EncodeObjectsWithColumnSelection(request.Query.Fields, rawResult)")
+			sb.WriteString("\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)")
 		} else {
-			sb.WriteString("\n    result, err := utils.EncodeObjectWithColumnSelection(request.Query.Fields, rawResult)")
+			sb.WriteString("\n    result, err := utils.EvalNestedColumnObject(selection, rawResult)")
 		}
 		sb.WriteString(textBlockErrorCheck2)
 		sb.WriteString("    return result, nil\n")
