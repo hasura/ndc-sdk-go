@@ -39,21 +39,20 @@ func (c *Connector) Query(ctx context.Context, configuration *types.Configuratio
 		requestVars = []schema.QueryRequestVariablesElem{make(schema.QueryRequestVariablesElem)}
 	}
 
-	var rowSets []schema.RowSet
-
-	for _, requestVar := range requestVars {
+	rowSets := make([]schema.RowSet, len(requestVars))
+	for i, requestVar := range requestVars {
 		result, err := execQuery(ctx, state, request, valueField, requestVar)
 		if err != nil {
 			return nil, err
 		}
-		rowSets = append(rowSets, schema.RowSet{
+		rowSets[i] = schema.RowSet{
 			Aggregates: schema.RowSetAggregates{},
 			Rows: []map[string]any{
 				{
 					"__value": result,
 				},
 			},
-		})
+		}
 	}
 
 	return rowSets, nil
@@ -61,16 +60,16 @@ func (c *Connector) Query(ctx context.Context, configuration *types.Configuratio
 
 // Mutation executes a mutation.
 func (c *Connector) Mutation(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
-	operationResults := make([]schema.MutationOperationResults, 0, len(request.Operations))
+	operationResults := make([]schema.MutationOperationResults, len(request.Operations))
 
-	for _, operation := range request.Operations {
+	for i, operation := range request.Operations {
 		switch operation.Type {
 		case schema.MutationOperationProcedure:
 			result, err := execProcedure(ctx, state, &operation)
 			if err != nil {
 				return nil, err
 			}
-			operationResults = append(operationResults, result)
+			operationResults[i] = result
 		default:
 			return nil, schema.BadRequestError(fmt.Sprintf("invalid operation type: %s", operation.Type), nil)
 		}
