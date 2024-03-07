@@ -62,9 +62,8 @@ type CreateArticleArguments struct {
 }
 
 type Author struct {
-	ID        string        `json:"id"`
-	Duration  time.Duration `json:"duration"`
-	CreatedAt time.Time     `json:"created_at"`
+	ID        string    `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type CreateArticleResult struct {

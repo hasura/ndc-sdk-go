@@ -21,10 +21,11 @@ import (
 var (
 	newLinesRegexp = regexp.MustCompile(`\n(\s|\t)*\n`)
 	tabRegexp      = regexp.MustCompile(`\t`)
+	spacesRegexp   = regexp.MustCompile(`\n\s+`)
 )
 
 func formatTextContent(input string) string {
-	return tabRegexp.ReplaceAllString(newLinesRegexp.ReplaceAllString(input, "\n"), "  ")
+	return spacesRegexp.ReplaceAllString(tabRegexp.ReplaceAllString(newLinesRegexp.ReplaceAllString(input, "\n"), "  "), "\n")
 }
 
 func TestConnectorGeneration(t *testing.T) {
