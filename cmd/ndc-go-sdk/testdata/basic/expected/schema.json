@@ -63,21 +63,6 @@
             }
           }
         },
-        "Duration": {
-          "type": {
-            "name": "Duration",
-            "type": "named"
-          }
-        },
-        "DurationPtr": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": {
-              "name": "Duration",
-              "type": "named"
-            }
-          }
-        },
         "Float32": {
           "type": {
             "name": "Float",
@@ -389,12 +374,6 @@
             "type": "named"
           }
         },
-        "duration": {
-          "type": {
-            "name": "Duration",
-            "type": "named"
-          }
-        },
         "id": {
           "type": {
             "name": "String",
@@ -526,21 +505,6 @@
             "type": "nullable",
             "underlying_type": {
               "name": "CommentString",
-              "type": "named"
-            }
-          }
-        },
-        "Duration": {
-          "type": {
-            "name": "Duration",
-            "type": "named"
-          }
-        },
-        "DurationPtr": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": {
-              "name": "Duration",
               "type": "named"
             }
           }
@@ -969,10 +933,6 @@
       "comparison_operators": {}
     },
     "DateTime": {
-      "aggregate_functions": {},
-      "comparison_operators": {}
-    },
-    "Duration": {
       "aggregate_functions": {},
       "comparison_operators": {}
     },

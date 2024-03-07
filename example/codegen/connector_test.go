@@ -116,6 +116,10 @@ func TestQueryGetTypes(t *testing.T) {
 							"type": "literal",
 							"value": "10s"
 						},
+						"Text": {
+							"type": "literal",
+							"value": "text"
+						},
 						"CustomScalar": {
 							"type": "literal",
 							"value": "a comment"
@@ -189,6 +193,10 @@ func TestQueryGetTypes(t *testing.T) {
 							"type": "literal",
 							"value": "1m"
 						},
+						"TextPtr": {
+							"type": "literal",
+							"value": "text pointer"
+						},
 						"CustomScalarPtr": {
 							"type": "literal",
 							"value": "a comment pointer"
@@ -240,6 +248,10 @@ func TestQueryGetTypes(t *testing.T) {
 								"duration":  12,
 								"created_at": "2024-03-05T03:00:00Z"
 							}]
+						},
+						"UUIDArray": {
+							"type": "literal",
+							"value": ["b085b0b9-007c-440e-9661-0d8f2de98a5a", "b085b0b9-007c-440e-9661-0d8f2de98a5b"]
 						}
 				},
 				"query": {
@@ -311,6 +323,10 @@ func TestQueryGetTypes(t *testing.T) {
 								"Duration": {
 										"type": "column",
 										"column": "Duration"
+								},
+								"Text": {
+									"type": "column",
+									"column": "Text"
 								},
 								"CustomScalar": {
 									"type": "column",
@@ -384,6 +400,10 @@ func TestQueryGetTypes(t *testing.T) {
 										"type": "column",
 										"column": "DurationPtr"
 								},
+								"TextPtr": {
+									"type": "column",
+									"column": "TextPtr"
+								},
 								"CustomScalarPtr": {
 									"type": "column",
 									"column": "CustomScalarPtr"
@@ -415,6 +435,10 @@ func TestQueryGetTypes(t *testing.T) {
 								"NamedArray": {
 									"type": "column",
 									"column": "NamedArray"
+								},
+								"UUIDArray": {
+									"type": "column",
+									"column": "UUIDArray"
 								}
 						}
 				},
@@ -437,7 +461,7 @@ func TestQueryGetTypes(t *testing.T) {
 				Float32:         1.1,
 				Float64:         2.2,
 				Time:            time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC),
-				Duration:        10 * time.Second,
+				Text:            "text",
 				CustomScalar:    commentText,
 				UUIDPtr:         utils.ToPtr(uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5b")),
 				BoolPtr:         utils.ToPtr(true),
@@ -455,7 +479,7 @@ func TestQueryGetTypes(t *testing.T) {
 				Float32Ptr:      utils.ToPtr(float32(3.3)),
 				Float64Ptr:      utils.ToPtr(float64(4.4)),
 				TimePtr:         utils.ToPtr(time.Date(2024, 3, 5, 7, 0, 0, 0, time.UTC)),
-				DurationPtr:     utils.ToPtr(time.Minute),
+				TextPtr:         utils.ToPtr(functions.Text("text pointer")),
 				CustomScalarPtr: &commentTextPtr,
 				Object: struct {
 					ID        uuid.UUID `json:"id"`
@@ -487,20 +511,21 @@ func TestQueryGetTypes(t *testing.T) {
 				},
 				NamedObject: functions.Author{
 					ID:        "1",
-					Duration:  10,
 					CreatedAt: time.Date(2024, 3, 5, 5, 0, 0, 0, time.UTC),
 				},
 				NamedObjectPtr: &functions.Author{
 					ID:        "2",
-					Duration:  11,
 					CreatedAt: time.Date(2024, 3, 5, 4, 0, 0, 0, time.UTC),
 				},
 				NamedArray: []functions.Author{
 					{
 						ID:        "3",
-						Duration:  12,
 						CreatedAt: time.Date(2024, 3, 5, 3, 0, 0, 0, time.UTC),
 					},
+				},
+				UUIDArray: []uuid.UUID{
+					uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5a"),
+					uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5b"),
 				},
 			},
 		},
