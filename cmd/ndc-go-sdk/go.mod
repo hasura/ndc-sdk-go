@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/alecthomas/kong v0.8.1
 	github.com/fatih/structtag v1.2.0
-	github.com/hasura/ndc-sdk-go v0.1.0
+	github.com/hasura/ndc-sdk-go v0.1.1
 	github.com/rs/zerolog v1.32.0
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/mod v0.15.0
