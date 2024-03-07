@@ -30,26 +30,29 @@ func (c *Connector) GetSchema(configuration *types.Configuration) (*schema.Schem
 
 // Query executes a query.
 func (c *Connector) Query(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.QueryRequest) (schema.QueryResponse, error) {
+	valueField, err := utils.EvalFunctionSelectionFieldValue(request)
+	if err != nil {
+		return nil, schema.BadRequestError(err.Error(), nil)
+	}
 	requestVars := request.Variables
 	if len(requestVars) == 0 {
 		requestVars = []schema.QueryRequestVariablesElem{make(schema.QueryRequestVariablesElem)}
 	}
 
-	var rowSets []schema.RowSet
-
-	for _, requestVar := range requestVars {
-		result, err := execQuery(ctx, state, request, requestVar)
+	rowSets := make([]schema.RowSet, len(requestVars))
+	for i, requestVar := range requestVars {
+		result, err := execQuery(ctx, state, request, valueField, requestVar)
 		if err != nil {
 			return nil, err
 		}
-		rowSets = append(rowSets, schema.RowSet{
+		rowSets[i] = schema.RowSet{
 			Aggregates: schema.RowSetAggregates{},
 			Rows: []map[string]any{
 				{
 					"__value": result,
 				},
 			},
-		})
+		}
 	}
 
 	return rowSets, nil
@@ -57,16 +60,16 @@ func (c *Connector) Query(ctx context.Context, configuration *types.Configuratio
 
 // Mutation executes a mutation.
 func (c *Connector) Mutation(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
-	operationResults := make([]schema.MutationOperationResults, 0, len(request.Operations))
+	operationResults := make([]schema.MutationOperationResults, len(request.Operations))
 
-	for _, operation := range request.Operations {
+	for i, operation := range request.Operations {
 		switch operation.Type {
 		case schema.MutationOperationProcedure:
 			result, err := execProcedure(ctx, state, &operation)
 			if err != nil {
 				return nil, err
 			}
-			operationResults = append(operationResults, result)
+			operationResults[i] = result
 		default:
 			return nil, schema.BadRequestError(fmt.Sprintf("invalid operation type: %s", operation.Type), nil)
 		}
@@ -77,15 +80,21 @@ func (c *Connector) Mutation(ctx context.Context, configuration *types.Configura
 	}, nil
 }
 
-func execQuery(ctx context.Context, state *types.State, request *schema.QueryRequest, variables map[string]any) (any, error) {
+func execQuery(ctx context.Context, state *types.State, request *schema.QueryRequest, queryFields schema.NestedField, variables map[string]any) (any, error) {
 
 	switch request.Collection {
 	case "getBool":
-		if len(request.Query.Fields) > 0 {
+		if len(queryFields) > 0 {
 			return nil, schema.BadRequestError("cannot evaluate selection fields for scalar", nil)
 		}
 		return functions.FunctionGetBool(ctx, state)
 	case "getTypes":
+		selection, err := queryFields.AsObject()
+		if err != nil {
+			return nil, schema.BadRequestError("the selection field type must be object", map[string]any{
+				"cause": err.Error(),
+			})
+		}
 		rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
 		if err != nil {
 			return nil, schema.BadRequestError("failed to resolve argument variables", map[string]any{
@@ -108,12 +117,18 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 			return nil, nil
 		}
 
-		result, err := utils.EncodeObjectWithColumnSelection(request.Query.Fields, rawResult)
+		result, err := utils.EvalNestedColumnObject(selection, rawResult)
 		if err != nil {
 			return nil, err
 		}
 		return result, nil
 	case "hello":
+		selection, err := queryFields.AsObject()
+		if err != nil {
+			return nil, schema.BadRequestError("the selection field type must be object", map[string]any{
+				"cause": err.Error(),
+			})
+		}
 		rawResult, err := functions.FunctionHello(ctx, state)
 		if err != nil {
 			return nil, err
@@ -123,12 +138,18 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 			return nil, nil
 		}
 
-		result, err := utils.EncodeObjectWithColumnSelection(request.Query.Fields, rawResult)
+		result, err := utils.EvalNestedColumnObject(selection, rawResult)
 		if err != nil {
 			return nil, err
 		}
 		return result, nil
 	case "getArticles":
+		selection, err := queryFields.AsArray()
+		if err != nil {
+			return nil, schema.BadRequestError("the selection field type must be array", map[string]any{
+				"cause": err.Error(),
+			})
+		}
 		rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
 		if err != nil {
 			return nil, schema.BadRequestError("failed to resolve argument variables", map[string]any{
@@ -151,7 +172,7 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 			return nil, schema.BadRequestError("expected not null result", nil)
 		}
 
-		result, err := utils.EncodeObjectsWithColumnSelection(request.Query.Fields, rawResult)
+		result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)
 		if err != nil {
 			return nil, err
 		}
