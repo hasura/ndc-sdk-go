@@ -126,7 +126,7 @@ func (mc *Connector) GetCapabilities(configuration *Configuration) *schema.Capab
 	}
 }
 
-func (mc *Connector) GetSchema(configuration *Configuration) (*schema.SchemaResponse, error) {
+func (mc *Connector) GetSchema(configuration *Configuration, state *State) (*schema.SchemaResponse, error) {
 	return &schema.SchemaResponse{
 		ScalarTypes: schema.SchemaResponseScalarTypes{
 			"Int": schema.ScalarType{
