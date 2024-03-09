@@ -48,7 +48,7 @@ type Connector[Configuration any, State any] interface {
 	// This function implements the [schema endpoint] from the NDC specification.
 	//
 	// [schema endpoint]: https://hasura.github.io/ndc-spec/specification/schema/index.html
-	GetSchema(configuration *Configuration) (*schema.SchemaResponse, error)
+	GetSchema(configuration *Configuration, state *State) (*schema.SchemaResponse, error)
 
 	// QueryExplain explains a query by creating an execution plan.
 	// This function implements the [explain endpoint] from the NDC specification.

@@ -142,7 +142,7 @@ func (s *Server[Configuration, State]) Health(w http.ResponseWriter, r *http.Req
 // GetSchema implements a handler for the /schema endpoint, GET method.
 func (s *Server[Configuration, State]) GetSchema(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r.Context())
-	schemaResult, err := s.connector.GetSchema(s.configuration)
+	schemaResult, err := s.connector.GetSchema(s.configuration, s.state)
 	if err != nil {
 		writeError(w, logger, err)
 		return
