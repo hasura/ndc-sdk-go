@@ -128,7 +128,7 @@ func (mc *mockConnector) GetCapabilities(configuration *mockConfiguration) *sche
 	return &mockCapabilities
 }
 
-func (mc *mockConnector) GetSchema(configuration *mockConfiguration) (*schema.SchemaResponse, error) {
+func (mc *mockConnector) GetSchema(configuration *mockConfiguration, state *mockState) (*schema.SchemaResponse, error) {
 	return &mockSchema, nil
 }
 func (mc *mockConnector) QueryExplain(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.QueryRequest) (*schema.ExplainResponse, error) {

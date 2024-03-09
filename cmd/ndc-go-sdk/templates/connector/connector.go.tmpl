@@ -24,7 +24,7 @@ func init() {
 }
 
 // GetSchema gets the connector's schema.
-func (c *Connector) GetSchema(configuration *types.Configuration) (*schema.SchemaResponse, error) {
+func (c *Connector) GetSchema(configuration *types.Configuration, state *types.State) (*schema.SchemaResponse, error) {
   return &schemaResponse, nil
 }
 
