@@ -13,7 +13,7 @@ type Connector struct{}
 
 // ParseConfiguration validates the configuration files provided by the user, returning a validated 'Configuration',
 // or throwing an error to prevents Connector startup.
-func (connector *Connector) ParseConfiguration(configurationDir string) (*types.Configuration, error) {
+func (connector *Connector) ParseConfiguration(ctx context.Context, configurationDir string) (*types.Configuration, error) {
 	return &types.Configuration{}, nil
 }
 
@@ -24,7 +24,7 @@ func (connector *Connector) ParseConfiguration(configurationDir string) (*types.
 //
 // In addition, this function should register any
 // connector-specific metrics with the metrics registry.
-func (connector *Connector) TryInitState(configuration *types.Configuration, metrics *connector.TelemetryState) (*types.State, error) {
+func (connector *Connector) TryInitState(ctx context.Context, configuration *types.Configuration, metrics *connector.TelemetryState) (*types.State, error) {
 	return &types.State{}, nil
 }
 

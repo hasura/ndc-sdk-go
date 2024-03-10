@@ -15,7 +15,7 @@ type Connector[Configuration any, State any] interface {
 
 	// ParseConfiguration validates the configuration files provided by the user, returning a validated 'Configuration',
 	// or throwing an error to prevents Connector startup.
-	ParseConfiguration(configurationDir string) (*Configuration, error)
+	ParseConfiguration(ctx context.Context, configurationDir string) (*Configuration, error)
 
 	// TryInitState initializes the connector's in-memory state.
 	//
@@ -24,7 +24,7 @@ type Connector[Configuration any, State any] interface {
 	//
 	// In addition, this function should register any
 	// connector-specific metrics with the metrics registry.
-	TryInitState(configuration *Configuration, metrics *TelemetryState) (*State, error)
+	TryInitState(ctx context.Context, configuration *Configuration, metrics *TelemetryState) (*State, error)
 
 	// HealthCheck checks the health of the connector.
 	//
@@ -48,7 +48,7 @@ type Connector[Configuration any, State any] interface {
 	// This function implements the [schema endpoint] from the NDC specification.
 	//
 	// [schema endpoint]: https://hasura.github.io/ndc-spec/specification/schema/index.html
-	GetSchema(configuration *Configuration, state *State) (*schema.SchemaResponse, error)
+	GetSchema(ctx context.Context, configuration *Configuration, state *State) (*schema.SchemaResponse, error)
 
 	// QueryExplain explains a query by creating an execution plan.
 	// This function implements the [explain endpoint] from the NDC specification.

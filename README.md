@@ -79,6 +79,25 @@ Other configurations are inherited from the [OpenTelemetry Go SDK](https://githu
 
 Prometheus metrics are exported via the `/metrics` endpoint.
 
+## Customize the CLI
+
+The SDK uses [Kong](https://github.com/alecthomas/kong), a lightweight command-line parser to implement the CLI interface.
+
+The default CLI already implements the `serve` command, so you don't need to do anything. However, it's also easy to extend if you want to add more custom commands.
+
+The SDK abstracts an interface for the CLI that requires embedding the base `ServeCLI` command and can execute other commands.
+
+```go
+type ConnectorCLI interface {
+	GetServeCLI() *ServeCLI
+	Execute(ctx context.Context, command string) error
+}
+```
+
+And use the `StartCustom` function to start the CLI.
+
+See the [custom CLI example](./example/reference/main.go) in the reference connector.
+
 ## Regenerating Schema Types
 
 The NDC spec types are borrowed from ndc-sdk-typescript that are generated from the NDC Spec Rust types.
