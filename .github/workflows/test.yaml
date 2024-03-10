@@ -45,7 +45,7 @@ jobs:
           only-new-issues: true
           skip-cache: true
       - name: Run Go unit tests for the SDK
-        run: | 
+        run: |
           rm cmd/ndc-go-sdk/go.mod
           rm cmd/ndc-go-sdk/go.sum
           go mod tidy
@@ -73,7 +73,7 @@ jobs:
           hide_complexity: true
           indicators: true
           output: both
-          thresholds: "20 70"
+          thresholds: "50 70"
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
         if: ${{ github.event_name == 'pull_request' }}
