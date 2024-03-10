@@ -72,10 +72,10 @@ func (s *State) GetLatestArticle() *Article {
 
 type Connector struct{}
 
-func (mc *Connector) ParseConfiguration(rawConfiguration string) (*Configuration, error) {
+func (mc *Connector) ParseConfiguration(ctx context.Context, rawConfiguration string) (*Configuration, error) {
 	return &Configuration{}, nil
 }
-func (mc *Connector) TryInitState(configuration *Configuration, metrics *connector.TelemetryState) (*State, error) {
+func (mc *Connector) TryInitState(ctx context.Context, configuration *Configuration, metrics *connector.TelemetryState) (*State, error) {
 	articles, err := readArticles()
 
 	if err != nil {
@@ -126,7 +126,7 @@ func (mc *Connector) GetCapabilities(configuration *Configuration) *schema.Capab
 	}
 }
 
-func (mc *Connector) GetSchema(configuration *Configuration, state *State) (*schema.SchemaResponse, error) {
+func (mc *Connector) GetSchema(ctx context.Context, configuration *Configuration, state *State) (*schema.SchemaResponse, error) {
 	return &schema.SchemaResponse{
 		ScalarTypes: schema.SchemaResponseScalarTypes{
 			"Int": schema.ScalarType{

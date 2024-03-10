@@ -111,12 +111,12 @@ var mockSchema = schema.SchemaResponse{
 	},
 }
 
-func (mc *mockConnector) ParseConfiguration(configurationDir string) (*mockConfiguration, error) {
+func (mc *mockConnector) ParseConfiguration(ctx context.Context, configurationDir string) (*mockConfiguration, error) {
 	return &mockConfiguration{
 		Version: 1,
 	}, nil
 }
-func (mc *mockConnector) TryInitState(configuration *mockConfiguration, metrics *TelemetryState) (*mockState, error) {
+func (mc *mockConnector) TryInitState(ctx context.Context, configuration *mockConfiguration, metrics *TelemetryState) (*mockState, error) {
 	return &mockState{}, nil
 }
 
@@ -128,7 +128,7 @@ func (mc *mockConnector) GetCapabilities(configuration *mockConfiguration) *sche
 	return &mockCapabilities
 }
 
-func (mc *mockConnector) GetSchema(configuration *mockConfiguration, state *mockState) (*schema.SchemaResponse, error) {
+func (mc *mockConnector) GetSchema(ctx context.Context, configuration *mockConfiguration, state *mockState) (*schema.SchemaResponse, error) {
 	return &mockSchema, nil
 }
 func (mc *mockConnector) QueryExplain(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.QueryRequest) (*schema.ExplainResponse, error) {
