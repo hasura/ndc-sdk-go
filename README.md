@@ -89,6 +89,25 @@ Prometheus metrics are exported via the `/metrics` endpoint.
 
 NDC Go SDK uses the standard [log/slog](https://pkg.go.dev/log/slog) that provides highly customizable and structured logging. By default, the logger is printed in JSON format and configurable level with `--log-level` (HASURA_LOG_LEVEL) flag. You also can replace it with different logging libraries that can wrap the `slog.Handler` interface, and set the logger with the `WithLogger` or `WithLoggerFunc` option.
 
+## Customize the CLI
+
+The SDK uses [Kong](https://github.com/alecthomas/kong), a lightweight command-line parser to implement the CLI interface.
+
+The default CLI already implements the `serve` command, so you don't need to do anything. However, it's also easy to extend if you want to add more custom commands.
+
+The SDK abstracts an interface for the CLI that requires embedding the base `ServeCLI` command and can execute other commands.
+
+```go
+type ConnectorCLI interface {
+	GetServeCLI() *ServeCLI
+	Execute(ctx context.Context, command string) error
+}
+```
+
+And use the `StartCustom` function to start the CLI.
+
+See the [custom CLI example](./example/reference/main.go) in the reference connector.
+
 ## Regenerating Schema Types
 
 The NDC spec types are borrowed from ndc-sdk-typescript that are generated from the NDC Spec Rust types.
