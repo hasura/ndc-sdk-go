@@ -56,19 +56,6 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 		opts(defaultOptions)
 	}
 
-	configuration, err := connector.ParseConfiguration(options.Configuration)
-	if err != nil {
-		return nil, err
-	}
-
-	state, err := connector.TryInitState(configuration, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	// Handle SIGINT (CTRL+C) gracefully.
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
-
 	defaultOptions.logger.Debug(
 		"initialize OpenTelemetry",
 		slog.String("endpoint", options.OTLPEndpoint),
@@ -78,6 +65,19 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 		slog.String("version", defaultOptions.version),
 		slog.String("metrics_prefix", defaultOptions.metricsPrefix),
 	)
+
+	// Handle SIGINT (CTRL+C) gracefully.
+	ctx, stop := signal.NotifyContext(context.WithValue(context.TODO(), logContextKey, defaultOptions.logger), os.Interrupt)
+
+	configuration, err := connector.ParseConfiguration(ctx, options.Configuration)
+	if err != nil {
+		return nil, err
+	}
+
+	state, err := connector.TryInitState(ctx, configuration, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	if options.ServiceName == "" {
 		options.ServiceName = defaultOptions.serviceName
@@ -144,7 +144,7 @@ func (s *Server[Configuration, State]) Health(w http.ResponseWriter, r *http.Req
 // GetSchema implements a handler for the /schema endpoint, GET method.
 func (s *Server[Configuration, State]) GetSchema(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r.Context())
-	schemaResult, err := s.connector.GetSchema(s.configuration, s.state)
+	schemaResult, err := s.connector.GetSchema(r.Context(), s.configuration, s.state)
 	if err != nil {
 		writeError(w, logger, err)
 		return

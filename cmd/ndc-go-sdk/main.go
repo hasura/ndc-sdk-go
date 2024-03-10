@@ -28,7 +28,7 @@ var cli struct {
 }
 
 func main() {
-	cmd := kong.Parse(&cli)
+	cmd := kong.Parse(&cli, kong.UsageOnError())
 	switch cmd.Command() {
 	case "new":
 		setupGlobalLogger(cli.New.LogLevel)
