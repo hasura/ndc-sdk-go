@@ -27,9 +27,14 @@ func NewRawSchemaResponse(data []byte) (*RawSchemaResponse, error) {
 	if err := json.Unmarshal(data, &resp); err != nil {
 		return nil, fmt.Errorf("failed to validate SchemaResponse from raw input: %s", err)
 	}
+	return NewRawSchemaResponseUnsafe(data), nil
+}
+
+// NewRawSchemaResponse creates a RawSchemaResponse instance from raw bytes without validation
+func NewRawSchemaResponseUnsafe(data []byte) *RawSchemaResponse {
 	return &RawSchemaResponse{
 		data: data,
-	}, nil
+	}
 }
 
 // MarshalSchemaJSON encodes the NDC schema response to JSON
@@ -59,9 +64,14 @@ func NewRawCapabilitiesResponse(data []byte) (*RawCapabilitiesResponse, error) {
 	if err := json.Unmarshal(data, &resp); err != nil {
 		return nil, fmt.Errorf("failed to validate CapabilitiesResponse from raw input: %s", err)
 	}
+	return NewRawCapabilitiesResponseUnsafe(data), nil
+}
+
+// NewRawCapabilitiesResponseUnsafe creates a RawSchemaResponse instance from raw bytes without validation
+func NewRawCapabilitiesResponseUnsafe(data []byte) *RawCapabilitiesResponse {
 	return &RawCapabilitiesResponse{
 		data: data,
-	}, nil
+	}
 }
 
 // MarshalCapabilitiesJSON encodes the NDC schema response to JSON
