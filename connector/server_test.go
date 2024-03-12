@@ -124,12 +124,12 @@ func (mc *mockConnector) HealthCheck(ctx context.Context, configuration *mockCon
 	return nil
 }
 
-func (mc *mockConnector) GetCapabilities(configuration *mockConfiguration) *schema.CapabilitiesResponse {
-	return &mockCapabilities
+func (mc *mockConnector) GetCapabilities(configuration *mockConfiguration) schema.CapabilitiesResponseMarshaler {
+	return mockCapabilities
 }
 
-func (mc *mockConnector) GetSchema(ctx context.Context, configuration *mockConfiguration, state *mockState) (*schema.SchemaResponse, error) {
-	return &mockSchema, nil
+func (mc *mockConnector) GetSchema(ctx context.Context, configuration *mockConfiguration, state *mockState) (schema.SchemaResponseMarshaler, error) {
+	return mockSchema, nil
 }
 func (mc *mockConnector) QueryExplain(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.QueryRequest) (*schema.ExplainResponse, error) {
 	return &schema.ExplainResponse{

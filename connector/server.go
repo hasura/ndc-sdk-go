@@ -124,7 +124,13 @@ func (s *Server[Configuration, State]) withAuth(handler http.HandlerFunc) http.H
 func (s *Server[Configuration, State]) GetCapabilities(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r.Context())
 	capabilities := s.connector.GetCapabilities(s.configuration)
-	writeJson(w, logger, http.StatusOK, capabilities)
+	if capabilities == nil {
+		writeError(w, logger, schema.InternalServerError("capabilities is empty", nil))
+		return
+	}
+	writeJsonFunc(w, logger, http.StatusOK, func() ([]byte, error) {
+		return capabilities.MarshalCapabilitiesJSON()
+	})
 }
 
 // Health checks the health of the connector. Implement a handler for the /health endpoint, GET method.
@@ -146,8 +152,14 @@ func (s *Server[Configuration, State]) GetSchema(w http.ResponseWriter, r *http.
 		writeError(w, logger, err)
 		return
 	}
+	if schemaResult == nil {
+		writeError(w, logger, schema.InternalServerError("schema is empty", nil))
+		return
+	}
 
-	writeJson(w, logger, http.StatusOK, schemaResult)
+	writeJsonFunc(w, logger, http.StatusOK, func() ([]byte, error) {
+		return schemaResult.MarshalSchemaJSON()
+	})
 }
 
 // Query implements a handler for the /query endpoint, POST method that executes a query.
