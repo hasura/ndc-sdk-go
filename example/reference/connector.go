@@ -110,7 +110,7 @@ func (mc *Connector) HealthCheck(ctx context.Context, configuration *Configurati
 	return nil
 }
 
-func (mc *Connector) GetCapabilities(configuration *Configuration) *schema.CapabilitiesResponse {
+func (mc *Connector) GetCapabilities(configuration *Configuration) schema.CapabilitiesResponseMarshaler {
 	return &schema.CapabilitiesResponse{
 		Version: "0.1.0",
 		Capabilities: schema.Capabilities{
@@ -126,7 +126,7 @@ func (mc *Connector) GetCapabilities(configuration *Configuration) *schema.Capab
 	}
 }
 
-func (mc *Connector) GetSchema(ctx context.Context, configuration *Configuration, state *State) (*schema.SchemaResponse, error) {
+func (mc *Connector) GetSchema(ctx context.Context, configuration *Configuration, state *State) (schema.SchemaResponseMarshaler, error) {
 	return &schema.SchemaResponse{
 		ScalarTypes: schema.SchemaResponseScalarTypes{
 			"Int": schema.ScalarType{
