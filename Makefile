@@ -5,7 +5,7 @@ OUTPUT_DIR := _output
 typegen:
 	cd typegen && ./regenerate-schema.sh
 
-.PHONY: typegen
+.PHONY: format
 format:
 	gofmt -w -s .
 
@@ -29,7 +29,7 @@ build-codegen:
 	cd ./cmd/ndc-go-sdk && go build -o ../../_output/hasura-ndc-go .
 	
 # build the build-codegen cli for all given platform/arch
-.PHONY: build-codegen
+.PHONY: ci-build-codegen
 ci-build-codegen: export CGO_ENABLED=0
 ci-build-codegen: clean
 	cd ./cmd/ndc-go-sdk && \

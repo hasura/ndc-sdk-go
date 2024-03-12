@@ -112,7 +112,7 @@ func (mc *Connector) HealthCheck(ctx context.Context, configuration *Configurati
 
 func (mc *Connector) GetCapabilities(configuration *Configuration) *schema.CapabilitiesResponse {
 	return &schema.CapabilitiesResponse{
-		Version: "^0.1.0",
+		Version: "0.1.0",
 		Capabilities: schema.Capabilities{
 			Query: schema.QueryCapabilities{
 				Aggregates: schema.LeafCapability{},
