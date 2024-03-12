@@ -1,51 +1,70 @@
 package schema
 
 import (
-	_ "embed"
 	"encoding/json"
 	"fmt"
-
-	"github.com/swaggest/jsonschema-go"
 )
 
-//go:embed schema.generated.json
-var rawNdcSchema string
-
-var _ndcSchema *jsonschema.Schema
-
-func getNdcSchema() *jsonschema.Schema {
-	if _ndcSchema != nil {
-		return _ndcSchema
-	}
-
-	var inputSchema jsonschema.Schema
-	if err := json.Unmarshal([]byte(rawNdcSchema), &inputSchema); err != nil {
-		panic(fmt.Errorf("failed to decode NDC json schema: %s", err))
-	}
-
-	_ndcSchema = &inputSchema
-
-	return _ndcSchema
+// SchemaResponseMarshaler abstract the response for /schema handler
+type SchemaResponseMarshaler interface {
+	MarshalSchemaJSON() ([]byte, error)
 }
 
-func schemaForType(typeName string) *jsonschema.Schema {
-	ref := fmt.Sprintf("#/definitions/%s", typeName)
-	ndcSchema := getNdcSchema()
-	return &jsonschema.Schema{
-		Schema:      ndcSchema.Schema,
-		Ref:         &ref,
-		Definitions: ndcSchema.Definitions,
-	}
+// MarshalSchemaJSON encodes the NDC schema response to JSON
+func (j SchemaResponse) MarshalSchemaJSON() ([]byte, error) {
+	return json.Marshal(j)
 }
 
-var (
-	CapabilitiesResponseSchema = schemaForType("CapabilitiesResponse")
-	SchemaResponseSchema       = schemaForType("SchemaResponse")
-	QueryRequestSchema         = schemaForType("QueryRequest")
-	QueryResponseSchema        = schemaForType("QueryResponse")
-	ExplainResponseSchema      = schemaForType("ExplainResponse")
-	MutationRequestSchema      = schemaForType("MutationRequest")
-	MutationResponseSchema     = schemaForType("MutationResponse")
-	ErrorResponseSchema        = schemaForType("ErrorResponse")
-	ValidateResponseSchema     = schemaForType("ValidateResponse")
-)
+// RawSchemaResponse represents a NDC schema response with pre-encoded raw bytes
+type RawSchemaResponse struct {
+	data []byte
+}
+
+// NewRawSchemaResponse creates and validate a RawSchemaResponse instance
+func NewRawSchemaResponse(data []byte) (*RawSchemaResponse, error) {
+	// try to decode the response to ensure type-safe
+	var resp SchemaResponse
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return nil, fmt.Errorf("failed to validate SchemaResponse from raw input: %s", err)
+	}
+	return &RawSchemaResponse{
+		data: data,
+	}, nil
+}
+
+// MarshalSchemaJSON encodes the NDC schema response to JSON
+func (j RawSchemaResponse) MarshalSchemaJSON() ([]byte, error) {
+	return j.data, nil
+}
+
+// CapabilitiesResponseMarshaler abstract the response for /capabilities handler
+type CapabilitiesResponseMarshaler interface {
+	MarshalCapabilitiesJSON() ([]byte, error)
+}
+
+// MarshalCapabilitiesJSON encodes the NDC schema response to JSON
+func (j CapabilitiesResponse) MarshalCapabilitiesJSON() ([]byte, error) {
+	return json.Marshal(j)
+}
+
+// RawCapabilitiesResponse represents a NDC capabilities response with pre-encoded raw bytes
+type RawCapabilitiesResponse struct {
+	data []byte
+}
+
+// NewRawCapabilitiesResponse creates and validate a RawSchemaResponse instance
+func NewRawCapabilitiesResponse(data []byte) (*RawCapabilitiesResponse, error) {
+	// try to decode the response to ensure type-safe
+	var resp CapabilitiesResponse
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return nil, fmt.Errorf("failed to validate CapabilitiesResponse from raw input: %s", err)
+	}
+	return &RawCapabilitiesResponse{
+		data: data,
+	}, nil
+}
+
+// MarshalCapabilitiesJSON encodes the NDC schema response to JSON
+func (j RawCapabilitiesResponse) MarshalCapabilitiesJSON() ([]byte, error) {
+	return j.data, nil
+}

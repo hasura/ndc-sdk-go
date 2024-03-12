@@ -7,7 +7,6 @@ require (
 	github.com/go-logr/logr v1.4.1
 	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1
 	github.com/prometheus/client_golang v1.19.0
-	github.com/swaggest/jsonschema-go v0.3.66
 	go.opentelemetry.io/otel v1.24.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.24.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.24.0
@@ -31,7 +30,6 @@ require (
 	github.com/prometheus/client_model v0.6.0 // indirect
 	github.com/prometheus/common v0.49.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
-	github.com/swaggest/refl v1.3.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.1.0 // indirect
 	golang.org/x/net v0.22.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect

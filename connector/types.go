@@ -40,14 +40,14 @@ type Connector[Configuration any, State any] interface {
 	// This function should be synchronous.
 	//
 	// [capabilities endpoint]: https://hasura.github.io/ndc-spec/specification/capabilities.html
-	GetCapabilities(configuration *Configuration) *schema.CapabilitiesResponse
+	GetCapabilities(configuration *Configuration) schema.CapabilitiesResponseMarshaler
 
 	// GetSchema gets the connector's schema.
 	//
 	// This function implements the [schema endpoint] from the NDC specification.
 	//
 	// [schema endpoint]: https://hasura.github.io/ndc-spec/specification/schema/index.html
-	GetSchema(ctx context.Context, configuration *Configuration, state *State) (*schema.SchemaResponse, error)
+	GetSchema(ctx context.Context, configuration *Configuration, state *State) (schema.SchemaResponseMarshaler, error)
 
 	// QueryExplain explains a query by creating an execution plan.
 	// This function implements the [explain endpoint] from the NDC specification.

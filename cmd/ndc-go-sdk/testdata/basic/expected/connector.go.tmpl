@@ -12,15 +12,18 @@ import (
 )
 //go:embed schema.generated.json
 var rawSchema []byte
-var schemaResponse schema.SchemaResponse
+var schemaResponse *schema.RawSchemaResponse
+
 func init() {
-  if err := json.Unmarshal(rawSchema, &schemaResponse); err != nil {
-    panic(fmt.Errorf("failed to decode schema: %s", err))
-  }
+	var err error
+	schemaResponse, err = schema.NewRawSchemaResponse(rawSchema)
+	if err != nil {
+		panic(err)
+	}
 }
 // GetSchema gets the connector's schema.
-func (c *Connector) GetSchema(ctx context.Context, configuration *types.Configuration, _ *types.State) (*schema.SchemaResponse, error) {
-  return &schemaResponse, nil
+func (c *Connector) GetSchema(ctx context.Context, configuration *types.Configuration, _ *types.State) (schema.SchemaResponseMarshaler, error) {
+	return schemaResponse, nil
 }
 // Query executes a query.
 func (c *Connector) Query(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.QueryRequest) (schema.QueryResponse, error) {

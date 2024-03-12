@@ -8,6 +8,16 @@ import (
 	"{{.Module}}/types"
 )
 
+var connectorCapabilities = schema.CapabilitiesResponse{
+	Version: "0.1.0",
+	Capabilities: schema.Capabilities{
+		Query: schema.QueryCapabilities{
+			Variables: schema.LeafCapability{},
+		},
+		Mutation: schema.MutationCapabilities{},
+	},
+}
+
 // Connector implements the SDK interface of NDC specification 
 type Connector struct{}
 
@@ -39,16 +49,8 @@ func (mc *Connector) HealthCheck(ctx context.Context, configuration *types.Confi
 }
 
 // GetCapabilities get the connector's capabilities.
-func (mc *Connector) GetCapabilities(configuration *types.Configuration) *schema.CapabilitiesResponse {
-	return &schema.CapabilitiesResponse{
-		Version: "0.1.0",
-		Capabilities: schema.Capabilities{
-			Query: schema.QueryCapabilities{
-				Variables: schema.LeafCapability{},
-			},
-			Mutation: schema.MutationCapabilities{},
-		},
-	}
+func (mc *Connector) GetCapabilities(configuration *types.Configuration) schema.CapabilitiesResponseMarshaler {
+	return &connectorCapabilities
 }
 
 // QueryExplain explains a query by creating an execution plan.
