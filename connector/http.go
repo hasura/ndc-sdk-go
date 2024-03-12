@@ -206,15 +206,10 @@ func getRequestID(r *http.Request) string {
 	return requestID
 }
 
-// writeJson writes response data with json encode
-func writeJson(w http.ResponseWriter, logger zerolog.Logger, statusCode int, body any) {
-	if body == nil {
-		w.WriteHeader(statusCode)
-		return
-	}
-
+// writeJsonFunc writes raw bytes data with a json encoding callback
+func writeJsonFunc(w http.ResponseWriter, logger zerolog.Logger, statusCode int, encodeFunc func() ([]byte, error)) {
 	w.Header().Set(headerContentType, contentTypeJson)
-	jsonBytes, err := json.Marshal(body)
+	jsonBytes, err := encodeFunc()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		if _, err := w.Write([]byte(fmt.Sprintf(`{"message": "%s"}`, http.StatusText(http.StatusInternalServerError)))); err != nil {
@@ -226,6 +221,18 @@ func writeJson(w http.ResponseWriter, logger zerolog.Logger, statusCode int, bod
 	if _, err := w.Write(jsonBytes); err != nil {
 		logger.Error().Err(err).Msg("failed to write response")
 	}
+}
+
+// writeJson writes response data with json encode
+func writeJson(w http.ResponseWriter, logger zerolog.Logger, statusCode int, body any) {
+	if body == nil {
+		w.WriteHeader(statusCode)
+		return
+	}
+
+	writeJsonFunc(w, logger, statusCode, func() ([]byte, error) {
+		return json.Marshal(body)
+	})
 }
 
 // GetLogger gets the logger instance from context
