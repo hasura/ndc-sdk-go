@@ -357,7 +357,7 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
+		assertHTTPResponse(t, res, http.StatusUnprocessableEntity, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": "json: cannot unmarshal string into Go value of type map[string]interface {}",
@@ -410,7 +410,7 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
+		assertHTTPResponse(t, res, http.StatusUnprocessableEntity, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": "json: cannot unmarshal string into Go value of type map[string]interface {}",
@@ -461,7 +461,7 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
+		assertHTTPResponse(t, res, http.StatusUnprocessableEntity, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": "field arguments in QueryRequest: required",
@@ -489,7 +489,7 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
-		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
+		assertHTTPResponse(t, res, http.StatusUnprocessableEntity, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": "field collection_relationships in MutationRequest: required",

@@ -77,11 +77,11 @@ func encodeObject(input any) (map[string]any, error) {
 	case MapEncoder:
 		return value.ToMap(), nil
 	case Scalar:
-		return nil, schema.BadRequestError("cannot encode scalar to object", map[string]any{
+		return nil, schema.UnprocessableContentError("cannot encode scalar to object", map[string]any{
 			"value": input,
 		})
 	case bool, string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128, time.Time, time.Duration, time.Ticker, *bool, *string, *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64, *float32, *float64, *complex64, *complex128, *time.Time, *time.Duration, *time.Ticker, []bool, []string, []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64, []float32, []float64, []complex64, []complex128, []time.Time, []time.Duration, []time.Ticker:
-		return nil, schema.BadRequestError("failed to encode object", map[string]any{
+		return nil, schema.UnprocessableContentError("failed to encode object", map[string]any{
 			"value": input,
 		})
 	default:
@@ -93,7 +93,7 @@ func encodeObject(input any) (map[string]any, error) {
 		case reflect.Struct:
 			return encodeStruct(inputValue), nil
 		default:
-			return nil, schema.BadRequestError(fmt.Sprintf("failed to encode object, got %s", kind.String()), map[string]any{
+			return nil, schema.UnprocessableContentError(fmt.Sprintf("failed to encode object, got %s", kind.String()), map[string]any{
 				"value": input,
 			})
 		}
@@ -175,7 +175,7 @@ func EncodeObjects(input any) ([]map[string]any, error) {
 	}
 	inputValue := reflect.ValueOf(input)
 	if inputValue.Kind() != reflect.Array && inputValue.Kind() != reflect.Slice {
-		return nil, schema.BadRequestError("failed to encode array objects", map[string]any{
+		return nil, schema.UnprocessableContentError("failed to encode array objects", map[string]any{
 			"value": input,
 		})
 	}

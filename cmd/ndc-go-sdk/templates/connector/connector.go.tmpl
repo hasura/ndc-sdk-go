@@ -34,7 +34,7 @@ func (c *Connector) GetSchema(ctx context.Context, configuration *types.Configur
 func (c *Connector) Query(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.QueryRequest) (schema.QueryResponse, error) {
   valueField, err := utils.EvalFunctionSelectionFieldValue(request)
   if err != nil {
- 		return nil, schema.BadRequestError(err.Error(), nil)
+ 		return nil, schema.UnprocessableContentError(err.Error(), nil)
   }
   requestVars := request.Variables
   if len(requestVars) == 0 {
@@ -73,7 +73,7 @@ func (c *Connector) Mutation(ctx context.Context, configuration *types.Configura
       }
       operationResults[i] = result
     default:
-      return nil, schema.BadRequestError(fmt.Sprintf("invalid operation type: %s", operation.Type), nil)
+      return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid operation type: %s", operation.Type), nil)
     }
   }
 
@@ -87,7 +87,7 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
   switch request.Collection {
 {{.Queries}}
   default:
-    return nil, schema.BadRequestError(fmt.Sprintf("unsupported query: %s", request.Collection), nil)
+    return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported query: %s", request.Collection), nil)
   }
 }
 
@@ -97,7 +97,7 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
   switch operation.Name {
 {{.Procedures}}
   default:
-    return nil, schema.BadRequestError(fmt.Sprintf("unsupported procedure operation: %s", operation.Name), nil)
+    return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported procedure operation: %s", operation.Name), nil)
   }
 
   return schema.NewProcedureResult(result).Encode(), nil

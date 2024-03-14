@@ -354,7 +354,7 @@ func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, 
 	_, decodeSpan := s.telemetry.Tracer.Start(ctx, "ndc_decode_json")
 	defer decodeSpan.End()
 	if err := json.NewDecoder(r.Body).Decode(body); err != nil {
-		writeJson(w, GetLogger(r.Context()), http.StatusBadRequest, schema.ErrorResponse{
+		writeJson(w, GetLogger(r.Context()), http.StatusUnprocessableEntity, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": err.Error(),
@@ -363,9 +363,13 @@ func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, 
 
 		attributes := []attribute.KeyValue{
 			failureStatusAttribute,
-			httpStatusAttribute(http.StatusBadRequest),
+			httpStatusAttribute(http.StatusUnprocessableEntity),
 		}
-		span.SetAttributes(append(attributes, attribute.String("status", "json_decode"))...)
+		span.SetAttributes(append(
+			attributes,
+			attribute.String("status", "json_decode"),
+			attribute.String("reason", err.Error()),
+		)...)
 		counter.Add(r.Context(), 1, metric.WithAttributes(attributes...))
 		return err
 	}
