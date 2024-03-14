@@ -72,8 +72,8 @@ type OTLPConfig struct {
 	OtlpTracesProtocol     string `help:"OpenTelemetry receiver protocol for traces." env:"OTEL_EXPORTER_OTLP_TRACES_PROTOCOL"`
 	OtlpMetricsProtocol    string `help:"OpenTelemetry receiver protocol for metrics." env:"OTEL_EXPORTER_OTLP_METRICS_PROTOCOL"`
 	OtlpCompression        string `help:"Enable compression for OTLP exporters. Accept: none, gzip" env:"OTEL_EXPORTER_OTLP_COMPRESSION" default:"gzip"`
-	OtlpTraceCompression   string `help:"Enable compression for OTLP traces exporter. Accept: none, gzip" env:"OTEL_EXPORTER_OTLP_TRACES_COMPRESSION" default:"gzip"`
-	OtlpMetricsCompression string `help:"Enable compression for OTLP metrics exporter. Accept: none, gzip." env:"OTEL_EXPORTER_OTLP_METRICS_COMPRESSION" default:"gzip"`
+	OtlpTraceCompression   string `help:"Enable compression for OTLP traces exporter. Accept: none, gzip" env:"OTEL_EXPORTER_OTLP_TRACES_COMPRESSION"`
+	OtlpMetricsCompression string `help:"Enable compression for OTLP metrics exporter. Accept: none, gzip." env:"OTEL_EXPORTER_OTLP_METRICS_COMPRESSION"`
 
 	MetricsExporter string `help:"Metrics export type. Accept: none, otlp, prometheus." env:"OTEL_METRICS_EXPORTER" default:"none"`
 	PrometheusPort  *uint  `help:"Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty" env:"OTEL_EXPORTER_PROMETHEUS_PORT"`
@@ -167,6 +167,7 @@ func setupOTelSDK(ctx context.Context, config *OTLPConfig, serviceVersion, metri
 	}
 	otel.SetTracerProvider(traceProvider)
 
+	// configure metrics exporter
 	metricsExporterType, err := parseOTELMetricsExporterType(config.MetricsExporter)
 	if err != nil {
 		return nil, err
@@ -198,12 +199,12 @@ func setupOTelSDK(ctx context.Context, config *OTLPConfig, serviceVersion, metri
 			utils.GetDefaultPtr(config.OtlpMetricsInsecure, config.OtlpInsecure),
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse OTLP traces endpoint: %s", err)
+			return nil, fmt.Errorf("failed to parse OTLP metrics endpoint: %s", err)
 		}
 
 		compressorStr, compressorInt, err := parseOTLPCompression(utils.GetDefault(config.OtlpMetricsCompression, config.OtlpCompression))
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse OTLP traces compression: %s", err)
+			return nil, fmt.Errorf("failed to parse OTLP metrics compression: %s", err)
 		}
 
 		if protocol == otlpProtocolGRPC {

@@ -386,7 +386,7 @@ func (s *Server[Configuration, State]) buildHandler() *http.ServeMux {
 	router.Use("/mutation/explain", http.MethodPost, s.withAuth(s.MutationExplain))
 	router.Use("/mutation", http.MethodPost, s.withAuth(s.Mutation))
 	router.Use("/health", http.MethodGet, s.Health)
-	if s.options.MetricsExporter == string(otelMetricsExporterPrometheus) {
+	if s.options.MetricsExporter == string(otelMetricsExporterPrometheus) && s.options.PrometheusPort == nil {
 		router.Use("/metrics", http.MethodGet, s.withAuth(promhttp.Handler().ServeHTTP))
 	}
 
@@ -425,6 +425,19 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 		}
 	}()
 
+	if s.options.MetricsExporter == string(otelMetricsExporterPrometheus) && s.options.PrometheusPort != nil {
+		promServer := createPrometheusServer(*s.options.PrometheusPort)
+		defer func() {
+			_ = promServer.Shutdown(context.Background())
+		}()
+		go func() {
+			s.logger.Info().Msgf("Listening prometheus server on %d", *s.options.PrometheusPort)
+			if err := promServer.ListenAndServe(); err != http.ErrServerClosed {
+				serverErr <- err
+			}
+		}()
+	}
+
 	// Wait for interruption.
 	select {
 	case err := <-serverErr:
@@ -437,5 +450,15 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 		s.stop()
 		// When Shutdown is called, ListenAndServe immediately returns ErrServerClosed.
 		return server.Shutdown(context.Background())
+	}
+}
+
+func createPrometheusServer(port uint) *http.Server {
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+
+	return &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: mux,
 	}
 }
