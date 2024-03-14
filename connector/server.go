@@ -23,14 +23,12 @@ import (
 
 // ServerOptions presents the configuration object of the connector http server
 type ServerOptions struct {
-	Configuration       string
-	InlineConfig        bool
-	ServiceTokenSecret  string
-	OTLPEndpoint        string
-	OTLPInsecure        bool
-	OTLPTracesEndpoint  string
-	OTLPMetricsEndpoint string
-	ServiceName         string
+	OTLPConfig
+
+	Configuration      string
+	InlineConfig       bool
+	ServiceTokenSecret string
+	ServiceName        string
 }
 
 // Server implements the [NDC API specification] for the connector
@@ -55,10 +53,7 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 		opts(defaultOptions)
 	}
 	defaultOptions.logger.Debug().
-		Str("endpoint", options.OTLPEndpoint).
-		Str("traces_endpoint", options.OTLPTracesEndpoint).
-		Str("metrics_endpoint", options.OTLPMetricsEndpoint).
-		Str("service_name", options.ServiceName).
+		Any("otlp", options.OTLPConfig).
 		Str("version", defaultOptions.version).
 		Str("metrics_prefix", defaultOptions.metricsPrefix).
 		Msg("initialize OpenTelemetry")
@@ -80,7 +75,7 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 		options.ServiceName = defaultOptions.serviceName
 	}
 
-	telemetry, err := setupOTelSDK(ctx, options, defaultOptions.version, defaultOptions.metricsPrefix, defaultOptions.logger)
+	telemetry, err := setupOTelSDK(ctx, &options.OTLPConfig, defaultOptions.version, defaultOptions.metricsPrefix, defaultOptions.logger)
 	if err != nil {
 		return nil, err
 	}
@@ -387,7 +382,9 @@ func (s *Server[Configuration, State]) buildHandler() *http.ServeMux {
 	router.Use("/mutation/explain", http.MethodPost, s.withAuth(s.MutationExplain))
 	router.Use("/mutation", http.MethodPost, s.withAuth(s.Mutation))
 	router.Use("/health", http.MethodGet, s.Health)
-	router.Use("/metrics", http.MethodGet, s.withAuth(promhttp.Handler().ServeHTTP))
+	if s.options.MetricsExporter == string(otelMetricsExporterPrometheus) {
+		router.Use("/metrics", http.MethodGet, s.withAuth(promhttp.Handler().ServeHTTP))
+	}
 
 	return router.Build()
 }
