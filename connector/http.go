@@ -90,7 +90,7 @@ func (rt *router) Build() *http.ServeMux {
 							Interface("error", err).
 							Msg("failed to read request")
 
-						writeJson(w, rt.logger, http.StatusBadRequest, schema.ErrorResponse{
+						writeJson(w, rt.logger, http.StatusUnprocessableEntity, schema.ErrorResponse{
 							Message: "failed to read request",
 							Details: map[string]any{
 								"cause": err,
@@ -146,7 +146,7 @@ func (rt *router) Build() *http.ServeMux {
 					err := schema.ErrorResponse{
 						Message: fmt.Sprintf("Invalid content type %s, accept %s only", contentType, contentTypeJson),
 					}
-					writeJson(w, rt.logger, http.StatusBadRequest, err)
+					writeJson(w, rt.logger, http.StatusUnprocessableEntity, err)
 
 					rt.logger.Error().
 						Str("request_id", requestID).

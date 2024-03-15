@@ -158,13 +158,13 @@ func genConnectorFunctions(rawSchema *RawConnectorSchema) string {
 		if fn.ResultType.IsScalar {
 			sb.WriteString(`
     if len(queryFields) > 0 {
-      return nil, schema.BadRequestError("cannot evaluate selection fields for scalar", nil)
+      return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
     }`)
 		} else if fn.ResultType.IsArray {
 			sb.WriteString(`
     selection, err := queryFields.AsArray()
     if err != nil {
-      return nil, schema.BadRequestError("the selection field type must be array", map[string]any{
+      return nil, schema.UnprocessableContentError("the selection field type must be array", map[string]any{
         "cause": err.Error(),
       })
     }`)
@@ -172,7 +172,7 @@ func genConnectorFunctions(rawSchema *RawConnectorSchema) string {
 			sb.WriteString(`
     selection, err := queryFields.AsObject()
     if err != nil {
-      return nil, schema.BadRequestError("the selection field type must be object", map[string]any{
+      return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
         "cause": err.Error(),
       })
     }`)
@@ -182,14 +182,14 @@ func genConnectorFunctions(rawSchema *RawConnectorSchema) string {
 			argumentStr := fmt.Sprintf(`
     rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
     if err != nil {
-      return nil, schema.BadRequestError("failed to resolve argument variables", map[string]any{
+      return nil, schema.UnprocessableContentError("failed to resolve argument variables", map[string]any{
         "cause": err.Error(),
       })
     }
     
     var args %s.%s
     if err = args.FromValue(rawArgs); err != nil {
-      return nil, schema.BadRequestError("failed to resolve arguments", map[string]any{
+      return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
         "cause": err.Error(),
       })
     }`, fn.PackageName, fn.ArgumentsType)
@@ -226,7 +226,7 @@ func genGeneralOperationResult(sb *strings.Builder, resultType *TypeInfo) {
 	} else {
 		sb.WriteString(`
     if rawResult == nil {
-      return nil, schema.BadRequestError("expected not null result", nil)
+      return nil, schema.UnprocessableContentError("expected not null result", nil)
     }
 `)
 	}
@@ -244,13 +244,13 @@ func genConnectorProcedures(rawSchema *RawConnectorSchema) string {
 		if fn.ResultType.IsScalar {
 			sb.WriteString(`
     if len(operation.Fields) > 0 {
-      return nil, schema.BadRequestError("cannot evaluate selection fields for scalar", nil)
+      return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
     }`)
 		} else if fn.ResultType.IsArray {
 			sb.WriteString(`
     selection, err := operation.Fields.AsArray()
     if err != nil {
-      return nil, schema.BadRequestError("the selection field type must be array", map[string]any{
+      return nil, schema.UnprocessableContentError("the selection field type must be array", map[string]any{
         "cause": err.Error(),
       })
     }`)
@@ -258,7 +258,7 @@ func genConnectorProcedures(rawSchema *RawConnectorSchema) string {
 			sb.WriteString(`
     selection, err := operation.Fields.AsObject()
     if err != nil {
-      return nil, schema.BadRequestError("the selection field type must be object", map[string]any{
+      return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
         "cause": err.Error(),
       })
     }`)
@@ -267,7 +267,7 @@ func genConnectorProcedures(rawSchema *RawConnectorSchema) string {
 			argumentStr := fmt.Sprintf(`
     var args %s.%s
     if err := json.Unmarshal(operation.Arguments, &args); err != nil {
-      return nil, schema.BadRequestError("failed to decode arguments", map[string]any{
+      return nil, schema.UnprocessableContentError("failed to decode arguments", map[string]any{
         "cause": err.Error(),
       })
     }`, fn.PackageName, fn.ArgumentsType)
