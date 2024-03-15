@@ -55,15 +55,24 @@ Commands:
     Serve the NDC connector.
 
     Flags:
-      --configuration=STRING            Configuration directory ($HASURA_CONFIGURATION_DIRECTORY).
-      --port=8080                       Serve Port ($HASURA_CONNECTOR_PORT).
-      --service-token-secret=STRING     Service token secret ($HASURA_SERVICE_TOKEN_SECRET).
-      --otlp-endpoint=STRING            OpenTelemetry receiver endpoint that is set as default for all types ($OTEL_EXPORTER_OTLP_ENDPOINT).
-      --otlp-traces-endpoint=STRING     OpenTelemetry endpoint for traces ($OTEL_EXPORTER_OTLP_TRACES_ENDPOINT).
-      --otlp-insecure                   Disable LTS for OpenTelemetry gRPC exporters ($OTEL_EXPORTER_OTLP_INSECURE).
-      --otlp-metrics-endpoint=STRING    OpenTelemetry endpoint for metrics ($OTEL_EXPORTER_OTLP_METRICS_ENDPOINT).
-      --service-name=STRING             OpenTelemetry service name ($OTEL_SERVICE_NAME).
-      --log-level="info"                Log level ($HASURA_LOG_LEVEL).
+      --service-name=STRING                OpenTelemetry service name ($OTEL_SERVICE_NAME).
+      --otlp-endpoint=STRING               OpenTelemetry receiver endpoint that is set as default for all types ($OTEL_EXPORTER_OTLP_ENDPOINT).
+      --otlp-traces-endpoint=STRING        OpenTelemetry endpoint for traces ($OTEL_EXPORTER_OTLP_TRACES_ENDPOINT).
+      --otlp-metrics-endpoint=STRING       OpenTelemetry endpoint for metrics ($OTEL_EXPORTER_OTLP_METRICS_ENDPOINT).
+      --otlp-insecure                      Disable LTS for OpenTelemetry exporters ($OTEL_EXPORTER_OTLP_INSECURE).
+      --otlp-traces-insecure               Disable LTS for OpenTelemetry traces exporter ($OTEL_EXPORTER_OTLP_TRACES_INSECURE).
+      --otlp-metrics-insecure              Disable LTS for OpenTelemetry metrics exporter ($OTEL_EXPORTER_OTLP_METRICS_INSECURE).
+      --otlp-protocol=STRING               OpenTelemetry receiver protocol for all types ($OTEL_EXPORTER_OTLP_PROTOCOL).
+      --otlp-traces-protocol=STRING        OpenTelemetry receiver protocol for traces ($OTEL_EXPORTER_OTLP_TRACES_PROTOCOL).
+      --otlp-metrics-protocol=STRING       OpenTelemetry receiver protocol for metrics ($OTEL_EXPORTER_OTLP_METRICS_PROTOCOL).
+      --otlp-compression="gzip"            Enable compression for OTLP exporters. Accept: none, gzip ($OTEL_EXPORTER_OTLP_COMPRESSION)
+      --otlp-trace-compression="gzip"      Enable compression for OTLP traces exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_TRACES_COMPRESSION)
+      --otlp-metrics-compression="gzip"    Enable compression for OTLP metrics exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_METRICS_COMPRESSION).
+      --metrics-exporter="none"            Metrics export type. Accept: none, otlp, prometheus ($OTEL_METRICS_EXPORTER).
+      --prometheus-port=PROMETHEUS-PORT    Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty ($OTEL_EXPORTER_PROMETHEUS_PORT)
+      --configuration=STRING               Configuration directory ($HASURA_CONFIGURATION_DIRECTORY).
+      --port=8080                          Serve Port ($HASURA_CONNECTOR_PORT).
+      --service-token-secret=STRING        Service token secret ($HASURA_SERVICE_TOKEN_SECRET).
 ```
 
 Please refer to the [NDC Spec](https://hasura.github.io/ndc-spec/) for details on implementing the Connector interface, or see [examples](./example).
@@ -72,18 +81,21 @@ Please refer to the [NDC Spec](https://hasura.github.io/ndc-spec/) for details o
 
 ### OpenTelemetry
 
-OpenTelemetry exporter is disabled by default unless one of `--otlp-endpoint`, `--otlp-traces-endpoint` or `--otlp-metrics-endpoint` argument is set. The SDK automatically detects either HTTP or gRPC protocol by the URL scheme. For example:
+OpenTelemetry exporter is disabled by default unless one of `--otlp-endpoint`, `--otlp-traces-endpoint` or `--otlp-metrics-endpoint` argument is set. By default, the SDK treats port `4318` as HTTP protocol and gRPC protocol for others.
 
-- `http://localhost:4318`: HTTP
-- `localhost:4317`: gRPC
-
-The SDK can also detect TLS connections via http(s). However, if you want to disable TLS for gRPC, you must add `--otlp-insecure` the flag.
+If `--otlp-*insecure` flags are not set, the SDK can also detect TLS connections via http(s).
 
 Other configurations are inherited from the [OpenTelemetry Go SDK](https://github.com/open-telemetry/opentelemetry-go). Currently the SDK supports `traces` and `metrics`. See [Environment Variable Specification](https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/) and [OTLP Exporter Configuration](https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/).
 
-### Prometheus
+### Metrics
 
-Prometheus metrics are exported via the `/metrics` endpoint.
+The SDK supports OTLP and Prometheus metrics exporters that is enabled by `--metrics-exporter` (`OTEL_METRICS_EXPORTER`) flag. Supported values:
+
+- `none` (default): disable the exporter
+- `otlp`: OTLP exporter
+- `prometheus`: Prometheus exporter via the `/metrics` endpoint.
+
+Prometheus exporter is served in the same HTTP server with the connector. If you want to run it on another port, configure the `--prometheus-port` (`OTEL_EXPORTER_PROMETHEUS_PORT`) flag.
 
 ### Logging
 

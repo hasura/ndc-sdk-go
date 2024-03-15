@@ -613,7 +613,7 @@ func TestQueries(t *testing.T) {
 		},
 		{
 			name:   "hello_failure_array",
-			status: http.StatusBadRequest,
+			status: http.StatusUnprocessableEntity,
 			body: `{
 				"collection": "hello",
 				"query": {
@@ -660,7 +660,7 @@ func TestQueries(t *testing.T) {
 		},
 		{
 			name:   "getArticles_failure_object",
-			status: http.StatusBadRequest,
+			status: http.StatusUnprocessableEntity,
 			body: `{
 				"collection": "getArticles",
 				"query": {
@@ -786,7 +786,7 @@ func TestProcedures(t *testing.T) {
 		},
 		{
 			name:   "create_article_array_400",
-			status: http.StatusBadRequest,
+			status: http.StatusUnprocessableEntity,
 			body: `{
 				"operations": [
 					{
@@ -841,8 +841,8 @@ func TestProcedures(t *testing.T) {
 			}]`,
 		},
 		{
-			name:   "createAuthors_object_400",
-			status: http.StatusBadRequest,
+			name:   "createAuthors_object_422",
+			status: http.StatusUnprocessableEntity,
 			body: `{
 				"operations": [
 					{
@@ -881,8 +881,8 @@ func TestProcedures(t *testing.T) {
 			response: `1`,
 		},
 		{
-			name:   "increase_400",
-			status: http.StatusBadRequest,
+			name:   "increase_422",
+			status: http.StatusUnprocessableEntity,
 			body: `{
 				"operations": [
 					{

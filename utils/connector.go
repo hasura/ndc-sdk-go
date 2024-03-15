@@ -194,7 +194,7 @@ func EvalFunctionSelectionFieldValue(request *schema.QueryRequest) (schema.Neste
 	}
 	valueColumn, err := valueField.AsColumn()
 	if err != nil {
-		return nil, schema.BadRequestError(fmt.Sprintf("__value: %s", err), nil)
+		return nil, schema.UnprocessableContentError(fmt.Sprintf("__value: %s", err), nil)
 	}
 	if valueColumn.Column != "__value" {
 		return nil, errors.New(errFunctionValueFieldRequired)
