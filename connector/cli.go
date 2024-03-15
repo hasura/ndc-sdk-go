@@ -12,14 +12,11 @@ import (
 
 // ServeCommandArguments contains argument flags of the serve command
 type ServeCommandArguments struct {
-	Configuration       string `help:"Configuration directory." env:"HASURA_CONFIGURATION_DIRECTORY"`
-	Port                uint   `help:"Serve Port." env:"HASURA_CONNECTOR_PORT" default:"8080"`
-	ServiceTokenSecret  string `help:"Service token secret." env:"HASURA_SERVICE_TOKEN_SECRET"`
-	OtlpEndpoint        string `help:"OpenTelemetry receiver endpoint that is set as default for all types." env:"OTEL_EXPORTER_OTLP_ENDPOINT"`
-	OtlpTracesEndpoint  string `help:"OpenTelemetry endpoint for traces." env:"OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"`
-	OtlpInsecure        bool   `help:"Disable LTS for OpenTelemetry gRPC exporters." env:"OTEL_EXPORTER_OTLP_INSECURE"`
-	OtlpMetricsEndpoint string `help:"OpenTelemetry endpoint for metrics." env:"OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"`
-	ServiceName         string `help:"OpenTelemetry service name." env:"OTEL_SERVICE_NAME"`
+	OTLPConfig
+
+	Configuration      string `help:"Configuration directory." env:"HASURA_CONFIGURATION_DIRECTORY"`
+	Port               uint   `help:"Serve Port." env:"HASURA_CONNECTOR_PORT" default:"8080"`
+	ServiceTokenSecret string `help:"Service token secret." env:"HASURA_SERVICE_TOKEN_SECRET"`
 }
 
 // ServeCLI is used for CLI argument binding
@@ -68,13 +65,10 @@ func StartCustom[Configuration any, State any](cli ConnectorCLI, connector Conne
 	switch command {
 	case "serve":
 		server, err := NewServer[Configuration, State](connector, &ServerOptions{
-			Configuration:       serveCLI.Serve.Configuration,
-			ServiceTokenSecret:  serveCLI.Serve.ServiceTokenSecret,
-			OTLPEndpoint:        serveCLI.Serve.OtlpEndpoint,
-			OTLPInsecure:        serveCLI.Serve.OtlpInsecure,
-			OTLPTracesEndpoint:  serveCLI.Serve.OtlpTracesEndpoint,
-			OTLPMetricsEndpoint: serveCLI.Serve.OtlpMetricsEndpoint,
-			ServiceName:         serveCLI.Serve.ServiceName,
+			Configuration:      serveCLI.Serve.Configuration,
+			ServiceTokenSecret: serveCLI.Serve.ServiceTokenSecret,
+			ServiceName:        serveCLI.Serve.ServiceName,
+			OTLPConfig:         serveCLI.Serve.OTLPConfig,
 		}, append([]ServeOption{WithLogger(logger), withLogLevel(logLevel)}, options...)...)
 		if err != nil {
 			return err

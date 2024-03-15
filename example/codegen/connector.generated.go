@@ -19,7 +19,6 @@ var schemaResponse *schema.RawSchemaResponse
 
 func init() {
 	var err error
-
 	schemaResponse, err = schema.NewRawSchemaResponse(rawSchema)
 	if err != nil {
 		panic(err)
@@ -35,7 +34,7 @@ func (c *Connector) GetSchema(ctx context.Context, configuration *types.Configur
 func (c *Connector) Query(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.QueryRequest) (schema.QueryResponse, error) {
 	valueField, err := utils.EvalFunctionSelectionFieldValue(request)
 	if err != nil {
-		return nil, schema.BadRequestError(err.Error(), nil)
+		return nil, schema.UnprocessableContentError(err.Error(), nil)
 	}
 	requestVars := request.Variables
 	if len(requestVars) == 0 {
@@ -74,7 +73,7 @@ func (c *Connector) Mutation(ctx context.Context, configuration *types.Configura
 			}
 			operationResults[i] = result
 		default:
-			return nil, schema.BadRequestError(fmt.Sprintf("invalid operation type: %s", operation.Type), nil)
+			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid operation type: %s", operation.Type), nil)
 		}
 	}
 
@@ -88,26 +87,26 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 	switch request.Collection {
 	case "getBool":
 		if len(queryFields) > 0 {
-			return nil, schema.BadRequestError("cannot evaluate selection fields for scalar", nil)
+			return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
 		}
 		return functions.FunctionGetBool(ctx, state)
 	case "getTypes":
 		selection, err := queryFields.AsObject()
 		if err != nil {
-			return nil, schema.BadRequestError("the selection field type must be object", map[string]any{
+			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
 				"cause": err.Error(),
 			})
 		}
 		rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
 		if err != nil {
-			return nil, schema.BadRequestError("failed to resolve argument variables", map[string]any{
+			return nil, schema.UnprocessableContentError("failed to resolve argument variables", map[string]any{
 				"cause": err.Error(),
 			})
 		}
 
 		var args functions.GetTypesArguments
 		if err = args.FromValue(rawArgs); err != nil {
-			return nil, schema.BadRequestError("failed to resolve arguments", map[string]any{
+			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
 				"cause": err.Error(),
 			})
 		}
@@ -128,7 +127,7 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 	case "hello":
 		selection, err := queryFields.AsObject()
 		if err != nil {
-			return nil, schema.BadRequestError("the selection field type must be object", map[string]any{
+			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
 				"cause": err.Error(),
 			})
 		}
@@ -149,20 +148,20 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 	case "getArticles":
 		selection, err := queryFields.AsArray()
 		if err != nil {
-			return nil, schema.BadRequestError("the selection field type must be array", map[string]any{
+			return nil, schema.UnprocessableContentError("the selection field type must be array", map[string]any{
 				"cause": err.Error(),
 			})
 		}
 		rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
 		if err != nil {
-			return nil, schema.BadRequestError("failed to resolve argument variables", map[string]any{
+			return nil, schema.UnprocessableContentError("failed to resolve argument variables", map[string]any{
 				"cause": err.Error(),
 			})
 		}
 
 		var args functions.GetArticlesArguments
 		if err = args.FromValue(rawArgs); err != nil {
-			return nil, schema.BadRequestError("failed to resolve arguments", map[string]any{
+			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
 				"cause": err.Error(),
 			})
 		}
@@ -172,7 +171,7 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 		}
 
 		if rawResult == nil {
-			return nil, schema.BadRequestError("expected not null result", nil)
+			return nil, schema.UnprocessableContentError("expected not null result", nil)
 		}
 
 		result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)
@@ -182,7 +181,7 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 		return result, nil
 
 	default:
-		return nil, schema.BadRequestError(fmt.Sprintf("unsupported query: %s", request.Collection), nil)
+		return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported query: %s", request.Collection), nil)
 	}
 }
 
@@ -193,13 +192,13 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 	case "create_article":
 		selection, err := operation.Fields.AsObject()
 		if err != nil {
-			return nil, schema.BadRequestError("the selection field type must be object", map[string]any{
+			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
 				"cause": err.Error(),
 			})
 		}
 		var args functions.CreateArticleArguments
 		if err := json.Unmarshal(operation.Arguments, &args); err != nil {
-			return nil, schema.BadRequestError("failed to decode arguments", map[string]any{
+			return nil, schema.UnprocessableContentError("failed to decode arguments", map[string]any{
 				"cause": err.Error(),
 			})
 		}
@@ -220,7 +219,7 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 		}
 	case "increase":
 		if len(operation.Fields) > 0 {
-			return nil, schema.BadRequestError("cannot evaluate selection fields for scalar", nil)
+			return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
 		}
 		var err error
 		result, err = functions.Increase(ctx, state)
@@ -230,13 +229,13 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 	case "createAuthor":
 		selection, err := operation.Fields.AsObject()
 		if err != nil {
-			return nil, schema.BadRequestError("the selection field type must be object", map[string]any{
+			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
 				"cause": err.Error(),
 			})
 		}
 		var args functions.CreateAuthorArguments
 		if err := json.Unmarshal(operation.Arguments, &args); err != nil {
-			return nil, schema.BadRequestError("failed to decode arguments", map[string]any{
+			return nil, schema.UnprocessableContentError("failed to decode arguments", map[string]any{
 				"cause": err.Error(),
 			})
 		}
@@ -258,13 +257,13 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 	case "createAuthors":
 		selection, err := operation.Fields.AsArray()
 		if err != nil {
-			return nil, schema.BadRequestError("the selection field type must be array", map[string]any{
+			return nil, schema.UnprocessableContentError("the selection field type must be array", map[string]any{
 				"cause": err.Error(),
 			})
 		}
 		var args functions.CreateAuthorsArguments
 		if err := json.Unmarshal(operation.Arguments, &args); err != nil {
-			return nil, schema.BadRequestError("failed to decode arguments", map[string]any{
+			return nil, schema.UnprocessableContentError("failed to decode arguments", map[string]any{
 				"cause": err.Error(),
 			})
 		}
@@ -275,7 +274,7 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 		}
 
 		if rawResult == nil {
-			return nil, schema.BadRequestError("expected not null result", nil)
+			return nil, schema.UnprocessableContentError("expected not null result", nil)
 		}
 
 		result, err = utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)
@@ -285,7 +284,7 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 		}
 
 	default:
-		return nil, schema.BadRequestError(fmt.Sprintf("unsupported procedure operation: %s", operation.Name), nil)
+		return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported procedure operation: %s", operation.Name), nil)
 	}
 
 	return schema.NewProcedureResult(result).Encode(), nil
