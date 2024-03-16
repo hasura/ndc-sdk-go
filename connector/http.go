@@ -96,7 +96,7 @@ func (rt *router) Build() *http.ServeMux {
 
 			ctx := r.Context()
 			//lint:ignore SA1012 possible to set nil
-			span := trace.SpanFromContext(nil)
+			span := trace.SpanFromContext(nil) //nolint:all
 			spanName, spanOk := allowedTraceEndpoints[strings.ToLower(r.URL.Path)]
 			if spanOk {
 				ctx, span = rt.telemetry.Tracer.Start(
@@ -107,7 +107,6 @@ func (rt *router) Build() *http.ServeMux {
 			}
 			defer span.End()
 
-			log.Printf("is debug: %t", isDebug)
 			if isDebug {
 				requestLogData["headers"] = r.Header
 				if spanOk {
