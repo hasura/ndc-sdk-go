@@ -35,7 +35,9 @@ func (connector *Connector) ParseConfiguration(ctx context.Context, configuratio
 // In addition, this function should register any
 // connector-specific metrics with the metrics registry.
 func (connector *Connector) TryInitState(ctx context.Context, configuration *types.Configuration, metrics *connector.TelemetryState) (*types.State, error) {
-	return &types.State{}, nil
+	return &types.State{
+		TelemetryState: metrics,
+	}, nil
 }
 
 // HealthCheck checks the health of the connector.

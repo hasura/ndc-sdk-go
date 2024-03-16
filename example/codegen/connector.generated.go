@@ -9,8 +9,13 @@ import (
 
 	"github.com/hasura/ndc-codegen-example/functions"
 	"github.com/hasura/ndc-codegen-example/types"
+	"github.com/hasura/ndc-sdk-go/connector"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
+	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
 //go:embed schema.generated.json
@@ -36,15 +41,29 @@ func (c *Connector) Query(ctx context.Context, configuration *types.Configuratio
 	if err != nil {
 		return nil, schema.UnprocessableContentError(err.Error(), nil)
 	}
+
+	span := trace.SpanFromContext(ctx)
 	requestVars := request.Variables
-	if len(requestVars) == 0 {
+	varsLength := len(requestVars)
+	if varsLength == 0 {
 		requestVars = []schema.QueryRequestVariablesElem{make(schema.QueryRequestVariablesElem)}
+		varsLength = 1
 	}
 
-	rowSets := make([]schema.RowSet, len(requestVars))
+	rowSets := make([]schema.RowSet, varsLength)
 	for i, requestVar := range requestVars {
-		result, err := execQuery(ctx, state, request, valueField, requestVar)
+		childSpan := span
+		childContext := ctx
+		if varsLength > 1 {
+			childContext, childSpan = state.Tracer.Start(ctx, fmt.Sprintf("execute_function_%d", i))
+			defer childSpan.End()
+		}
+
+		result, err := execQuery(childContext, state, request, valueField, requestVar, childSpan)
 		if err != nil {
+			if varsLength > 1 {
+				childSpan.SetStatus(codes.Error, err.Error())
+			}
 			return nil, err
 		}
 		rowSets[i] = schema.RowSet{
@@ -55,6 +74,9 @@ func (c *Connector) Query(ctx context.Context, configuration *types.Configuratio
 				},
 			},
 		}
+		if varsLength > 1 {
+			childSpan.End()
+		}
 	}
 
 	return rowSets, nil
@@ -62,16 +84,35 @@ func (c *Connector) Query(ctx context.Context, configuration *types.Configuratio
 
 // Mutation executes a mutation.
 func (c *Connector) Mutation(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
-	operationResults := make([]schema.MutationOperationResults, len(request.Operations))
+	operationLen := len(request.Operations)
+	operationResults := make([]schema.MutationOperationResults, operationLen)
+	span := trace.SpanFromContext(ctx)
 
 	for i, operation := range request.Operations {
+		childSpan := span
+		childContext := ctx
+		if operationLen > 1 {
+			childContext, childSpan = state.Tracer.Start(ctx, fmt.Sprintf("execute_operation_%d", i))
+			defer childSpan.End()
+		}
+		childSpan.SetAttributes(
+			attribute.String("operation.type", string(operation.Type)),
+			attribute.String("operation.name", string(operation.Name)),
+		)
+
 		switch operation.Type {
 		case schema.MutationOperationProcedure:
-			result, err := execProcedure(ctx, state, &operation)
+			result, err := execProcedure(childContext, state, &operation, childSpan)
 			if err != nil {
+				if operationLen > 1 {
+					childSpan.SetStatus(codes.Error, err.Error())
+				}
 				return nil, err
 			}
 			operationResults[i] = result
+			if operationLen > 1 {
+				childSpan.End()
+			}
 		default:
 			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid operation type: %s", operation.Type), nil)
 		}
@@ -82,8 +123,11 @@ func (c *Connector) Mutation(ctx context.Context, configuration *types.Configura
 	}, nil
 }
 
-func execQuery(ctx context.Context, state *types.State, request *schema.QueryRequest, queryFields schema.NestedField, variables map[string]any) (any, error) {
-
+func execQuery(ctx context.Context, state *types.State, request *schema.QueryRequest, queryFields schema.NestedField, variables map[string]any, span trace.Span) (any, error) {
+	logger := connector.GetLogger(ctx)
+	connector_addSpanEvent(span, logger, "validate_request", map[string]any{
+		"variables": variables,
+	})
 	switch request.Collection {
 	case "getBool":
 		if len(queryFields) > 0 {
@@ -104,12 +148,20 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 			})
 		}
 
+		connector_addSpanEvent(span, logger, "resolve_arguments", map[string]any{
+			"raw_arguments": rawArgs,
+		})
+
 		var args functions.GetTypesArguments
 		if err = args.FromValue(rawArgs); err != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
 				"cause": err.Error(),
 			})
 		}
+
+		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
+			"arguments": args,
+		})
 		rawResult, err := functions.FunctionGetTypes(ctx, state, &args)
 		if err != nil {
 			return nil, err
@@ -119,6 +171,9 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 			return nil, nil
 		}
 
+		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})
 		result, err := utils.EvalNestedColumnObject(selection, rawResult)
 		if err != nil {
 			return nil, err
@@ -140,6 +195,9 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 			return nil, nil
 		}
 
+		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})
 		result, err := utils.EvalNestedColumnObject(selection, rawResult)
 		if err != nil {
 			return nil, err
@@ -159,12 +217,20 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 			})
 		}
 
+		connector_addSpanEvent(span, logger, "resolve_arguments", map[string]any{
+			"raw_arguments": rawArgs,
+		})
+
 		var args functions.GetArticlesArguments
 		if err = args.FromValue(rawArgs); err != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
 				"cause": err.Error(),
 			})
 		}
+
+		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
+			"arguments": args,
+		})
 		rawResult, err := functions.GetArticles(ctx, state, &args)
 		if err != nil {
 			return nil, err
@@ -174,6 +240,9 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 			return nil, schema.UnprocessableContentError("expected not null result", nil)
 		}
 
+		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})
 		result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)
 		if err != nil {
 			return nil, err
@@ -185,8 +254,9 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 	}
 }
 
-func execProcedure(ctx context.Context, state *types.State, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
-
+func execProcedure(ctx context.Context, state *types.State, operation *schema.MutationOperation, span trace.Span) (schema.MutationOperationResults, error) {
+	logger := connector.GetLogger(ctx)
+	span.AddEvent("validate_request")
 	var result any
 	switch operation.Name {
 	case "create_article":
@@ -202,6 +272,7 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 				"cause": err.Error(),
 			})
 		}
+		span.AddEvent("execute_procedure")
 		rawResult, err := functions.CreateArticle(ctx, state, &args)
 
 		if err != nil {
@@ -211,7 +282,9 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 		if rawResult == nil {
 			return nil, nil
 		}
-
+		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})
 		result, err = utils.EvalNestedColumnObject(selection, rawResult)
 
 		if err != nil {
@@ -221,6 +294,7 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 		if len(operation.Fields) > 0 {
 			return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
 		}
+		span.AddEvent("execute_procedure")
 		var err error
 		result, err = functions.Increase(ctx, state)
 		if err != nil {
@@ -239,6 +313,7 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 				"cause": err.Error(),
 			})
 		}
+		span.AddEvent("execute_procedure")
 		rawResult, err := functions.ProcedureCreateAuthor(ctx, state, &args)
 
 		if err != nil {
@@ -248,7 +323,9 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 		if rawResult == nil {
 			return nil, nil
 		}
-
+		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})
 		result, err = utils.EvalNestedColumnObject(selection, rawResult)
 
 		if err != nil {
@@ -267,6 +344,7 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 				"cause": err.Error(),
 			})
 		}
+		span.AddEvent("execute_procedure")
 		rawResult, err := functions.ProcedureCreateAuthors(ctx, state, &args)
 
 		if err != nil {
@@ -276,7 +354,9 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 		if rawResult == nil {
 			return nil, schema.UnprocessableContentError("expected not null result", nil)
 		}
-
+		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})
 		result, err = utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)
 
 		if err != nil {
@@ -286,6 +366,15 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 	default:
 		return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported procedure operation: %s", operation.Name), nil)
 	}
-
 	return schema.NewProcedureResult(result).Encode(), nil
+}
+
+func connector_addSpanEvent(span trace.Span, logger zerolog.Logger, name string, data map[string]any, options ...trace.EventOption) {
+	logger.Debug().Interface("data", data).Msg(name)
+	attrs := utils.DebugJSONAttributes(data, connector_isDebug())
+	span.AddEvent(name, append(options, trace.WithAttributes(attrs...))...)
+}
+
+func connector_isDebug() bool {
+	return zerolog.GlobalLevel() < zerolog.DebugLevel
 }

@@ -91,6 +91,21 @@ The SDK supports OTLP and Prometheus metrics exporters that is enabled by `--met
 
 Prometheus exporter is served in the same HTTP server with the connector. If you want to run it on another port, configure the `--prometheus-port` (`OTEL_EXPORTER_PROMETHEUS_PORT`) flag.
 
+#### Built-in metrics
+
+| Name                                             | Type      | Description                                                                  |
+| ------------------------------------------------ | --------- | ---------------------------------------------------------------------------- |
+| _(<prefix\>)_\_query_total                       | Counter   | Total number of query requests                                               |
+| _(<prefix\>)_\_query_total_time                  | Histogram | Total time taken to plan and execute a query                                 |
+| _(<prefix\>)_\_query_explain_total               | Counter   | Total number of explain query requests                                       |
+| _(<prefix\>)_\_query_explain_total_time          | Histogram | Total time taken to plan and execute an explain query request, in seconds    |
+| _(<prefix\>)_\_mutation_total                    | Counter   | Total number of mutation requests                                            |
+| _(<prefix\>)_\_query_mutation_total_time         | Histogram | Total time taken to plan and execute a mutation request, in seconds          |
+| _(<prefix\>)_\_mutation_explain_total            | Counter   | Total number of explain mutation requests                                    |
+| _(<prefix\>)_\_query_mutation_explain_total_time | Histogram | Total time taken to plan and execute an explain mutation request, in seconds |
+
+The prefix is empty by default. You can set the prefix for your connector by `WithMetricsPrefix` option.
+
 ## Customize the CLI
 
 The SDK uses [Kong](https://github.com/alecthomas/kong), a lightweight command-line parser to implement the CLI interface.
