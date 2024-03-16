@@ -67,7 +67,6 @@ func StartCustom[Configuration any, State any](cli ConnectorCLI, connector Conne
 		server, err := NewServer[Configuration, State](connector, &ServerOptions{
 			Configuration:      serveCLI.Serve.Configuration,
 			ServiceTokenSecret: serveCLI.Serve.ServiceTokenSecret,
-			ServiceName:        serveCLI.Serve.ServiceName,
 			OTLPConfig:         serveCLI.Serve.OTLPConfig,
 		}, append([]ServeOption{WithLogger(logger), withLogLevel(logLevel)}, options...)...)
 		if err != nil {

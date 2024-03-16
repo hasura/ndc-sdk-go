@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/alecthomas/kong"
 	"github.com/hasura/ndc-sdk-go/cmd/ndc-go-sdk/version"
@@ -29,6 +30,8 @@ var cli struct {
 
 func main() {
 	cmd := kong.Parse(&cli, kong.UsageOnError())
+	start := time.Now()
+
 	switch cmd.Command() {
 	case "new":
 		setupGlobalLogger(cli.New.LogLevel)
@@ -40,7 +43,8 @@ func main() {
 		if err := generateNewProject(cli.New.Name, cli.New.Module, cli.New.Output, false); err != nil {
 			log.Fatal().Err(err).Msg("failed to generate new project")
 		}
-		log.Info().Msg("generated successfully")
+		log.Info().Str("exec_time", time.Since(start).Round(time.Second).String()).
+			Msg("generated successfully")
 	case "generate":
 		setupGlobalLogger(cli.Generate.LogLevel)
 		log.Info().
@@ -58,7 +62,8 @@ func main() {
 		if err := execGoFormat("."); err != nil {
 			log.Fatal().Err(err).Msg("failed to format code")
 		}
-		log.Info().Msg("generated successfully")
+		log.Info().Str("exec_time", time.Since(start).Round(time.Second).String()).
+			Msg("generated successfully")
 	case "version":
 		_, _ = fmt.Print(version.BuildVersion)
 	default:

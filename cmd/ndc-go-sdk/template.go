@@ -50,10 +50,11 @@ func generateNewProject(name string, moduleName string, srcPath string, silent b
 		return err
 	}
 
-	if err := parseAndGenerateConnector(srcPath, []string{"functions", "types"}, moduleName); err != nil {
+	if err := os.Chdir(srcPath); err != nil {
 		return err
 	}
 
+	log.Info().Msg("downloading dependencies...")
 	if err := execGoModTidy(""); err != nil {
 		if silent {
 			return nil
@@ -67,6 +68,20 @@ func generateNewProject(name string, moduleName string, srcPath string, silent b
 		}
 		return err
 	}
+
+	log.Info().Msg("generating connector functions...")
+	if err := parseAndGenerateConnector(srcPath, []string{"functions", "types"}, moduleName); err != nil {
+		return err
+	}
+
+	// reverify dependencies after generated
+	if err := execGoModTidy(""); err != nil {
+		if silent {
+			return nil
+		}
+		return err
+	}
+
 	err := execGoFormat(".")
 	if err != nil && silent {
 		return nil
