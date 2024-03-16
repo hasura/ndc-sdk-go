@@ -95,6 +95,7 @@ func (rt *router) Build() *http.ServeMux {
 			}
 
 			ctx := r.Context()
+			//lint:ignore SA1012 possible to set nil
 			span := trace.SpanFromContext(nil)
 			spanName, spanOk := allowedTraceEndpoints[strings.ToLower(r.URL.Path)]
 			if spanOk {
@@ -255,7 +256,7 @@ func getRequestID(r *http.Request) string {
 }
 
 // writeJsonFunc writes raw bytes data with a json encoding callback
-func writeJsonFunc(w http.ResponseWriter, logger zerolog.Logger, statusCode int, encodeFunc func() ([]byte, error)) error {
+func writeJsonFunc(w http.ResponseWriter, logger zerolog.Logger, statusCode int, encodeFunc func() ([]byte, error)) {
 	w.Header().Set(headerContentType, contentTypeJson)
 	jsonBytes, err := encodeFunc()
 	if err != nil {
@@ -264,14 +265,13 @@ func writeJsonFunc(w http.ResponseWriter, logger zerolog.Logger, statusCode int,
 		if wErr != nil {
 			logger.Error().Err(err).Msg("failed to write response")
 		}
-		return err
+		return
 	}
 	w.WriteHeader(statusCode)
 	_, err = w.Write(jsonBytes)
 	if err != nil {
 		logger.Error().Err(err).Msg("failed to write response")
 	}
-	return err
 }
 
 // writeJson writes response data with json encode
