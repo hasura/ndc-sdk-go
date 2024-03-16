@@ -90,7 +90,7 @@ func (rt *router) Build() *http.ServeMux {
 							Interface("error", err).
 							Msg("failed to read request")
 
-						writeJson(w, rt.logger, http.StatusUnprocessableEntity, schema.ErrorResponse{
+						_ = writeJson(w, rt.logger, http.StatusUnprocessableEntity, schema.ErrorResponse{
 							Message: "failed to read request",
 							Details: map[string]any{
 								"cause": err,
@@ -116,7 +116,7 @@ func (rt *router) Build() *http.ServeMux {
 							Str("stacktrace", string(debug.Stack())).
 							Msg("internal server error")
 
-						writeJson(w, rt.logger, http.StatusInternalServerError, schema.ErrorResponse{
+						_ = writeJson(w, rt.logger, http.StatusInternalServerError, schema.ErrorResponse{
 							Message: "internal server error",
 							Details: map[string]any{
 								"cause": err,
@@ -146,7 +146,7 @@ func (rt *router) Build() *http.ServeMux {
 					err := schema.ErrorResponse{
 						Message: fmt.Sprintf("Invalid content type %s, accept %s only", contentType, contentTypeJson),
 					}
-					writeJson(w, rt.logger, http.StatusUnprocessableEntity, err)
+					_ = writeJson(w, rt.logger, http.StatusUnprocessableEntity, err)
 
 					rt.logger.Error().
 						Str("request_id", requestID).
@@ -207,30 +207,33 @@ func getRequestID(r *http.Request) string {
 }
 
 // writeJsonFunc writes raw bytes data with a json encoding callback
-func writeJsonFunc(w http.ResponseWriter, logger zerolog.Logger, statusCode int, encodeFunc func() ([]byte, error)) {
+func writeJsonFunc(w http.ResponseWriter, logger zerolog.Logger, statusCode int, encodeFunc func() ([]byte, error)) error {
 	w.Header().Set(headerContentType, contentTypeJson)
 	jsonBytes, err := encodeFunc()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		if _, err := w.Write([]byte(fmt.Sprintf(`{"message": "%s"}`, http.StatusText(http.StatusInternalServerError)))); err != nil {
+		_, wErr := w.Write([]byte(fmt.Sprintf(`{"message": "%s"}`, http.StatusText(http.StatusInternalServerError))))
+		if wErr != nil {
 			logger.Error().Err(err).Msg("failed to write response")
 		}
-		return
+		return err
 	}
 	w.WriteHeader(statusCode)
-	if _, err := w.Write(jsonBytes); err != nil {
+	_, err = w.Write(jsonBytes)
+	if err != nil {
 		logger.Error().Err(err).Msg("failed to write response")
 	}
+	return err
 }
 
 // writeJson writes response data with json encode
-func writeJson(w http.ResponseWriter, logger zerolog.Logger, statusCode int, body any) {
+func writeJson(w http.ResponseWriter, logger zerolog.Logger, statusCode int, body any) error {
 	if body == nil {
 		w.WriteHeader(statusCode)
-		return
+		return nil
 	}
 
-	writeJsonFunc(w, logger, statusCode, func() ([]byte, error) {
+	return writeJsonFunc(w, logger, statusCode, func() ([]byte, error) {
 		return json.Marshal(body)
 	})
 }
@@ -252,23 +255,23 @@ func writeError(w http.ResponseWriter, logger zerolog.Logger, err error) int {
 
 	var connectorErrorPtr *schema.ConnectorError
 	if errors.As(err, &connectorErrorPtr) {
-		writeJson(w, logger, connectorErrorPtr.StatusCode(), connectorErrorPtr)
+		_ = writeJson(w, logger, connectorErrorPtr.StatusCode(), connectorErrorPtr)
 		return connectorErrorPtr.StatusCode()
 	}
 
 	var errorResponse schema.ErrorResponse
 	if errors.As(err, &errorResponse) {
-		writeJson(w, logger, http.StatusBadRequest, errorResponse)
+		_ = writeJson(w, logger, http.StatusBadRequest, errorResponse)
 		return http.StatusBadRequest
 	}
 
 	var errorResponsePtr *schema.ErrorResponse
 	if errors.As(err, &errorResponsePtr) {
-		writeJson(w, logger, http.StatusBadRequest, errorResponsePtr)
+		_ = writeJson(w, logger, http.StatusBadRequest, errorResponsePtr)
 		return http.StatusBadRequest
 	}
 
-	writeJson(w, logger, http.StatusBadRequest, schema.ErrorResponse{
+	_ = writeJson(w, logger, http.StatusBadRequest, schema.ErrorResponse{
 		Message: err.Error(),
 	})
 

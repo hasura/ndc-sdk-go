@@ -379,6 +379,9 @@ func httpStatusAttribute(code int) attribute.KeyValue {
 }
 
 func parseOTLPEndpoint(endpoint string, protocol string, insecurePtr *bool) (string, otlpProtocol, bool, error) {
+	if !strings.HasPrefix(endpoint, "http://") && !strings.HasPrefix(endpoint, "https://") {
+		endpoint = fmt.Sprintf("https://%s", endpoint)
+	}
 	uri, err := url.Parse(endpoint)
 	if err != nil {
 		return "", otlpProtocol(""), false, err
