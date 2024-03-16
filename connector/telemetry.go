@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -286,7 +287,7 @@ func setupMetrics(telemetry *TelemetryState, metricsPrefix string) error {
 	meter := telemetry.Meter
 	telemetry.queryCounter, err = meter.Int64Counter(
 		fmt.Sprintf("%squery.total", metricsPrefix),
-		metricapi.WithDescription("The total number of query requests"),
+		metricapi.WithDescription("Total number of query requests"),
 	)
 	if err != nil {
 		return err
@@ -294,7 +295,7 @@ func setupMetrics(telemetry *TelemetryState, metricsPrefix string) error {
 
 	telemetry.mutationCounter, err = meter.Int64Counter(
 		fmt.Sprintf("%smutation.total", metricsPrefix),
-		metricapi.WithDescription("The total number of mutation requests"),
+		metricapi.WithDescription("Total number of mutation requests"),
 	)
 
 	if err != nil {
@@ -303,7 +304,7 @@ func setupMetrics(telemetry *TelemetryState, metricsPrefix string) error {
 
 	telemetry.queryExplainCounter, err = meter.Int64Counter(
 		fmt.Sprintf("%squery.explain_total", metricsPrefix),
-		metricapi.WithDescription("The total number of explain query requests"),
+		metricapi.WithDescription("Total number of explain query requests"),
 	)
 	if err != nil {
 		return err
@@ -311,7 +312,7 @@ func setupMetrics(telemetry *TelemetryState, metricsPrefix string) error {
 
 	telemetry.mutationExplainCounter, err = meter.Int64Counter(
 		fmt.Sprintf("%smutation.explain_total", metricsPrefix),
-		metricapi.WithDescription("The total number of explain mutation requests"),
+		metricapi.WithDescription("Total number of explain mutation requests"),
 	)
 	if err != nil {
 		return err
@@ -372,6 +373,9 @@ func httpStatusAttribute(code int) attribute.KeyValue {
 }
 
 func parseOTLPEndpoint(endpoint string, protocol string, insecurePtr *bool) (string, otlpProtocol, bool, error) {
+	if !strings.HasPrefix(endpoint, "http://") && !strings.HasPrefix(endpoint, "https://") {
+		endpoint = fmt.Sprintf("https://%s", endpoint)
+	}
 	uri, err := url.Parse(endpoint)
 	if err != nil {
 		return "", otlpProtocol(""), false, err
@@ -424,5 +428,40 @@ func parseOTELMetricsExporterType(input string) (otelMetricsExporterType, error)
 		return otelMetricsExporterPrometheus, nil
 	default:
 		return otelMetricsExporterNone, fmt.Errorf("invalid metrics exporter type: %s", input)
+	}
+}
+
+var allowedTraceHeaders = []string{
+	"accept",
+	"accept-encoding",
+	"accept-language",
+	"origin",
+	"host",
+	"user-agent",
+	"x-forwarded-for",
+	"x-forwarded-host",
+	"x-real-ip",
+	"content-length",
+	"project-id",
+}
+
+func setSpanHeadersAttributes(span traceapi.Span, header http.Header, isDebug bool) {
+	for k, h := range header {
+		if len(h) == 0 {
+			continue
+		}
+
+		lowerKey := strings.ToLower(k)
+		attrKey := fmt.Sprintf("header.%s", lowerKey)
+		if isDebug {
+			span.SetAttributes(attribute.String(attrKey, h[0]))
+			continue
+		}
+		for _, allowedKey := range allowedTraceHeaders {
+			if lowerKey == allowedKey {
+				span.SetAttributes(attribute.String(attrKey, h[0]))
+				break
+			}
+		}
 	}
 }

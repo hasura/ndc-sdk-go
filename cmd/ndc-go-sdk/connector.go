@@ -187,22 +187,36 @@ func genConnectorFunctions(rawSchema *RawConnectorSchema) string {
       })
     }
     
+		connector_addSpanEvent(span, logger, "resolve_arguments", map[string]any{
+			"raw_arguments": rawArgs,
+		})
+		
     var args %s.%s
     if err = args.FromValue(rawArgs); err != nil {
       return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
         "cause": err.Error(),
       })
-    }`, fn.PackageName, fn.ArgumentsType)
+    }
+		
+		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
+			"arguments": args,
+		})`, fn.PackageName, fn.ArgumentsType)
 			sb.WriteString(argumentStr)
 			argumentParamStr = ", &args"
 		}
+
 		if fn.ResultType.IsScalar {
 			sb.WriteString(fmt.Sprintf("\n    return %s.%s(ctx, state%s)\n", fn.PackageName, fn.OriginName, argumentParamStr))
 			continue
 		}
+
 		sb.WriteString(fmt.Sprintf("\n    rawResult, err := %s.%s(ctx, state%s)", fn.PackageName, fn.OriginName, argumentParamStr))
 		genGeneralOperationResult(&sb, fn.ResultType)
 
+		sb.WriteString(`
+		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})`)
 		if fn.ResultType.IsArray {
 			sb.WriteString("\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)")
 		} else {
@@ -275,6 +289,7 @@ func genConnectorProcedures(rawSchema *RawConnectorSchema) string {
 			argumentParamStr = ", &args"
 		}
 
+		sb.WriteString("\n    span.AddEvent(\"execute_procedure\")")
 		if fn.ResultType.IsScalar {
 			sb.WriteString(fmt.Sprintf(`
     var err error
@@ -283,6 +298,9 @@ func genConnectorProcedures(rawSchema *RawConnectorSchema) string {
 			sb.WriteString(fmt.Sprintf("\n    rawResult, err := %s.%s(ctx, state%s)\n", fn.PackageName, fn.OriginName, argumentParamStr))
 			genGeneralOperationResult(&sb, fn.ResultType)
 
+			sb.WriteString(`    connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})`)
 			if fn.ResultType.IsArray {
 				sb.WriteString("\n    result, err = utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)\n")
 			} else {

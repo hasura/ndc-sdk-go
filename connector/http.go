@@ -10,10 +10,17 @@ import (
 	"log/slog"
 	"net/http"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/utils"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type serverContextKey string
@@ -23,6 +30,13 @@ const (
 	headerContentType string           = "Content-Type"
 	contentTypeJson   string           = "application/json"
 )
+
+var allowedTraceEndpoints = map[string]string{
+	"/query":            "ndc_query",
+	"/query/explain":    "ndc_query_explain",
+	"/mutation":         "ndc_mutation",
+	"/mutation/explain": "ndc_mutation_explain",
+}
 
 // define a custom response write to capture response information for logging
 type customResponseWriter struct {
@@ -45,13 +59,15 @@ func (cw *customResponseWriter) Write(body []byte) (int, error) {
 type router struct {
 	routes          map[string]map[string]http.HandlerFunc
 	logger          *slog.Logger
+	telemetry       *TelemetryState
 	recoveryEnabled bool
 }
 
-func newRouter(logger *slog.Logger, enableRecovery bool) *router {
+func newRouter(logger *slog.Logger, telemetry *TelemetryState, enableRecovery bool) *router {
 	return &router{
 		routes:          make(map[string]map[string]http.HandlerFunc),
 		logger:          logger,
+		telemetry:       telemetry,
 		recoveryEnabled: enableRecovery,
 	}
 }
@@ -77,8 +93,24 @@ func (rt *router) Build() *http.ServeMux {
 				"remote_address": r.RemoteAddr,
 			}
 
+			ctx := r.Context()
+			//lint:ignore SA1012 possible to set nil
+			span := trace.SpanFromContext(nil) //nolint:all
+			spanName, spanOk := allowedTraceEndpoints[strings.ToLower(r.URL.Path)]
+			if spanOk {
+				ctx, span = rt.telemetry.Tracer.Start(
+					otel.GetTextMapPropagator().Extract(r.Context(), propagation.HeaderCarrier(r.Header)),
+					spanName,
+					trace.WithSpanKind(trace.SpanKindServer),
+				)
+			}
+			defer span.End()
+
 			if isDebug {
 				requestLogData["headers"] = r.Header
+				if spanOk {
+					setSpanHeadersAttributes(span, r.Header, isDebug)
+				}
 				if r.Body != nil {
 					bodyBytes, err := io.ReadAll(r.Body)
 					if err != nil {
@@ -95,10 +127,15 @@ func (rt *router) Build() *http.ServeMux {
 								"cause": err,
 							},
 						})
+
+						span.SetStatus(codes.Error, "read_request_body_failure")
+						span.RecordError(err)
 						return
 					}
 
-					requestLogData["body"] = string(bodyBytes)
+					bodyStr := string(bodyBytes)
+					span.SetAttributes(attribute.String("request.body", bodyStr))
+					requestLogData["body"] = bodyStr
 					r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 				}
 			}
@@ -107,13 +144,14 @@ func (rt *router) Build() *http.ServeMux {
 			if rt.recoveryEnabled {
 				defer func() {
 					if err := recover(); err != nil {
+						stack := string(debug.Stack())
 						rt.logger.Error(
 							"internal server error",
 							slog.String("request_id", requestID),
 							slog.Duration("latency", time.Since(startTime)),
 							slog.Any("request", requestLogData),
 							slog.Any("error", err),
-							slog.String("stacktrace", string(debug.Stack())),
+							slog.String("stacktrace", stack),
 						)
 
 						writeJson(w, rt.logger, http.StatusInternalServerError, schema.ErrorResponse{
@@ -122,6 +160,10 @@ func (rt *router) Build() *http.ServeMux {
 								"cause": err,
 							},
 						})
+
+						span.SetAttributes(utils.JSONAttribute("error", err))
+						span.SetAttributes(attribute.String("stacktrace", stack))
+						span.SetStatus(codes.Error, "panic")
 					}
 				}()
 			}
@@ -138,6 +180,7 @@ func (rt *router) Build() *http.ServeMux {
 						"status": 404,
 					}),
 				)
+				span.SetStatus(codes.Error, fmt.Sprintf("path %s is not found", r.URL.RequestURI()))
 				return
 			}
 
@@ -155,16 +198,17 @@ func (rt *router) Build() *http.ServeMux {
 						slog.Duration("latency", time.Since(startTime)),
 						slog.Any("request", requestLogData),
 						slog.Any("response", map[string]any{
-							"status": 400,
+							"status": 422,
 							"body":   err,
 						}),
 					)
+					span.SetStatus(codes.Error, fmt.Sprintf("invalid content type: %s", contentType))
 					return
 				}
 			}
 
 			logger := rt.logger.With(slog.String("request_id", requestID))
-			req := r.WithContext(context.WithValue(r.Context(), logContextKey, logger))
+			req := r.WithContext(context.WithValue(ctx, logContextKey, logger))
 			writer := &customResponseWriter{ResponseWriter: w}
 			h(writer, req)
 
@@ -175,8 +219,10 @@ func (rt *router) Build() *http.ServeMux {
 				responseLogData["headers"] = writer.Header()
 				if len(writer.body) > 0 {
 					responseLogData["body"] = string(writer.body)
+					span.SetAttributes(attribute.String("response.body", string(writer.body)))
 				}
 			}
+			setSpanHeadersAttributes(span, w.Header(), isDebug)
 
 			if writer.statusCode >= 400 {
 				logger.Error(
@@ -185,6 +231,7 @@ func (rt *router) Build() *http.ServeMux {
 					slog.Any("request", requestLogData),
 					slog.Any("response", responseLogData),
 				)
+				span.SetStatus(codes.Error, http.StatusText(writer.statusCode))
 			} else {
 				logger.Info(
 					"success",
@@ -192,6 +239,7 @@ func (rt *router) Build() *http.ServeMux {
 					slog.Any("request", requestLogData),
 					slog.Any("response", responseLogData),
 				)
+				span.SetStatus(codes.Ok, "success")
 			}
 		}
 	}
