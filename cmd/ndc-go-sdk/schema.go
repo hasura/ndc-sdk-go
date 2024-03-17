@@ -562,11 +562,15 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, scope *types.
 	comments := make([]string, 0)
 	commentGroup := findCommentsFromPos(sp.pkg, scope, typeName)
 	if commentGroup != nil {
-		for _, line := range commentGroup.List {
+		for i, line := range commentGroup.List {
 			text := strings.TrimSpace(strings.TrimLeft(line.Text, "/"))
 			if text == "" {
 				continue
 			}
+			if i == 0 {
+				text = strings.TrimPrefix(text, fmt.Sprintf("%s ", typeName))
+			}
+
 			matches := ndcScalarCommentRegex.FindStringSubmatch(text)
 			matchesLen := len(matches)
 			if matchesLen < 1 {
@@ -610,8 +614,13 @@ func (sp *SchemaParser) parseOperationInfo(fn *types.Func) *OperationInfo {
 	var descriptions []string
 	commentGroup := findCommentsFromPos(sp.pkg, fn.Scope(), functionName)
 	if commentGroup != nil {
-		for _, comment := range commentGroup.List {
+		for i, comment := range commentGroup.List {
 			text := strings.TrimSpace(strings.TrimLeft(comment.Text, "/"))
+
+			// trim the function name in the first line if exists
+			if i == 0 {
+				text = strings.TrimPrefix(text, fmt.Sprintf("%s ", functionName))
+			}
 			matches := ndcOperationCommentRegex.FindStringSubmatch(text)
 			matchesLen := len(matches)
 			if matchesLen > 1 {

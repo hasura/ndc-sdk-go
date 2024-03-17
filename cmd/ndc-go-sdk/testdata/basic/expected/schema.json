@@ -3,7 +3,7 @@
   "functions": [
     {
       "arguments": {},
-      "description": "FunctionGetBool return an scalar boolean",
+      "description": "return an scalar boolean",
       "name": "getBool",
       "result_type": {
         "name": "Boolean",
@@ -375,7 +375,7 @@
     },
     {
       "arguments": {},
-      "description": "FunctionHello sends a hello message",
+      "description": "sends a hello message",
       "name": "hello",
       "result_type": {
         "type": "nullable",
@@ -969,7 +969,7 @@
           }
         }
       },
-      "description": "ProcedureCreateAuthor creates an author",
+      "description": "creates an author",
       "name": "createAuthor",
       "result_type": {
         "type": "nullable",
@@ -991,7 +991,7 @@
           }
         }
       },
-      "description": "ProcedureCreateAuthors creates a list of authors",
+      "description": "creates a list of authors",
       "name": "createAuthors",
       "result_type": {
         "element_type": {
