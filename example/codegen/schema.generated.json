@@ -3,7 +3,7 @@
   "functions": [
     {
       "arguments": {},
-      "description": "FunctionGetBool return an scalar boolean",
+      "description": "return an scalar boolean",
       "name": "getBool",
       "result_type": {
         "name": "Boolean",
@@ -375,7 +375,7 @@
     },
     {
       "arguments": {},
-      "description": "FunctionHello sends a hello message",
+      "description": "sends a hello message",
       "name": "hello",
       "result_type": {
         "type": "nullable",
@@ -394,6 +394,7 @@
           }
         }
       },
+      "description": "GetArticles",
       "name": "getArticles",
       "result_type": {
         "element_type": {
@@ -457,7 +458,6 @@
       }
     },
     "CreateAuthorResult": {
-      "description": "A create author result",
       "fields": {
         "created_at": {
           "type": {
@@ -903,7 +903,6 @@
       }
     },
     "HelloResult": {
-      "description": "A hello result",
       "fields": {
         "foo": {
           "type": {
@@ -942,6 +941,7 @@
           }
         }
       },
+      "description": "CreateArticle",
       "name": "create_article",
       "result_type": {
         "type": "nullable",
@@ -953,6 +953,7 @@
     },
     {
       "arguments": {},
+      "description": "Increase",
       "name": "increase",
       "result_type": {
         "name": "Int",
@@ -968,7 +969,7 @@
           }
         }
       },
-      "description": "ProcedureCreateAuthor creates an author",
+      "description": "creates an author",
       "name": "createAuthor",
       "result_type": {
         "type": "nullable",
@@ -990,7 +991,7 @@
           }
         }
       },
-      "description": "ProcedureCreateAuthors creates a list of authors",
+      "description": "creates a list of authors",
       "name": "createAuthors",
       "result_type": {
         "element_type": {

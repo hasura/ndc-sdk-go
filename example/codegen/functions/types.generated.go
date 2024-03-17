@@ -304,132 +304,140 @@ func (j *GetArticlesArguments) FromValue(input map[string]any) error {
 
 // ToMap encodes the struct to a value map
 func (j Author) ToMap() map[string]any {
-	result := map[string]any{
-		"created_at": j.CreatedAt,
-		"id":         j.ID,
-	}
-	return result
+	r := make(map[string]any)
+	r["created_at"] = j.CreatedAt
+	r["id"] = j.ID
+
+	return r
 }
 
 // ToMap encodes the struct to a value map
 func (j CreateArticleResult) ToMap() map[string]any {
-	result := map[string]any{
-		"authors": utils.EncodeMaps(j.Authors),
-		"id":      j.ID,
+	r := make(map[string]any)
+	j_Authors := make([]map[string]any, len(j.Authors))
+	for i, j_Authors_v := range j.Authors {
+		j_Authors[i] = utils.EncodeMap(j_Authors_v)
 	}
-	return result
+	r["authors"] = j_Authors
+	r["id"] = j.ID
+
+	return r
 }
 
 // ToMap encodes the struct to a value map
 func (j CreateAuthorResult) ToMap() map[string]any {
-	result := map[string]any{
-		"created_at": j.CreatedAt,
-		"id":         j.ID,
-		"name":       j.Name,
-	}
-	return result
+	r := make(map[string]any)
+	r["created_at"] = j.CreatedAt
+	r["id"] = j.ID
+	r["name"] = j.Name
+
+	return r
 }
 
 // ToMap encodes the struct to a value map
 func (j GetArticlesResult) ToMap() map[string]any {
-	result := map[string]any{
-		"id":   j.ID,
-		"Name": j.Name,
-	}
-	return result
+	r := make(map[string]any)
+	r["id"] = j.ID
+	r["Name"] = j.Name
+
+	return r
 }
 
 // ToMap encodes the struct to a value map
 func (j GetTypesArguments) ToMap() map[string]any {
-
-	var result_ObjectPtr map[string]any
-	if j.ObjectPtr != nil {
-		result_ObjectPtr = map[string]any{
-			"Lat":  j.ObjectPtr.Lat,
-			"Long": j.ObjectPtr.Long,
-		}
+	r := make(map[string]any)
+	j_ArrayObject := make([]map[string]any, len(j.ArrayObject))
+	for i, j_ArrayObject_v := range j.ArrayObject {
+		j_ArrayObject_v_obj := make(map[string]any)
+		j_ArrayObject_v_obj["content"] = j_ArrayObject_v.Content
+		j_ArrayObject[i] = j_ArrayObject_v_obj
 	}
-	result_Object := map[string]any{
-		"created_at": j.Object.CreatedAt,
-		"id":         j.Object.ID,
-	}
-	var result_ArrayObjectPtr []map[string]any
+	r["ArrayObject"] = j_ArrayObject
 	if j.ArrayObjectPtr != nil {
-		result_ArrayObjectPtr = make([]map[string]any, len(*j.ArrayObjectPtr))
-		for i, result_ArrayObjectPtr_value := range *j.ArrayObjectPtr {
-			result_ArrayObjectPtr_item := map[string]any{
-				"content": result_ArrayObjectPtr_value.Content,
-			}
-			result_ArrayObjectPtr[i] = result_ArrayObjectPtr_item
+		j_ArrayObjectPtr := make([]map[string]any, len((*j.ArrayObjectPtr)))
+		for i, j_ArrayObjectPtr_v := range *j.ArrayObjectPtr {
+			j_ArrayObjectPtr_v_obj := make(map[string]any)
+			j_ArrayObjectPtr_v_obj["content"] = j_ArrayObjectPtr_v.Content
+			j_ArrayObjectPtr[i] = j_ArrayObjectPtr_v_obj
 		}
+		r["ArrayObjectPtr"] = j_ArrayObjectPtr
 	}
-	var result_ArrayObject []map[string]any
-	result_ArrayObject = make([]map[string]any, len(j.ArrayObject))
-	for i, result_ArrayObject_value := range j.ArrayObject {
-		result_ArrayObject_item := map[string]any{
-			"content": result_ArrayObject_value.Content,
+	r["Bool"] = j.Bool
+	r["BoolPtr"] = j.BoolPtr
+	r["CustomScalar"] = j.CustomScalar
+	r["CustomScalarPtr"] = j.CustomScalarPtr
+	r["Float32"] = j.Float32
+	r["Float32Ptr"] = j.Float32Ptr
+	r["Float64"] = j.Float64
+	r["Float64Ptr"] = j.Float64Ptr
+	r["Int"] = j.Int
+	r["Int16"] = j.Int16
+	r["Int16Ptr"] = j.Int16Ptr
+	r["Int32"] = j.Int32
+	r["Int32Ptr"] = j.Int32Ptr
+	r["Int64"] = j.Int64
+	r["Int64Ptr"] = j.Int64Ptr
+	r["Int8"] = j.Int8
+	r["Int8Ptr"] = j.Int8Ptr
+	r["IntPtr"] = j.IntPtr
+	j_NamedArray := make([]map[string]any, len(j.NamedArray))
+	for i, j_NamedArray_v := range j.NamedArray {
+		j_NamedArray[i] = utils.EncodeMap(j_NamedArray_v)
+	}
+	r["NamedArray"] = j_NamedArray
+	if j.NamedArrayPtr != nil {
+		j_NamedArrayPtr := make([]map[string]any, len((*j.NamedArrayPtr)))
+		for i, j_NamedArrayPtr_v := range *j.NamedArrayPtr {
+			j_NamedArrayPtr[i] = utils.EncodeMap(j_NamedArrayPtr_v)
 		}
-		result_ArrayObject[i] = result_ArrayObject_item
+		r["NamedArrayPtr"] = j_NamedArrayPtr
 	}
-	result := map[string]any{
-		"ArrayObject":     result_ArrayObject,
-		"ArrayObjectPtr":  result_ArrayObjectPtr,
-		"Bool":            j.Bool,
-		"BoolPtr":         j.BoolPtr,
-		"CustomScalar":    j.CustomScalar,
-		"CustomScalarPtr": j.CustomScalarPtr,
-		"Float32":         j.Float32,
-		"Float32Ptr":      j.Float32Ptr,
-		"Float64":         j.Float64,
-		"Float64Ptr":      j.Float64Ptr,
-		"Int":             j.Int,
-		"Int16":           j.Int16,
-		"Int16Ptr":        j.Int16Ptr,
-		"Int32":           j.Int32,
-		"Int32Ptr":        j.Int32Ptr,
-		"Int64":           j.Int64,
-		"Int64Ptr":        j.Int64Ptr,
-		"Int8":            j.Int8,
-		"Int8Ptr":         j.Int8Ptr,
-		"IntPtr":          j.IntPtr,
-		"NamedArray":      utils.EncodeMaps(j.NamedArray),
-		"NamedArrayPtr":   utils.EncodeNullableMaps(j.NamedArrayPtr),
-		"NamedObject":     utils.EncodeMap(j.NamedObject),
-		"NamedObjectPtr":  utils.EncodeMap(j.NamedObjectPtr),
-		"Object":          result_Object,
-		"ObjectPtr":       result_ObjectPtr,
-		"String":          j.String,
-		"StringPtr":       j.StringPtr,
-		"Text":            j.Text,
-		"TextPtr":         j.TextPtr,
-		"Time":            j.Time,
-		"TimePtr":         j.TimePtr,
-		"UUID":            j.UUID,
-		"UUIDArray":       j.UUIDArray,
-		"UUIDPtr":         j.UUIDPtr,
-		"Uint":            j.Uint,
-		"Uint16":          j.Uint16,
-		"Uint16Ptr":       j.Uint16Ptr,
-		"Uint32":          j.Uint32,
-		"Uint32Ptr":       j.Uint32Ptr,
-		"Uint64":          j.Uint64,
-		"Uint64Ptr":       j.Uint64Ptr,
-		"Uint8":           j.Uint8,
-		"Uint8Ptr":        j.Uint8Ptr,
-		"UintPtr":         j.UintPtr,
+	r["NamedObject"] = utils.EncodeMap(j.NamedObject)
+	if j.NamedObjectPtr != nil {
+		r["NamedObjectPtr"] = utils.EncodeMap((*j.NamedObjectPtr))
 	}
-	return result
+	j_Object_obj := make(map[string]any)
+	j_Object_obj["created_at"] = j.Object.CreatedAt
+	j_Object_obj["id"] = j.Object.ID
+	r["Object"] = j_Object_obj
+	if j.ObjectPtr != nil {
+		j_ObjectPtr__obj := make(map[string]any)
+		j_ObjectPtr__obj["Lat"] = (*j.ObjectPtr).Lat
+		j_ObjectPtr__obj["Long"] = (*j.ObjectPtr).Long
+		r["ObjectPtr"] = j_ObjectPtr__obj
+	}
+	r["String"] = j.String
+	r["StringPtr"] = j.StringPtr
+	r["Text"] = j.Text
+	r["TextPtr"] = j.TextPtr
+	r["Time"] = j.Time
+	r["TimePtr"] = j.TimePtr
+	r["UUID"] = j.UUID
+	r["UUIDArray"] = j.UUIDArray
+	r["UUIDPtr"] = j.UUIDPtr
+	r["Uint"] = j.Uint
+	r["Uint16"] = j.Uint16
+	r["Uint16Ptr"] = j.Uint16Ptr
+	r["Uint32"] = j.Uint32
+	r["Uint32Ptr"] = j.Uint32Ptr
+	r["Uint64"] = j.Uint64
+	r["Uint64Ptr"] = j.Uint64Ptr
+	r["Uint8"] = j.Uint8
+	r["Uint8Ptr"] = j.Uint8Ptr
+	r["UintPtr"] = j.UintPtr
+
+	return r
 }
 
 // ToMap encodes the struct to a value map
 func (j HelloResult) ToMap() map[string]any {
-	result := map[string]any{
-		"foo":  j.Foo,
-		"id":   j.ID,
-		"num":  j.Num,
-		"text": j.Text,
-	}
-	return result
+	r := make(map[string]any)
+	r["foo"] = j.Foo
+	r["id"] = j.ID
+	r["num"] = j.Num
+	r["text"] = j.Text
+
+	return r
 }
 
 // ScalarName get the schema name of the scalar

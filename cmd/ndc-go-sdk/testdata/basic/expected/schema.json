@@ -3,7 +3,7 @@
   "functions": [
     {
       "arguments": {},
-      "description": "FunctionGetBool return an scalar boolean",
+      "description": "return an scalar boolean",
       "name": "getBool",
       "result_type": {
         "name": "Boolean",
@@ -234,6 +234,21 @@
             }
           }
         },
+        "Text": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "TextPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
         "Time": {
           "type": {
             "name": "DateTime",
@@ -245,6 +260,30 @@
             "type": "nullable",
             "underlying_type": {
               "name": "DateTime",
+              "type": "named"
+            }
+          }
+        },
+        "UUID": {
+          "type": {
+            "name": "UUID",
+            "type": "named"
+          }
+        },
+        "UUIDArray": {
+          "type": {
+            "element_type": {
+              "name": "UUID",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "UUIDPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "UUID",
               "type": "named"
             }
           }
@@ -336,7 +375,7 @@
     },
     {
       "arguments": {},
-      "description": "FunctionHello sends a hello message",
+      "description": "sends a hello message",
       "name": "hello",
       "result_type": {
         "type": "nullable",
@@ -355,6 +394,7 @@
           }
         }
       },
+      "description": "GetArticles",
       "name": "getArticles",
       "result_type": {
         "element_type": {
@@ -392,7 +432,7 @@
         },
         "id": {
           "type": {
-            "name": "String",
+            "name": "UUID",
             "type": "named"
           }
         }
@@ -418,7 +458,6 @@
       }
     },
     "CreateAuthorResult": {
-      "description": "A create author result",
       "fields": {
         "created_at": {
           "type": {
@@ -680,6 +719,21 @@
             }
           }
         },
+        "Text": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "TextPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
         "Time": {
           "type": {
             "name": "DateTime",
@@ -691,6 +745,30 @@
             "type": "nullable",
             "underlying_type": {
               "name": "DateTime",
+              "type": "named"
+            }
+          }
+        },
+        "UUID": {
+          "type": {
+            "name": "UUID",
+            "type": "named"
+          }
+        },
+        "UUIDArray": {
+          "type": {
+            "element_type": {
+              "name": "UUID",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "UUIDPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "UUID",
               "type": "named"
             }
           }
@@ -802,7 +880,7 @@
         },
         "id": {
           "type": {
-            "name": "String",
+            "name": "UUID",
             "type": "named"
           }
         }
@@ -825,7 +903,6 @@
       }
     },
     "HelloResult": {
-      "description": "A hello result",
       "fields": {
         "foo": {
           "type": {
@@ -835,7 +912,7 @@
         },
         "id": {
           "type": {
-            "name": "String",
+            "name": "UUID",
             "type": "named"
           }
         },
@@ -864,6 +941,7 @@
           }
         }
       },
+      "description": "CreateArticle",
       "name": "create_article",
       "result_type": {
         "type": "nullable",
@@ -875,6 +953,7 @@
     },
     {
       "arguments": {},
+      "description": "Increase",
       "name": "increase",
       "result_type": {
         "name": "Int",
@@ -890,7 +969,7 @@
           }
         }
       },
-      "description": "ProcedureCreateAuthor creates an author",
+      "description": "creates an author",
       "name": "createAuthor",
       "result_type": {
         "type": "nullable",
@@ -912,7 +991,7 @@
           }
         }
       },
-      "description": "ProcedureCreateAuthors creates a list of authors",
+      "description": "creates a list of authors",
       "name": "createAuthors",
       "result_type": {
         "element_type": {
@@ -949,6 +1028,10 @@
       "comparison_operators": {}
     },
     "String": {
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "UUID": {
       "aggregate_functions": {},
       "comparison_operators": {}
     }

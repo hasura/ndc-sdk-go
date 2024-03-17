@@ -86,7 +86,7 @@ func initLogger(logLevel string) (*slog.Logger, slog.Level, error) {
 		return nil, level, err
 	}
 
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
 		Level: level,
 	}))
 	slog.SetDefault(logger)
