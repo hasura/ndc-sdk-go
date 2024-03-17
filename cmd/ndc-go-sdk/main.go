@@ -11,19 +11,21 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type GenerateArguments struct {
+	Path        string   `help:"The base path of the connector's source code" short:"p" default:"."`
+	Directories []string `help:"Folders contain NDC operation functions" short:"d" default:"functions"`
+	Trace       string   `help:"Enable tracing and write to target file path."`
+}
+
 var cli struct {
-	New struct {
-		Name     string `help:"Name of the connector." short:"n" required:""`
-		Module   string `help:"Module name of the connector" short:"m" required:""`
-		Output   string `help:"The location where source codes will be generated" short:"o" default:""`
-		LogLevel string `help:"Log level." enum:"trace,debug,info,warn,error" default:"info"`
+	LogLevel string `help:"Log level." enum:"debug,info,warn,error" default:"info"`
+	New      struct {
+		Name   string `help:"Name of the connector." short:"n" required:""`
+		Module string `help:"Module name of the connector" short:"m" required:""`
+		Output string `help:"The location where source codes will be generated" short:"o" default:""`
 	} `cmd:"" help:"Initialize an NDC connector boilerplate. For example:\n ndc-go-sdk new -n example -m github.com/foo/example"`
 
-	Generate struct {
-		Path        string   `help:"The base path of the connector's source code" short:"p" default:"."`
-		Directories []string `help:"Folders contain NDC operation functions" short:"d" default:"functions"`
-		LogLevel    string   `help:"Log level." enum:"trace,debug,info,warn,error" default:"info"`
-	} `cmd:"" help:"Generate schema and implementation for the connector from functions."`
+	Generate GenerateArguments `cmd:"" help:"Generate schema and implementation for the connector from functions."`
 
 	Version struct{} `cmd:"" help:"Print the CLI version."`
 }
@@ -31,10 +33,10 @@ var cli struct {
 func main() {
 	cmd := kong.Parse(&cli, kong.UsageOnError())
 	start := time.Now()
+	setupGlobalLogger(cli.LogLevel)
 
 	switch cmd.Command() {
 	case "new":
-		setupGlobalLogger(cli.New.LogLevel)
 		log.Info().
 			Str("name", cli.New.Name).
 			Str("module", cli.New.Module).
@@ -46,23 +48,23 @@ func main() {
 		log.Info().Str("exec_time", time.Since(start).Round(time.Second).String()).
 			Msg("generated successfully")
 	case "generate":
-		setupGlobalLogger(cli.Generate.LogLevel)
 		log.Info().
 			Str("path", cli.Generate.Path).
 			Interface("directories", cli.Generate.Directories).
 			Msg("generating connector schema...")
+
 		moduleName, err := getModuleName(cli.Generate.Path)
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to get module name. The base path must contain a go.mod file")
 		}
 
-		if err = parseAndGenerateConnector(cli.Generate.Path, cli.Generate.Directories, moduleName); err != nil {
+		if err = parseAndGenerateConnector(&cli.Generate, moduleName); err != nil {
 			log.Fatal().Err(err).Msg("failed to generate connector schema")
 		}
 		if err := execGoFormat("."); err != nil {
 			log.Fatal().Err(err).Msg("failed to format code")
 		}
-		log.Info().Str("exec_time", time.Since(start).Round(time.Second).String()).
+		log.Info().Str("exec_time", time.Since(start).Round(time.Millisecond).String()).
 			Msg("generated successfully")
 	case "version":
 		_, _ = fmt.Print(version.BuildVersion)

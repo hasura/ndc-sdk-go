@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hasura/ndc-codegen-example/types"
+	"github.com/hasura/ndc-codegen-test/types"
 	"github.com/hasura/ndc-sdk-go/utils"
 )
 
