@@ -2,10 +2,13 @@ package functions
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
-)
 
-type State struct{}
+	"github.com/google/uuid"
+	"github.com/hasura/ndc-codegen-test/types"
+)
 
 type Text string
 
@@ -22,16 +25,16 @@ func (s *ScalarFoo) FromValue(value any) error {
 
 // A hello result
 type HelloResult struct {
-	ID 		string `json:"id"`
-	Num 	int    		`json:"num"`
-	Text 	Text 			`json:"text"`
-	Foo 	ScalarFoo `json:"foo"`
+	ID   uuid.UUID `json:"id"`
+	Num  int       `json:"num"`
+	Text Text      `json:"text"`
+	Foo  ScalarFoo `json:"foo"`
 }
 
 // FunctionHello sends a hello message
-func FunctionHello(ctx context.Context, state *State) (*HelloResult, error) {
+func FunctionHello(ctx context.Context, state *types.State) (*HelloResult, error) {
 	return &HelloResult{
-		ID:   "id",
+		ID:   uuid.New(),
 		Num:  1,
 		Text: "world",
 	}, nil
@@ -49,13 +52,13 @@ type CreateAuthorsArguments struct {
 
 // A create author result
 type CreateAuthorResult struct {
-	ID   			int    `json:"id"`
-	Name 			string `json:"name"`
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
 // ProcedureCreateAuthor creates an author
-func ProcedureCreateAuthor(ctx context.Context, state *State, arguments *CreateAuthorArguments) (*CreateAuthorResult, error) {
+func ProcedureCreateAuthor(ctx context.Context, state *types.State, arguments *CreateAuthorArguments) (*CreateAuthorResult, error) {
 	return &CreateAuthorResult{
 		ID:   1,
 		Name: arguments.Name,
@@ -63,7 +66,7 @@ func ProcedureCreateAuthor(ctx context.Context, state *State, arguments *CreateA
 }
 
 // ProcedureCreateAuthors creates a list of authors
-func ProcedureCreateAuthors(ctx context.Context, state *State, arguments *CreateAuthorsArguments) ([]CreateAuthorResult, error) {
+func ProcedureCreateAuthors(ctx context.Context, state *types.State, arguments *CreateAuthorsArguments) ([]CreateAuthorResult, error) {
 	return []CreateAuthorResult{
 		{
 			ID:   1,
@@ -73,12 +76,12 @@ func ProcedureCreateAuthors(ctx context.Context, state *State, arguments *Create
 }
 
 // FunctionGetBool return an scalar boolean
-func FunctionGetBool(ctx context.Context, state *State) (bool, error) {
+func FunctionGetBool(ctx context.Context, state *types.State) (bool, error) {
 	return true, nil
 }
 
-
 type GetTypesArguments struct {
+	UUID         uuid.UUID
 	Bool         bool
 	String       string
 	Int          int
@@ -94,8 +97,10 @@ type GetTypesArguments struct {
 	Float32      float32
 	Float64      float64
 	Time         time.Time
+	Text         Text
 	CustomScalar CommentText
 
+	UUIDPtr         *uuid.UUID
 	BoolPtr         *bool
 	StringPtr       *string
 	IntPtr          *int
@@ -111,10 +116,11 @@ type GetTypesArguments struct {
 	Float32Ptr      *float32
 	Float64Ptr      *float64
 	TimePtr         *time.Time
+	TextPtr         *Text
 	CustomScalarPtr *CommentText
 
 	Object struct {
-		ID        string `json:"id"`
+		ID        uuid.UUID `json:"id"`
 		CreatedAt time.Time `json:"created_at"`
 	}
 	ObjectPtr *struct {
@@ -131,8 +137,9 @@ type GetTypesArguments struct {
 	NamedObjectPtr *Author
 	NamedArray     []Author
 	NamedArrayPtr  *[]Author
+	UUIDArray      []uuid.UUID
 }
 
-func FunctionGetTypes(ctx context.Context, state *State, arguments *GetTypesArguments) (*GetTypesArguments, error) {
-	return &GetTypesArguments{}, nil
+func FunctionGetTypes(ctx context.Context, state *types.State, arguments *GetTypesArguments) (*GetTypesArguments, error) {
+	return arguments, nil
 }
