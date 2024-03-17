@@ -87,6 +87,8 @@ func ProcedureCreateAuthor(ctx context.Context, state *types.State, arguments *C
 
 Or use `@function` or `@procedure` comment tag:
 
+> **Note:** the first word of the comment must be the function name. Without it the parser can not find the exact comment of the function:
+
 ```go
 // Hello sends a hello message
 // @function

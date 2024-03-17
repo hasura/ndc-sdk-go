@@ -70,7 +70,10 @@ func generateNewProject(name string, moduleName string, srcPath string, silent b
 	}
 
 	log.Info().Msg("generating connector functions...")
-	if err := parseAndGenerateConnector(srcPath, []string{"functions", "types"}, moduleName); err != nil {
+	if err := parseAndGenerateConnector(&GenerateArguments{
+		Path:        srcPath,
+		Directories: []string{"functions", "types"},
+	}, moduleName); err != nil {
 		return err
 	}
 
