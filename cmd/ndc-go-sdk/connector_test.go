@@ -1,62 +1,76 @@
 package main
 
-// var (
-// 	newLinesRegexp = regexp.MustCompile(`\n(\s|\t)*\n`)
-// 	tabRegexp      = regexp.MustCompile(`\t`)
-// 	spacesRegexp   = regexp.MustCompile(`\n\s+`)
-// )
+import (
+	"encoding/json"
+	"os"
+	"path"
+	"regexp"
+	"testing"
 
-// func formatTextContent(input string) string {
-// 	return spacesRegexp.ReplaceAllString(tabRegexp.ReplaceAllString(newLinesRegexp.ReplaceAllString(input, "\n"), "  "), "\n")
-// }
+	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/stretchr/testify/assert"
+)
 
-// func TestConnectorGeneration(t *testing.T) {
+var (
+	newLinesRegexp = regexp.MustCompile(`\n(\s|\t)*\n`)
+	tabRegexp      = regexp.MustCompile(`\t`)
+	spacesRegexp   = regexp.MustCompile(`\n\s+`)
+)
 
-// 	testCases := []struct {
-// 		Name       string
-// 		BasePath   string
-// 		ModuleName string
-// 	}{
-// 		{
-// 			Name:       "basic",
-// 			BasePath:   "testdata/basic",
-// 			ModuleName: "github.com/hasura/ndc-codegen-test",
-// 		},
-// 	}
+func formatTextContent(input string) string {
+	return spacesRegexp.ReplaceAllString(tabRegexp.ReplaceAllString(newLinesRegexp.ReplaceAllString(input, "\n"), "  "), "\n")
+}
 
-// 	for _, tc := range testCases {
-// 		t.Run(tc.Name, func(t *testing.T) {
-// 			_, err := os.ReadFile(path.Join(tc.BasePath, "expected/schema.json"))
-// 			assert.NoError(t, err)
-// 			_, err = os.ReadFile(path.Join(tc.BasePath, "expected/connector.go.tmpl"))
-// 			assert.NoError(t, err)
+func TestConnectorGeneration(t *testing.T) {
 
-// 			assert.NoError(t, parseAndGenerateConnector(&GenerateArguments{
-// 				Path:        path.Join(tc.BasePath, "source"),
-// 				Directories: []string{"functions"},
-// 			}, tc.ModuleName))
-// 			// schemaOutput := rawSchema.Schema()
+	testCases := []struct {
+		Name       string
+		BasePath   string
+		ModuleName string
+	}{
+		{
+			Name:       "basic",
+			BasePath:   "./testdata/basic",
+			ModuleName: "github.com/hasura/ndc-codegen-test",
+		},
+	}
 
-// 			// var schema schema.SchemaResponse
-// 			// assert.NoError(t, json.Unmarshal(schemaBytes, &schema))
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			expectedSchemaBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/schema.json"))
+			assert.NoError(t, err)
+			connectorContentBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/connector.go.tmpl"))
+			assert.NoError(t, err)
+			expectedFunctionTypesBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/functions.go.tmpl"))
+			assert.NoError(t, err)
 
-// 			// assert.Equal(t, schema.Collections, schemaOutput.Collections)
-// 			// assert.Equal(t, schema.Functions, schemaOutput.Functions)
-// 			// assert.Equal(t, schema.Procedures, schemaOutput.Procedures)
-// 			// assert.Equal(t, schema.ScalarTypes, schemaOutput.ScalarTypes)
-// 			// assert.Equal(t, schema.ObjectTypes, schemaOutput.ObjectTypes)
+			assert.NoError(t, parseAndGenerateConnector(&GenerateArguments{
+				Path:        path.Join(tc.BasePath, "source"),
+				Directories: []string{"functions"},
+			}, tc.ModuleName))
 
-// 			// assert.Equal(t, formatTextContent(string(connectorContentBytes)), outputText)
+			var expectedSchema schema.SchemaResponse
+			assert.NoError(t, json.Unmarshal(expectedSchemaBytes, &expectedSchema))
 
-// 			//
-// 			// assert.NoError(t, cg.genFunctionArgumentConstructors())
-// 			// assert.NoError(t, cg.genObjectMethods())
-// 			// assert.NoError(t, cg.genCustomScalarMethods())
-// 			// for name, builder := range cg.typeBuilders {
-// 			// 	fnContent, err := os.ReadFile(path.Join(tc.BasePath, "expected", fmt.Sprintf("%s.go.tmpl", name)))
-// 			// 	assert.NoError(t, err)
-// 			// 	assert.Equal(t, formatTextContent(string(fnContent)), formatTextContent(builder.String()), name)
-// 			// }
-// 		})
-// 	}
-// }
+			schemaBytes, err := os.ReadFile("schema.generated.json")
+			assert.NoError(t, err)
+			var schemaOutput schema.SchemaResponse
+			assert.NoError(t, json.Unmarshal(schemaBytes, &schemaOutput))
+
+			assert.Equal(t, expectedSchema.Collections, schemaOutput.Collections)
+			assert.Equal(t, expectedSchema.Functions, schemaOutput.Functions)
+			assert.Equal(t, expectedSchema.Procedures, schemaOutput.Procedures)
+			assert.Equal(t, expectedSchema.ScalarTypes, schemaOutput.ScalarTypes)
+			assert.Equal(t, expectedSchema.ObjectTypes, schemaOutput.ObjectTypes)
+
+			connectorBytes, err := os.ReadFile("connector.generated.go")
+			assert.NoError(t, err)
+			assert.Equal(t, formatTextContent(string(connectorContentBytes)), formatTextContent(string(connectorBytes)))
+
+			functionTypesBytes, err := os.ReadFile("functions/types.generated.go")
+			assert.NoError(t, err)
+			assert.Equal(t, formatTextContent(string(expectedFunctionTypesBytes)), formatTextContent(string(functionTypesBytes)))
+
+		})
+	}
+}

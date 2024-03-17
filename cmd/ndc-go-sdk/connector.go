@@ -115,23 +115,23 @@ func parseAndGenerateConnector(args *GenerateArguments, moduleName string) error
 
 	_, genTask := trace.NewTask(context.TODO(), "generate_code")
 	defer genTask.End()
-	connectorGen := NewConnectorGenerator(args.Path, moduleName, sm)
-	return connectorGen.generateConnector(".")
+	connectorGen := NewConnectorGenerator(".", moduleName, sm)
+	return connectorGen.generateConnector()
 }
 
-func (cg *connectorGenerator) generateConnector(srcPath string) error {
+func (cg *connectorGenerator) generateConnector() error {
 	// generate schema.generated.json
 	schemaBytes, err := json.MarshalIndent(cg.rawSchema.Schema(), "", "  ")
 	if err != nil {
 		return err
 	}
 
-	schemaPath := path.Join(srcPath, schemaOutputFile)
+	schemaPath := path.Join(cg.basePath, schemaOutputFile)
 	if err := os.WriteFile(schemaPath, schemaBytes, 0644); err != nil {
 		return err
 	}
 
-	targetPath := path.Join(srcPath, connectorOutputFile)
+	targetPath := path.Join(cg.basePath, connectorOutputFile)
 	f, err := os.Create(targetPath)
 	if err != nil {
 		return err
