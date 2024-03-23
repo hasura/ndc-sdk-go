@@ -45,8 +45,11 @@ func TestConnectorGeneration(t *testing.T) {
 			expectedFunctionTypesBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/functions.go.tmpl"))
 			assert.NoError(t, err)
 
+			srcDir := path.Join(tc.BasePath, "source")
+			assert.NoError(t, os.Chdir(srcDir))
+
 			assert.NoError(t, parseAndGenerateConnector(&GenerateArguments{
-				Path:        path.Join(tc.BasePath, "source"),
+				Path:        srcDir,
 				Directories: []string{"functions"},
 			}, tc.ModuleName))
 

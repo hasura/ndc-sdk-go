@@ -22,19 +22,9 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.19"
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
       - name: build the CLI
         run: |
-          export RELEASE_VERSION="$GITHUB_REF_NAME"
-          make ci-build-codegen
+          VERSION="$GITHUB_REF_NAME" make ci-build-codegen
           mkdir release
           mv _output/* release
 
@@ -57,23 +47,22 @@ jobs:
           path: release/artifacts
           merge-multiple: true
 
-      # - name: Build connector definition
-      #   run: |
-      #     set -evo pipefail
-      #     ROOT="$(pwd)"
+      - name: Build connector definition
+        run: |
+          set -evo pipefail
+          ROOT="$(pwd)"
 
-      #     export DOCKER_IMAGE="ghcr.io/hasura/ndc-clickhouse:$GITHUB_REF_NAME"
-      #     export CLI_VERSION=$GITHUB_REF_NAME
+          export VERSION=$GITHUB_REF_NAME
 
-      #     mkdir -p "${ROOT}/release/connector-definition/.hasura-connector/"
-      #     cat "${ROOT}/ci/templates/connector-metadata.yaml" | envsubst > "${ROOT}/release/connector-definition/.hasura-connector/connector-metadata.yaml"
-      #     tar -czvf "${ROOT}/release/artifacts/connector-definition.tgz" --directory "${ROOT}/release/connector-definition/" .
+          mkdir -p "/tmp/release/connector-definition"
+          ${ROOT}/release/artifacts/hasura-ndc-go-linux-amd64 new -n ndc_go -m ndc.dev/ndc-go -o /tmp/release/connector-definition --version v0.3.0
+          tar -czvf "${ROOT}/release/artifacts/connector-definition.tgz" --directory "/tmp/release/connector-definition/" .
 
-      # - uses: actions/upload-artifact@v4
-      #   with:
-      #     name: connector-definition.tgz
-      #     path: ./release/artifacts/connector-definition.tgz
-      #     compression-level: 0 # Already compressed
+      - uses: actions/upload-artifact@v4
+        with:
+          name: connector-definition.tgz
+          path: ./release/artifacts/connector-definition.tgz
+          compression-level: 0 # Already compressed
 
       - name: Get version from tag
         id: get-version
