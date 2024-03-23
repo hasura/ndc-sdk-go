@@ -89,13 +89,13 @@ func (j *MutationOperationType) UnmarshalJSON(b []byte) error {
 
 // MutationOperation represents a mutation operation
 type MutationOperation struct {
-	Type MutationOperationType `json:"type" mapstructure:"type"`
+	Type MutationOperationType `json:"type" yaml:"type" mapstructure:"type"`
 	// The name of the operation
-	Name string `json:"name" mapstructure:"name"`
+	Name string `json:"name" yaml:"name" mapstructure:"name"`
 	// Any named procedure arguments
-	Arguments json.RawMessage `json:"arguments" mapstructure:"arguments"`
+	Arguments json.RawMessage `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 	// The fields to return from the result, or null to return everything
-	Fields NestedField `json:"fields,omitempty" mapstructure:"fields,omitempty"`
+	Fields NestedField `json:"fields,omitempty" yaml:"fields,omitempty" mapstructure:"fields"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -257,8 +257,8 @@ type MutationOperationResultsEncoder interface {
 
 // ProcedureResult represent the result of a procedure mutation operation
 type ProcedureResult struct {
-	Type   MutationOperationType `json:"type" mapstructure:"type"`
-	Result any                   `json:"result" mapstructure:"result"`
+	Type   MutationOperationType `json:"type" yaml:"type" mapstructure:"type"`
+	Result any                   `json:"result" yaml:"result" mapstructure:"result"`
 }
 
 // Encode encodes the struct to MutationOperationResults

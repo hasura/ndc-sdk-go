@@ -63,6 +63,21 @@
             }
           }
         },
+        "Enum": {
+          "type": {
+            "name": "SomeEnum",
+            "type": "named"
+          }
+        },
+        "EnumPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SomeEnum",
+              "type": "named"
+            }
+          }
+        },
         "Float32": {
           "type": {
             "name": "Float",
@@ -548,6 +563,21 @@
             }
           }
         },
+        "Enum": {
+          "type": {
+            "name": "SomeEnum",
+            "type": "named"
+          }
+        },
+        "EnumPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SomeEnum",
+              "type": "named"
+            }
+          }
+        },
         "Float32": {
           "type": {
             "name": "Float",
@@ -1005,7 +1035,10 @@
   "scalar_types": {
     "Boolean": {
       "aggregate_functions": {},
-      "comparison_operators": {}
+      "comparison_operators": {},
+      "representation": {
+        "type": "boolean"
+      }
     },
     "CommentString": {
       "aggregate_functions": {},
@@ -1017,7 +1050,10 @@
     },
     "Float": {
       "aggregate_functions": {},
-      "comparison_operators": {}
+      "comparison_operators": {},
+      "representation": {
+        "type": "number"
+      }
     },
     "Foo": {
       "aggregate_functions": {},
@@ -1025,15 +1061,35 @@
     },
     "Int": {
       "aggregate_functions": {},
-      "comparison_operators": {}
+      "comparison_operators": {},
+      "representation": {
+        "type": "integer"
+      }
+    },
+    "SomeEnum": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": [
+          "foo",
+          "bar"
+        ],
+        "type": "enum"
+      }
     },
     "String": {
       "aggregate_functions": {},
-      "comparison_operators": {}
+      "comparison_operators": {},
+      "representation": {
+        "type": "string"
+      }
     },
     "UUID": {
       "aggregate_functions": {},
-      "comparison_operators": {}
+      "comparison_operators": {},
+      "representation": {
+        "type": "string"
+      }
     }
   }
 }

@@ -2,12 +2,14 @@
 package functions
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-sdk-go/utils"
 	"reflect"
+	"slices"
 )
 
 func decodeUUIDHookFunc() mapstructure.DecodeHookFunc {
@@ -123,6 +125,15 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	}
 	j.CustomScalarPtr = new(CommentText)
 	err = functions_Decoder.DecodeNullableObjectValue(j.CustomScalarPtr, input, "CustomScalarPtr")
+	if err != nil {
+		return err
+	}
+	err = functions_Decoder.DecodeObjectValue(&j.Enum, input, "Enum")
+	if err != nil {
+		return err
+	}
+	j.EnumPtr = new(SomeEnum)
+	err = functions_Decoder.DecodeNullableObjectValue(j.EnumPtr, input, "EnumPtr")
 	if err != nil {
 		return err
 	}
@@ -366,6 +377,8 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["BoolPtr"] = j.BoolPtr
 	r["CustomScalar"] = j.CustomScalar
 	r["CustomScalarPtr"] = j.CustomScalarPtr
+	r["Enum"] = j.Enum
+	r["EnumPtr"] = j.EnumPtr
 	r["Float32"] = j.Float32
 	r["Float32Ptr"] = j.Float32Ptr
 	r["Float64"] = j.Float64
@@ -448,4 +461,65 @@ func (j CommentText) ScalarName() string {
 // ScalarName get the schema name of the scalar
 func (j ScalarFoo) ScalarName() string {
 	return "Foo"
+}
+
+// ScalarName get the schema name of the scalar
+func (j SomeEnum) ScalarName() string {
+	return "SomeEnum"
+}
+
+const (
+	SomeEnumFoo SomeEnum = "foo"
+	SomeEnumBar SomeEnum = "bar"
+)
+
+var enumValues_SomeEnum = []SomeEnum{SomeEnumFoo, SomeEnumBar}
+
+// ParseSomeEnum parses a SomeEnum enum from string
+func ParseSomeEnum(input string) (SomeEnum, error) {
+	result := SomeEnum(input)
+	if !slices.Contains(enumValues_SomeEnum, result) {
+		return SomeEnum(""), errors.New("failed to parse SomeEnum, expect one of SomeEnumFoo, SomeEnumBar")
+	}
+
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j SomeEnum) IsValid() bool {
+	return slices.Contains(enumValues_SomeEnum, j)
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *SomeEnum) UnmarshalJSON(b []byte) error {
+	var rawValue string
+	if err := json.Unmarshal(b, &rawValue); err != nil {
+		return err
+	}
+
+	value, err := ParseSomeEnum(rawValue)
+	if err != nil {
+		return err
+	}
+
+	*j = value
+	return nil
+}
+
+// FromValue decodes the scalar from an unknown value
+func (s *SomeEnum) FromValue(value any) error {
+	valueStr, err := utils.DecodeNullableString(value)
+	if err != nil {
+		return err
+	}
+	if valueStr == nil {
+		return nil
+	}
+	result, err := ParseSomeEnum(*valueStr)
+	if err != nil {
+		return err
+	}
+
+	*s = result
+	return nil
 }
