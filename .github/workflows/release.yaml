@@ -8,7 +8,7 @@ on:
 
 jobs:
   tests:
-    uses: ./test.yaml
+    uses: ./.github/workflows/test.yaml
 
   build-cli-binaries:
     name: build the CLI binaries
