@@ -17,14 +17,16 @@ type GenerateArguments struct {
 	Trace       string   `help:"Enable tracing and write to target file path."`
 }
 
-var cli struct {
-	LogLevel string `help:"Log level." enum:"debug,info,warn,error" default:"info"`
-	New      struct {
-		Name   string `help:"Name of the connector." short:"n" required:""`
-		Module string `help:"Module name of the connector" short:"m" required:""`
-		Output string `help:"The location where source codes will be generated" short:"o" default:""`
-	} `cmd:"" help:"Initialize an NDC connector boilerplate. For example:\n ndc-go-sdk new -n example -m github.com/foo/example"`
+type NewArguments struct {
+	Name    string `help:"Name of the connector." short:"n" required:""`
+	Module  string `help:"Module name of the connector" short:"m" required:""`
+	Version string `help:"The version of ndc-sdk-go."`
+	Output  string `help:"The location where source codes will be generated" short:"o" default:""`
+}
 
+var cli struct {
+	LogLevel string            `help:"Log level." enum:"debug,info,warn,error" default:"info"`
+	New      NewArguments      `cmd:"" help:"Initialize an NDC connector boilerplate. For example:\n ndc-go-sdk new -n example -m github.com/foo/example"`
 	Generate GenerateArguments `cmd:"" help:"Generate schema and implementation for the connector from functions."`
 
 	Version struct{} `cmd:"" help:"Print the CLI version."`
@@ -37,12 +39,18 @@ func main() {
 
 	switch cmd.Command() {
 	case "new":
+		if cli.New.Version == "" {
+			cli.New.Version = version.BuildVersion
+		}
+
 		log.Info().
 			Str("name", cli.New.Name).
 			Str("module", cli.New.Module).
 			Str("output", cli.New.Output).
+			Str("version", cli.New.Version).
 			Msg("generating the NDC boilerplate...")
-		if err := generateNewProject(cli.New.Name, cli.New.Module, cli.New.Output, false); err != nil {
+
+		if err := generateNewProject(&cli.New, false); err != nil {
 			log.Fatal().Err(err).Msg("failed to generate new project")
 		}
 		log.Info().Str("exec_time", time.Since(start).Round(time.Second).String()).
@@ -56,6 +64,10 @@ func main() {
 		moduleName, err := getModuleName(cli.Generate.Path)
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to get module name. The base path must contain a go.mod file")
+		}
+
+		if err := os.Chdir(cli.Generate.Path); err != nil {
+			log.Fatal().Err(err).Msg("")
 		}
 
 		if err = parseAndGenerateConnector(&cli.Generate, moduleName); err != nil {
