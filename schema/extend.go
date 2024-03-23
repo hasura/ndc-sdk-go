@@ -152,7 +152,7 @@ func (ty Type) Type() (TypeEnum, error) {
 	case TypeEnum:
 		return raw, nil
 	default:
-		return TypeEnum(""), fmt.Errorf("invalid type: %+v", t)
+		return TypeEnum(""), fmt.Errorf("invalid Type type: %+v", t)
 	}
 }
 
@@ -163,7 +163,7 @@ func (ty Type) AsNamed() (*NamedType, error) {
 		return nil, err
 	}
 	if t != TypeNamed {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", TypeNamed, t)
+		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypeNamed, t)
 	}
 	return &NamedType{
 		Type: t,
@@ -178,7 +178,7 @@ func (ty Type) AsNullable() (*NullableType, error) {
 		return nil, err
 	}
 	if t != TypeNullable {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", TypeNullable, t)
+		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypeNullable, t)
 	}
 
 	rawUnderlyingType, ok := ty["underlying_type"]
@@ -202,12 +202,12 @@ func (ty Type) AsArray() (*ArrayType, error) {
 		return nil, err
 	}
 	if t != TypeArray {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", TypeArray, t)
+		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypeArray, t)
 	}
 
 	rawElementType, ok := ty["element_type"]
 	if !ok {
-		return nil, errors.New("element_type is required")
+		return nil, errors.New("element_type is required in Type")
 	}
 	elementType, ok := rawElementType.(Type)
 	if !ok {
@@ -226,7 +226,7 @@ func (ty Type) AsPredicate() (*PredicateType, error) {
 		return nil, err
 	}
 	if t != TypePredicate {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", TypePredicate, t)
+		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypePredicate, t)
 	}
 
 	return &PredicateType{
@@ -258,7 +258,7 @@ func (ty Type) InterfaceT() (TypeEncoder, error) {
 	case TypePredicate:
 		return ty.AsPredicate()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", t)
+		return nil, fmt.Errorf("invalid Type type: %s", t)
 	}
 }
 
@@ -666,7 +666,7 @@ func (j Field) Type() (FieldType, error) {
 	case FieldType:
 		return raw, nil
 	default:
-		return FieldType(""), fmt.Errorf("invalid type: %+v", t)
+		return FieldType(""), fmt.Errorf("invalid Field type: %+v", t)
 	}
 }
 
@@ -677,7 +677,7 @@ func (j Field) AsColumn() (*ColumnField, error) {
 		return nil, err
 	}
 	if t != FieldTypeColumn {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", FieldTypeColumn, t)
+		return nil, fmt.Errorf("invalid Field type; expected %s, got %s", FieldTypeColumn, t)
 	}
 	column := getStringValueByKey(j, "column")
 	if column == "" {
@@ -707,7 +707,7 @@ func (j Field) AsRelationship() (*RelationshipField, error) {
 		return nil, err
 	}
 	if t != FieldTypeRelationship {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", FieldTypeRelationship, t)
+		return nil, fmt.Errorf("invalid Field type; expected %s, got %s", FieldTypeRelationship, t)
 	}
 	relationship := getStringValueByKey(j, "relationship")
 	if relationship == "" {
@@ -759,7 +759,7 @@ func (j Field) InterfaceT() (FieldEncoder, error) {
 	case FieldTypeRelationship:
 		return j.AsRelationship()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", ty)
+		return nil, fmt.Errorf("invalid Field type: %s", ty)
 	}
 }
 
@@ -1003,11 +1003,11 @@ func (j *ComparisonValue) UnmarshalJSON(b []byte) error {
 	case ComparisonValueTypeScalar:
 		rawValue, ok := raw["value"]
 		if !ok {
-			return errors.New("field value in Type is required for scalar type")
+			return errors.New("field value in ComparisonValue is required for scalar type")
 		}
 		var value any
 		if err := json.Unmarshal(rawValue, &value); err != nil {
-			return fmt.Errorf("field value in Type: %s", err)
+			return fmt.Errorf("field value in ComparisonValue: %s", err)
 		}
 		result["value"] = value
 	}
@@ -1031,7 +1031,7 @@ func (cv ComparisonValue) Type() (ComparisonValueType, error) {
 	case ComparisonValueType:
 		return raw, nil
 	default:
-		return ComparisonValueType(""), fmt.Errorf("invalid type: %+v", t)
+		return ComparisonValueType(""), fmt.Errorf("invalid ComparisonValue type: %+v", t)
 	}
 }
 
@@ -1042,7 +1042,7 @@ func (cv ComparisonValue) AsScalar() (*ComparisonValueScalar, error) {
 		return nil, err
 	}
 	if ty != ComparisonValueTypeScalar {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", ComparisonValueTypeScalar, ty)
+		return nil, fmt.Errorf("invalid ComparisonValue type; expected %s, got %s", ComparisonValueTypeScalar, ty)
 	}
 
 	value, ok := cv["value"]
@@ -1063,7 +1063,7 @@ func (cv ComparisonValue) AsColumn() (*ComparisonValueColumn, error) {
 		return nil, err
 	}
 	if ty != ComparisonValueTypeColumn {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", ComparisonValueTypeColumn, ty)
+		return nil, fmt.Errorf("invalid ComparisonValue type; expected %s, got %s", ComparisonValueTypeColumn, ty)
 	}
 
 	rawColumn, ok := cv["column"]
@@ -1088,7 +1088,7 @@ func (cv ComparisonValue) AsVariable() (*ComparisonValueVariable, error) {
 		return nil, err
 	}
 	if ty != ComparisonValueTypeVariable {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", ComparisonValueTypeVariable, ty)
+		return nil, fmt.Errorf("invalid ComparisonValue type; expected %s, got %s", ComparisonValueTypeVariable, ty)
 	}
 
 	name := getStringValueByKey(cv, "name")
@@ -1122,7 +1122,7 @@ func (cv ComparisonValue) InterfaceT() (ComparisonValueEncoder, error) {
 	case ComparisonValueTypeScalar:
 		return cv.AsScalar()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", ty)
+		return nil, fmt.Errorf("invalid ComparisonValue type: %s", ty)
 	}
 }
 
@@ -1297,7 +1297,7 @@ func (j ExistsInCollection) Type() (ExistsInCollectionType, error) {
 	case ExistsInCollectionType:
 		return raw, nil
 	default:
-		return ExistsInCollectionType(""), fmt.Errorf("invalid type: %+v", t)
+		return ExistsInCollectionType(""), fmt.Errorf("invalid ExistsInCollection type: %+v", t)
 	}
 }
 
@@ -1308,7 +1308,7 @@ func (j ExistsInCollection) AsRelated() (*ExistsInCollectionRelated, error) {
 		return nil, err
 	}
 	if t != ExistsInCollectionTypeRelated {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExistsInCollectionTypeRelated, t)
+		return nil, fmt.Errorf("invalid ExistsInCollection type; expected: %s, got: %s", ExistsInCollectionTypeRelated, t)
 	}
 
 	relationship := getStringValueByKey(j, "relationship")
@@ -1338,7 +1338,7 @@ func (j ExistsInCollection) AsUnrelated() (*ExistsInCollectionUnrelated, error) 
 		return nil, err
 	}
 	if t != ExistsInCollectionTypeUnrelated {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExistsInCollectionTypeUnrelated, t)
+		return nil, fmt.Errorf("invalid ExistsInCollection type; expected: %s, got: %s", ExistsInCollectionTypeUnrelated, t)
 	}
 
 	collection := getStringValueByKey(j, "collection")
@@ -1380,7 +1380,7 @@ func (j ExistsInCollection) InterfaceT() (ExistsInCollectionEncoder, error) {
 	case ExistsInCollectionTypeUnrelated:
 		return j.AsUnrelated()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", t)
+		return nil, fmt.Errorf("invalid ExistsInCollection type: %s", t)
 	}
 }
 
@@ -1566,7 +1566,7 @@ func (j Expression) Type() (ExpressionType, error) {
 	case ExpressionType:
 		return raw, nil
 	default:
-		return ExpressionType(""), fmt.Errorf("invalid type: %+v", t)
+		return ExpressionType(""), fmt.Errorf("invalid Expression type: %+v", t)
 	}
 }
 
@@ -1577,7 +1577,7 @@ func (j Expression) AsAnd() (*ExpressionAnd, error) {
 		return nil, err
 	}
 	if t != ExpressionTypeAnd {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExpressionTypeAnd, t)
+		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeAnd, t)
 	}
 
 	rawExpressions, ok := j["expressions"]
@@ -1602,7 +1602,7 @@ func (j Expression) AsOr() (*ExpressionOr, error) {
 		return nil, err
 	}
 	if t != ExpressionTypeOr {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExpressionTypeOr, t)
+		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeOr, t)
 	}
 
 	rawExpressions, ok := j["expressions"]
@@ -1627,7 +1627,7 @@ func (j Expression) AsNot() (*ExpressionNot, error) {
 		return nil, err
 	}
 	if t != ExpressionTypeNot {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExpressionTypeNot, t)
+		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeNot, t)
 	}
 
 	rawExpression, ok := j["expression"]
@@ -1652,7 +1652,7 @@ func (j Expression) AsUnaryComparisonOperator() (*ExpressionUnaryComparisonOpera
 		return nil, err
 	}
 	if t != ExpressionTypeUnaryComparisonOperator {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExpressionTypeUnaryComparisonOperator, t)
+		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeUnaryComparisonOperator, t)
 	}
 
 	rawOperator, ok := j["operator"]
@@ -1693,7 +1693,7 @@ func (j Expression) AsBinaryComparisonOperator() (*ExpressionBinaryComparisonOpe
 		return nil, err
 	}
 	if t != ExpressionTypeBinaryComparisonOperator {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExpressionTypeBinaryComparisonOperator, t)
+		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeBinaryComparisonOperator, t)
 	}
 
 	rawColumn, ok := j["column"]
@@ -1729,7 +1729,7 @@ func (j Expression) AsExists() (*ExpressionExists, error) {
 		return nil, err
 	}
 	if t != ExpressionTypeExists {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExpressionTypeExists, t)
+		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeExists, t)
 	}
 
 	rawInCollection, ok := j["in_collection"]
@@ -1782,7 +1782,7 @@ func (j Expression) InterfaceT() (ExpressionEncoder, error) {
 	case ExpressionTypeExists:
 		return j.AsExists()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", t)
+		return nil, fmt.Errorf("invalid Expression type: %s", t)
 	}
 }
 
@@ -2029,7 +2029,7 @@ func (j Aggregate) Type() (AggregateType, error) {
 	case AggregateType:
 		return raw, nil
 	default:
-		return AggregateType(""), fmt.Errorf("invalid type: %+v", t)
+		return AggregateType(""), fmt.Errorf("invalid Aggregate type: %+v", t)
 	}
 }
 
@@ -2040,7 +2040,7 @@ func (j Aggregate) AsStarCount() (*AggregateStarCount, error) {
 		return nil, err
 	}
 	if t != AggregateTypeStarCount {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", AggregateTypeStarCount, t)
+		return nil, fmt.Errorf("invalid Aggregate type; expected: %s, got: %s", AggregateTypeStarCount, t)
 	}
 
 	return &AggregateStarCount{
@@ -2055,7 +2055,7 @@ func (j Aggregate) AsSingleColumn() (*AggregateSingleColumn, error) {
 		return nil, err
 	}
 	if t != AggregateTypeSingleColumn {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", AggregateTypeSingleColumn, t)
+		return nil, fmt.Errorf("invalid Aggregate type; expected: %s, got: %s", AggregateTypeSingleColumn, t)
 	}
 
 	column := getStringValueByKey(j, "column")
@@ -2081,7 +2081,7 @@ func (j Aggregate) AsColumnCount() (*AggregateColumnCount, error) {
 		return nil, err
 	}
 	if t != AggregateTypeColumnCount {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", AggregateTypeColumnCount, t)
+		return nil, fmt.Errorf("invalid Aggregate type; expected: %s, got: %s", AggregateTypeColumnCount, t)
 	}
 
 	column := getStringValueByKey(j, "column")
@@ -2125,7 +2125,7 @@ func (j Aggregate) InterfaceT() (AggregateEncoder, error) {
 	case AggregateTypeSingleColumn:
 		return j.AsSingleColumn()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", t)
+		return nil, fmt.Errorf("invalid Aggregate type: %s", t)
 	}
 }
 
@@ -2356,7 +2356,7 @@ func (j OrderByTarget) Type() (OrderByTargetType, error) {
 	case OrderByTargetType:
 		return raw, nil
 	default:
-		return OrderByTargetType(""), fmt.Errorf("invalid type: %+v", t)
+		return OrderByTargetType(""), fmt.Errorf("invalid OrderByTarget type: %+v", t)
 	}
 }
 
@@ -2367,7 +2367,7 @@ func (j OrderByTarget) AsColumn() (*OrderByColumn, error) {
 		return nil, err
 	}
 	if t != OrderByTargetTypeColumn {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", OrderByTargetTypeColumn, t)
+		return nil, fmt.Errorf("invalid OrderByTarget type; expected: %s, got: %s", OrderByTargetTypeColumn, t)
 	}
 
 	name := getStringValueByKey(j, "name")
@@ -2396,7 +2396,7 @@ func (j OrderByTarget) AsSingleColumnAggregate() (*OrderBySingleColumnAggregate,
 		return nil, err
 	}
 	if t != OrderByTargetTypeSingleColumnAggregate {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", OrderByTargetTypeSingleColumnAggregate, t)
+		return nil, fmt.Errorf("invalid OrderByTarget type; expected: %s, got: %s", OrderByTargetTypeSingleColumnAggregate, t)
 	}
 
 	column := getStringValueByKey(j, "column")
@@ -2431,7 +2431,7 @@ func (j OrderByTarget) AsStarCountAggregate() (*OrderByStarCountAggregate, error
 		return nil, err
 	}
 	if t != OrderByTargetTypeStarCountAggregate {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", OrderByTargetTypeStarCountAggregate, t)
+		return nil, fmt.Errorf("invalid OrderByTarget type; expected: %s, got: %s", OrderByTargetTypeStarCountAggregate, t)
 	}
 
 	rawPath, ok := j["path"]
@@ -2469,7 +2469,7 @@ func (j OrderByTarget) InterfaceT() (OrderByTargetEncoder, error) {
 	case OrderByTargetTypeStarCountAggregate:
 		return j.AsStarCountAggregate()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", t)
+		return nil, fmt.Errorf("invalid OrderByTarget type: %s", t)
 	}
 }
 
@@ -2636,7 +2636,7 @@ func (j ComparisonOperatorDefinition) Type() (ComparisonOperatorDefinitionType, 
 	case ComparisonOperatorDefinitionType:
 		return raw, nil
 	default:
-		return ComparisonOperatorDefinitionType(""), fmt.Errorf("invalid type: %+v", t)
+		return ComparisonOperatorDefinitionType(""), fmt.Errorf("invalid ComparisonOperatorDefinition type: %+v", t)
 	}
 }
 
@@ -2647,7 +2647,7 @@ func (j ComparisonOperatorDefinition) AsEqual() (*ComparisonOperatorEqual, error
 		return nil, err
 	}
 	if t != ComparisonOperatorDefinitionTypeEqual {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeEqual, t)
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeEqual, t)
 	}
 
 	return &ComparisonOperatorEqual{
@@ -2662,7 +2662,7 @@ func (j ComparisonOperatorDefinition) AsIn() (*ComparisonOperatorIn, error) {
 		return nil, err
 	}
 	if t != ComparisonOperatorDefinitionTypeIn {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeIn, t)
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeIn, t)
 	}
 
 	return &ComparisonOperatorIn{
@@ -2677,7 +2677,7 @@ func (j ComparisonOperatorDefinition) AsCustom() (*ComparisonOperatorCustom, err
 		return nil, err
 	}
 	if t != ComparisonOperatorDefinitionTypeCustom {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeCustom, t)
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeCustom, t)
 	}
 
 	rawArg, ok := j["argument_type"]
@@ -2717,7 +2717,7 @@ func (j ComparisonOperatorDefinition) InterfaceT() (ComparisonOperatorDefinition
 	case ComparisonOperatorDefinitionTypeCustom:
 		return j.AsCustom()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", t)
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type: %s", t)
 	}
 }
 
@@ -2899,7 +2899,7 @@ func (j NestedField) Type() (NestedFieldType, error) {
 	case NestedFieldType:
 		return raw, nil
 	default:
-		return NestedFieldType(""), fmt.Errorf("invalid type: %+v", t)
+		return NestedFieldType(""), fmt.Errorf("invalid NestedField type: %+v", t)
 	}
 }
 
@@ -2910,7 +2910,7 @@ func (j NestedField) AsObject() (*NestedObject, error) {
 		return nil, err
 	}
 	if t != NestedFieldTypeObject {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", NestedFieldTypeObject, t)
+		return nil, fmt.Errorf("invalid NestedField type; expected: %s, got: %s", NestedFieldTypeObject, t)
 	}
 
 	rawFields, ok := j["fields"]
@@ -2936,7 +2936,7 @@ func (j NestedField) AsArray() (*NestedArray, error) {
 		return nil, err
 	}
 	if t != NestedFieldTypeArray {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", NestedFieldTypeArray, t)
+		return nil, fmt.Errorf("invalid NestedField type; expected: %s, got: %s", NestedFieldTypeArray, t)
 	}
 
 	rawFields, ok := j["fields"]
@@ -2974,7 +2974,7 @@ func (j NestedField) InterfaceT() (NestedFieldEncoder, error) {
 	case NestedFieldTypeArray:
 		return j.AsArray()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", t)
+		return nil, fmt.Errorf("invalid NestedField type: %s", t)
 	}
 }
 
@@ -3028,13 +3028,5 @@ func (ob NestedArray) Encode() NestedField {
 	return NestedField{
 		"type":   ob.Type,
 		"fields": ob.Fields,
-	}
-}
-
-// NewScalarType creates an empty ScalarType instance
-func NewScalarType() *ScalarType {
-	return &ScalarType{
-		AggregateFunctions:  ScalarTypeAggregateFunctions{},
-		ComparisonOperators: map[string]ComparisonOperatorDefinition{},
 	}
 }
