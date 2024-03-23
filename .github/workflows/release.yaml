@@ -1,8 +1,6 @@
 name: Release CLI on github
 on:
   push:
-    branches:
-      - release-v0.4.0
     tags:
       - "v*"
 
@@ -38,7 +36,7 @@ jobs:
     needs:
       - build-cli-binaries
     runs-on: ubuntu-latest
-    # if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     steps:
       - uses: actions/checkout@v4
 
@@ -56,7 +54,7 @@ jobs:
 
           mkdir -p "/tmp/release/connector-definition"
           chmod +x ${ROOT}/release/artifacts/hasura-ndc-go-linux-amd64
-          ${ROOT}/release/artifacts/hasura-ndc-go-linux-amd64 new -n ndc_go -m ndc.dev/ndc-go -o /tmp/release/connector-definition --version v0.3.0
+          ${ROOT}/release/artifacts/hasura-ndc-go-linux-amd64 new -n ndc_go -m ndc.dev/ndc-go -o /tmp/release/connector-definition
           tar -czvf "${ROOT}/release/artifacts/connector-definition.tgz" --directory "/tmp/release/connector-definition/" .
 
       - uses: actions/upload-artifact@v4
