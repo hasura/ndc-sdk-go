@@ -87,7 +87,8 @@ func ProcedureCreateAuthor(ctx context.Context, state *types.State, arguments *C
 
 Or use `@function` or `@procedure` comment tag:
 
-> **Note:** the first word of the comment must be the function name. Without it the parser can not find the exact comment of the function:
+> [!IMPORTANT]
+> The first word of the comment must be the function name. Without it the parser can not find the exact comment of the function:
 
 ```go
 // Hello sends a hello message
@@ -184,7 +185,8 @@ The basic scalar types supported are:
 - `float32`, `float64` (NDC scalar type: `Float`)
 - `bool` (NDC scalar type: `Boolean`)
 - `time.Time` (NDC scalar type: `DateTime`, represented as an [ISO formatted](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString) string in JSON)
-- `github.com/google/uuid.UUID` (NDC scalar type: `UUID`, represented as a UUID string in JSON)
+- `github.com/google/uuid.UUID` (NDC scalar type: `UUID`, represented as a UUID string in JSON).
+- Type representation and enum.
 
 Alias scalar types will be inferred to the origin type in the schema.
 
@@ -194,6 +196,9 @@ type Text string
 ```
 
 If you want to define a custom scalar type, the type name must have a `Scalar` prefix or `@scalar` tag in the comment. The generator doesn't care about the underlying type even if it is a struct.
+
+> [!IMPORTANT]
+> Require the type name at the head of the comment if using comment tags.
 
 ```go
 type ScalarFoo struct {
@@ -205,19 +210,19 @@ type ScalarFoo struct {
 //   return "Foo"
 // }
 
+
+// Tag a tag scalar
 // @scalar
 type Tag struct {
   tag string
 }
 // output: Tag
 
-
+// Foo a foo scalar
 // @scalar Bar
 type Foo struct {}
 // output: Bar
 ```
-
-> The generator detects comments by the nearby position. It isn't perfectly accurate in some use cases. Prefix name in the function is highly recommended.
 
 For custom scalar, you must implement a method to decode `any` value so its data can be set when resolving request query arguments. `UnmarshalJSON` is also used when encoding results.
 
@@ -238,6 +243,39 @@ func (c *ScalarFoo) UnmarshalJSON(b []byte) error {
 	return nil
 }
 ```
+
+#### Enum
+
+You can define the enum type with `@enum` comment tag. The data type must be an alias of string.
+
+```go
+// @enum <values separated by commas>
+//
+// example:
+//
+// SomeEnum some enum
+// @enum foo, bar
+type SomeEnum string
+```
+
+The tool will help generate schema, constants and helper methods for it.
+
+```json
+{
+  "scalar_types": {
+    "SomeEnum": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["foo", "bar"],
+        "type": "enum"
+      }
+    }
+  }
+}
+```
+
+![Enum scalar](../../assets/scalar-enum.gif)
 
 ### Documentation
 
