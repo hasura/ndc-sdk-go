@@ -1,0 +1,89 @@
+name: Release CLI on github
+on:
+  push:
+    branches:
+      - release-v0.4.0
+    tags:
+      - "v*"
+
+jobs:
+  tests:
+    uses: ./.github/workflows/test.yaml
+
+  build-cli-binaries:
+    name: build the CLI binaries
+    runs-on: ubuntu-20.04
+    needs: [tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.19"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: build the CLI
+        run: |
+          export RELEASE_VERSION="$GITHUB_REF_NAME"
+          make ci-build-codegen
+          mkdir release
+          mv _output/* release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          path: release/hasura-ndc-go-*
+          if-no-files-found: error
+
+  release:
+    name: release to GitHub
+    needs:
+      - build-cli-binaries
+    runs-on: ubuntu-latest
+    # if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: release/artifacts
+          merge-multiple: true
+
+      # - name: Build connector definition
+      #   run: |
+      #     set -evo pipefail
+      #     ROOT="$(pwd)"
+
+      #     export DOCKER_IMAGE="ghcr.io/hasura/ndc-clickhouse:$GITHUB_REF_NAME"
+      #     export CLI_VERSION=$GITHUB_REF_NAME
+
+      #     mkdir -p "${ROOT}/release/connector-definition/.hasura-connector/"
+      #     cat "${ROOT}/ci/templates/connector-metadata.yaml" | envsubst > "${ROOT}/release/connector-definition/.hasura-connector/connector-metadata.yaml"
+      #     tar -czvf "${ROOT}/release/artifacts/connector-definition.tgz" --directory "${ROOT}/release/connector-definition/" .
+
+      # - uses: actions/upload-artifact@v4
+      #   with:
+      #     name: connector-definition.tgz
+      #     path: ./release/artifacts/connector-definition.tgz
+      #     compression-level: 0 # Already compressed
+
+      - name: Get version from tag
+        id: get-version
+        run: |
+          echo "tagged_version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: create a draft release
+        uses: ncipollo/release-action@v1
+        with:
+          draft: true
+          tag: v${{ steps.get-version.outputs.tagged_version }}
+          artifacts: release/artifacts/*
