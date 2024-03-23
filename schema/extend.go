@@ -32,13 +32,14 @@ var enumValues_Type = []TypeEnum{
 }
 
 // ParseTypeEnum parses a type enum from string
-func ParseTypeEnum(input string) (*TypeEnum, error) {
-	if !slices.Contains(enumValues_Type, TypeEnum(input)) {
-		return nil, fmt.Errorf("failed to parse TypeEnum, expect one of %v", enumValues_Type)
-	}
+func ParseTypeEnum(input string) (TypeEnum, error) {
 	result := TypeEnum(input)
 
-	return &result, nil
+	if !slices.Contains(enumValues_Type, result) {
+		return TypeEnum(""), fmt.Errorf("failed to parse TypeEnum, expect one of %v", enumValues_Type)
+	}
+
+	return result, nil
 }
 
 // IsValid checks if the value is invalid
@@ -58,7 +59,7 @@ func (j *TypeEnum) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -149,11 +150,11 @@ func (ty Type) Type() (TypeEnum, error) {
 		if err != nil {
 			return TypeEnum(""), err
 		}
-		return *v, nil
+		return v, nil
 	case TypeEnum:
 		return raw, nil
 	default:
-		return TypeEnum(""), fmt.Errorf("invalid type: %+v", t)
+		return TypeEnum(""), fmt.Errorf("invalid Type type: %+v", t)
 	}
 }
 
@@ -164,7 +165,7 @@ func (ty Type) AsNamed() (*NamedType, error) {
 		return nil, err
 	}
 	if t != TypeNamed {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", TypeNamed, t)
+		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypeNamed, t)
 	}
 	return &NamedType{
 		Type: t,
@@ -179,7 +180,7 @@ func (ty Type) AsNullable() (*NullableType, error) {
 		return nil, err
 	}
 	if t != TypeNullable {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", TypeNullable, t)
+		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypeNullable, t)
 	}
 
 	rawUnderlyingType, ok := ty["underlying_type"]
@@ -203,12 +204,12 @@ func (ty Type) AsArray() (*ArrayType, error) {
 		return nil, err
 	}
 	if t != TypeArray {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", TypeArray, t)
+		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypeArray, t)
 	}
 
 	rawElementType, ok := ty["element_type"]
 	if !ok {
-		return nil, errors.New("element_type is required")
+		return nil, errors.New("element_type is required in Type")
 	}
 	elementType, ok := rawElementType.(Type)
 	if !ok {
@@ -227,7 +228,7 @@ func (ty Type) AsPredicate() (*PredicateType, error) {
 		return nil, err
 	}
 	if t != TypePredicate {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", TypePredicate, t)
+		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypePredicate, t)
 	}
 
 	return &PredicateType{
@@ -259,7 +260,7 @@ func (ty Type) InterfaceT() (TypeEncoder, error) {
 	case TypePredicate:
 		return ty.AsPredicate()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", t)
+		return nil, fmt.Errorf("invalid Type type: %s", t)
 	}
 }
 
@@ -270,9 +271,9 @@ type TypeEncoder interface {
 
 // NamedType represents a named type
 type NamedType struct {
-	Type TypeEnum `json:"type" mapstructure:"type"`
+	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
 	// The name can refer to a primitive type or a scalar type
-	Name string `json:"name" mapstructure:"name"`
+	Name string `json:"name" yaml:"name" mapstructure:"name"`
 }
 
 // NewNamedType creates a new NamedType instance
@@ -293,9 +294,9 @@ func (ty NamedType) Encode() Type {
 
 // NullableType represents a nullable type
 type NullableType struct {
-	Type TypeEnum `json:"type" mapstructure:"type"`
+	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
 	// The type of the non-null inhabitants of this type
-	UnderlyingType Type `json:"underlying_type" mapstructure:"underlying_type"`
+	UnderlyingType Type `json:"underlying_type" yaml:"underlying_type" mapstructure:"underlying_type"`
 }
 
 // NewNullableType creates a new NullableType instance with underlying type
@@ -332,9 +333,9 @@ func NewNullableArrayType(elementType TypeEncoder) *NullableType {
 
 // ArrayType represents an array type
 type ArrayType struct {
-	Type TypeEnum `json:"type" mapstructure:"type"`
+	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
 	// The type of the elements of the array
-	ElementType Type `json:"element_type" mapstructure:"element_type"`
+	ElementType Type `json:"element_type" yaml:"element_type" mapstructure:"element_type"`
 }
 
 // Encode returns the raw Type instance
@@ -355,9 +356,9 @@ func NewArrayType(elementType TypeEncoder) *ArrayType {
 
 // PredicateType represents a predicate type for a given object type
 type PredicateType struct {
-	Type TypeEnum `json:"type" mapstructure:"type"`
+	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
 	// The name can refer to a primitive type or a scalar type
-	ObjectTypeName string `json:"object_type_name" mapstructure:"object_type_name"`
+	ObjectTypeName string `json:"object_type_name" yaml:"object_type_name" mapstructure:"object_type_name"`
 }
 
 // NewPredicateType creates a new PredicateType instance
@@ -384,13 +385,23 @@ const (
 	ArgumentTypeVariable ArgumentType = "variable"
 )
 
+var enumValues_ArgumentType = []ArgumentType{
+	ArgumentTypeLiteral,
+	ArgumentTypeVariable,
+}
+
 // ParseArgumentType parses an argument type from string
-func ParseArgumentType(input string) (*ArgumentType, error) {
-	if input != string(ArgumentTypeLiteral) && input != string(ArgumentTypeVariable) {
-		return nil, fmt.Errorf("failed to parse ArgumentType, expect one of %v", []ArgumentType{ArgumentTypeLiteral, ArgumentTypeVariable})
-	}
+func ParseArgumentType(input string) (ArgumentType, error) {
 	result := ArgumentType(input)
-	return &result, nil
+	if !slices.Contains(enumValues_ArgumentType, result) {
+		return ArgumentType(""), fmt.Errorf("failed to parse ArgumentType, expect one of %v", enumValues_ArgumentType)
+	}
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j ArgumentType) IsValid() bool {
+	return slices.Contains(enumValues_ArgumentType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -405,15 +416,15 @@ func (j *ArgumentType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
 // Argument is provided by reference to a variable or as a literal value
 type Argument struct {
-	Type  ArgumentType `json:"type" mapstructure:"type"`
-	Name  string       `json:"name" mapstructure:"name"`
-	Value any          `json:"value" mapstructure:"value"`
+	Type  ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	Name  string       `json:"name" yaml:"name" mapstructure:"name"`
+	Value any          `json:"value" yaml:"value" mapstructure:"value"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -434,7 +445,7 @@ func (j *Argument) UnmarshalJSON(b []byte) error {
 	}
 
 	arg := Argument{
-		Type: *argumentType,
+		Type: argumentType,
 	}
 
 	switch arg.Type {
@@ -465,13 +476,24 @@ const (
 	RelationshipArgumentTypeColumn   RelationshipArgumentType = "column"
 )
 
+var enumValues_RelationshipArgumentType = []RelationshipArgumentType{
+	RelationshipArgumentTypeLiteral,
+	RelationshipArgumentTypeVariable,
+	RelationshipArgumentTypeColumn,
+}
+
 // ParseRelationshipArgumentType parses a relationship argument type from string
-func ParseRelationshipArgumentType(input string) (*RelationshipArgumentType, error) {
-	if input != string(RelationshipArgumentTypeLiteral) && input != string(RelationshipArgumentTypeVariable) && input != string(RelationshipArgumentTypeColumn) {
-		return nil, fmt.Errorf("failed to parse ArgumentType, expect one of %v", []RelationshipArgumentType{RelationshipArgumentTypeLiteral, RelationshipArgumentTypeVariable, RelationshipArgumentTypeColumn})
-	}
+func ParseRelationshipArgumentType(input string) (RelationshipArgumentType, error) {
 	result := RelationshipArgumentType(input)
-	return &result, nil
+	if !slices.Contains(enumValues_RelationshipArgumentType, result) {
+		return RelationshipArgumentType(""), fmt.Errorf("failed to parse RelationshipArgumentType, expect one of %v", enumValues_RelationshipArgumentType)
+	}
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j RelationshipArgumentType) IsValid() bool {
+	return slices.Contains(enumValues_RelationshipArgumentType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -486,15 +508,15 @@ func (j *RelationshipArgumentType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
 // RelationshipArgument is provided by reference to a variable or as a literal value
 type RelationshipArgument struct {
-	Type  RelationshipArgumentType `json:"type" mapstructure:"type"`
-	Name  string                   `json:"name" mapstructure:"name"`
-	Value any                      `json:"value" mapstructure:"value"`
+	Type  RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	Name  string                   `json:"name" yaml:"name" mapstructure:"name"`
+	Value any                      `json:"value" yaml:"value" mapstructure:"value"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -515,7 +537,7 @@ func (j *RelationshipArgument) UnmarshalJSON(b []byte) error {
 	}
 
 	arg := RelationshipArgument{
-		Type: *argumentType,
+		Type: argumentType,
 	}
 
 	switch arg.Type {
@@ -545,13 +567,23 @@ const (
 	FieldTypeRelationship FieldType = "relationship"
 )
 
+var enumValues_FieldType = []FieldType{
+	FieldTypeColumn,
+	FieldTypeRelationship,
+}
+
 // ParseFieldType parses a field type from string
-func ParseFieldType(input string) (*FieldType, error) {
-	if input != string(FieldTypeColumn) && input != string(FieldTypeRelationship) {
-		return nil, fmt.Errorf("failed to parse FieldType, expect one of %v", []FieldType{FieldTypeColumn, FieldTypeRelationship})
-	}
+func ParseFieldType(input string) (FieldType, error) {
 	result := FieldType(input)
-	return &result, nil
+	if !slices.Contains(enumValues_FieldType, result) {
+		return FieldType(""), fmt.Errorf("failed to parse FieldType, expect one of %v", enumValues_FieldType)
+	}
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j FieldType) IsValid() bool {
+	return slices.Contains(enumValues_FieldType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -566,7 +598,7 @@ func (j *FieldType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -663,11 +695,11 @@ func (j Field) Type() (FieldType, error) {
 		if err != nil {
 			return FieldType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case FieldType:
 		return raw, nil
 	default:
-		return FieldType(""), fmt.Errorf("invalid type: %+v", t)
+		return FieldType(""), fmt.Errorf("invalid Field type: %+v", t)
 	}
 }
 
@@ -678,7 +710,7 @@ func (j Field) AsColumn() (*ColumnField, error) {
 		return nil, err
 	}
 	if t != FieldTypeColumn {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", FieldTypeColumn, t)
+		return nil, fmt.Errorf("invalid Field type; expected %s, got %s", FieldTypeColumn, t)
 	}
 	column := getStringValueByKey(j, "column")
 	if column == "" {
@@ -708,7 +740,7 @@ func (j Field) AsRelationship() (*RelationshipField, error) {
 		return nil, err
 	}
 	if t != FieldTypeRelationship {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", FieldTypeRelationship, t)
+		return nil, fmt.Errorf("invalid Field type; expected %s, got %s", FieldTypeRelationship, t)
 	}
 	relationship := getStringValueByKey(j, "relationship")
 	if relationship == "" {
@@ -760,19 +792,19 @@ func (j Field) InterfaceT() (FieldEncoder, error) {
 	case FieldTypeRelationship:
 		return j.AsRelationship()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", ty)
+		return nil, fmt.Errorf("invalid Field type: %s", ty)
 	}
 }
 
 // ColumnField represents a column field
 type ColumnField struct {
-	Type FieldType `json:"type" mapstructure:"type"`
+	Type FieldType `json:"type" yaml:"type" mapstructure:"type"`
 	// Column name
-	Column string `json:"column" mapstructure:"column"`
+	Column string `json:"column" yaml:"column" mapstructure:"column"`
 	// When the type of the column is a (possibly-nullable) array or object,
 	// the caller can request a subset of the complete column data, by specifying fields to fetch here.
 	// If omitted, the column data will be fetched in full.
-	Fields NestedField `json:"fields" mapstructure:"fields"`
+	Fields NestedField `json:"fields" yaml:"fields" mapstructure:"fields"`
 }
 
 // Encode converts the instance to raw Field
@@ -799,13 +831,13 @@ func NewColumnField(column string, fields NestedFieldEncoder) *ColumnField {
 
 // RelationshipField represents a relationship field
 type RelationshipField struct {
-	Type FieldType `json:"type" mapstructure:"type"`
+	Type FieldType `json:"type" yaml:"type" mapstructure:"type"`
 	// The relationship query
-	Query Query `json:"query" mapstructure:"query"`
+	Query Query `json:"query" yaml:"query" mapstructure:"query"`
 	// The name of the relationship to follow for the subquery
-	Relationship string `json:"relationship" mapstructure:"relationship"`
+	Relationship string `json:"relationship" yaml:"relationship" mapstructure:"relationship"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments"`
+	Arguments map[string]RelationshipArgument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 }
 
 // Encode converts the instance to raw Field
@@ -828,7 +860,7 @@ func NewRelationshipField(query Query, relationship string, arguments map[string
 	}
 }
 
-// ComparisonTarget represents comparison target enums
+// ComparisonTargetType represents comparison target enums
 type ComparisonTargetType string
 
 const (
@@ -836,14 +868,24 @@ const (
 	ComparisonTargetTypeRootCollectionColumn ComparisonTargetType = "root_collection_column"
 )
 
-// ParseComparisonTargetType parses a comparison target type argument type from string
-func ParseComparisonTargetType(input string) (*ComparisonTargetType, error) {
-	if input != string(ComparisonTargetTypeColumn) && input != string(ComparisonTargetTypeRootCollectionColumn) {
-		return nil, fmt.Errorf("failed to parse ComparisonTargetType, expect one of %v", []ComparisonTargetType{ComparisonTargetTypeColumn, ComparisonTargetTypeRootCollectionColumn})
-	}
-	result := ComparisonTargetType(input)
+var enumValues_ComparisonTargetType = []ComparisonTargetType{
+	ComparisonTargetTypeColumn,
+	ComparisonTargetTypeRootCollectionColumn,
+}
 
-	return &result, nil
+// ParseComparisonTargetType parses a comparison target type argument type from string
+func ParseComparisonTargetType(input string) (ComparisonTargetType, error) {
+	result := ComparisonTargetType(input)
+	if !slices.Contains(enumValues_ComparisonTargetType, result) {
+		return ComparisonTargetType(""), fmt.Errorf("failed to parse ComparisonTargetType, expect one of %v", enumValues_ComparisonTargetType)
+	}
+
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j ComparisonTargetType) IsValid() bool {
+	return slices.Contains(enumValues_ComparisonTargetType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -858,15 +900,15 @@ func (j *ComparisonTargetType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
 // ComparisonTarget represents a comparison target object
 type ComparisonTarget struct {
-	Type ComparisonTargetType `json:"type" mapstructure:"type"`
-	Name string               `json:"name" mapstructure:"name"`
-	Path []PathElement        `json:"path,omitempty" mapstructure:"path"`
+	Type ComparisonTargetType `json:"type" yaml:"type" mapstructure:"type"`
+	Name string               `json:"name" yaml:"name" mapstructure:"name"`
+	Path []PathElement        `json:"path,omitempty" yaml:"path,omitempty" mapstructure:"path"`
 }
 
 // ExpressionType represents the filtering expression enums
@@ -891,13 +933,18 @@ var enumValues_ExpressionType = []ExpressionType{
 }
 
 // ParseExpressionType parses a comparison target type argument type from string
-func ParseExpressionType(input string) (*ExpressionType, error) {
-	if !slices.Contains(enumValues_ExpressionType, ExpressionType(input)) {
-		return nil, fmt.Errorf("failed to parse ExpressionType, expect one of %v", enumValues_ExpressionType)
-	}
+func ParseExpressionType(input string) (ExpressionType, error) {
 	result := ExpressionType(input)
+	if !slices.Contains(enumValues_ExpressionType, ExpressionType(input)) {
+		return ExpressionType(""), fmt.Errorf("failed to parse ExpressionType, expect one of %v", enumValues_ExpressionType)
+	}
 
-	return &result, nil
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j ExpressionType) IsValid() bool {
+	return slices.Contains(enumValues_ExpressionType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -912,7 +959,7 @@ func (j *ExpressionType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -932,13 +979,18 @@ var enumValues_ComparisonValueType = []ComparisonValueType{
 }
 
 // ParseComparisonValueType parses a comparison value type from string
-func ParseComparisonValueType(input string) (*ComparisonValueType, error) {
-	if !slices.Contains(enumValues_ComparisonValueType, ComparisonValueType(input)) {
-		return nil, fmt.Errorf("failed to parse ComparisonValueType, expect one of %v", enumValues_ComparisonValueType)
-	}
+func ParseComparisonValueType(input string) (ComparisonValueType, error) {
 	result := ComparisonValueType(input)
+	if !slices.Contains(enumValues_ComparisonValueType, ComparisonValueType(input)) {
+		return ComparisonValueType(""), fmt.Errorf("failed to parse ComparisonValueType, expect one of %v", enumValues_ComparisonValueType)
+	}
 
-	return &result, nil
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j ComparisonValueType) IsValid() bool {
+	return slices.Contains(enumValues_ComparisonValueType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -953,7 +1005,7 @@ func (j *ComparisonValueType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -1004,11 +1056,11 @@ func (j *ComparisonValue) UnmarshalJSON(b []byte) error {
 	case ComparisonValueTypeScalar:
 		rawValue, ok := raw["value"]
 		if !ok {
-			return errors.New("field value in Type is required for scalar type")
+			return errors.New("field value in ComparisonValue is required for scalar type")
 		}
 		var value any
 		if err := json.Unmarshal(rawValue, &value); err != nil {
-			return fmt.Errorf("field value in Type: %s", err)
+			return fmt.Errorf("field value in ComparisonValue: %s", err)
 		}
 		result["value"] = value
 	}
@@ -1028,11 +1080,11 @@ func (cv ComparisonValue) Type() (ComparisonValueType, error) {
 		if err != nil {
 			return ComparisonValueType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case ComparisonValueType:
 		return raw, nil
 	default:
-		return ComparisonValueType(""), fmt.Errorf("invalid type: %+v", t)
+		return ComparisonValueType(""), fmt.Errorf("invalid ComparisonValue type: %+v", t)
 	}
 }
 
@@ -1043,7 +1095,7 @@ func (cv ComparisonValue) AsScalar() (*ComparisonValueScalar, error) {
 		return nil, err
 	}
 	if ty != ComparisonValueTypeScalar {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", ComparisonValueTypeScalar, ty)
+		return nil, fmt.Errorf("invalid ComparisonValue type; expected %s, got %s", ComparisonValueTypeScalar, ty)
 	}
 
 	value, ok := cv["value"]
@@ -1064,7 +1116,7 @@ func (cv ComparisonValue) AsColumn() (*ComparisonValueColumn, error) {
 		return nil, err
 	}
 	if ty != ComparisonValueTypeColumn {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", ComparisonValueTypeColumn, ty)
+		return nil, fmt.Errorf("invalid ComparisonValue type; expected %s, got %s", ComparisonValueTypeColumn, ty)
 	}
 
 	rawColumn, ok := cv["column"]
@@ -1089,7 +1141,7 @@ func (cv ComparisonValue) AsVariable() (*ComparisonValueVariable, error) {
 		return nil, err
 	}
 	if ty != ComparisonValueTypeVariable {
-		return nil, fmt.Errorf("invalid type; expected %s, got %s", ComparisonValueTypeVariable, ty)
+		return nil, fmt.Errorf("invalid ComparisonValue type; expected %s, got %s", ComparisonValueTypeVariable, ty)
 	}
 
 	name := getStringValueByKey(cv, "name")
@@ -1123,7 +1175,7 @@ func (cv ComparisonValue) InterfaceT() (ComparisonValueEncoder, error) {
 	case ComparisonValueTypeScalar:
 		return cv.AsScalar()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", ty)
+		return nil, fmt.Errorf("invalid ComparisonValue type: %s", ty)
 	}
 }
 
@@ -1134,8 +1186,8 @@ type ComparisonValueEncoder interface {
 
 // ComparisonValueColumn represents a comparison value with column type
 type ComparisonValueColumn struct {
-	Type   ComparisonValueType `json:"type" mapstructure:"type"`
-	Column ComparisonTarget    `json:"column" mapstructure:"column"`
+	Type   ComparisonValueType `json:"type" yaml:"type" mapstructure:"type"`
+	Column ComparisonTarget    `json:"column" yaml:"column" mapstructure:"column"`
 }
 
 // Encode converts to the raw comparison value
@@ -1148,8 +1200,8 @@ func (cv ComparisonValueColumn) Encode() ComparisonValue {
 
 // ComparisonValueScalar represents a comparison value with scalar type
 type ComparisonValueScalar struct {
-	Type  ComparisonValueType `json:"type" mapstructure:"type"`
-	Value any                 `json:"value" mapstructure:"value"`
+	Type  ComparisonValueType `json:"type" yaml:"type" mapstructure:"type"`
+	Value any                 `json:"value" yaml:"value" mapstructure:"value"`
 }
 
 // Encode converts to the raw comparison value
@@ -1162,8 +1214,8 @@ func (cv ComparisonValueScalar) Encode() ComparisonValue {
 
 // ComparisonValueVariable represents a comparison value with variable type
 type ComparisonValueVariable struct {
-	Type ComparisonValueType `json:"type" mapstructure:"type"`
-	Name string              `json:"name" mapstructure:"name"`
+	Type ComparisonValueType `json:"type" yaml:"type" mapstructure:"type"`
+	Name string              `json:"name" yaml:"name" mapstructure:"name"`
 }
 
 // Encode converts to the raw comparison value
@@ -1188,13 +1240,18 @@ var enumValues_ExistsInCollectionType = []ExistsInCollectionType{
 }
 
 // ParseExistsInCollectionType parses a comparison value type from string
-func ParseExistsInCollectionType(input string) (*ExistsInCollectionType, error) {
-	if !slices.Contains(enumValues_ExistsInCollectionType, ExistsInCollectionType(input)) {
-		return nil, fmt.Errorf("failed to parse ExistsInCollectionType, expect one of %v", enumValues_ExistsInCollectionType)
-	}
+func ParseExistsInCollectionType(input string) (ExistsInCollectionType, error) {
 	result := ExistsInCollectionType(input)
+	if !slices.Contains(enumValues_ExistsInCollectionType, result) {
+		return result, fmt.Errorf("failed to parse ExistsInCollectionType, expect one of %v", enumValues_ExistsInCollectionType)
+	}
 
-	return &result, nil
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j ExistsInCollectionType) IsValid() bool {
+	return slices.Contains(enumValues_ExistsInCollectionType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -1209,7 +1266,7 @@ func (j *ExistsInCollectionType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -1294,11 +1351,11 @@ func (j ExistsInCollection) Type() (ExistsInCollectionType, error) {
 		if err != nil {
 			return ExistsInCollectionType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case ExistsInCollectionType:
 		return raw, nil
 	default:
-		return ExistsInCollectionType(""), fmt.Errorf("invalid type: %+v", t)
+		return ExistsInCollectionType(""), fmt.Errorf("invalid ExistsInCollection type: %+v", t)
 	}
 }
 
@@ -1309,7 +1366,7 @@ func (j ExistsInCollection) AsRelated() (*ExistsInCollectionRelated, error) {
 		return nil, err
 	}
 	if t != ExistsInCollectionTypeRelated {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExistsInCollectionTypeRelated, t)
+		return nil, fmt.Errorf("invalid ExistsInCollection type; expected: %s, got: %s", ExistsInCollectionTypeRelated, t)
 	}
 
 	relationship := getStringValueByKey(j, "relationship")
@@ -1339,7 +1396,7 @@ func (j ExistsInCollection) AsUnrelated() (*ExistsInCollectionUnrelated, error) 
 		return nil, err
 	}
 	if t != ExistsInCollectionTypeUnrelated {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExistsInCollectionTypeUnrelated, t)
+		return nil, fmt.Errorf("invalid ExistsInCollection type; expected: %s, got: %s", ExistsInCollectionTypeUnrelated, t)
 	}
 
 	collection := getStringValueByKey(j, "collection")
@@ -1381,7 +1438,7 @@ func (j ExistsInCollection) InterfaceT() (ExistsInCollectionEncoder, error) {
 	case ExistsInCollectionTypeUnrelated:
 		return j.AsUnrelated()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", t)
+		return nil, fmt.Errorf("invalid ExistsInCollection type: %s", t)
 	}
 }
 
@@ -1394,10 +1451,10 @@ type ExistsInCollectionEncoder interface {
 //
 // [Related collections]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=exists#related-collections
 type ExistsInCollectionRelated struct {
-	Type         ExistsInCollectionType `json:"type" mapstructure:"type"`
-	Relationship string                 `json:"relationship" mapstructure:"relationship"`
+	Type         ExistsInCollectionType `json:"type" yaml:"type" mapstructure:"type"`
+	Relationship string                 `json:"relationship" yaml:"relationship" mapstructure:"relationship"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments"`
+	Arguments map[string]RelationshipArgument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 }
 
 // Encode converts the instance to its raw type
@@ -1413,11 +1470,11 @@ func (ei ExistsInCollectionRelated) Encode() ExistsInCollection {
 //
 // [unrelated collections]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=exists#unrelated-collections
 type ExistsInCollectionUnrelated struct {
-	Type ExistsInCollectionType `json:"type" mapstructure:"type"`
+	Type ExistsInCollectionType `json:"type" yaml:"type" mapstructure:"type"`
 	// The name of a collection
-	Collection string `json:"collection" mapstructure:"collection"`
+	Collection string `json:"collection" yaml:"collection" mapstructure:"collection"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments"`
+	Arguments map[string]RelationshipArgument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 }
 
 // Encode converts the instance to its raw type
@@ -1563,11 +1620,11 @@ func (j Expression) Type() (ExpressionType, error) {
 		if err != nil {
 			return ExpressionType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case ExpressionType:
 		return raw, nil
 	default:
-		return ExpressionType(""), fmt.Errorf("invalid type: %+v", t)
+		return ExpressionType(""), fmt.Errorf("invalid Expression type: %+v", t)
 	}
 }
 
@@ -1578,7 +1635,7 @@ func (j Expression) AsAnd() (*ExpressionAnd, error) {
 		return nil, err
 	}
 	if t != ExpressionTypeAnd {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExpressionTypeAnd, t)
+		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeAnd, t)
 	}
 
 	rawExpressions, ok := j["expressions"]
@@ -1603,7 +1660,7 @@ func (j Expression) AsOr() (*ExpressionOr, error) {
 		return nil, err
 	}
 	if t != ExpressionTypeOr {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExpressionTypeOr, t)
+		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeOr, t)
 	}
 
 	rawExpressions, ok := j["expressions"]
@@ -1628,7 +1685,7 @@ func (j Expression) AsNot() (*ExpressionNot, error) {
 		return nil, err
 	}
 	if t != ExpressionTypeNot {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExpressionTypeNot, t)
+		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeNot, t)
 	}
 
 	rawExpression, ok := j["expression"]
@@ -1653,7 +1710,7 @@ func (j Expression) AsUnaryComparisonOperator() (*ExpressionUnaryComparisonOpera
 		return nil, err
 	}
 	if t != ExpressionTypeUnaryComparisonOperator {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExpressionTypeUnaryComparisonOperator, t)
+		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeUnaryComparisonOperator, t)
 	}
 
 	rawOperator, ok := j["operator"]
@@ -1694,7 +1751,7 @@ func (j Expression) AsBinaryComparisonOperator() (*ExpressionBinaryComparisonOpe
 		return nil, err
 	}
 	if t != ExpressionTypeBinaryComparisonOperator {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExpressionTypeBinaryComparisonOperator, t)
+		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeBinaryComparisonOperator, t)
 	}
 
 	rawColumn, ok := j["column"]
@@ -1730,7 +1787,7 @@ func (j Expression) AsExists() (*ExpressionExists, error) {
 		return nil, err
 	}
 	if t != ExpressionTypeExists {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ExpressionTypeExists, t)
+		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeExists, t)
 	}
 
 	rawInCollection, ok := j["in_collection"]
@@ -1783,7 +1840,7 @@ func (j Expression) InterfaceT() (ExpressionEncoder, error) {
 	case ExpressionTypeExists:
 		return j.AsExists()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", t)
+		return nil, fmt.Errorf("invalid Expression type: %s", t)
 	}
 }
 
@@ -1796,8 +1853,8 @@ type ExpressionEncoder interface {
 //
 // [conjunction of expressions]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#conjunction-of-expressions
 type ExpressionAnd struct {
-	Type        ExpressionType `json:"type" mapstructure:"type"`
-	Expressions []Expression   `json:"expressions" mapstructure:"expressions"`
+	Type        ExpressionType `json:"type" yaml:"type" mapstructure:"type"`
+	Expressions []Expression   `json:"expressions" yaml:"expressions" mapstructure:"expressions"`
 }
 
 // Encode converts the instance to a raw Expression
@@ -1812,8 +1869,8 @@ func (exp ExpressionAnd) Encode() Expression {
 //
 // [disjunction of expressions]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#disjunction-of-expressions
 type ExpressionOr struct {
-	Type        ExpressionType `json:"type" mapstructure:"type"`
-	Expressions []Expression   `json:"expressions" mapstructure:"expressions"`
+	Type        ExpressionType `json:"type" yaml:"type" mapstructure:"type"`
+	Expressions []Expression   `json:"expressions" yaml:"expressions" mapstructure:"expressions"`
 }
 
 // Encode converts the instance to a raw Expression
@@ -1828,8 +1885,8 @@ func (exp ExpressionOr) Encode() Expression {
 //
 // [negation of an expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#negation
 type ExpressionNot struct {
-	Type       ExpressionType `json:"type" mapstructure:"type"`
-	Expression Expression     `json:"expression" mapstructure:"expression"`
+	Type       ExpressionType `json:"type" yaml:"type" mapstructure:"type"`
+	Expression Expression     `json:"expression" yaml:"expression" mapstructure:"expression"`
 }
 
 // Encode converts the instance to a raw Expression
@@ -1844,9 +1901,9 @@ func (exp ExpressionNot) Encode() Expression {
 //
 // [unary operator expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#unary-operators
 type ExpressionUnaryComparisonOperator struct {
-	Type     ExpressionType          `json:"type" mapstructure:"type"`
-	Operator UnaryComparisonOperator `json:"operator" mapstructure:"operator"`
-	Column   ComparisonTarget        `json:"column" mapstructure:"column"`
+	Type     ExpressionType          `json:"type" yaml:"type" mapstructure:"type"`
+	Operator UnaryComparisonOperator `json:"operator" yaml:"operator" mapstructure:"operator"`
+	Column   ComparisonTarget        `json:"column" yaml:"column" mapstructure:"column"`
 }
 
 // Encode converts the instance to a raw Expression
@@ -1862,10 +1919,10 @@ func (exp ExpressionUnaryComparisonOperator) Encode() Expression {
 //
 // [binary operator expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#unary-operators
 type ExpressionBinaryComparisonOperator struct {
-	Type     ExpressionType   `json:"type" mapstructure:"type"`
-	Operator string           `json:"operator" mapstructure:"operator"`
-	Column   ComparisonTarget `json:"column" mapstructure:"column"`
-	Value    ComparisonValue  `json:"value" mapstructure:"value"`
+	Type     ExpressionType   `json:"type" yaml:"type" mapstructure:"type"`
+	Operator string           `json:"operator" yaml:"operator" mapstructure:"operator"`
+	Column   ComparisonTarget `json:"column" yaml:"column" mapstructure:"column"`
+	Value    ComparisonValue  `json:"value" yaml:"value" mapstructure:"value"`
 }
 
 // Encode converts the instance to a raw Expression
@@ -1882,9 +1939,9 @@ func (exp ExpressionBinaryComparisonOperator) Encode() Expression {
 //
 // [EXISTS expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#exists-expressions
 type ExpressionExists struct {
-	Type         ExpressionType     `json:"type" mapstructure:"type"`
-	Predicate    Expression         `json:"predicate" mapstructure:"predicate"`
-	InCollection ExistsInCollection `json:"in_collection" mapstructure:"in_collection"`
+	Type         ExpressionType     `json:"type" yaml:"type" mapstructure:"type"`
+	Predicate    Expression         `json:"predicate" yaml:"predicate" mapstructure:"predicate"`
+	InCollection ExistsInCollection `json:"in_collection" yaml:"in_collection" mapstructure:"in_collection"`
 }
 
 // Encode converts the instance to a raw Expression
@@ -1916,13 +1973,18 @@ var enumValues_AggregateType = []AggregateType{
 }
 
 // ParseAggregateType parses an aggregate type argument type from string
-func ParseAggregateType(input string) (*AggregateType, error) {
-	if !slices.Contains(enumValues_AggregateType, AggregateType(input)) {
-		return nil, fmt.Errorf("failed to parse AggregateType, expect one of %v", enumValues_AggregateType)
-	}
+func ParseAggregateType(input string) (AggregateType, error) {
 	result := AggregateType(input)
+	if !slices.Contains(enumValues_AggregateType, result) {
+		return AggregateType(""), fmt.Errorf("failed to parse AggregateType, expect one of %v", enumValues_AggregateType)
+	}
 
-	return &result, nil
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j AggregateType) IsValid() bool {
+	return slices.Contains(enumValues_AggregateType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -1937,7 +1999,7 @@ func (j *AggregateType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -2026,11 +2088,11 @@ func (j Aggregate) Type() (AggregateType, error) {
 		if err != nil {
 			return AggregateType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case AggregateType:
 		return raw, nil
 	default:
-		return AggregateType(""), fmt.Errorf("invalid type: %+v", t)
+		return AggregateType(""), fmt.Errorf("invalid Aggregate type: %+v", t)
 	}
 }
 
@@ -2041,7 +2103,7 @@ func (j Aggregate) AsStarCount() (*AggregateStarCount, error) {
 		return nil, err
 	}
 	if t != AggregateTypeStarCount {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", AggregateTypeStarCount, t)
+		return nil, fmt.Errorf("invalid Aggregate type; expected: %s, got: %s", AggregateTypeStarCount, t)
 	}
 
 	return &AggregateStarCount{
@@ -2056,7 +2118,7 @@ func (j Aggregate) AsSingleColumn() (*AggregateSingleColumn, error) {
 		return nil, err
 	}
 	if t != AggregateTypeSingleColumn {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", AggregateTypeSingleColumn, t)
+		return nil, fmt.Errorf("invalid Aggregate type; expected: %s, got: %s", AggregateTypeSingleColumn, t)
 	}
 
 	column := getStringValueByKey(j, "column")
@@ -2082,7 +2144,7 @@ func (j Aggregate) AsColumnCount() (*AggregateColumnCount, error) {
 		return nil, err
 	}
 	if t != AggregateTypeColumnCount {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", AggregateTypeColumnCount, t)
+		return nil, fmt.Errorf("invalid Aggregate type; expected: %s, got: %s", AggregateTypeColumnCount, t)
 	}
 
 	column := getStringValueByKey(j, "column")
@@ -2126,7 +2188,7 @@ func (j Aggregate) InterfaceT() (AggregateEncoder, error) {
 	case AggregateTypeSingleColumn:
 		return j.AsSingleColumn()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", t)
+		return nil, fmt.Errorf("invalid Aggregate type: %s", t)
 	}
 }
 
@@ -2156,11 +2218,11 @@ func NewAggregateStarCount() *AggregateStarCount {
 
 // AggregateSingleColumn represents an aggregate object which applies an aggregation function (as defined by the column's scalar type in the schema response) to a column.
 type AggregateSingleColumn struct {
-	Type AggregateType `json:"type" mapstructure:"type"`
+	Type AggregateType `json:"type" yaml:"type" mapstructure:"type"`
 	// The column to apply the aggregation function to
-	Column string `json:"column" mapstructure:"column"`
+	Column string `json:"column" yaml:"column" mapstructure:"column"`
 	// Single column aggregate function name.
-	Function string `json:"function" mapstructure:"function"`
+	Function string `json:"function" yaml:"function" mapstructure:"function"`
 }
 
 // Encode converts the instance to raw Aggregate
@@ -2184,11 +2246,11 @@ func NewAggregateSingleColumn(column string, function string) *AggregateSingleCo
 // AggregateColumnCount represents an aggregate object which count the number of rows with non-null values in the specified columns.
 // If the distinct flag is set, then the count should only count unique non-null values of those columns.
 type AggregateColumnCount struct {
-	Type AggregateType `json:"type" mapstructure:"type"`
+	Type AggregateType `json:"type" yaml:"type" mapstructure:"type"`
 	// The column to apply the aggregation function to
-	Column string `json:"column" mapstructure:"column"`
+	Column string `json:"column" yaml:"column" mapstructure:"column"`
 	// Whether or not only distinct items should be counted.
-	Distinct bool `json:"distinct" mapstructure:"distinct"`
+	Distinct bool `json:"distinct" yaml:"distinct" mapstructure:"distinct"`
 }
 
 // Encode converts the instance to raw Aggregate
@@ -2225,13 +2287,18 @@ var enumValues_OrderByTargetType = []OrderByTargetType{
 }
 
 // ParseOrderByTargetType parses a ordering target type argument type from string
-func ParseOrderByTargetType(input string) (*OrderByTargetType, error) {
-	if !slices.Contains(enumValues_OrderByTargetType, OrderByTargetType(input)) {
-		return nil, fmt.Errorf("failed to parse OrderByTargetType, expect one of %v", enumValues_OrderByTargetType)
-	}
+func ParseOrderByTargetType(input string) (OrderByTargetType, error) {
 	result := OrderByTargetType(input)
+	if !slices.Contains(enumValues_OrderByTargetType, result) {
+		return OrderByTargetType(""), fmt.Errorf("failed to parse OrderByTargetType, expect one of %v", enumValues_OrderByTargetType)
+	}
 
-	return &result, nil
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j OrderByTargetType) IsValid() bool {
+	return slices.Contains(enumValues_OrderByTargetType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -2246,7 +2313,7 @@ func (j *OrderByTargetType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -2353,11 +2420,11 @@ func (j OrderByTarget) Type() (OrderByTargetType, error) {
 		if err != nil {
 			return OrderByTargetType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case OrderByTargetType:
 		return raw, nil
 	default:
-		return OrderByTargetType(""), fmt.Errorf("invalid type: %+v", t)
+		return OrderByTargetType(""), fmt.Errorf("invalid OrderByTarget type: %+v", t)
 	}
 }
 
@@ -2368,7 +2435,7 @@ func (j OrderByTarget) AsColumn() (*OrderByColumn, error) {
 		return nil, err
 	}
 	if t != OrderByTargetTypeColumn {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", OrderByTargetTypeColumn, t)
+		return nil, fmt.Errorf("invalid OrderByTarget type; expected: %s, got: %s", OrderByTargetTypeColumn, t)
 	}
 
 	name := getStringValueByKey(j, "name")
@@ -2397,7 +2464,7 @@ func (j OrderByTarget) AsSingleColumnAggregate() (*OrderBySingleColumnAggregate,
 		return nil, err
 	}
 	if t != OrderByTargetTypeSingleColumnAggregate {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", OrderByTargetTypeSingleColumnAggregate, t)
+		return nil, fmt.Errorf("invalid OrderByTarget type; expected: %s, got: %s", OrderByTargetTypeSingleColumnAggregate, t)
 	}
 
 	column := getStringValueByKey(j, "column")
@@ -2432,7 +2499,7 @@ func (j OrderByTarget) AsStarCountAggregate() (*OrderByStarCountAggregate, error
 		return nil, err
 	}
 	if t != OrderByTargetTypeStarCountAggregate {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", OrderByTargetTypeStarCountAggregate, t)
+		return nil, fmt.Errorf("invalid OrderByTarget type; expected: %s, got: %s", OrderByTargetTypeStarCountAggregate, t)
 	}
 
 	rawPath, ok := j["path"]
@@ -2470,7 +2537,7 @@ func (j OrderByTarget) InterfaceT() (OrderByTargetEncoder, error) {
 	case OrderByTargetTypeStarCountAggregate:
 		return j.AsStarCountAggregate()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", t)
+		return nil, fmt.Errorf("invalid OrderByTarget type: %s", t)
 	}
 }
 
@@ -2481,11 +2548,11 @@ type OrderByTargetEncoder interface {
 
 // OrderByColumn represents an ordering object which compares the value in the selected column
 type OrderByColumn struct {
-	Type OrderByTargetType `json:"type" mapstructure:"type"`
+	Type OrderByTargetType `json:"type" yaml:"type" mapstructure:"type"`
 	// The name of the column
-	Name string `json:"name" mapstructure:"name"`
+	Name string `json:"name" yaml:"name" mapstructure:"name"`
 	// Any relationships to traverse to reach this column
-	Path []PathElement `json:"path" mapstructure:"path"`
+	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
 }
 
 // Encode converts the instance to raw OrderByTarget
@@ -2502,13 +2569,13 @@ func (ob OrderByColumn) Encode() OrderByTarget {
 //
 // [single_column_aggregate]: https://hasura.github.io/ndc-spec/specification/queries/sorting.html#type-single_column_aggregate
 type OrderBySingleColumnAggregate struct {
-	Type OrderByTargetType `json:"type" mapstructure:"type"`
+	Type OrderByTargetType `json:"type" yaml:"name" mapstructure:"type"`
 	// The column to apply the aggregation function to
-	Column string `json:"column" mapstructure:"column"`
+	Column string `json:"column" yaml:"column" mapstructure:"column"`
 	// Single column aggregate function name.
-	Function string `json:"function" mapstructure:"function"`
+	Function string `json:"function" yaml:"function" mapstructure:"function"`
 	// Non-empty collection of relationships to traverse
-	Path []PathElement `json:"path" mapstructure:"path"`
+	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
 }
 
 // Encode converts the instance to raw OrderByTarget
@@ -2526,9 +2593,9 @@ func (ob OrderBySingleColumnAggregate) Encode() OrderByTarget {
 //
 // [star_count_aggregate]: https://hasura.github.io/ndc-spec/specification/queries/sorting.html#type-star_count_aggregate
 type OrderByStarCountAggregate struct {
-	Type OrderByTargetType `json:"type" mapstructure:"type"`
+	Type OrderByTargetType `json:"type" yaml:"type" mapstructure:"type"`
 	// Non-empty collection of relationships to traverse
-	Path []PathElement `json:"path" mapstructure:"path"`
+	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
 }
 
 // Encode converts the instance to raw OrderByTarget
@@ -2555,13 +2622,18 @@ var enumValues_ComparisonOperatorDefinitionType = []ComparisonOperatorDefinition
 }
 
 // ParseComparisonOperatorDefinitionType parses a type of a comparison operator definition
-func ParseComparisonOperatorDefinitionType(input string) (*ComparisonOperatorDefinitionType, error) {
-	if !slices.Contains(enumValues_ComparisonOperatorDefinitionType, ComparisonOperatorDefinitionType(input)) {
-		return nil, fmt.Errorf("failed to parse ComparisonOperatorDefinitionType, expect one of %v", enumValues_ComparisonOperatorDefinitionType)
-	}
+func ParseComparisonOperatorDefinitionType(input string) (ComparisonOperatorDefinitionType, error) {
 	result := ComparisonOperatorDefinitionType(input)
+	if !slices.Contains(enumValues_ComparisonOperatorDefinitionType, result) {
+		return ComparisonOperatorDefinitionType(""), fmt.Errorf("failed to parse ComparisonOperatorDefinitionType, expect one of %v", enumValues_ComparisonOperatorDefinitionType)
+	}
 
-	return &result, nil
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j ComparisonOperatorDefinitionType) IsValid() bool {
+	return slices.Contains(enumValues_ComparisonOperatorDefinitionType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -2576,7 +2648,7 @@ func (j *ComparisonOperatorDefinitionType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -2633,11 +2705,11 @@ func (j ComparisonOperatorDefinition) Type() (ComparisonOperatorDefinitionType, 
 		if err != nil {
 			return ComparisonOperatorDefinitionType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case ComparisonOperatorDefinitionType:
 		return raw, nil
 	default:
-		return ComparisonOperatorDefinitionType(""), fmt.Errorf("invalid type: %+v", t)
+		return ComparisonOperatorDefinitionType(""), fmt.Errorf("invalid ComparisonOperatorDefinition type: %+v", t)
 	}
 }
 
@@ -2648,7 +2720,7 @@ func (j ComparisonOperatorDefinition) AsEqual() (*ComparisonOperatorEqual, error
 		return nil, err
 	}
 	if t != ComparisonOperatorDefinitionTypeEqual {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeEqual, t)
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeEqual, t)
 	}
 
 	return &ComparisonOperatorEqual{
@@ -2663,7 +2735,7 @@ func (j ComparisonOperatorDefinition) AsIn() (*ComparisonOperatorIn, error) {
 		return nil, err
 	}
 	if t != ComparisonOperatorDefinitionTypeIn {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeIn, t)
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeIn, t)
 	}
 
 	return &ComparisonOperatorIn{
@@ -2678,7 +2750,7 @@ func (j ComparisonOperatorDefinition) AsCustom() (*ComparisonOperatorCustom, err
 		return nil, err
 	}
 	if t != ComparisonOperatorDefinitionTypeCustom {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeCustom, t)
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeCustom, t)
 	}
 
 	rawArg, ok := j["argument_type"]
@@ -2718,7 +2790,7 @@ func (j ComparisonOperatorDefinition) InterfaceT() (ComparisonOperatorDefinition
 	case ComparisonOperatorDefinitionTypeCustom:
 		return j.AsCustom()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", t)
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type: %s", t)
 	}
 }
 
@@ -2729,7 +2801,7 @@ type ComparisonOperatorDefinitionEncoder interface {
 
 // ComparisonOperatorEqual presents an equal comparison operator
 type ComparisonOperatorEqual struct {
-	Type ComparisonOperatorDefinitionType `json:"type" mapstructure:"type"`
+	Type ComparisonOperatorDefinitionType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
 // NewComparisonOperatorEqual create a new ComparisonOperatorEqual instance
@@ -2748,7 +2820,7 @@ func (ob ComparisonOperatorEqual) Encode() ComparisonOperatorDefinition {
 
 // ComparisonOperatorIn presents an in comparison operator
 type ComparisonOperatorIn struct {
-	Type ComparisonOperatorDefinitionType `json:"type" mapstructure:"type"`
+	Type ComparisonOperatorDefinitionType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
 // NewComparisonOperatorIn create a new ComparisonOperatorIn instance
@@ -2767,9 +2839,9 @@ func (ob ComparisonOperatorIn) Encode() ComparisonOperatorDefinition {
 
 // ComparisonOperatorCustom presents a custom comparison operator
 type ComparisonOperatorCustom struct {
-	Type ComparisonOperatorDefinitionType `json:"type" mapstructure:"type"`
+	Type ComparisonOperatorDefinitionType `json:"type" yaml:"type" mapstructure:"type"`
 	// The type of the argument to this operator
-	ArgumentType Type `json:"argument_type" mapstructure:"argument_type"`
+	ArgumentType Type `json:"argument_type" yaml:"argument_type" mapstructure:"argument_type"`
 }
 
 // NewComparisonOperatorCustom create a new ComparisonOperatorCustom instance
@@ -2802,13 +2874,18 @@ var enumValues_NestedFieldType = []NestedFieldType{
 }
 
 // ParseNestedFieldType parses the type of nested field
-func ParseNestedFieldType(input string) (*NestedFieldType, error) {
-	if !slices.Contains(enumValues_NestedFieldType, NestedFieldType(input)) {
-		return nil, fmt.Errorf("failed to parse NestedFieldType, expect one of %v", enumValues_NestedFieldType)
-	}
+func ParseNestedFieldType(input string) (NestedFieldType, error) {
 	result := NestedFieldType(input)
+	if !slices.Contains(enumValues_NestedFieldType, result) {
+		return NestedFieldType(""), fmt.Errorf("failed to parse NestedFieldType, expect one of %v", enumValues_NestedFieldType)
+	}
 
-	return &result, nil
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j NestedFieldType) IsValid() bool {
+	return slices.Contains(enumValues_NestedFieldType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -2823,7 +2900,7 @@ func (j *NestedFieldType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -2896,11 +2973,11 @@ func (j NestedField) Type() (NestedFieldType, error) {
 		if err != nil {
 			return NestedFieldType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case NestedFieldType:
 		return raw, nil
 	default:
-		return NestedFieldType(""), fmt.Errorf("invalid type: %+v", t)
+		return NestedFieldType(""), fmt.Errorf("invalid NestedField type: %+v", t)
 	}
 }
 
@@ -2911,7 +2988,7 @@ func (j NestedField) AsObject() (*NestedObject, error) {
 		return nil, err
 	}
 	if t != NestedFieldTypeObject {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", NestedFieldTypeObject, t)
+		return nil, fmt.Errorf("invalid NestedField type; expected: %s, got: %s", NestedFieldTypeObject, t)
 	}
 
 	rawFields, ok := j["fields"]
@@ -2937,7 +3014,7 @@ func (j NestedField) AsArray() (*NestedArray, error) {
 		return nil, err
 	}
 	if t != NestedFieldTypeArray {
-		return nil, fmt.Errorf("invalid type; expected: %s, got: %s", NestedFieldTypeArray, t)
+		return nil, fmt.Errorf("invalid NestedField type; expected: %s, got: %s", NestedFieldTypeArray, t)
 	}
 
 	rawFields, ok := j["fields"]
@@ -2975,7 +3052,7 @@ func (j NestedField) InterfaceT() (NestedFieldEncoder, error) {
 	case NestedFieldTypeArray:
 		return j.AsArray()
 	default:
-		return nil, fmt.Errorf("invalid type: %s", t)
+		return nil, fmt.Errorf("invalid NestedField type: %s", t)
 	}
 }
 
@@ -2986,8 +3063,8 @@ type NestedFieldEncoder interface {
 
 // NestedObject presents a nested object field
 type NestedObject struct {
-	Type   NestedFieldType  `json:"type" mapstructure:"type"`
-	Fields map[string]Field `json:"fields" mapstructure:"fields"`
+	Type   NestedFieldType  `json:"type" yaml:"type" mapstructure:"type"`
+	Fields map[string]Field `json:"fields" yaml:"fields" mapstructure:"fields"`
 }
 
 // NewNestedObject create a new NestedObject instance
@@ -3012,8 +3089,8 @@ func (ob NestedObject) Encode() NestedField {
 
 // NestedArray presents a nested array field
 type NestedArray struct {
-	Type   NestedFieldType `json:"type" mapstructure:"type"`
-	Fields NestedField     `json:"fields" mapstructure:"fields"`
+	Type   NestedFieldType `json:"type" yaml:"type" mapstructure:"type"`
+	Fields NestedField     `json:"fields" yaml:"fields" mapstructure:"fields"`
 }
 
 // NewNestedArray create a new NestedArray instance
@@ -3029,13 +3106,5 @@ func (ob NestedArray) Encode() NestedField {
 	return NestedField{
 		"type":   ob.Type,
 		"fields": ob.Fields,
-	}
-}
-
-// NewScalarType creates an empty ScalarType instance
-func NewScalarType() *ScalarType {
-	return &ScalarType{
-		AggregateFunctions:  ScalarTypeAggregateFunctions{},
-		ComparisonOperators: map[string]ComparisonOperatorDefinition{},
 	}
 }

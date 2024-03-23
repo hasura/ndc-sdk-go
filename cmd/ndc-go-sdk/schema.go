@@ -20,18 +20,39 @@ import (
 )
 
 var defaultScalarTypes = schema.SchemaResponseScalarTypes{
-	"String":   *schema.NewScalarType(),
-	"Int":      *schema.NewScalarType(),
-	"BigInt":   *schema.NewScalarType(),
-	"Float":    *schema.NewScalarType(),
-	"Boolean":  *schema.NewScalarType(),
+	"String": schema.ScalarType{
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationString().Encode(),
+	},
+	"Int": schema.ScalarType{
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationInteger().Encode(),
+	},
+	"Float": schema.ScalarType{
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationNumber().Encode(),
+	},
+	"Boolean": schema.ScalarType{
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationBoolean().Encode(),
+	},
+	"UUID": schema.ScalarType{
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationString().Encode(),
+	},
 	"DateTime": *schema.NewScalarType(),
 }
 
 var ndcOperationNameRegex = regexp.MustCompile(`^(Function|Procedure)([A-Z][A-Za-z0-9]*)$`)
 var ndcOperationCommentRegex = regexp.MustCompile(`^@(function|procedure)(\s+([A-Za-z]\w*))?`)
 var ndcScalarNameRegex = regexp.MustCompile(`^Scalar([A-Z]\w*)$`)
-var ndcScalarCommentRegex = regexp.MustCompile(`^@scalar(\s+([A-Z]\w*))?`)
+var ndcScalarCommentRegex = regexp.MustCompile(`^@scalar(\s+(\w+))?(\s+([a-z]+))?$`)
+var ndcEnumCommentRegex = regexp.MustCompile(`^@enum\s+([\w-.,!@#$%^&*()+=~\s\t]+)$`)
 
 type OperationKind string
 
@@ -44,15 +65,16 @@ type TypeKind string
 
 // TypeInfo represents the serialization information of a type
 type TypeInfo struct {
-	Name          string
-	SchemaName    string
-	Description   *string
-	PackagePath   string
-	PackageName   string
-	IsScalar      bool
-	TypeFragments []string
-	TypeAST       types.Type
-	Schema        schema.TypeEncoder
+	Name                 string
+	SchemaName           string
+	Description          *string
+	PackagePath          string
+	PackageName          string
+	IsScalar             bool
+	ScalarRepresentation schema.TypeRepresentation
+	TypeFragments        []string
+	TypeAST              types.Type
+	Schema               schema.TypeEncoder
 }
 
 // IsNullable checks if the current type is nullable
@@ -456,8 +478,10 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		if innerType == nil {
 			return nil, fmt.Errorf("failed to parse named type: %s", inferredType.String())
 		}
-		typeInfo := sp.parseTypeInfoFromComments(innerType.Name(), innerType.Parent())
-
+		typeInfo, err := sp.parseTypeInfoFromComments(innerType.Name(), innerType.Parent())
+		if err != nil {
+			return nil, err
+		}
 		innerPkg := innerType.Pkg()
 
 		if innerPkg != nil {
@@ -493,7 +517,11 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 
 		if typeInfo.IsScalar {
 			rawSchema.CustomScalars[typeInfo.Name] = typeInfo
-			rawSchema.ScalarSchemas[typeInfo.SchemaName] = *schema.NewScalarType()
+			scalarSchema := schema.NewScalarType()
+			if typeInfo.ScalarRepresentation != nil {
+				scalarSchema.Representation = typeInfo.ScalarRepresentation
+			}
+			rawSchema.ScalarSchemas[typeInfo.SchemaName] = *scalarSchema
 			return typeInfo, nil
 		}
 
@@ -551,7 +579,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 	}
 }
 
-func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, scope *types.Scope) *TypeInfo {
+func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, scope *types.Scope) (*TypeInfo, error) {
 	typeInfo := &TypeInfo{
 		Name:          typeName,
 		SchemaName:    typeName,
@@ -571,18 +599,63 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, scope *types.
 				text = strings.TrimPrefix(text, fmt.Sprintf("%s ", typeName))
 			}
 
-			matches := ndcScalarCommentRegex.FindStringSubmatch(text)
-			matchesLen := len(matches)
-			if matchesLen < 1 {
-				comments = append(comments, text)
+			enumMatches := ndcEnumCommentRegex.FindStringSubmatch(text)
+
+			if len(enumMatches) == 2 {
+				typeInfo.IsScalar = true
+				rawEnumItems := strings.Split(enumMatches[1], ",")
+				var enums []string
+				for _, item := range rawEnumItems {
+					trimmed := strings.TrimSpace(item)
+					if trimmed != "" {
+						enums = append(enums, trimmed)
+					}
+				}
+				if len(enums) == 0 {
+					return nil, fmt.Errorf("require enum values in the comment of %s", typeName)
+				}
+				typeInfo.ScalarRepresentation = schema.NewTypeRepresentationEnum(enums).Encode()
 				continue
 			}
 
-			typeInfo.IsScalar = true
-			if matchesLen > 2 && matches[2] != "" {
-				typeInfo.SchemaName = matches[2]
-				typeInfo.Schema = schema.NewNamedType(matches[2])
+			matches := ndcScalarCommentRegex.FindStringSubmatch(text)
+			matchesLen := len(matches)
+			if matchesLen > 1 {
+				typeInfo.IsScalar = true
+				if matchesLen > 3 && matches[3] != "" {
+					typeInfo.SchemaName = matches[2]
+					typeInfo.Schema = schema.NewNamedType(matches[2])
+					typeRep, err := schema.ParseTypeRepresentationType(matches[3])
+					if err != nil {
+						return nil, fmt.Errorf("failed to parse type representation of scalar %s: %s", typeName, err)
+					}
+					if typeRep == schema.TypeRepresentationTypeEnum {
+						return nil, errors.New("use @enum tag with values instead")
+					}
+					typeInfo.ScalarRepresentation = schema.TypeRepresentation{
+						"type": typeRep,
+					}
+				} else if matchesLen > 2 && matches[2] != "" {
+					// if the second string is a type representation, use it as a TypeRepresentation instead
+					// e.g @scalar string
+					typeRep, err := schema.ParseTypeRepresentationType(matches[2])
+					if err == nil {
+						if typeRep == schema.TypeRepresentationTypeEnum {
+							return nil, errors.New("use @enum tag with values instead")
+						}
+						typeInfo.ScalarRepresentation = schema.TypeRepresentation{
+							"type": typeRep,
+						}
+						continue
+					}
+
+					typeInfo.SchemaName = matches[2]
+					typeInfo.Schema = schema.NewNamedType(matches[2])
+				}
+				continue
 			}
+
+			comments = append(comments, text)
 		}
 	}
 
@@ -601,7 +674,7 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, scope *types.
 		typeInfo.Description = &desc
 	}
 
-	return typeInfo
+	return typeInfo, nil
 }
 
 func (sp *SchemaParser) parseOperationInfo(fn *types.Func) *OperationInfo {
@@ -636,7 +709,7 @@ func (sp *SchemaParser) parseOperationInfo(fn *types.Func) *OperationInfo {
 				if matchesLen > 3 && strings.TrimSpace(matches[3]) != "" {
 					result.Name = strings.TrimSpace(matches[3])
 				} else {
-					result.Name = camelCase(functionName)
+					result.Name = ToCamelCase(functionName)
 				}
 			} else {
 				descriptions = append(descriptions, text)
@@ -653,7 +726,7 @@ func (sp *SchemaParser) parseOperationInfo(fn *types.Func) *OperationInfo {
 			return nil
 		}
 		result.Kind = OperationKind(operationNameResults[1])
-		result.Name = camelCase(operationNameResults[2])
+		result.Name = ToCamelCase(operationNameResults[2])
 	}
 
 	desc := strings.TrimSpace(strings.Join(descriptions, " "))
@@ -680,13 +753,6 @@ func findCommentsFromPos(pkg *packages.Package, scope *types.Scope, name string)
 		}
 	}
 	return nil
-}
-
-func camelCase(input string) string {
-	if len(input) == 0 {
-		return ""
-	}
-	return strings.ToLower(input[0:1]) + input[1:]
 }
 
 // get field name by json tag

@@ -124,6 +124,10 @@ func TestQueryGetTypes(t *testing.T) {
 						"type": "literal",
 						"value": "a comment"
 					},
+					"Enum": {
+						"type": "literal",
+						"value": "foo"
+					},
 					"UUIDPtr": {
 						"type": "literal",
 						"value": "b085b0b9-007c-440e-9661-0d8f2de98a5b"
@@ -200,6 +204,10 @@ func TestQueryGetTypes(t *testing.T) {
 					"CustomScalarPtr": {
 						"type": "literal",
 						"value": "a comment pointer"
+					},
+					"EnumPtr": {
+						"type": "literal",
+						"value": "bar"
 					},
 					"Object": {
 						"type": "literal",
@@ -345,6 +353,10 @@ func TestQueryGetTypes(t *testing.T) {
 										"type": "column",
 										"column": "CustomScalar"
 									},
+									"Enum": {
+										"type": "column",
+										"column": "Enum"
+									},
 									"UUIDPtr": {
 										"type": "column",
 										"column": "UUIDPtr"
@@ -421,6 +433,10 @@ func TestQueryGetTypes(t *testing.T) {
 										"type": "column",
 										"column": "CustomScalarPtr"
 									},
+									"EnumPtr": {
+										"type": "column",
+										"column": "EnumPtr"
+									},
 									"Object": {
 										"type": "column",
 										"column": "Object"
@@ -479,6 +495,7 @@ func TestQueryGetTypes(t *testing.T) {
 				Time:            time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC),
 				Text:            "text",
 				CustomScalar:    commentText,
+				Enum:            functions.SomeEnumFoo,
 				UUIDPtr:         utils.ToPtr(uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5b")),
 				BoolPtr:         utils.ToPtr(true),
 				StringPtr:       utils.ToPtr("world"),
@@ -497,6 +514,7 @@ func TestQueryGetTypes(t *testing.T) {
 				TimePtr:         utils.ToPtr(time.Date(2024, 3, 5, 7, 0, 0, 0, time.UTC)),
 				TextPtr:         utils.ToPtr(functions.Text("text pointer")),
 				CustomScalarPtr: &commentTextPtr,
+				EnumPtr:         utils.ToPtr(functions.SomeEnumBar),
 				Object: struct {
 					ID        uuid.UUID `json:"id"`
 					CreatedAt time.Time `json:"created_at"`

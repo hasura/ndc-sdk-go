@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eu -o pipefail
+set -e -o pipefail
 
 if [ ! -f ./go-jsonschema ]; then
   wget -qO- https://github.com/omissis/go-jsonschema/releases/download/v0.14.1/go-jsonschema_Linux_x86_64.tar.gz | tar xvz
@@ -7,9 +7,7 @@ if [ ! -f ./go-jsonschema ]; then
 fi
 
 # download the schema json file from ndc-sdk-typescript repository and regerate schema 
-if [[ -z $SKIP_DOWNLOAD ]]; then
-  wget https://raw.githubusercontent.com/hasura/ndc-sdk-typescript/main/src/schema/schema.generated.json
-fi
+# wget https://raw.githubusercontent.com/hasura/ndc-sdk-typescript/main/src/schema/schema.generated.json
 
 ./go-jsonschema \
   --package=github.com/hasura/ndc-sdk-go/schema \
@@ -55,6 +53,10 @@ sed -i 's/ScalarTypeComparisonOperators/map[string]ComparisonOperatorDefinition/
 sed -i 's/type MutationOperationResults interface{}//g' ../schema/schema.generated.go
 sed -i 's/type MutationResponseOperationResultsElem interface{}//g' ../schema/schema.generated.go
 sed -i 's/MutationResponseOperationResultsElem/MutationOperationResults/g' ../schema/schema.generated.go
+sed -i 's/type TypeRepresentation interface{}//g' ../schema/schema.generated.go
+sed -i 's/Representation interface{}/Representation TypeRepresentation/g' ../schema/schema.generated.go
 
 # format codes
 gofmt -w -s ../
+
+cp schema.generated.json ../schema/schema.generated.json

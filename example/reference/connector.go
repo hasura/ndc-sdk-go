@@ -112,7 +112,7 @@ func (mc *Connector) HealthCheck(ctx context.Context, configuration *Configurati
 
 func (mc *Connector) GetCapabilities(configuration *Configuration) schema.CapabilitiesResponseMarshaler {
 	return &schema.CapabilitiesResponse{
-		Version: "0.1.0",
+		Version: "0.1.1",
 		Capabilities: schema.Capabilities{
 			Query: schema.QueryCapabilities{
 				Aggregates: schema.LeafCapability{},
@@ -142,6 +142,7 @@ func (mc *Connector) GetSchema(ctx context.Context, configuration *Configuration
 					"eq": schema.NewComparisonOperatorEqual().Encode(),
 					"in": schema.NewComparisonOperatorIn().Encode(),
 				},
+				Representation: schema.NewTypeRepresentationInteger().Encode(),
 			},
 			"String": {
 				AggregateFunctions: schema.ScalarTypeAggregateFunctions{},
@@ -150,6 +151,7 @@ func (mc *Connector) GetSchema(ctx context.Context, configuration *Configuration
 					"in":   schema.NewComparisonOperatorIn().Encode(),
 					"like": schema.NewComparisonOperatorCustom(schema.NewNamedType("String")).Encode(),
 				},
+				Representation: schema.NewTypeRepresentationString().Encode(),
 			},
 		},
 		ObjectTypes: schema.SchemaResponseObjectTypes{
