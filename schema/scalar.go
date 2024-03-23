@@ -258,7 +258,7 @@ type TypeRepresentationEncoder interface {
 
 // TypeRepresentationBoolean represents a JSON boolean type representation
 type TypeRepresentationBoolean struct {
-	Type TypeRepresentationType `json:"type" mapstructure:"type"`
+	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
 // NewTypeRepresentationBoolean creates a new TypeRepresentationBoolean instance
@@ -277,7 +277,7 @@ func (ty TypeRepresentationBoolean) Encode() TypeRepresentation {
 
 // TypeRepresentationString represents a JSON string type representation
 type TypeRepresentationString struct {
-	Type TypeRepresentationType `json:"type" mapstructure:"type"`
+	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
 // NewTypeRepresentationString creates a new TypeRepresentationString instance
@@ -296,7 +296,7 @@ func (ty TypeRepresentationString) Encode() TypeRepresentation {
 
 // TypeRepresentationNumber represents a JSON number type representation
 type TypeRepresentationNumber struct {
-	Type TypeRepresentationType `json:"type" mapstructure:"type"`
+	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
 // NewTypeRepresentationNumber creates a new TypeRepresentationNumber instance
@@ -315,7 +315,7 @@ func (ty TypeRepresentationNumber) Encode() TypeRepresentation {
 
 // TypeRepresentationInteger represents a JSON integer type representation
 type TypeRepresentationInteger struct {
-	Type TypeRepresentationType `json:"type" mapstructure:"type"`
+	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
 // NewTypeRepresentationInteger creates a new TypeRepresentationInteger instance
@@ -334,8 +334,8 @@ func (ty TypeRepresentationInteger) Encode() TypeRepresentation {
 
 // TypeRepresentationEnum represents an enum type representation
 type TypeRepresentationEnum struct {
-	Type  TypeRepresentationType `json:"type" mapstructure:"type"`
-	OneOf []string               `json:"one_of" mapstructure:"one_of"`
+	Type  TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
+	OneOf []string               `json:"one_of" yaml:"one_of" mapstructure:"one_of"`
 }
 
 // NewTypeRepresentationEnum creates a new TypeRepresentationEnum instance

@@ -270,9 +270,9 @@ type TypeEncoder interface {
 
 // NamedType represents a named type
 type NamedType struct {
-	Type TypeEnum `json:"type" mapstructure:"type"`
+	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
 	// The name can refer to a primitive type or a scalar type
-	Name string `json:"name" mapstructure:"name"`
+	Name string `json:"name" yaml:"name" mapstructure:"name"`
 }
 
 // NewNamedType creates a new NamedType instance
@@ -293,9 +293,9 @@ func (ty NamedType) Encode() Type {
 
 // NullableType represents a nullable type
 type NullableType struct {
-	Type TypeEnum `json:"type" mapstructure:"type"`
+	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
 	// The type of the non-null inhabitants of this type
-	UnderlyingType Type `json:"underlying_type" mapstructure:"underlying_type"`
+	UnderlyingType Type `json:"underlying_type" yaml:"underlying_type" mapstructure:"underlying_type"`
 }
 
 // NewNullableType creates a new NullableType instance with underlying type
@@ -332,9 +332,9 @@ func NewNullableArrayType(elementType TypeEncoder) *NullableType {
 
 // ArrayType represents an array type
 type ArrayType struct {
-	Type TypeEnum `json:"type" mapstructure:"type"`
+	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
 	// The type of the elements of the array
-	ElementType Type `json:"element_type" mapstructure:"element_type"`
+	ElementType Type `json:"element_type" yaml:"element_type" mapstructure:"element_type"`
 }
 
 // Encode returns the raw Type instance
@@ -355,9 +355,9 @@ func NewArrayType(elementType TypeEncoder) *ArrayType {
 
 // PredicateType represents a predicate type for a given object type
 type PredicateType struct {
-	Type TypeEnum `json:"type" mapstructure:"type"`
+	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
 	// The name can refer to a primitive type or a scalar type
-	ObjectTypeName string `json:"object_type_name" mapstructure:"object_type_name"`
+	ObjectTypeName string `json:"object_type_name" yaml:"object_type_name" mapstructure:"object_type_name"`
 }
 
 // NewPredicateType creates a new PredicateType instance
@@ -421,9 +421,9 @@ func (j *ArgumentType) UnmarshalJSON(b []byte) error {
 
 // Argument is provided by reference to a variable or as a literal value
 type Argument struct {
-	Type  ArgumentType `json:"type" mapstructure:"type"`
-	Name  string       `json:"name" mapstructure:"name"`
-	Value any          `json:"value" mapstructure:"value"`
+	Type  ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	Name  string       `json:"name" yaml:"name" mapstructure:"name"`
+	Value any          `json:"value" yaml:"value" mapstructure:"value"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -513,9 +513,9 @@ func (j *RelationshipArgumentType) UnmarshalJSON(b []byte) error {
 
 // RelationshipArgument is provided by reference to a variable or as a literal value
 type RelationshipArgument struct {
-	Type  RelationshipArgumentType `json:"type" mapstructure:"type"`
-	Name  string                   `json:"name" mapstructure:"name"`
-	Value any                      `json:"value" mapstructure:"value"`
+	Type  RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	Name  string                   `json:"name" yaml:"name" mapstructure:"name"`
+	Value any                      `json:"value" yaml:"value" mapstructure:"value"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -797,13 +797,13 @@ func (j Field) InterfaceT() (FieldEncoder, error) {
 
 // ColumnField represents a column field
 type ColumnField struct {
-	Type FieldType `json:"type" mapstructure:"type"`
+	Type FieldType `json:"type" yaml:"type" mapstructure:"type"`
 	// Column name
-	Column string `json:"column" mapstructure:"column"`
+	Column string `json:"column" yaml:"column" mapstructure:"column"`
 	// When the type of the column is a (possibly-nullable) array or object,
 	// the caller can request a subset of the complete column data, by specifying fields to fetch here.
 	// If omitted, the column data will be fetched in full.
-	Fields NestedField `json:"fields" mapstructure:"fields"`
+	Fields NestedField `json:"fields" yaml:"fields" mapstructure:"fields"`
 }
 
 // Encode converts the instance to raw Field
@@ -830,13 +830,13 @@ func NewColumnField(column string, fields NestedFieldEncoder) *ColumnField {
 
 // RelationshipField represents a relationship field
 type RelationshipField struct {
-	Type FieldType `json:"type" mapstructure:"type"`
+	Type FieldType `json:"type" yaml:"type" mapstructure:"type"`
 	// The relationship query
-	Query Query `json:"query" mapstructure:"query"`
+	Query Query `json:"query" yaml:"query" mapstructure:"query"`
 	// The name of the relationship to follow for the subquery
-	Relationship string `json:"relationship" mapstructure:"relationship"`
+	Relationship string `json:"relationship" yaml:"relationship" mapstructure:"relationship"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments"`
+	Arguments map[string]RelationshipArgument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 }
 
 // Encode converts the instance to raw Field
@@ -905,9 +905,9 @@ func (j *ComparisonTargetType) UnmarshalJSON(b []byte) error {
 
 // ComparisonTarget represents a comparison target object
 type ComparisonTarget struct {
-	Type ComparisonTargetType `json:"type" mapstructure:"type"`
-	Name string               `json:"name" mapstructure:"name"`
-	Path []PathElement        `json:"path,omitempty" mapstructure:"path"`
+	Type ComparisonTargetType `json:"type" yaml:"type" mapstructure:"type"`
+	Name string               `json:"name" yaml:"name" mapstructure:"name"`
+	Path []PathElement        `json:"path,omitempty" yaml:"path,omitempty" mapstructure:"path"`
 }
 
 // ExpressionType represents the filtering expression enums
@@ -1185,8 +1185,8 @@ type ComparisonValueEncoder interface {
 
 // ComparisonValueColumn represents a comparison value with column type
 type ComparisonValueColumn struct {
-	Type   ComparisonValueType `json:"type" mapstructure:"type"`
-	Column ComparisonTarget    `json:"column" mapstructure:"column"`
+	Type   ComparisonValueType `json:"type" yaml:"type" mapstructure:"type"`
+	Column ComparisonTarget    `json:"column" yaml:"column" mapstructure:"column"`
 }
 
 // Encode converts to the raw comparison value
@@ -1199,8 +1199,8 @@ func (cv ComparisonValueColumn) Encode() ComparisonValue {
 
 // ComparisonValueScalar represents a comparison value with scalar type
 type ComparisonValueScalar struct {
-	Type  ComparisonValueType `json:"type" mapstructure:"type"`
-	Value any                 `json:"value" mapstructure:"value"`
+	Type  ComparisonValueType `json:"type" yaml:"type" mapstructure:"type"`
+	Value any                 `json:"value" yaml:"value" mapstructure:"value"`
 }
 
 // Encode converts to the raw comparison value
@@ -1213,8 +1213,8 @@ func (cv ComparisonValueScalar) Encode() ComparisonValue {
 
 // ComparisonValueVariable represents a comparison value with variable type
 type ComparisonValueVariable struct {
-	Type ComparisonValueType `json:"type" mapstructure:"type"`
-	Name string              `json:"name" mapstructure:"name"`
+	Type ComparisonValueType `json:"type" yaml:"type" mapstructure:"type"`
+	Name string              `json:"name" yaml:"name" mapstructure:"name"`
 }
 
 // Encode converts to the raw comparison value
@@ -1450,10 +1450,10 @@ type ExistsInCollectionEncoder interface {
 //
 // [Related collections]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=exists#related-collections
 type ExistsInCollectionRelated struct {
-	Type         ExistsInCollectionType `json:"type" mapstructure:"type"`
-	Relationship string                 `json:"relationship" mapstructure:"relationship"`
+	Type         ExistsInCollectionType `json:"type" yaml:"type" mapstructure:"type"`
+	Relationship string                 `json:"relationship" yaml:"relationship" mapstructure:"relationship"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments"`
+	Arguments map[string]RelationshipArgument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 }
 
 // Encode converts the instance to its raw type
@@ -1469,11 +1469,11 @@ func (ei ExistsInCollectionRelated) Encode() ExistsInCollection {
 //
 // [unrelated collections]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=exists#unrelated-collections
 type ExistsInCollectionUnrelated struct {
-	Type ExistsInCollectionType `json:"type" mapstructure:"type"`
+	Type ExistsInCollectionType `json:"type" yaml:"type" mapstructure:"type"`
 	// The name of a collection
-	Collection string `json:"collection" mapstructure:"collection"`
+	Collection string `json:"collection" yaml:"collection" mapstructure:"collection"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments"`
+	Arguments map[string]RelationshipArgument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 }
 
 // Encode converts the instance to its raw type
@@ -1852,8 +1852,8 @@ type ExpressionEncoder interface {
 //
 // [conjunction of expressions]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#conjunction-of-expressions
 type ExpressionAnd struct {
-	Type        ExpressionType `json:"type" mapstructure:"type"`
-	Expressions []Expression   `json:"expressions" mapstructure:"expressions"`
+	Type        ExpressionType `json:"type" yaml:"type" mapstructure:"type"`
+	Expressions []Expression   `json:"expressions" yaml:"expressions" mapstructure:"expressions"`
 }
 
 // Encode converts the instance to a raw Expression
@@ -1868,8 +1868,8 @@ func (exp ExpressionAnd) Encode() Expression {
 //
 // [disjunction of expressions]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#disjunction-of-expressions
 type ExpressionOr struct {
-	Type        ExpressionType `json:"type" mapstructure:"type"`
-	Expressions []Expression   `json:"expressions" mapstructure:"expressions"`
+	Type        ExpressionType `json:"type" yaml:"type" mapstructure:"type"`
+	Expressions []Expression   `json:"expressions" yaml:"expressions" mapstructure:"expressions"`
 }
 
 // Encode converts the instance to a raw Expression
@@ -1884,8 +1884,8 @@ func (exp ExpressionOr) Encode() Expression {
 //
 // [negation of an expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#negation
 type ExpressionNot struct {
-	Type       ExpressionType `json:"type" mapstructure:"type"`
-	Expression Expression     `json:"expression" mapstructure:"expression"`
+	Type       ExpressionType `json:"type" yaml:"type" mapstructure:"type"`
+	Expression Expression     `json:"expression" yaml:"expression" mapstructure:"expression"`
 }
 
 // Encode converts the instance to a raw Expression
@@ -1900,9 +1900,9 @@ func (exp ExpressionNot) Encode() Expression {
 //
 // [unary operator expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#unary-operators
 type ExpressionUnaryComparisonOperator struct {
-	Type     ExpressionType          `json:"type" mapstructure:"type"`
-	Operator UnaryComparisonOperator `json:"operator" mapstructure:"operator"`
-	Column   ComparisonTarget        `json:"column" mapstructure:"column"`
+	Type     ExpressionType          `json:"type" yaml:"type" mapstructure:"type"`
+	Operator UnaryComparisonOperator `json:"operator" yaml:"operator" mapstructure:"operator"`
+	Column   ComparisonTarget        `json:"column" yaml:"column" mapstructure:"column"`
 }
 
 // Encode converts the instance to a raw Expression
@@ -1918,10 +1918,10 @@ func (exp ExpressionUnaryComparisonOperator) Encode() Expression {
 //
 // [binary operator expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#unary-operators
 type ExpressionBinaryComparisonOperator struct {
-	Type     ExpressionType   `json:"type" mapstructure:"type"`
-	Operator string           `json:"operator" mapstructure:"operator"`
-	Column   ComparisonTarget `json:"column" mapstructure:"column"`
-	Value    ComparisonValue  `json:"value" mapstructure:"value"`
+	Type     ExpressionType   `json:"type" yaml:"type" mapstructure:"type"`
+	Operator string           `json:"operator" yaml:"operator" mapstructure:"operator"`
+	Column   ComparisonTarget `json:"column" yaml:"column" mapstructure:"column"`
+	Value    ComparisonValue  `json:"value" yaml:"value" mapstructure:"value"`
 }
 
 // Encode converts the instance to a raw Expression
@@ -1938,9 +1938,9 @@ func (exp ExpressionBinaryComparisonOperator) Encode() Expression {
 //
 // [EXISTS expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#exists-expressions
 type ExpressionExists struct {
-	Type         ExpressionType     `json:"type" mapstructure:"type"`
-	Predicate    Expression         `json:"predicate" mapstructure:"predicate"`
-	InCollection ExistsInCollection `json:"in_collection" mapstructure:"in_collection"`
+	Type         ExpressionType     `json:"type" yaml:"type" mapstructure:"type"`
+	Predicate    Expression         `json:"predicate" yaml:"predicate" mapstructure:"predicate"`
+	InCollection ExistsInCollection `json:"in_collection" yaml:"in_collection" mapstructure:"in_collection"`
 }
 
 // Encode converts the instance to a raw Expression
@@ -2217,11 +2217,11 @@ func NewAggregateStarCount() *AggregateStarCount {
 
 // AggregateSingleColumn represents an aggregate object which applies an aggregation function (as defined by the column's scalar type in the schema response) to a column.
 type AggregateSingleColumn struct {
-	Type AggregateType `json:"type" mapstructure:"type"`
+	Type AggregateType `json:"type" yaml:"type" mapstructure:"type"`
 	// The column to apply the aggregation function to
-	Column string `json:"column" mapstructure:"column"`
+	Column string `json:"column" yaml:"column" mapstructure:"column"`
 	// Single column aggregate function name.
-	Function string `json:"function" mapstructure:"function"`
+	Function string `json:"function" yaml:"function" mapstructure:"function"`
 }
 
 // Encode converts the instance to raw Aggregate
@@ -2245,11 +2245,11 @@ func NewAggregateSingleColumn(column string, function string) *AggregateSingleCo
 // AggregateColumnCount represents an aggregate object which count the number of rows with non-null values in the specified columns.
 // If the distinct flag is set, then the count should only count unique non-null values of those columns.
 type AggregateColumnCount struct {
-	Type AggregateType `json:"type" mapstructure:"type"`
+	Type AggregateType `json:"type" yaml:"type" mapstructure:"type"`
 	// The column to apply the aggregation function to
-	Column string `json:"column" mapstructure:"column"`
+	Column string `json:"column" yaml:"column" mapstructure:"column"`
 	// Whether or not only distinct items should be counted.
-	Distinct bool `json:"distinct" mapstructure:"distinct"`
+	Distinct bool `json:"distinct" yaml:"distinct" mapstructure:"distinct"`
 }
 
 // Encode converts the instance to raw Aggregate
@@ -2547,11 +2547,11 @@ type OrderByTargetEncoder interface {
 
 // OrderByColumn represents an ordering object which compares the value in the selected column
 type OrderByColumn struct {
-	Type OrderByTargetType `json:"type" mapstructure:"type"`
+	Type OrderByTargetType `json:"type" yaml:"type" mapstructure:"type"`
 	// The name of the column
-	Name string `json:"name" mapstructure:"name"`
+	Name string `json:"name" yaml:"name" mapstructure:"name"`
 	// Any relationships to traverse to reach this column
-	Path []PathElement `json:"path" mapstructure:"path"`
+	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
 }
 
 // Encode converts the instance to raw OrderByTarget
@@ -2568,13 +2568,13 @@ func (ob OrderByColumn) Encode() OrderByTarget {
 //
 // [single_column_aggregate]: https://hasura.github.io/ndc-spec/specification/queries/sorting.html#type-single_column_aggregate
 type OrderBySingleColumnAggregate struct {
-	Type OrderByTargetType `json:"type" mapstructure:"type"`
+	Type OrderByTargetType `json:"type" yaml:"name" mapstructure:"type"`
 	// The column to apply the aggregation function to
-	Column string `json:"column" mapstructure:"column"`
+	Column string `json:"column" yaml:"column" mapstructure:"column"`
 	// Single column aggregate function name.
-	Function string `json:"function" mapstructure:"function"`
+	Function string `json:"function" yaml:"function" mapstructure:"function"`
 	// Non-empty collection of relationships to traverse
-	Path []PathElement `json:"path" mapstructure:"path"`
+	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
 }
 
 // Encode converts the instance to raw OrderByTarget
@@ -2592,9 +2592,9 @@ func (ob OrderBySingleColumnAggregate) Encode() OrderByTarget {
 //
 // [star_count_aggregate]: https://hasura.github.io/ndc-spec/specification/queries/sorting.html#type-star_count_aggregate
 type OrderByStarCountAggregate struct {
-	Type OrderByTargetType `json:"type" mapstructure:"type"`
+	Type OrderByTargetType `json:"type" yaml:"type" mapstructure:"type"`
 	// Non-empty collection of relationships to traverse
-	Path []PathElement `json:"path" mapstructure:"path"`
+	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
 }
 
 // Encode converts the instance to raw OrderByTarget
@@ -2800,7 +2800,7 @@ type ComparisonOperatorDefinitionEncoder interface {
 
 // ComparisonOperatorEqual presents an equal comparison operator
 type ComparisonOperatorEqual struct {
-	Type ComparisonOperatorDefinitionType `json:"type" mapstructure:"type"`
+	Type ComparisonOperatorDefinitionType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
 // NewComparisonOperatorEqual create a new ComparisonOperatorEqual instance
@@ -2819,7 +2819,7 @@ func (ob ComparisonOperatorEqual) Encode() ComparisonOperatorDefinition {
 
 // ComparisonOperatorIn presents an in comparison operator
 type ComparisonOperatorIn struct {
-	Type ComparisonOperatorDefinitionType `json:"type" mapstructure:"type"`
+	Type ComparisonOperatorDefinitionType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
 // NewComparisonOperatorIn create a new ComparisonOperatorIn instance
@@ -2838,9 +2838,9 @@ func (ob ComparisonOperatorIn) Encode() ComparisonOperatorDefinition {
 
 // ComparisonOperatorCustom presents a custom comparison operator
 type ComparisonOperatorCustom struct {
-	Type ComparisonOperatorDefinitionType `json:"type" mapstructure:"type"`
+	Type ComparisonOperatorDefinitionType `json:"type" yaml:"type" mapstructure:"type"`
 	// The type of the argument to this operator
-	ArgumentType Type `json:"argument_type" mapstructure:"argument_type"`
+	ArgumentType Type `json:"argument_type" yaml:"argument_type" mapstructure:"argument_type"`
 }
 
 // NewComparisonOperatorCustom create a new ComparisonOperatorCustom instance
@@ -3062,8 +3062,8 @@ type NestedFieldEncoder interface {
 
 // NestedObject presents a nested object field
 type NestedObject struct {
-	Type   NestedFieldType  `json:"type" mapstructure:"type"`
-	Fields map[string]Field `json:"fields" mapstructure:"fields"`
+	Type   NestedFieldType  `json:"type" yaml:"type" mapstructure:"type"`
+	Fields map[string]Field `json:"fields" yaml:"fields" mapstructure:"fields"`
 }
 
 // NewNestedObject create a new NestedObject instance
@@ -3088,8 +3088,8 @@ func (ob NestedObject) Encode() NestedField {
 
 // NestedArray presents a nested array field
 type NestedArray struct {
-	Type   NestedFieldType `json:"type" mapstructure:"type"`
-	Fields NestedField     `json:"fields" mapstructure:"fields"`
+	Type   NestedFieldType `json:"type" yaml:"type" mapstructure:"type"`
+	Fields NestedField     `json:"fields" yaml:"fields" mapstructure:"fields"`
 }
 
 // NewNestedArray create a new NestedArray instance
