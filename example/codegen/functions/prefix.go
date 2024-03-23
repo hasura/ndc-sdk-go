@@ -99,6 +99,7 @@ type GetTypesArguments struct {
 	Time         time.Time
 	Text         Text
 	CustomScalar CommentText
+	Enum         SomeEnum
 
 	UUIDPtr         *uuid.UUID
 	BoolPtr         *bool
@@ -118,6 +119,7 @@ type GetTypesArguments struct {
 	TimePtr         *time.Time
 	TextPtr         *Text
 	CustomScalarPtr *CommentText
+	EnumPtr         *SomeEnum
 
 	Object struct {
 		ID        uuid.UUID `json:"id"`

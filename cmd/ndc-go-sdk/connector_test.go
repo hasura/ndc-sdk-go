@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hasura/ndc-sdk-go/schema"
@@ -18,7 +19,7 @@ var (
 )
 
 func formatTextContent(input string) string {
-	return spacesRegexp.ReplaceAllString(tabRegexp.ReplaceAllString(newLinesRegexp.ReplaceAllString(input, "\n"), "  "), "\n")
+	return strings.Trim(spacesRegexp.ReplaceAllString(tabRegexp.ReplaceAllString(newLinesRegexp.ReplaceAllString(input, "\n"), "  "), "\n"), "\n")
 }
 
 func TestConnectorGeneration(t *testing.T) {
@@ -70,7 +71,6 @@ func TestConnectorGeneration(t *testing.T) {
 			functionTypesBytes, err := os.ReadFile("functions/types.generated.go")
 			assert.NoError(t, err)
 			assert.Equal(t, formatTextContent(string(expectedFunctionTypesBytes)), formatTextContent(string(functionTypesBytes)))
-
 		})
 	}
 }

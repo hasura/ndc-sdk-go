@@ -65,6 +65,17 @@ func TestUnmarshalProcedureInfo(t *testing.T) {
 	}
 }
 
+func assertError(t *testing.T, err error, msg string) {
+	if err == nil {
+		t.Error("expected error, got: nil")
+		t.FailNow()
+	}
+	if !strings.Contains(err.Error(), msg) {
+		t.Errorf("expected error: %s, got: %s", msg, err.Error())
+		t.FailNow()
+	}
+}
+
 func assertNoError(t *testing.T, err error, msgs ...string) {
 	if err != nil {
 		t.Errorf("%s expected no error, got: %s", strings.Join(msgs, " "), err)

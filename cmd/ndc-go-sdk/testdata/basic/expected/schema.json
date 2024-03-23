@@ -33,6 +33,21 @@
             }
           }
         },
+        "BigInt": {
+          "type": {
+            "name": "BigInt",
+            "type": "named"
+          }
+        },
+        "BigIntPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "BigInt",
+              "type": "named"
+            }
+          }
+        },
         "Bool": {
           "type": {
             "name": "Boolean",
@@ -59,6 +74,21 @@
             "type": "nullable",
             "underlying_type": {
               "name": "CommentString",
+              "type": "named"
+            }
+          }
+        },
+        "Enum": {
+          "type": {
+            "name": "SomeEnum",
+            "type": "named"
+          }
+        },
+        "EnumPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SomeEnum",
               "type": "named"
             }
           }
@@ -518,6 +548,21 @@
             }
           }
         },
+        "BigInt": {
+          "type": {
+            "name": "BigInt",
+            "type": "named"
+          }
+        },
+        "BigIntPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "BigInt",
+              "type": "named"
+            }
+          }
+        },
         "Bool": {
           "type": {
             "name": "Boolean",
@@ -544,6 +589,21 @@
             "type": "nullable",
             "underlying_type": {
               "name": "CommentString",
+              "type": "named"
+            }
+          }
+        },
+        "Enum": {
+          "type": {
+            "name": "SomeEnum",
+            "type": "named"
+          }
+        },
+        "EnumPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SomeEnum",
               "type": "named"
             }
           }
@@ -1003,9 +1063,19 @@
     }
   ],
   "scalar_types": {
+    "BigInt": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "string"
+      }
+    },
     "Boolean": {
       "aggregate_functions": {},
-      "comparison_operators": {}
+      "comparison_operators": {},
+      "representation": {
+        "type": "boolean"
+      }
     },
     "CommentString": {
       "aggregate_functions": {},
@@ -1017,7 +1087,10 @@
     },
     "Float": {
       "aggregate_functions": {},
-      "comparison_operators": {}
+      "comparison_operators": {},
+      "representation": {
+        "type": "number"
+      }
     },
     "Foo": {
       "aggregate_functions": {},
@@ -1025,15 +1098,32 @@
     },
     "Int": {
       "aggregate_functions": {},
-      "comparison_operators": {}
+      "comparison_operators": {},
+      "representation": {
+        "type": "integer"
+      }
     },
     "String": {
       "aggregate_functions": {},
-      "comparison_operators": {}
+      "comparison_operators": {},
+      "representation": {
+        "type": "string"
+      }
     },
     "UUID": {
       "aggregate_functions": {},
-      "comparison_operators": {}
+      "comparison_operators": {},
+      "representation": {
+        "type": "string"
+      }
+    },
+    "SomeEnum": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "enum",
+        "one_of": ["foo", "bar"]
+      }
     }
   }
 }

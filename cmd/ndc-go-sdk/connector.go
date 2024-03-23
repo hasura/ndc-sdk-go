@@ -13,6 +13,8 @@ import (
 	"runtime/trace"
 	"sort"
 	"strings"
+
+	"github.com/hasura/ndc-sdk-go/schema"
 )
 
 var fieldNameRegex = regexp.MustCompile(`[^\w]`)
@@ -468,7 +470,83 @@ func (j %s) ScalarName() string {
   return "%s"
 }
 `, scalar.Name, scalar.SchemaName))
+		// generate enum and parsers if exist
+		if scalar.ScalarRepresentation != nil {
+
+			switch scalarRep := scalar.ScalarRepresentation.Interface().(type) {
+			case *schema.TypeRepresentationEnum:
+				sb.imports["encoding/json"] = ""
+				sb.imports["github.com/hasura/ndc-sdk-go/schema"] = ""
+
+				sb.builder.WriteString("const (\n")
+				pascalName := ToPascalCase(scalar.Name)
+				enumConstants := make([]string, len(scalarRep.OneOf))
+				for i, enum := range scalarRep.OneOf {
+					enumConst := fmt.Sprintf("%s%s", pascalName, ToPascalCase(enum))
+					enumConstants[i] = enumConst
+					sb.builder.WriteString(fmt.Sprintf("  %s %s = \"%s\"\n", enumConst, scalar.Name, enum))
+				}
+				sb.builder.WriteString(fmt.Sprintf(`)
+
+var enumValues_%s = []%s{%s}
+`, pascalName, scalar.Name, strings.Join(enumConstants, ", ")))
+
+				sb.builder.WriteString(fmt.Sprintf(`
+// Parse%s parses a %s enum from string
+func Parse%s(input string) (%s, error) {
+	result := %s(input)
+	if !schema.Contains(enumValues_%s, result) {
+		return %s(""), errors.New("failed to parse %s, expect one of %s")
 	}
+
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j %s) IsValid() bool {
+	return schema.Contains(enumValues_%s, j)
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *%s) UnmarshalJSON(b []byte) error {
+	var rawValue string
+	if err := json.Unmarshal(b, &rawValue); err != nil {
+		return err
+	}
+
+	value, err := Parse%s(rawValue)
+	if err != nil {
+		return err
+	}
+
+	*j = value
+	return nil
+}
+
+// FromValue decodes the scalar from an unknown value
+func (s *%s) FromValue(value any) error {
+	valueStr, err := utils.DecodeNullableString(value)
+	if err != nil {
+		return err
+	}
+	if valueStr == nil {
+		return nil
+	}
+	result, err := Parse%s(*valueStr)
+	if err != nil {
+		return err
+	}
+
+	*s = result
+	return nil
+}
+`, pascalName, scalar.Name, pascalName, scalar.Name, scalar.Name, pascalName, scalar.Name, scalar.Name, strings.Join(enumConstants, ", "),
+					scalar.Name, pascalName, scalar.Name, pascalName, scalar.Name, pascalName,
+				))
+			}
+		}
+	}
+
 	return nil
 }
 

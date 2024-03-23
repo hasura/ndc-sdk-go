@@ -12,6 +12,11 @@ import (
 
 type Text string
 
+// BigInt a big integer
+//
+// @scalar string
+type BigInt string
+
 // A foo scalar
 type ScalarFoo struct {
 	bar string
@@ -99,6 +104,8 @@ type GetTypesArguments struct {
 	Time         time.Time
 	Text         Text
 	CustomScalar CommentText
+	Enum         SomeEnum
+	BigInt       BigInt
 
 	UUIDPtr         *uuid.UUID
 	BoolPtr         *bool
@@ -118,6 +125,8 @@ type GetTypesArguments struct {
 	TimePtr         *time.Time
 	TextPtr         *Text
 	CustomScalarPtr *CommentText
+	EnumPtr         *SomeEnum
+	BigIntPtr       *BigInt
 
 	Object struct {
 		ID        uuid.UUID `json:"id"`

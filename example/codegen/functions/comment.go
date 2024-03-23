@@ -36,6 +36,10 @@ func (ct *CommentText) FromValue(value any) (err error) {
 	return
 }
 
+// SomeEnum
+// @enum foo, bar
+type SomeEnum string
+
 type GetArticlesArguments struct {
 	Limit float64
 }
