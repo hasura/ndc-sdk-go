@@ -38,13 +38,13 @@ var enumValues_TypeRepresentationType = []TypeRepresentationType{
 }
 
 // ParseTypeRepresentationType parses a TypeRepresentationType enum from string
-func ParseTypeRepresentationType(input string) (*TypeRepresentationType, error) {
+func ParseTypeRepresentationType(input string) (TypeRepresentationType, error) {
 	result := TypeRepresentationType(input)
 	if !Contains(enumValues_TypeRepresentationType, result) {
-		return nil, fmt.Errorf("failed to parse TypeRepresentationType, expect one of %v", enumValues_Type)
+		return TypeRepresentationType(""), fmt.Errorf("failed to parse TypeRepresentationType, expect one of %v", enumValues_Type)
 	}
 
-	return &result, nil
+	return result, nil
 }
 
 // IsValid checks if the value is invalid
@@ -64,7 +64,7 @@ func (j *TypeRepresentationType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -122,7 +122,7 @@ func (ty TypeRepresentation) Type() (TypeRepresentationType, error) {
 		if err != nil {
 			return TypeRepresentationType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case TypeRepresentationType:
 		return raw, nil
 	default:

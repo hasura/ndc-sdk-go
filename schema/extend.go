@@ -31,13 +31,14 @@ var enumValues_Type = []TypeEnum{
 }
 
 // ParseTypeEnum parses a type enum from string
-func ParseTypeEnum(input string) (*TypeEnum, error) {
-	if !Contains(enumValues_Type, TypeEnum(input)) {
-		return nil, fmt.Errorf("failed to parse TypeEnum, expect one of %v", enumValues_Type)
-	}
+func ParseTypeEnum(input string) (TypeEnum, error) {
 	result := TypeEnum(input)
 
-	return &result, nil
+	if !Contains(enumValues_Type, result) {
+		return TypeEnum(""), fmt.Errorf("failed to parse TypeEnum, expect one of %v", enumValues_Type)
+	}
+
+	return result, nil
 }
 
 // IsValid checks if the value is invalid
@@ -57,7 +58,7 @@ func (j *TypeEnum) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -148,7 +149,7 @@ func (ty Type) Type() (TypeEnum, error) {
 		if err != nil {
 			return TypeEnum(""), err
 		}
-		return *v, nil
+		return v, nil
 	case TypeEnum:
 		return raw, nil
 	default:
@@ -383,13 +384,23 @@ const (
 	ArgumentTypeVariable ArgumentType = "variable"
 )
 
+var enumValues_ArgumentType = []ArgumentType{
+	ArgumentTypeLiteral,
+	ArgumentTypeVariable,
+}
+
 // ParseArgumentType parses an argument type from string
-func ParseArgumentType(input string) (*ArgumentType, error) {
-	if input != string(ArgumentTypeLiteral) && input != string(ArgumentTypeVariable) {
-		return nil, fmt.Errorf("failed to parse ArgumentType, expect one of %v", []ArgumentType{ArgumentTypeLiteral, ArgumentTypeVariable})
-	}
+func ParseArgumentType(input string) (ArgumentType, error) {
 	result := ArgumentType(input)
-	return &result, nil
+	if !Contains(enumValues_ArgumentType, result) {
+		return ArgumentType(""), fmt.Errorf("failed to parse ArgumentType, expect one of %v", enumValues_ArgumentType)
+	}
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j ArgumentType) IsValid() bool {
+	return Contains(enumValues_ArgumentType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -404,7 +415,7 @@ func (j *ArgumentType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -433,7 +444,7 @@ func (j *Argument) UnmarshalJSON(b []byte) error {
 	}
 
 	arg := Argument{
-		Type: *argumentType,
+		Type: argumentType,
 	}
 
 	switch arg.Type {
@@ -464,13 +475,24 @@ const (
 	RelationshipArgumentTypeColumn   RelationshipArgumentType = "column"
 )
 
+var enumValues_RelationshipArgumentType = []RelationshipArgumentType{
+	RelationshipArgumentTypeLiteral,
+	RelationshipArgumentTypeVariable,
+	RelationshipArgumentTypeColumn,
+}
+
 // ParseRelationshipArgumentType parses a relationship argument type from string
-func ParseRelationshipArgumentType(input string) (*RelationshipArgumentType, error) {
-	if input != string(RelationshipArgumentTypeLiteral) && input != string(RelationshipArgumentTypeVariable) && input != string(RelationshipArgumentTypeColumn) {
-		return nil, fmt.Errorf("failed to parse ArgumentType, expect one of %v", []RelationshipArgumentType{RelationshipArgumentTypeLiteral, RelationshipArgumentTypeVariable, RelationshipArgumentTypeColumn})
-	}
+func ParseRelationshipArgumentType(input string) (RelationshipArgumentType, error) {
 	result := RelationshipArgumentType(input)
-	return &result, nil
+	if !Contains(enumValues_RelationshipArgumentType, result) {
+		return RelationshipArgumentType(""), fmt.Errorf("failed to parse RelationshipArgumentType, expect one of %v", enumValues_RelationshipArgumentType)
+	}
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j RelationshipArgumentType) IsValid() bool {
+	return Contains(enumValues_RelationshipArgumentType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -485,7 +507,7 @@ func (j *RelationshipArgumentType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -514,7 +536,7 @@ func (j *RelationshipArgument) UnmarshalJSON(b []byte) error {
 	}
 
 	arg := RelationshipArgument{
-		Type: *argumentType,
+		Type: argumentType,
 	}
 
 	switch arg.Type {
@@ -544,13 +566,23 @@ const (
 	FieldTypeRelationship FieldType = "relationship"
 )
 
+var enumValues_FieldType = []FieldType{
+	FieldTypeColumn,
+	FieldTypeRelationship,
+}
+
 // ParseFieldType parses a field type from string
-func ParseFieldType(input string) (*FieldType, error) {
-	if input != string(FieldTypeColumn) && input != string(FieldTypeRelationship) {
-		return nil, fmt.Errorf("failed to parse FieldType, expect one of %v", []FieldType{FieldTypeColumn, FieldTypeRelationship})
-	}
+func ParseFieldType(input string) (FieldType, error) {
 	result := FieldType(input)
-	return &result, nil
+	if !Contains(enumValues_FieldType, result) {
+		return FieldType(""), fmt.Errorf("failed to parse FieldType, expect one of %v", enumValues_FieldType)
+	}
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j FieldType) IsValid() bool {
+	return Contains(enumValues_FieldType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -565,7 +597,7 @@ func (j *FieldType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -662,7 +694,7 @@ func (j Field) Type() (FieldType, error) {
 		if err != nil {
 			return FieldType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case FieldType:
 		return raw, nil
 	default:
@@ -827,7 +859,7 @@ func NewRelationshipField(query Query, relationship string, arguments map[string
 	}
 }
 
-// ComparisonTarget represents comparison target enums
+// ComparisonTargetType represents comparison target enums
 type ComparisonTargetType string
 
 const (
@@ -835,14 +867,24 @@ const (
 	ComparisonTargetTypeRootCollectionColumn ComparisonTargetType = "root_collection_column"
 )
 
-// ParseComparisonTargetType parses a comparison target type argument type from string
-func ParseComparisonTargetType(input string) (*ComparisonTargetType, error) {
-	if input != string(ComparisonTargetTypeColumn) && input != string(ComparisonTargetTypeRootCollectionColumn) {
-		return nil, fmt.Errorf("failed to parse ComparisonTargetType, expect one of %v", []ComparisonTargetType{ComparisonTargetTypeColumn, ComparisonTargetTypeRootCollectionColumn})
-	}
-	result := ComparisonTargetType(input)
+var enumValues_ComparisonTargetType = []ComparisonTargetType{
+	ComparisonTargetTypeColumn,
+	ComparisonTargetTypeRootCollectionColumn,
+}
 
-	return &result, nil
+// ParseComparisonTargetType parses a comparison target type argument type from string
+func ParseComparisonTargetType(input string) (ComparisonTargetType, error) {
+	result := ComparisonTargetType(input)
+	if !Contains(enumValues_ComparisonTargetType, result) {
+		return ComparisonTargetType(""), fmt.Errorf("failed to parse ComparisonTargetType, expect one of %v", enumValues_ComparisonTargetType)
+	}
+
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j ComparisonTargetType) IsValid() bool {
+	return Contains(enumValues_ComparisonTargetType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -857,7 +899,7 @@ func (j *ComparisonTargetType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -890,13 +932,18 @@ var enumValues_ExpressionType = []ExpressionType{
 }
 
 // ParseExpressionType parses a comparison target type argument type from string
-func ParseExpressionType(input string) (*ExpressionType, error) {
-	if !Contains(enumValues_ExpressionType, ExpressionType(input)) {
-		return nil, fmt.Errorf("failed to parse ExpressionType, expect one of %v", enumValues_ExpressionType)
-	}
+func ParseExpressionType(input string) (ExpressionType, error) {
 	result := ExpressionType(input)
+	if !Contains(enumValues_ExpressionType, ExpressionType(input)) {
+		return ExpressionType(""), fmt.Errorf("failed to parse ExpressionType, expect one of %v", enumValues_ExpressionType)
+	}
 
-	return &result, nil
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j ExpressionType) IsValid() bool {
+	return Contains(enumValues_ExpressionType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -911,7 +958,7 @@ func (j *ExpressionType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -931,13 +978,18 @@ var enumValues_ComparisonValueType = []ComparisonValueType{
 }
 
 // ParseComparisonValueType parses a comparison value type from string
-func ParseComparisonValueType(input string) (*ComparisonValueType, error) {
-	if !Contains(enumValues_ComparisonValueType, ComparisonValueType(input)) {
-		return nil, fmt.Errorf("failed to parse ComparisonValueType, expect one of %v", enumValues_ComparisonValueType)
-	}
+func ParseComparisonValueType(input string) (ComparisonValueType, error) {
 	result := ComparisonValueType(input)
+	if !Contains(enumValues_ComparisonValueType, ComparisonValueType(input)) {
+		return ComparisonValueType(""), fmt.Errorf("failed to parse ComparisonValueType, expect one of %v", enumValues_ComparisonValueType)
+	}
 
-	return &result, nil
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j ComparisonValueType) IsValid() bool {
+	return Contains(enumValues_ComparisonValueType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -952,7 +1004,7 @@ func (j *ComparisonValueType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -1027,7 +1079,7 @@ func (cv ComparisonValue) Type() (ComparisonValueType, error) {
 		if err != nil {
 			return ComparisonValueType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case ComparisonValueType:
 		return raw, nil
 	default:
@@ -1187,13 +1239,18 @@ var enumValues_ExistsInCollectionType = []ExistsInCollectionType{
 }
 
 // ParseExistsInCollectionType parses a comparison value type from string
-func ParseExistsInCollectionType(input string) (*ExistsInCollectionType, error) {
-	if !Contains(enumValues_ExistsInCollectionType, ExistsInCollectionType(input)) {
-		return nil, fmt.Errorf("failed to parse ExistsInCollectionType, expect one of %v", enumValues_ExistsInCollectionType)
-	}
+func ParseExistsInCollectionType(input string) (ExistsInCollectionType, error) {
 	result := ExistsInCollectionType(input)
+	if !Contains(enumValues_ExistsInCollectionType, result) {
+		return result, fmt.Errorf("failed to parse ExistsInCollectionType, expect one of %v", enumValues_ExistsInCollectionType)
+	}
 
-	return &result, nil
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j ExistsInCollectionType) IsValid() bool {
+	return Contains(enumValues_ExistsInCollectionType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -1208,7 +1265,7 @@ func (j *ExistsInCollectionType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -1293,7 +1350,7 @@ func (j ExistsInCollection) Type() (ExistsInCollectionType, error) {
 		if err != nil {
 			return ExistsInCollectionType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case ExistsInCollectionType:
 		return raw, nil
 	default:
@@ -1562,7 +1619,7 @@ func (j Expression) Type() (ExpressionType, error) {
 		if err != nil {
 			return ExpressionType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case ExpressionType:
 		return raw, nil
 	default:
@@ -1915,13 +1972,18 @@ var enumValues_AggregateType = []AggregateType{
 }
 
 // ParseAggregateType parses an aggregate type argument type from string
-func ParseAggregateType(input string) (*AggregateType, error) {
-	if !Contains(enumValues_AggregateType, AggregateType(input)) {
-		return nil, fmt.Errorf("failed to parse AggregateType, expect one of %v", enumValues_AggregateType)
-	}
+func ParseAggregateType(input string) (AggregateType, error) {
 	result := AggregateType(input)
+	if !Contains(enumValues_AggregateType, result) {
+		return AggregateType(""), fmt.Errorf("failed to parse AggregateType, expect one of %v", enumValues_AggregateType)
+	}
 
-	return &result, nil
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j AggregateType) IsValid() bool {
+	return Contains(enumValues_AggregateType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -1936,7 +1998,7 @@ func (j *AggregateType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -2025,7 +2087,7 @@ func (j Aggregate) Type() (AggregateType, error) {
 		if err != nil {
 			return AggregateType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case AggregateType:
 		return raw, nil
 	default:
@@ -2224,13 +2286,18 @@ var enumValues_OrderByTargetType = []OrderByTargetType{
 }
 
 // ParseOrderByTargetType parses a ordering target type argument type from string
-func ParseOrderByTargetType(input string) (*OrderByTargetType, error) {
-	if !Contains(enumValues_OrderByTargetType, OrderByTargetType(input)) {
-		return nil, fmt.Errorf("failed to parse OrderByTargetType, expect one of %v", enumValues_OrderByTargetType)
-	}
+func ParseOrderByTargetType(input string) (OrderByTargetType, error) {
 	result := OrderByTargetType(input)
+	if !Contains(enumValues_OrderByTargetType, result) {
+		return OrderByTargetType(""), fmt.Errorf("failed to parse OrderByTargetType, expect one of %v", enumValues_OrderByTargetType)
+	}
 
-	return &result, nil
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j OrderByTargetType) IsValid() bool {
+	return Contains(enumValues_OrderByTargetType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -2245,7 +2312,7 @@ func (j *OrderByTargetType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -2352,7 +2419,7 @@ func (j OrderByTarget) Type() (OrderByTargetType, error) {
 		if err != nil {
 			return OrderByTargetType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case OrderByTargetType:
 		return raw, nil
 	default:
@@ -2554,13 +2621,18 @@ var enumValues_ComparisonOperatorDefinitionType = []ComparisonOperatorDefinition
 }
 
 // ParseComparisonOperatorDefinitionType parses a type of a comparison operator definition
-func ParseComparisonOperatorDefinitionType(input string) (*ComparisonOperatorDefinitionType, error) {
-	if !Contains(enumValues_ComparisonOperatorDefinitionType, ComparisonOperatorDefinitionType(input)) {
-		return nil, fmt.Errorf("failed to parse ComparisonOperatorDefinitionType, expect one of %v", enumValues_ComparisonOperatorDefinitionType)
-	}
+func ParseComparisonOperatorDefinitionType(input string) (ComparisonOperatorDefinitionType, error) {
 	result := ComparisonOperatorDefinitionType(input)
+	if !Contains(enumValues_ComparisonOperatorDefinitionType, result) {
+		return ComparisonOperatorDefinitionType(""), fmt.Errorf("failed to parse ComparisonOperatorDefinitionType, expect one of %v", enumValues_ComparisonOperatorDefinitionType)
+	}
 
-	return &result, nil
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j ComparisonOperatorDefinitionType) IsValid() bool {
+	return Contains(enumValues_ComparisonOperatorDefinitionType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -2575,7 +2647,7 @@ func (j *ComparisonOperatorDefinitionType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -2632,7 +2704,7 @@ func (j ComparisonOperatorDefinition) Type() (ComparisonOperatorDefinitionType, 
 		if err != nil {
 			return ComparisonOperatorDefinitionType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case ComparisonOperatorDefinitionType:
 		return raw, nil
 	default:
@@ -2801,13 +2873,18 @@ var enumValues_NestedFieldType = []NestedFieldType{
 }
 
 // ParseNestedFieldType parses the type of nested field
-func ParseNestedFieldType(input string) (*NestedFieldType, error) {
-	if !Contains(enumValues_NestedFieldType, NestedFieldType(input)) {
-		return nil, fmt.Errorf("failed to parse NestedFieldType, expect one of %v", enumValues_NestedFieldType)
-	}
+func ParseNestedFieldType(input string) (NestedFieldType, error) {
 	result := NestedFieldType(input)
+	if !Contains(enumValues_NestedFieldType, result) {
+		return NestedFieldType(""), fmt.Errorf("failed to parse NestedFieldType, expect one of %v", enumValues_NestedFieldType)
+	}
 
-	return &result, nil
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j NestedFieldType) IsValid() bool {
+	return Contains(enumValues_NestedFieldType, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -2822,7 +2899,7 @@ func (j *NestedFieldType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*j = *value
+	*j = value
 	return nil
 }
 
@@ -2895,7 +2972,7 @@ func (j NestedField) Type() (NestedFieldType, error) {
 		if err != nil {
 			return NestedFieldType(""), err
 		}
-		return *v, nil
+		return v, nil
 	case NestedFieldType:
 		return raw, nil
 	default:
