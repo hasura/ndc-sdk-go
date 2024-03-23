@@ -6,7 +6,7 @@ All functions of the Connector interface are analogous to their Rust counterpart
 
 ## Features
 
-The SDK fully supports [NDC Specification v0.1.0](https://github.com/hasura/ndc-spec/tree/v0.1.0) and [Connector Deployment spec](https://github.com/hasura/ndc-hub/blob/main/rfcs/0000-deployment.md) with following features:
+The SDK fully supports [NDC Specification v0.1.1](https://hasura.github.io/ndc-spec/specification/changelog.html#011) and [Connector Deployment spec](https://github.com/hasura/ndc-hub/blob/main/rfcs/0000-deployment.md) with following features:
 
 - Connector HTTP server
 - Authentication
@@ -49,24 +49,14 @@ Commands:
     Serve the NDC connector.
 
     Flags:
-      --service-name=STRING                OpenTelemetry service name ($OTEL_SERVICE_NAME).
-      --otlp-endpoint=STRING               OpenTelemetry receiver endpoint that is set as default for all types ($OTEL_EXPORTER_OTLP_ENDPOINT).
-      --otlp-traces-endpoint=STRING        OpenTelemetry endpoint for traces ($OTEL_EXPORTER_OTLP_TRACES_ENDPOINT).
-      --otlp-metrics-endpoint=STRING       OpenTelemetry endpoint for metrics ($OTEL_EXPORTER_OTLP_METRICS_ENDPOINT).
-      --otlp-insecure                      Disable LTS for OpenTelemetry exporters ($OTEL_EXPORTER_OTLP_INSECURE).
-      --otlp-traces-insecure               Disable LTS for OpenTelemetry traces exporter ($OTEL_EXPORTER_OTLP_TRACES_INSECURE).
-      --otlp-metrics-insecure              Disable LTS for OpenTelemetry metrics exporter ($OTEL_EXPORTER_OTLP_METRICS_INSECURE).
-      --otlp-protocol=STRING               OpenTelemetry receiver protocol for all types ($OTEL_EXPORTER_OTLP_PROTOCOL).
-      --otlp-traces-protocol=STRING        OpenTelemetry receiver protocol for traces ($OTEL_EXPORTER_OTLP_TRACES_PROTOCOL).
-      --otlp-metrics-protocol=STRING       OpenTelemetry receiver protocol for metrics ($OTEL_EXPORTER_OTLP_METRICS_PROTOCOL).
-      --otlp-compression="gzip"            Enable compression for OTLP exporters. Accept: none, gzip ($OTEL_EXPORTER_OTLP_COMPRESSION)
-      --otlp-trace-compression="gzip"      Enable compression for OTLP traces exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_TRACES_COMPRESSION)
-      --otlp-metrics-compression="gzip"    Enable compression for OTLP metrics exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_METRICS_COMPRESSION).
-      --metrics-exporter="none"            Metrics export type. Accept: none, otlp, prometheus ($OTEL_METRICS_EXPORTER).
-      --prometheus-port=PROMETHEUS-PORT    Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty ($OTEL_EXPORTER_PROMETHEUS_PORT)
       --configuration=STRING               Configuration directory ($HASURA_CONFIGURATION_DIRECTORY).
       --port=8080                          Serve Port ($HASURA_CONNECTOR_PORT).
       --service-token-secret=STRING        Service token secret ($HASURA_SERVICE_TOKEN_SECRET).
+      --service-name=STRING                OpenTelemetry service name ($OTEL_SERVICE_NAME).
+      --otlp-endpoint=STRING               OpenTelemetry receiver endpoint that is set as default for all types ($OTEL_EXPORTER_OTLP_ENDPOINT).
+      --metrics-exporter="none"            Metrics export type. Accept: none, otlp, prometheus ($OTEL_METRICS_EXPORTER).
+      --prometheus-port=PROMETHEUS-PORT    Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty ($OTEL_EXPORTER_PROMETHEUS_PORT)
+      ...
 ```
 
 Please refer to the [NDC Spec](https://hasura.github.io/ndc-spec/) for details on implementing the Connector interface, or see [examples](./example).
@@ -130,7 +120,7 @@ See the [custom CLI example](./example/reference/main.go) in the reference conne
 The NDC spec types are borrowed from ndc-sdk-typescript that are generated from the NDC Spec Rust types.
 Then the Go types are generated from that JSON Schema document into `./schema/schema.generated.go`.
 
-In order to regenerate the types, run
+In order to regenerate the types, download the json schema and run:
 
 ```
 > cd typegen && ./regenerate-schema.sh
