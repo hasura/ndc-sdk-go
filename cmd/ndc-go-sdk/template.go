@@ -34,19 +34,20 @@ func init() {
 	}
 }
 
-func generateNewProject(name string, moduleName string, srcPath string, silent bool) error {
+func generateNewProject(args *NewArguments, silent bool) error {
+	srcPath := args.Output
 	if srcPath == "" {
 		p, err := os.Getwd()
 		if err != nil {
 			return err
 		}
-		srcPath = path.Join(p, name)
+		srcPath = path.Join(p, args.Name)
 	}
 	if err := os.MkdirAll(srcPath, 0755); err != nil {
 		return err
 	}
 
-	if err := generateNewProjectFiles(name, moduleName, srcPath); err != nil {
+	if err := generateNewProjectFiles(args, srcPath); err != nil {
 		return err
 	}
 
@@ -62,18 +63,11 @@ func generateNewProject(name string, moduleName string, srcPath string, silent b
 		return err
 	}
 
-	if err := execGoGetUpdate(".", "github.com/hasura/ndc-sdk-go"); err != nil {
-		if silent {
-			return nil
-		}
-		return err
-	}
-
 	log.Info().Msg("generating connector functions...")
 	if err := parseAndGenerateConnector(&GenerateArguments{
-		Path:        srcPath,
+		Path:        ".",
 		Directories: []string{"functions", "types"},
-	}, moduleName); err != nil {
+	}, args.Module); err != nil {
 		return err
 	}
 
@@ -92,7 +86,7 @@ func generateNewProject(name string, moduleName string, srcPath string, silent b
 	return err
 }
 
-func generateNewProjectFiles(name string, moduleName string, srcPath string) error {
+func generateNewProjectFiles(args *NewArguments, srcPath string) error {
 
 	return fs.WalkDir(initTemplateFS, templateNewPath, func(filePath string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -125,8 +119,9 @@ func generateNewProjectFiles(name string, moduleName string, srcPath string) err
 
 		w := bufio.NewWriter(f)
 		err = fileTemplate.Execute(w, map[string]any{
-			"Name":   name,
-			"Module": moduleName,
+			"Name":    args.Name,
+			"Module":  args.Module,
+			"Version": args.Version,
 		})
 		if err != nil {
 			return err
@@ -141,10 +136,6 @@ func execGoModTidy(basePath string) error {
 
 func execGoFormat(basePath string) error {
 	return execCommand(basePath, "gofmt", "-w", "-s", ".")
-}
-
-func execGoGetUpdate(basePath string, moduleName string) error {
-	return execCommand(basePath, "go", "get", "-u", moduleName)
 }
 
 func execCommand(basePath string, commandName string, args ...string) error {
