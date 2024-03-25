@@ -3,5 +3,5 @@ module github.com/hasura/ndc-sdk-go-reference
 go 1.21
 
 require (
-	github.com/hasura/ndc-sdk-go v0.1.1-0.20240323110937-c6c9605da28a
+	github.com/hasura/ndc-sdk-go v1.0.0
 )
