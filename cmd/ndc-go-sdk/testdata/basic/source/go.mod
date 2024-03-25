@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1
 	github.com/google/uuid v1.6.0
-	github.com/hasura/ndc-sdk-go v0.3.0
+	github.com/hasura/ndc-sdk-go v0.4.0
 	go.opentelemetry.io/otel v1.17.0
 	go.opentelemetry.io/otel/trace v1.17.0
 )
