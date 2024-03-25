@@ -24,9 +24,6 @@ func formatTextContent(input string) string {
 
 func TestConnectorGeneration(t *testing.T) {
 
-	dir, err := os.Getwd()
-	assert.NoError(t, err)
-
 	testCases := []struct {
 		Name       string
 		BasePath   string
@@ -41,11 +38,11 @@ func TestConnectorGeneration(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			expectedSchemaBytes, err := os.ReadFile(path.Join(dir, tc.BasePath, "expected/schema.json"))
+			expectedSchemaBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/schema.json"))
 			assert.NoError(t, err)
-			connectorContentBytes, err := os.ReadFile(path.Join(dir, tc.BasePath, "expected/connector.go.tmpl"))
+			connectorContentBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/connector.go.tmpl"))
 			assert.NoError(t, err)
-			expectedFunctionTypesBytes, err := os.ReadFile(path.Join(dir, tc.BasePath, "expected/functions.go.tmpl"))
+			expectedFunctionTypesBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/functions.go.tmpl"))
 			assert.NoError(t, err)
 
 			srcDir := path.Join(tc.BasePath, "source")
