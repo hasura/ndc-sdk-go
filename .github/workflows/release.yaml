@@ -54,7 +54,7 @@ jobs:
 
           mkdir -p "/tmp/release/connector-definition"
           chmod +x ${ROOT}/release/artifacts/hasura-ndc-go-linux-amd64
-          ${ROOT}/release/artifacts/hasura-ndc-go-linux-amd64 new -n ndc_go -m ndc.dev/ndc-go -o /tmp/release/connector-definition
+          ${ROOT}/release/artifacts/hasura-ndc-go-linux-amd64 new -n ndc_go -m hasura-ndc.dev/ndc-go -o /tmp/release/connector-definition
           tar -czvf "${ROOT}/release/artifacts/connector-definition.tgz" --directory "/tmp/release/connector-definition/" .
 
       - uses: actions/upload-artifact@v4
