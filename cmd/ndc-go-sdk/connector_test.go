@@ -31,7 +31,7 @@ func TestConnectorGeneration(t *testing.T) {
 	}{
 		{
 			Name:       "basic",
-			BasePath:   "./testdata/basic",
+			BasePath:   "testdata/basic",
 			ModuleName: "github.com/hasura/ndc-codegen-test",
 		},
 	}
