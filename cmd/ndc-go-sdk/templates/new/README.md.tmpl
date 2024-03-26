@@ -16,7 +16,22 @@ Start the connector server at http://localhost:8080
 go run . serve
 ```
 
-### Code generation
+## Code generation
+
+### Convenience script (Linux & MacOS only)
+
+You can run the convenience script with `make` or with the bash file directly. 
+The script automatically download the tool and run the `generate` command.
+
+```bash
+make generate
+```
+
+```bash
+sh ./scripts/generate.sh
+```
+
+### Manually download
 
 Download the `hasura-ndc-go` tool at the [release page](https://github.com/hasura/ndc-sdk-go/releases/tag/{{.Version}}) page.
 Navigate to the root project folder and run `generate` whenever there are new changes from NDC functions and types.
