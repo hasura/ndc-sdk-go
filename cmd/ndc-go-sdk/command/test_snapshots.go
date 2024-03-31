@@ -73,7 +73,7 @@ func (cmd *genTestSnapshotsCommand) fetchSchema() error {
 	}
 
 	if cmd.args.Endpoint != "" {
-		resp, err := http.Get(cmd.args.Schema)
+		resp, err := http.Get(fmt.Sprintf("%s/schema", cmd.args.Endpoint))
 		if err != nil {
 			return fmt.Errorf("failed to fetch schema from %s: %s", cmd.args.Endpoint, err)
 		}
