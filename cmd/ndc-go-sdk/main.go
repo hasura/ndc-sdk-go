@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/kong"
+	"github.com/hasura/ndc-sdk-go/cmd/ndc-go-sdk/command"
 	"github.com/hasura/ndc-sdk-go/cmd/ndc-go-sdk/version"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -28,6 +29,9 @@ var cli struct {
 	LogLevel string            `help:"Log level." enum:"debug,info,warn,error" default:"info"`
 	New      NewArguments      `cmd:"" help:"Initialize an NDC connector boilerplate. For example:\n ndc-go-sdk new -n example -m github.com/foo/example"`
 	Generate GenerateArguments `cmd:"" help:"Generate schema and implementation for the connector from functions."`
+	Test     struct {
+		Snapshots command.GenTestSnapshotArguments `cmd:"" help:"Generate test snapshots."`
+	} `cmd:"" help:"Test helpers."`
 
 	Version struct{} `cmd:"" help:"Print the CLI version."`
 }
@@ -78,6 +82,16 @@ func main() {
 		}
 		log.Info().Str("exec_time", time.Since(start).Round(time.Millisecond).String()).
 			Msg("generated successfully")
+	case "test snapshots":
+		log.Info().
+			Str("endpoint", cli.Test.Snapshots.Endpoint).
+			Str("path", cli.Test.Snapshots.Schema).
+			Interface("dir", cli.Test.Snapshots.Dir).
+			Msg("generating test snapshots...")
+
+		if err := command.GenTestSnapshots(&cli.Test.Snapshots); err != nil {
+			log.Fatal().Err(err).Msg("failed to generate test snapshots")
+		}
 	case "version":
 		_, _ = fmt.Print(version.BuildVersion)
 	default:

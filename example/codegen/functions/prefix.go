@@ -2,6 +2,7 @@ package functions
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -15,6 +16,10 @@ type Text string
 // A foo scalar
 type ScalarFoo struct {
 	bar string
+}
+
+func (c ScalarFoo) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.bar)
 }
 
 // FromValue decodes the scalar from an unknown value
@@ -34,7 +39,7 @@ type HelloResult struct {
 // FunctionHello sends a hello message
 func FunctionHello(ctx context.Context, state *types.State) (*HelloResult, error) {
 	return &HelloResult{
-		ID:   uuid.New(),
+		ID:   uuid.MustParse("c67407a0-a825-49e3-9d4a-8265df1490a7"),
 		Num:  1,
 		Text: "world",
 	}, nil

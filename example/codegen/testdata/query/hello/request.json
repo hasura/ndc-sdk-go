@@ -1,0 +1,34 @@
+{
+  "arguments": {},
+  "collection": "hello",
+  "collection_relationships": {},
+  "query": {
+    "fields": {
+      "__value": {
+        "column": "__value",
+        "fields": {
+          "fields": {
+            "foo": {
+              "column": "foo",
+              "type": "column"
+            },
+            "id": {
+              "column": "id",
+              "type": "column"
+            },
+            "num": {
+              "column": "num",
+              "type": "column"
+            },
+            "text": {
+              "column": "text",
+              "type": "column"
+            }
+          },
+          "type": "object"
+        },
+        "type": "column"
+      }
+    }
+  }
+}

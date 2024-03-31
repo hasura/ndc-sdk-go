@@ -42,7 +42,7 @@ var enumValues_TypeRepresentationType = []TypeRepresentationType{
 func ParseTypeRepresentationType(input string) (TypeRepresentationType, error) {
 	result := TypeRepresentationType(input)
 	if !slices.Contains(enumValues_TypeRepresentationType, result) {
-		return TypeRepresentationType(""), fmt.Errorf("failed to parse TypeRepresentationType, expect one of %v", enumValues_Type)
+		return TypeRepresentationType(""), fmt.Errorf("failed to parse TypeRepresentationType, expect one of %v, got: %s", enumValues_TypeRepresentationType, input)
 	}
 
 	return result, nil

@@ -1,0 +1,34 @@
+{
+  "collection_relationships": {},
+  "operations": [
+    {
+      "type": "procedure",
+      "name": "createAuthors",
+      "arguments": {
+        "names": [
+          "JwqvHKZBCJ"
+        ]
+      },
+      "fields": {
+        "fields": {
+          "fields": {
+            "created_at": {
+              "column": "created_at",
+              "type": "column"
+            },
+            "id": {
+              "column": "id",
+              "type": "column"
+            },
+            "name": {
+              "column": "name",
+              "type": "column"
+            }
+          },
+          "type": "object"
+        },
+        "type": "array"
+      }
+    }
+  ]
+}

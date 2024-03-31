@@ -261,6 +261,15 @@ func TestQueryGetTypes(t *testing.T) {
 							}
 						]
 					},
+					"NamedArrayPtr": {
+						"type": "literal",
+						"value": [
+							{
+								"created_at": "2024-03-05T02:00:00Z",
+								"id": "bPgG5cs38N"
+							}
+						]
+					},
 					"UUIDArray": {
 						"type": "literal",
 						"value": [
@@ -272,205 +281,309 @@ func TestQueryGetTypes(t *testing.T) {
 				"query": {
 					"fields": {
 						"__value": {
-							"type": "column",
 							"column": "__value",
 							"fields": {
-								"type": "object",
 								"fields": {
-									"UUID": {
-										"type": "column",
-										"column": "UUID"
-									},
-									"Bool": {
-										"type": "column",
-										"column": "Bool"
-									},
-									"String": {
-										"type": "column",
-										"column": "String"
-									},
-									"Int": {
-										"type": "column",
-										"column": "Int"
-									},
-									"Int8": {
-										"type": "column",
-										"column": "Int8"
-									},
-									"Int16": {
-										"type": "column",
-										"column": "Int16"
-									},
-									"Int32": {
-										"type": "column",
-										"column": "Int32"
-									},
-									"Int64": {
-										"type": "column",
-										"column": "Int64"
-									},
-									"Uint": {
-										"type": "column",
-										"column": "Uint"
-									},
-									"Uint8": {
-										"type": "column",
-										"column": "Uint8"
-									},
-									"Uint16": {
-										"type": "column",
-										"column": "Uint16"
-									},
-									"Uint32": {
-										"type": "column",
-										"column": "Uint32"
-									},
-									"Uint64": {
-										"type": "column",
-										"column": "Uint64"
-									},
-									"Float32": {
-										"type": "column",
-										"column": "Float32"
-									},
-									"Float64": {
-										"type": "column",
-										"column": "Float64"
-									},
-									"Time": {
-										"type": "column",
-										"column": "Time"
-									},
-									"Duration": {
-										"type": "column",
-										"column": "Duration"
-									},
-									"Text": {
-										"type": "column",
-										"column": "Text"
-									},
-									"CustomScalar": {
-										"type": "column",
-										"column": "CustomScalar"
-									},
-									"Enum": {
-										"type": "column",
-										"column": "Enum"
-									},
-									"UUIDPtr": {
-										"type": "column",
-										"column": "UUIDPtr"
-									},
-									"BoolPtr": {
-										"type": "column",
-										"column": "BoolPtr"
-									},
-									"StringPtr": {
-										"type": "column",
-										"column": "StringPtr"
-									},
-									"IntPtr": {
-										"type": "column",
-										"column": "IntPtr"
-									},
-									"Int8Ptr": {
-										"type": "column",
-										"column": "Int8Ptr"
-									},
-									"Int16Ptr": {
-										"type": "column",
-										"column": "Int16Ptr"
-									},
-									"Int32Ptr": {
-										"type": "column",
-										"column": "Int32Ptr"
-									},
-									"Int64Ptr": {
-										"type": "column",
-										"column": "Int64Ptr"
-									},
-									"UintPtr": {
-										"type": "column",
-										"column": "UintPtr"
-									},
-									"Uint8Ptr": {
-										"type": "column",
-										"column": "Uint8Ptr"
-									},
-									"Uint16Ptr": {
-										"type": "column",
-										"column": "Uint16Ptr"
-									},
-									"Uint32Ptr": {
-										"type": "column",
-										"column": "Uint32Ptr"
-									},
-									"Uint64Ptr": {
-										"type": "column",
-										"column": "Uint64Ptr"
-									},
-									"Float32Ptr": {
-										"type": "column",
-										"column": "Float32Ptr"
-									},
-									"Float64Ptr": {
-										"type": "column",
-										"column": "Float64Ptr"
-									},
-									"TimePtr": {
-										"type": "column",
-										"column": "TimePtr"
-									},
-									"DurationPtr": {
-										"type": "column",
-										"column": "DurationPtr"
-									},
-									"TextPtr": {
-										"type": "column",
-										"column": "TextPtr"
-									},
-									"CustomScalarPtr": {
-										"type": "column",
-										"column": "CustomScalarPtr"
-									},
-									"EnumPtr": {
-										"type": "column",
-										"column": "EnumPtr"
-									},
-									"Object": {
-										"type": "column",
-										"column": "Object"
-									},
-									"ObjectPtr": {
-										"type": "column",
-										"column": "ObjectPtr"
-									},
 									"ArrayObject": {
-										"type": "column",
-										"column": "ArrayObject"
+										"column": "ArrayObject",
+										"fields": {
+											"fields": {
+												"fields": {
+													"content": {
+														"column": "content",
+														"type": "column"
+													}
+												},
+												"type": "object"
+											},
+											"type": "array"
+										},
+										"type": "column"
 									},
 									"ArrayObjectPtr": {
-										"type": "column",
-										"column": "ArrayObjectPtr"
+										"column": "ArrayObjectPtr",
+										"fields": {
+											"fields": {
+												"fields": {
+													"content": {
+														"column": "content",
+														"type": "column"
+													}
+												},
+												"type": "object"
+											},
+											"type": "array"
+										},
+										"type": "column"
 									},
-									"NamedObject": {
-										"type": "column",
-										"column": "NamedObject"
+									"Bool": {
+										"column": "Bool",
+										"type": "column"
 									},
-									"NamedObjectPtr": {
-										"type": "column",
-										"column": "NamedObjectPtr"
+									"BoolPtr": {
+										"column": "BoolPtr",
+										"type": "column"
+									},
+									"CustomScalar": {
+										"column": "CustomScalar",
+										"type": "column"
+									},
+									"CustomScalarPtr": {
+										"column": "CustomScalarPtr",
+										"type": "column"
+									},
+									"Enum": {
+										"column": "Enum",
+										"type": "column"
+									},
+									"EnumPtr": {
+										"column": "EnumPtr",
+										"type": "column"
+									},
+									"Float32": {
+										"column": "Float32",
+										"type": "column"
+									},
+									"Float32Ptr": {
+										"column": "Float32Ptr",
+										"type": "column"
+									},
+									"Float64": {
+										"column": "Float64",
+										"type": "column"
+									},
+									"Float64Ptr": {
+										"column": "Float64Ptr",
+										"type": "column"
+									},
+									"Int": {
+										"column": "Int",
+										"type": "column"
+									},
+									"Int16": {
+										"column": "Int16",
+										"type": "column"
+									},
+									"Int16Ptr": {
+										"column": "Int16Ptr",
+										"type": "column"
+									},
+									"Int32": {
+										"column": "Int32",
+										"type": "column"
+									},
+									"Int32Ptr": {
+										"column": "Int32Ptr",
+										"type": "column"
+									},
+									"Int64": {
+										"column": "Int64",
+										"type": "column"
+									},
+									"Int64Ptr": {
+										"column": "Int64Ptr",
+										"type": "column"
+									},
+									"Int8": {
+										"column": "Int8",
+										"type": "column"
+									},
+									"Int8Ptr": {
+										"column": "Int8Ptr",
+										"type": "column"
+									},
+									"IntPtr": {
+										"column": "IntPtr",
+										"type": "column"
 									},
 									"NamedArray": {
-										"type": "column",
-										"column": "NamedArray"
+										"column": "NamedArray",
+										"fields": {
+											"fields": {
+												"fields": {
+													"created_at": {
+														"column": "created_at",
+														"type": "column"
+													},
+													"id": {
+														"column": "id",
+														"type": "column"
+													}
+												},
+												"type": "object"
+											},
+											"type": "array"
+										},
+										"type": "column"
+									},
+									"NamedArrayPtr": {
+										"column": "NamedArrayPtr",
+										"fields": {
+											"fields": {
+												"fields": {
+													"created_at": {
+														"column": "created_at",
+														"type": "column"
+													},
+													"id": {
+														"column": "id",
+														"type": "column"
+													}
+												},
+												"type": "object"
+											},
+											"type": "array"
+										},
+										"type": "column"
+									},
+									"NamedObject": {
+										"column": "NamedObject",
+										"fields": {
+											"fields": {
+												"created_at": {
+													"column": "created_at",
+													"type": "column"
+												},
+												"id": {
+													"column": "id",
+													"type": "column"
+												}
+											},
+											"type": "object"
+										},
+										"type": "column"
+									},
+									"NamedObjectPtr": {
+										"column": "NamedObjectPtr",
+										"fields": {
+											"fields": {
+												"created_at": {
+													"column": "created_at",
+													"type": "column"
+												},
+												"id": {
+													"column": "id",
+													"type": "column"
+												}
+											},
+											"type": "object"
+										},
+										"type": "column"
+									},
+									"Object": {
+										"column": "Object",
+										"fields": {
+											"fields": {
+												"created_at": {
+													"column": "created_at",
+													"type": "column"
+												},
+												"id": {
+													"column": "id",
+													"type": "column"
+												}
+											},
+											"type": "object"
+										},
+										"type": "column"
+									},
+									"ObjectPtr": {
+										"column": "ObjectPtr",
+										"fields": {
+											"fields": {
+												"Lat": {
+													"column": "Lat",
+													"type": "column"
+												},
+												"Long": {
+													"column": "Long",
+													"type": "column"
+												}
+											},
+											"type": "object"
+										},
+										"type": "column"
+									},
+									"String": {
+										"column": "String",
+										"type": "column"
+									},
+									"StringPtr": {
+										"column": "StringPtr",
+										"type": "column"
+									},
+									"Text": {
+										"column": "Text",
+										"type": "column"
+									},
+									"TextPtr": {
+										"column": "TextPtr",
+										"type": "column"
+									},
+									"Time": {
+										"column": "Time",
+										"type": "column"
+									},
+									"TimePtr": {
+										"column": "TimePtr",
+										"type": "column"
+									},
+									"UUID": {
+										"column": "UUID",
+										"type": "column"
 									},
 									"UUIDArray": {
-										"type": "column",
-										"column": "UUIDArray"
+										"column": "UUIDArray",
+										"type": "column"
+									},
+									"UUIDPtr": {
+										"column": "UUIDPtr",
+										"type": "column"
+									},
+									"Uint": {
+										"column": "Uint",
+										"type": "column"
+									},
+									"Uint16": {
+										"column": "Uint16",
+										"type": "column"
+									},
+									"Uint16Ptr": {
+										"column": "Uint16Ptr",
+										"type": "column"
+									},
+									"Uint32": {
+										"column": "Uint32",
+										"type": "column"
+									},
+									"Uint32Ptr": {
+										"column": "Uint32Ptr",
+										"type": "column"
+									},
+									"Uint64": {
+										"column": "Uint64",
+										"type": "column"
+									},
+									"Uint64Ptr": {
+										"column": "Uint64Ptr",
+										"type": "column"
+									},
+									"Uint8": {
+										"column": "Uint8",
+										"type": "column"
+									},
+									"Uint8Ptr": {
+										"column": "Uint8Ptr",
+										"type": "column"
+									},
+									"UintPtr": {
+										"column": "UintPtr",
+										"type": "column"
 									}
-								}
-							}
+								},
+								"type": "object"
+							},
+							"type": "column"
 						}
 					}
 				},
@@ -555,6 +668,12 @@ func TestQueryGetTypes(t *testing.T) {
 					{
 						ID:        "3",
 						CreatedAt: time.Date(2024, 3, 5, 3, 0, 0, 0, time.UTC),
+					},
+				},
+				NamedArrayPtr: &[]functions.Author{
+					{
+						ID:        "bPgG5cs38N",
+						CreatedAt: time.Date(2024, 3, 5, 2, 0, 0, 0, time.UTC),
 					},
 				},
 				UUIDArray: []uuid.UUID{
