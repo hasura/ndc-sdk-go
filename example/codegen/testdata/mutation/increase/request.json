@@ -1,0 +1,10 @@
+{
+  "collection_relationships": {},
+  "operations": [
+    {
+      "type": "procedure",
+      "name": "increase",
+      "arguments": {}
+    }
+  ]
+}

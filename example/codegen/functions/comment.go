@@ -11,7 +11,7 @@ import (
 )
 
 // CommentText
-// @scalar CommentString
+// @scalar CommentString string
 type CommentText struct {
 	comment string
 }

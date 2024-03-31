@@ -625,7 +625,7 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, scope *types.
 				if matchesLen > 3 && matches[3] != "" {
 					typeInfo.SchemaName = matches[2]
 					typeInfo.Schema = schema.NewNamedType(matches[2])
-					typeRep, err := schema.ParseTypeRepresentationType(matches[3])
+					typeRep, err := schema.ParseTypeRepresentationType(strings.TrimSpace(matches[3]))
 					if err != nil {
 						return nil, fmt.Errorf("failed to parse type representation of scalar %s: %s", typeName, err)
 					}

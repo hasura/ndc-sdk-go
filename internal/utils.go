@@ -89,7 +89,7 @@ func DeepEqual(v1, v2 any) bool {
 				if !ok || !DeepEqual(v1, v2) {
 					j1, _ := json.Marshal(v1)
 					j2, _ := json.Marshal(v2)
-					log.Printf("deep equality is failed at key: %s\n value 1: %s\n value 2: %s\n", k, string(j1), string(j2))
+					log.Printf("deep equality is failed at key: %s\n expected	: %s\n got			: %s\n", k, string(j1), string(j2))
 					return false
 				}
 			}

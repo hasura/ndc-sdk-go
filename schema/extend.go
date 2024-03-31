@@ -35,7 +35,7 @@ func ParseTypeEnum(input string) (TypeEnum, error) {
 	result := TypeEnum(input)
 
 	if !Contains(enumValues_Type, result) {
-		return TypeEnum(""), fmt.Errorf("failed to parse TypeEnum, expect one of %v", enumValues_Type)
+		return TypeEnum(""), fmt.Errorf("failed to parse TypeEnum, expect one of %v, got %s", enumValues_Type, input)
 	}
 
 	return result, nil
@@ -393,7 +393,7 @@ var enumValues_ArgumentType = []ArgumentType{
 func ParseArgumentType(input string) (ArgumentType, error) {
 	result := ArgumentType(input)
 	if !Contains(enumValues_ArgumentType, result) {
-		return ArgumentType(""), fmt.Errorf("failed to parse ArgumentType, expect one of %v", enumValues_ArgumentType)
+		return ArgumentType(""), fmt.Errorf("failed to parse ArgumentType, expect one of %v, got %s", enumValues_ArgumentType, input)
 	}
 	return result, nil
 }
@@ -424,6 +424,20 @@ type Argument struct {
 	Type  ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
 	Name  string       `json:"name" yaml:"name" mapstructure:"name"`
 	Value any          `json:"value" yaml:"value" mapstructure:"value"`
+}
+
+// MarshalJSON implements json.Marshaler.
+func (j Argument) MarshalJSON() ([]byte, error) {
+	result := map[string]any{
+		"type": j.Type,
+	}
+	switch j.Type {
+	case ArgumentTypeLiteral:
+		result["value"] = j.Value
+	case ArgumentTypeVariable:
+		result["name"] = j.Name
+	}
+	return json.Marshal(result)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -485,7 +499,7 @@ var enumValues_RelationshipArgumentType = []RelationshipArgumentType{
 func ParseRelationshipArgumentType(input string) (RelationshipArgumentType, error) {
 	result := RelationshipArgumentType(input)
 	if !Contains(enumValues_RelationshipArgumentType, result) {
-		return RelationshipArgumentType(""), fmt.Errorf("failed to parse RelationshipArgumentType, expect one of %v", enumValues_RelationshipArgumentType)
+		return RelationshipArgumentType(""), fmt.Errorf("failed to parse RelationshipArgumentType, expect one of %v, got %s", enumValues_RelationshipArgumentType, input)
 	}
 	return result, nil
 }
@@ -575,7 +589,7 @@ var enumValues_FieldType = []FieldType{
 func ParseFieldType(input string) (FieldType, error) {
 	result := FieldType(input)
 	if !Contains(enumValues_FieldType, result) {
-		return FieldType(""), fmt.Errorf("failed to parse FieldType, expect one of %v", enumValues_FieldType)
+		return FieldType(""), fmt.Errorf("failed to parse FieldType, expect one of %v, got %s", enumValues_FieldType, input)
 	}
 	return result, nil
 }
@@ -647,8 +661,8 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 			if err = json.Unmarshal(rawFields, &fields); err != nil {
 				return fmt.Errorf("field fields in Field: %s", err)
 			}
+			results["fields"] = fields
 		}
-		results["fields"] = fields
 	case FieldTypeRelationship:
 		relationship, err := unmarshalStringFromJsonMap(raw, "relationship", true)
 		if err != nil {
@@ -803,16 +817,20 @@ type ColumnField struct {
 	// When the type of the column is a (possibly-nullable) array or object,
 	// the caller can request a subset of the complete column data, by specifying fields to fetch here.
 	// If omitted, the column data will be fetched in full.
-	Fields NestedField `json:"fields" yaml:"fields" mapstructure:"fields"`
+	Fields NestedField `json:"fields,omitempty" yaml:"fields,omitempty" mapstructure:"fields"`
 }
 
 // Encode converts the instance to raw Field
 func (f ColumnField) Encode() Field {
-	return Field{
+	r := Field{
 		"type":   f.Type,
 		"column": f.Column,
-		"fields": f.Fields,
 	}
+
+	if len(f.Fields) > 0 {
+		r["fields"] = f.Fields
+	}
+	return r
 }
 
 // NewColumnField creates a new ColumnField instance
@@ -876,7 +894,7 @@ var enumValues_ComparisonTargetType = []ComparisonTargetType{
 func ParseComparisonTargetType(input string) (ComparisonTargetType, error) {
 	result := ComparisonTargetType(input)
 	if !Contains(enumValues_ComparisonTargetType, result) {
-		return ComparisonTargetType(""), fmt.Errorf("failed to parse ComparisonTargetType, expect one of %v", enumValues_ComparisonTargetType)
+		return ComparisonTargetType(""), fmt.Errorf("failed to parse ComparisonTargetType, expect one of %v, got: %s", enumValues_ComparisonTargetType, input)
 	}
 
 	return result, nil
@@ -935,7 +953,7 @@ var enumValues_ExpressionType = []ExpressionType{
 func ParseExpressionType(input string) (ExpressionType, error) {
 	result := ExpressionType(input)
 	if !Contains(enumValues_ExpressionType, ExpressionType(input)) {
-		return ExpressionType(""), fmt.Errorf("failed to parse ExpressionType, expect one of %v", enumValues_ExpressionType)
+		return ExpressionType(""), fmt.Errorf("failed to parse ExpressionType, expect one of %v, got %s", enumValues_ExpressionType, input)
 	}
 
 	return result, nil
@@ -981,7 +999,7 @@ var enumValues_ComparisonValueType = []ComparisonValueType{
 func ParseComparisonValueType(input string) (ComparisonValueType, error) {
 	result := ComparisonValueType(input)
 	if !Contains(enumValues_ComparisonValueType, ComparisonValueType(input)) {
-		return ComparisonValueType(""), fmt.Errorf("failed to parse ComparisonValueType, expect one of %v", enumValues_ComparisonValueType)
+		return ComparisonValueType(""), fmt.Errorf("failed to parse ComparisonValueType, expect one of %v, got %s", enumValues_ComparisonValueType, input)
 	}
 
 	return result, nil
@@ -1242,7 +1260,7 @@ var enumValues_ExistsInCollectionType = []ExistsInCollectionType{
 func ParseExistsInCollectionType(input string) (ExistsInCollectionType, error) {
 	result := ExistsInCollectionType(input)
 	if !Contains(enumValues_ExistsInCollectionType, result) {
-		return result, fmt.Errorf("failed to parse ExistsInCollectionType, expect one of %v", enumValues_ExistsInCollectionType)
+		return result, fmt.Errorf("failed to parse ExistsInCollectionType, expect one of %v, got %s", enumValues_ExistsInCollectionType, input)
 	}
 
 	return result, nil
@@ -1975,7 +1993,7 @@ var enumValues_AggregateType = []AggregateType{
 func ParseAggregateType(input string) (AggregateType, error) {
 	result := AggregateType(input)
 	if !Contains(enumValues_AggregateType, result) {
-		return AggregateType(""), fmt.Errorf("failed to parse AggregateType, expect one of %v", enumValues_AggregateType)
+		return AggregateType(""), fmt.Errorf("failed to parse AggregateType, expect one of %v, got %s", enumValues_AggregateType, input)
 	}
 
 	return result, nil
@@ -2289,7 +2307,7 @@ var enumValues_OrderByTargetType = []OrderByTargetType{
 func ParseOrderByTargetType(input string) (OrderByTargetType, error) {
 	result := OrderByTargetType(input)
 	if !Contains(enumValues_OrderByTargetType, result) {
-		return OrderByTargetType(""), fmt.Errorf("failed to parse OrderByTargetType, expect one of %v", enumValues_OrderByTargetType)
+		return OrderByTargetType(""), fmt.Errorf("failed to parse OrderByTargetType, expect one of %v, got %s", enumValues_OrderByTargetType, input)
 	}
 
 	return result, nil
@@ -2624,7 +2642,7 @@ var enumValues_ComparisonOperatorDefinitionType = []ComparisonOperatorDefinition
 func ParseComparisonOperatorDefinitionType(input string) (ComparisonOperatorDefinitionType, error) {
 	result := ComparisonOperatorDefinitionType(input)
 	if !Contains(enumValues_ComparisonOperatorDefinitionType, result) {
-		return ComparisonOperatorDefinitionType(""), fmt.Errorf("failed to parse ComparisonOperatorDefinitionType, expect one of %v", enumValues_ComparisonOperatorDefinitionType)
+		return ComparisonOperatorDefinitionType(""), fmt.Errorf("failed to parse ComparisonOperatorDefinitionType, expect one of %v, got %s", enumValues_ComparisonOperatorDefinitionType, input)
 	}
 
 	return result, nil
@@ -2876,7 +2894,7 @@ var enumValues_NestedFieldType = []NestedFieldType{
 func ParseNestedFieldType(input string) (NestedFieldType, error) {
 	result := NestedFieldType(input)
 	if !Contains(enumValues_NestedFieldType, result) {
-		return NestedFieldType(""), fmt.Errorf("failed to parse NestedFieldType, expect one of %v", enumValues_NestedFieldType)
+		return NestedFieldType(""), fmt.Errorf("failed to parse NestedFieldType, expect one of %v, got %s", enumValues_NestedFieldType, input)
 	}
 
 	return result, nil
@@ -3094,9 +3112,13 @@ type NestedArray struct {
 
 // NewNestedArray create a new NestedArray instance
 func NewNestedArray(fields NestedFieldEncoder) *NestedArray {
+	var nf NestedField
+	if fields != nil {
+		nf = fields.Encode()
+	}
 	return &NestedArray{
 		Type:   NestedFieldTypeArray,
-		Fields: fields.Encode(),
+		Fields: nf,
 	}
 }
 
