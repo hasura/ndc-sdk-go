@@ -64,7 +64,7 @@ const (
 // ParseMutationOperationType parses a mutation operation type argument type from string
 func ParseMutationOperationType(input string) (*MutationOperationType, error) {
 	if input != string(MutationOperationProcedure) {
-		return nil, fmt.Errorf("failed to parse MutationOperationType, expect one of %v", []MutationOperationType{MutationOperationProcedure})
+		return nil, fmt.Errorf("failed to parse MutationOperationType, expect one of %v, got %s", []MutationOperationType{MutationOperationProcedure}, input)
 	}
 	result := MutationOperationType(input)
 
