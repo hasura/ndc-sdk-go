@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hasura/ndc-sdk-go/cmd/ndc-go-sdk/command"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/stretchr/testify/assert"
 )
@@ -74,6 +75,12 @@ func TestConnectorGeneration(t *testing.T) {
 			functionTypesBytes, err := os.ReadFile("functions/types.generated.go")
 			assert.NoError(t, err)
 			assert.Equal(t, formatTextContent(string(expectedFunctionTypesBytes)), formatTextContent(string(functionTypesBytes)))
+
+			// generate test cases
+			assert.NoError(t, command.GenTestSnapshots(&command.GenTestSnapshotArguments{
+				Dir:    "testdata",
+				Schema: "schema.generated.json",
+			}))
 		})
 	}
 }

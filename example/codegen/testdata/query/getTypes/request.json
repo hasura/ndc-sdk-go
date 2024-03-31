@@ -1,0 +1,533 @@
+{
+  "arguments": {
+    "ArrayObject": {
+      "type": "literal",
+      "value": [
+        {
+          "content": "W6tI1Y40Lw"
+        }
+      ]
+    },
+    "ArrayObjectPtr": {
+      "type": "literal",
+      "value": [
+        {
+          "content": "vQcd2I8kdI"
+        }
+      ]
+    },
+    "Bool": {
+      "type": "literal",
+      "value": true
+    },
+    "BoolPtr": {
+      "type": "literal",
+      "value": false
+    },
+    "CustomScalar": {
+      "type": "literal",
+      "value": "3B1e7lHaWW"
+    },
+    "CustomScalarPtr": {
+      "type": "literal",
+      "value": "KHGzAeLfav"
+    },
+    "Enum": {
+      "type": "literal",
+      "value": "bar"
+    },
+    "EnumPtr": {
+      "type": "literal",
+      "value": "foo"
+    },
+    "Float32": {
+      "type": "literal",
+      "value": 0.86
+    },
+    "Float32Ptr": {
+      "type": "literal",
+      "value": 0.07
+    },
+    "Float64": {
+      "type": "literal",
+      "value": 0.681
+    },
+    "Float64Ptr": {
+      "type": "literal",
+      "value": 0.5753
+    },
+    "Int": {
+      "type": "literal",
+      "value": 531654
+    },
+    "Int16": {
+      "type": "literal",
+      "value": 7892
+    },
+    "Int16Ptr": {
+      "type": "literal",
+      "value": 1587
+    },
+    "Int32": {
+      "type": "literal",
+      "value": 774617
+    },
+    "Int32Ptr": {
+      "type": "literal",
+      "value": 1714093
+    },
+    "Int64": {
+      "type": "literal",
+      "value": 74910766607
+    },
+    "Int64Ptr": {
+      "type": "literal",
+      "value": 577626996545
+    },
+    "Int8": {
+      "type": "literal",
+      "value": 49
+    },
+    "Int8Ptr": {
+      "type": "literal",
+      "value": 51
+    },
+    "IntPtr": {
+      "type": "literal",
+      "value": 91294328
+    },
+    "NamedArray": {
+      "type": "literal",
+      "value": [
+        {
+          "created_at": "2024-03-31T11:20:13+07:00",
+          "id": "nCCSDfMePH"
+        }
+      ]
+    },
+    "NamedArrayPtr": {
+      "type": "literal",
+      "value": [
+        {
+          "created_at": "2024-03-31T11:20:13+07:00",
+          "id": "bPgG5cs38N"
+        }
+      ]
+    },
+    "NamedObject": {
+      "type": "literal",
+      "value": {
+        "created_at": "2024-03-31T11:20:13+07:00",
+        "id": "kxe0Qu0hZb"
+      }
+    },
+    "NamedObjectPtr": {
+      "type": "literal",
+      "value": {
+        "created_at": "2024-03-31T11:20:13+07:00",
+        "id": "2J1NWIWvJW"
+      }
+    },
+    "Object": {
+      "type": "literal",
+      "value": {
+        "created_at": "2024-03-31T11:20:13+07:00",
+        "id": "2a5018a6-64cd-442c-bcca-c09dba2bf3dc"
+      }
+    },
+    "ObjectPtr": {
+      "type": "literal",
+      "value": {
+        "Lat": 313800,
+        "Long": 5913390
+      }
+    },
+    "String": {
+      "type": "literal",
+      "value": "M9CdDc19mD"
+    },
+    "StringPtr": {
+      "type": "literal",
+      "value": "FgofU1okdL"
+    },
+    "Text": {
+      "type": "literal",
+      "value": "Tzoe8bDE5R"
+    },
+    "TextPtr": {
+      "type": "literal",
+      "value": "jsbVTPYPzO"
+    },
+    "Time": {
+      "type": "literal",
+      "value": "2024-03-31T11:20:13+07:00"
+    },
+    "TimePtr": {
+      "type": "literal",
+      "value": "2024-03-31T11:20:13+07:00"
+    },
+    "UUID": {
+      "type": "literal",
+      "value": "5084a431-3b54-472e-84d7-308aee7f6a08"
+    },
+    "UUIDArray": {
+      "type": "literal",
+      "value": ["63cb0ca2-14c1-44bb-a2f9-72af0ca95502"]
+    },
+    "UUIDPtr": {
+      "type": "literal",
+      "value": "361452a2-b3dc-4302-bb08-5de92d9a4879"
+    },
+    "Uint": {
+      "type": "literal",
+      "value": 41818
+    },
+    "Uint16": {
+      "type": "literal",
+      "value": 8072
+    },
+    "Uint16Ptr": {
+      "type": "literal",
+      "value": 1587
+    },
+    "Uint32": {
+      "type": "literal",
+      "value": 77461
+    },
+    "Uint32Ptr": {
+      "type": "literal",
+      "value": 38032
+    },
+    "Uint64": {
+      "type": "literal",
+      "value": 51144554072184
+    },
+    "Uint64Ptr": {
+      "type": "literal",
+      "value": 46014897900881
+    },
+    "Uint8": {
+      "type": "literal",
+      "value": 68
+    },
+    "Uint8Ptr": {
+      "type": "literal",
+      "value": 56
+    },
+    "UintPtr": {
+      "type": "literal",
+      "value": 602518
+    }
+  },
+  "collection": "getTypes",
+  "collection_relationships": {},
+  "query": {
+    "fields": {
+      "__value": {
+        "column": "__value",
+        "fields": {
+          "fields": {
+            "ArrayObject": {
+              "column": "ArrayObject",
+              "fields": {
+                "fields": {
+                  "fields": {
+                    "content": {
+                      "column": "content",
+                      "type": "column"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "type": "column"
+            },
+            "ArrayObjectPtr": {
+              "column": "ArrayObjectPtr",
+              "fields": {
+                "fields": {
+                  "fields": {
+                    "content": {
+                      "column": "content",
+                      "type": "column"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "type": "column"
+            },
+            "Bool": {
+              "column": "Bool",
+              "type": "column"
+            },
+            "BoolPtr": {
+              "column": "BoolPtr",
+              "type": "column"
+            },
+            "CustomScalar": {
+              "column": "CustomScalar",
+              "type": "column"
+            },
+            "CustomScalarPtr": {
+              "column": "CustomScalarPtr",
+              "type": "column"
+            },
+            "Enum": {
+              "column": "Enum",
+              "type": "column"
+            },
+            "EnumPtr": {
+              "column": "EnumPtr",
+              "type": "column"
+            },
+            "Float32": {
+              "column": "Float32",
+              "type": "column"
+            },
+            "Float32Ptr": {
+              "column": "Float32Ptr",
+              "type": "column"
+            },
+            "Float64": {
+              "column": "Float64",
+              "type": "column"
+            },
+            "Float64Ptr": {
+              "column": "Float64Ptr",
+              "type": "column"
+            },
+            "Int": {
+              "column": "Int",
+              "type": "column"
+            },
+            "Int16": {
+              "column": "Int16",
+              "type": "column"
+            },
+            "Int16Ptr": {
+              "column": "Int16Ptr",
+              "type": "column"
+            },
+            "Int32": {
+              "column": "Int32",
+              "type": "column"
+            },
+            "Int32Ptr": {
+              "column": "Int32Ptr",
+              "type": "column"
+            },
+            "Int64": {
+              "column": "Int64",
+              "type": "column"
+            },
+            "Int64Ptr": {
+              "column": "Int64Ptr",
+              "type": "column"
+            },
+            "Int8": {
+              "column": "Int8",
+              "type": "column"
+            },
+            "Int8Ptr": {
+              "column": "Int8Ptr",
+              "type": "column"
+            },
+            "IntPtr": {
+              "column": "IntPtr",
+              "type": "column"
+            },
+            "NamedArray": {
+              "column": "NamedArray",
+              "fields": {
+                "fields": {
+                  "fields": {
+                    "created_at": {
+                      "column": "created_at",
+                      "type": "column"
+                    },
+                    "id": {
+                      "column": "id",
+                      "type": "column"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "type": "column"
+            },
+            "NamedArrayPtr": {
+              "column": "NamedArrayPtr",
+              "fields": {
+                "fields": {
+                  "fields": {
+                    "created_at": {
+                      "column": "created_at",
+                      "type": "column"
+                    },
+                    "id": {
+                      "column": "id",
+                      "type": "column"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "type": "column"
+            },
+            "NamedObject": {
+              "column": "NamedObject",
+              "fields": {
+                "fields": {
+                  "created_at": {
+                    "column": "created_at",
+                    "type": "column"
+                  },
+                  "id": {
+                    "column": "id",
+                    "type": "column"
+                  }
+                },
+                "type": "object"
+              },
+              "type": "column"
+            },
+            "NamedObjectPtr": {
+              "column": "NamedObjectPtr",
+              "fields": {
+                "fields": {
+                  "created_at": {
+                    "column": "created_at",
+                    "type": "column"
+                  },
+                  "id": {
+                    "column": "id",
+                    "type": "column"
+                  }
+                },
+                "type": "object"
+              },
+              "type": "column"
+            },
+            "Object": {
+              "column": "Object",
+              "fields": {
+                "fields": {
+                  "created_at": {
+                    "column": "created_at",
+                    "type": "column"
+                  },
+                  "id": {
+                    "column": "id",
+                    "type": "column"
+                  }
+                },
+                "type": "object"
+              },
+              "type": "column"
+            },
+            "ObjectPtr": {
+              "column": "ObjectPtr",
+              "fields": {
+                "fields": {
+                  "Lat": {
+                    "column": "Lat",
+                    "type": "column"
+                  },
+                  "Long": {
+                    "column": "Long",
+                    "type": "column"
+                  }
+                },
+                "type": "object"
+              },
+              "type": "column"
+            },
+            "String": {
+              "column": "String",
+              "type": "column"
+            },
+            "StringPtr": {
+              "column": "StringPtr",
+              "type": "column"
+            },
+            "Text": {
+              "column": "Text",
+              "type": "column"
+            },
+            "TextPtr": {
+              "column": "TextPtr",
+              "type": "column"
+            },
+            "Time": {
+              "column": "Time",
+              "type": "column"
+            },
+            "TimePtr": {
+              "column": "TimePtr",
+              "type": "column"
+            },
+            "UUID": {
+              "column": "UUID",
+              "type": "column"
+            },
+            "UUIDArray": {
+              "column": "UUIDArray",
+              "type": "column"
+            },
+            "UUIDPtr": {
+              "column": "UUIDPtr",
+              "type": "column"
+            },
+            "Uint": {
+              "column": "Uint",
+              "type": "column"
+            },
+            "Uint16": {
+              "column": "Uint16",
+              "type": "column"
+            },
+            "Uint16Ptr": {
+              "column": "Uint16Ptr",
+              "type": "column"
+            },
+            "Uint32": {
+              "column": "Uint32",
+              "type": "column"
+            },
+            "Uint32Ptr": {
+              "column": "Uint32Ptr",
+              "type": "column"
+            },
+            "Uint64": {
+              "column": "Uint64",
+              "type": "column"
+            },
+            "Uint64Ptr": {
+              "column": "Uint64Ptr",
+              "type": "column"
+            },
+            "Uint8": {
+              "column": "Uint8",
+              "type": "column"
+            },
+            "Uint8Ptr": {
+              "column": "Uint8Ptr",
+              "type": "column"
+            },
+            "UintPtr": {
+              "column": "UintPtr",
+              "type": "column"
+            }
+          },
+          "type": "object"
+        },
+        "type": "column"
+      }
+    }
+  }
+}

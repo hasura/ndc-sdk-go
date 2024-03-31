@@ -1,0 +1,13 @@
+{
+  "arguments": {},
+  "collection": "getBool",
+  "collection_relationships": {},
+  "query": {
+    "fields": {
+      "__value": {
+        "column": "__value",
+        "type": "column"
+      }
+    }
+  }
+}
