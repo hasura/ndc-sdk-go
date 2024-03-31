@@ -661,8 +661,8 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 			if err = json.Unmarshal(rawFields, &fields); err != nil {
 				return fmt.Errorf("field fields in Field: %s", err)
 			}
+			results["fields"] = fields
 		}
-		results["fields"] = fields
 	case FieldTypeRelationship:
 		relationship, err := unmarshalStringFromJsonMap(raw, "relationship", true)
 		if err != nil {
@@ -817,7 +817,7 @@ type ColumnField struct {
 	// When the type of the column is a (possibly-nullable) array or object,
 	// the caller can request a subset of the complete column data, by specifying fields to fetch here.
 	// If omitted, the column data will be fetched in full.
-	Fields NestedField `json:"fields" yaml:"fields" mapstructure:"fields"`
+	Fields NestedField `json:"fields,omitempty" yaml:"fields,omitempty" mapstructure:"fields"`
 }
 
 // Encode converts the instance to raw Field
@@ -827,7 +827,7 @@ func (f ColumnField) Encode() Field {
 		"column": f.Column,
 	}
 
-	if f.Fields != nil {
+	if len(f.Fields) > 0 {
 		r["fields"] = f.Fields
 	}
 	return r
