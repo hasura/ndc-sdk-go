@@ -434,6 +434,15 @@
             "name": "String",
             "type": "named"
           }
+        },
+        "tags": {
+          "type": {
+            "element_type": {
+              "name": "String",
+              "type": "named"
+            },
+            "type": "array"
+          }
         }
       }
     },

@@ -16,11 +16,14 @@ import (
 
 // GenTestSnapshotArguments represents arguments for test snapshot generation
 type GenTestSnapshotArguments struct {
-	Schema   string `help:"NDC schema file path. Use either endpoint or schema path"`
-	Endpoint string `help:"The endpoint of the connector. Use either endpoint or schema path"`
-	Dir      string `help:"The directory of test snapshots."`
-	Depth    uint   `help:"The selection depth of nested fields in result types." default:"10"`
-	Seed     *int64 `help:"Using a fixed seed will produce the same output on every run."`
+	Schema   string                     `help:"NDC schema file path. Use either endpoint or schema path"`
+	Endpoint string                     `help:"The endpoint of the connector. Use either endpoint or schema path"`
+	Dir      string                     `help:"The directory of test snapshots."`
+	Depth    uint                       `help:"The selection depth of nested fields in result types." default:"10"`
+	Seed     *int64                     `help:"Using a fixed seed will produce the same output on every run."`
+	Query    []string                   `help:"Specify individual queries to be generated. Separated by commas, or 'all' for all queries"`
+	Mutation []string                   `help:"Specify individual mutations to be generated. Separated by commas, or 'all' for all mutations"`
+	Strategy internal.WriteFileStrategy `help:"Decide the strategy to do when the snapshot file exists." enum:"none,override" default:"none"`
 }
 
 // genTestSnapshotsCommand
@@ -102,7 +105,9 @@ func (cmd *genTestSnapshotsCommand) fetchSchema() error {
 }
 
 func (cmd *genTestSnapshotsCommand) genFunction(fn *schema.FunctionInfo) error {
-
+	if !cmd.hasQuery(fn.Name) {
+		return nil
+	}
 	args, err := cmd.genQueryArguments(fn.Arguments)
 	if err != nil {
 		return fmt.Errorf("failed to generate arguments for %s function: %s", fn.Name, err)
@@ -138,11 +143,11 @@ func (cmd *genTestSnapshotsCommand) genFunction(fn *schema.FunctionInfo) error {
 		return err
 	}
 
-	if err := internal.WritePrettyFileJSON(path.Join(snapshotDir, "request.json"), queryReq); err != nil {
+	if err := internal.WritePrettyFileJSON(path.Join(snapshotDir, "request.json"), queryReq, cmd.args.Strategy); err != nil {
 		return err
 	}
 
-	return internal.WritePrettyFileJSON(path.Join(snapshotDir, "expected.json"), queryResp)
+	return internal.WritePrettyFileJSON(path.Join(snapshotDir, "expected.json"), queryResp, cmd.args.Strategy)
 }
 
 func (cmd *genTestSnapshotsCommand) genQueryArguments(arguments schema.FunctionInfoArguments) (schema.QueryRequestArguments, error) {
@@ -161,6 +166,9 @@ func (cmd *genTestSnapshotsCommand) genQueryArguments(arguments schema.FunctionI
 }
 
 func (cmd *genTestSnapshotsCommand) genProcedure(proc *schema.ProcedureInfo) error {
+	if !cmd.hasMutation(proc.Name) {
+		return nil
+	}
 	args, err := cmd.genOperationArguments(proc.Arguments)
 	if err != nil {
 		return fmt.Errorf("failed to generate arguments for %s procedure: %s", proc.Name, err)
@@ -197,11 +205,11 @@ func (cmd *genTestSnapshotsCommand) genProcedure(proc *schema.ProcedureInfo) err
 		return err
 	}
 
-	if err := internal.WritePrettyFileJSON(path.Join(snapshotDir, "request.json"), mutationReq); err != nil {
+	if err := internal.WritePrettyFileJSON(path.Join(snapshotDir, "request.json"), mutationReq, cmd.args.Strategy); err != nil {
 		return err
 	}
 
-	return internal.WritePrettyFileJSON(path.Join(snapshotDir, "expected.json"), mutationResp)
+	return internal.WritePrettyFileJSON(path.Join(snapshotDir, "expected.json"), mutationResp, cmd.args.Strategy)
 }
 
 func (cmd *genTestSnapshotsCommand) genOperationArguments(arguments schema.ProcedureInfoArguments) ([]byte, error) {
@@ -236,7 +244,7 @@ func (cmd *genTestSnapshotsCommand) genNestFieldAndValueInternal(rawType schema.
 		if err != nil {
 			return nil, nil, false, err
 		}
-		if isScalar {
+		if innerType == nil || isScalar {
 			return nil, []any{data}, isScalar, nil
 		}
 		return schema.NewNestedArray(innerType), []any{data}, isScalar, nil
@@ -262,8 +270,25 @@ func (cmd *genTestSnapshotsCommand) genNestFieldAndValueInternal(rawType schema.
 			fields[key] = schema.NewColumnField(key, innerType)
 			values[key] = value
 		}
+		if len(fields) == 0 {
+			return nil, values, false, nil
+		}
 		return schema.NewNestedObject(fields), values, false, nil
 	default:
 		return nil, nil, false, err
 	}
+}
+
+func (cmd genTestSnapshotsCommand) hasQuery(name string) bool {
+	if (len(cmd.args.Query) == 0 && len(cmd.args.Mutation) == 0) || schema.Contains(cmd.args.Query, "all") {
+		return true
+	}
+	return schema.Contains(cmd.args.Query, name)
+}
+
+func (cmd genTestSnapshotsCommand) hasMutation(name string) bool {
+	if (len(cmd.args.Query) == 0 && len(cmd.args.Mutation) == 0) || schema.Contains(cmd.args.Mutation, "all") {
+		return true
+	}
+	return schema.Contains(cmd.args.Mutation, name)
 }
