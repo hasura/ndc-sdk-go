@@ -23,7 +23,7 @@ type GenTestSnapshotArguments struct {
 	Seed     *int64                     `help:"Using a fixed seed will produce the same output on every run."`
 	Query    []string                   `help:"Specify individual queries to be generated. Separated by commas, or 'all' for all queries"`
 	Mutation []string                   `help:"Specify individual mutations to be generated. Separated by commas, or 'all' for all mutations"`
-	Strategy internal.WriteFileStrategy `help:"Decide the strategy to do when the snapshot file exists." enum:"none,override" default:"none"`
+	Strategy internal.WriteFileStrategy `help:"Decide the strategy to do when the snapshot file exists. Accept: none, override" enum:"none,override" default:"none"`
 }
 
 // genTestSnapshotsCommand
