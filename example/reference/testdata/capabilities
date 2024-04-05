@@ -1,0 +1,14 @@
+{
+  "version": "0.1.2",
+  "capabilities": {
+    "query": {
+      "aggregates": {},
+      "variables": {}
+    },
+    "mutation": {},
+    "relationships": {
+      "relation_comparisons": {},
+      "order_by_aggregate": {}
+    }
+  }
+}
