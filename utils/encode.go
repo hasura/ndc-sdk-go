@@ -100,12 +100,19 @@ func encodeObject(input any) (map[string]any, error) {
 	}
 }
 
+// encode fields with [type representation spec]
+//
+// [type representation spec]: https://github.com/hasura/ndc-spec/blob/main/rfcs/0007-additional-type-representations.md#new-representations
 func encodeField(input reflect.Value) (any, bool) {
 	switch input.Kind() {
 	case reflect.Complex64, reflect.Complex128:
 		return nil, false
-	case reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Float32, reflect.Float64, reflect.String:
+	case reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Float32, reflect.Float64, reflect.String:
 		return input.Interface(), true
+	case reflect.Int64:
+		return fmt.Sprintf("%d", input.Int()), true
+	case reflect.Uint64:
+		return fmt.Sprintf("%d", input.Uint()), true
 	case reflect.Struct:
 		inputType := input.Type()
 		switch inputType.PkgPath() {
