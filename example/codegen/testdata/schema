@@ -8,16 +8,22 @@
       "comparison_operators": {}
     },
     "CommentString": {
-      "aggregate_functions": {},
-      "comparison_operators": {}
-    },
-    "DateTime": {
-      "aggregate_functions": {},
-      "comparison_operators": {}
-    },
-    "Float": {
       "representation": {
-        "type": "number"
+        "type": "string"
+      },
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "Float32": {
+      "representation": {
+        "type": "float32"
+      },
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "Float64": {
+      "representation": {
+        "type": "float64"
       },
       "aggregate_functions": {},
       "comparison_operators": {}
@@ -26,9 +32,30 @@
       "aggregate_functions": {},
       "comparison_operators": {}
     },
-    "Int": {
+    "Int16": {
       "representation": {
-        "type": "integer"
+        "type": "int16"
+      },
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "Int32": {
+      "representation": {
+        "type": "int32"
+      },
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "Int64": {
+      "representation": {
+        "type": "int64"
+      },
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
+    "Int8": {
+      "representation": {
+        "type": "int8"
       },
       "aggregate_functions": {},
       "comparison_operators": {}
@@ -51,9 +78,16 @@
       "aggregate_functions": {},
       "comparison_operators": {}
     },
+    "TimestampTZ": {
+      "representation": {
+        "type": "timestamptz"
+      },
+      "aggregate_functions": {},
+      "comparison_operators": {}
+    },
     "UUID": {
       "representation": {
-        "type": "string"
+        "type": "uuid"
       },
       "aggregate_functions": {},
       "comparison_operators": {}
@@ -65,13 +99,22 @@
         "created_at": {
           "type": {
             "type": "named",
-            "name": "DateTime"
+            "name": "TimestampTZ"
           }
         },
         "id": {
           "type": {
             "type": "named",
             "name": "String"
+          }
+        },
+        "tags": {
+          "type": {
+            "type": "array",
+            "element_type": {
+              "type": "named",
+              "name": "String"
+            }
           }
         }
       }
@@ -81,7 +124,7 @@
         "created_at": {
           "type": {
             "type": "named",
-            "name": "DateTime"
+            "name": "TimestampTZ"
           }
         },
         "id": {
@@ -106,7 +149,7 @@
         "id": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int32"
           }
         }
       }
@@ -116,13 +159,13 @@
         "created_at": {
           "type": {
             "type": "named",
-            "name": "DateTime"
+            "name": "TimestampTZ"
           }
         },
         "id": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int32"
           }
         },
         "name": {
@@ -220,7 +263,7 @@
         "Float32": {
           "type": {
             "type": "named",
-            "name": "Float"
+            "name": "Float32"
           }
         },
         "Float32Ptr": {
@@ -228,14 +271,14 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Float"
+              "name": "Float32"
             }
           }
         },
         "Float64": {
           "type": {
             "type": "named",
-            "name": "Float"
+            "name": "Float64"
           }
         },
         "Float64Ptr": {
@@ -243,20 +286,20 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Float"
+              "name": "Float64"
             }
           }
         },
         "Int": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int32"
           }
         },
         "Int16": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int16"
           }
         },
         "Int16Ptr": {
@@ -264,14 +307,14 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int16"
             }
           }
         },
         "Int32": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int32"
           }
         },
         "Int32Ptr": {
@@ -279,14 +322,14 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int32"
             }
           }
         },
         "Int64": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int64"
           }
         },
         "Int64Ptr": {
@@ -294,14 +337,14 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int64"
             }
           }
         },
         "Int8": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int8"
           }
         },
         "Int8Ptr": {
@@ -309,7 +352,7 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int8"
             }
           }
         },
@@ -318,7 +361,7 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int32"
             }
           }
         },
@@ -406,7 +449,7 @@
         "Time": {
           "type": {
             "type": "named",
-            "name": "DateTime"
+            "name": "TimestampTZ"
           }
         },
         "TimePtr": {
@@ -414,7 +457,7 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "DateTime"
+              "name": "TimestampTZ"
             }
           }
         },
@@ -445,13 +488,13 @@
         "Uint": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int32"
           }
         },
         "Uint16": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int16"
           }
         },
         "Uint16Ptr": {
@@ -459,14 +502,14 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int16"
             }
           }
         },
         "Uint32": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int32"
           }
         },
         "Uint32Ptr": {
@@ -474,14 +517,14 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int32"
             }
           }
         },
         "Uint64": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int64"
           }
         },
         "Uint64Ptr": {
@@ -489,14 +532,14 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int64"
             }
           }
         },
         "Uint8": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int8"
           }
         },
         "Uint8Ptr": {
@@ -504,7 +547,7 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int8"
             }
           }
         },
@@ -513,7 +556,7 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int32"
             }
           }
         }
@@ -544,7 +587,7 @@
         "created_at": {
           "type": {
             "type": "named",
-            "name": "DateTime"
+            "name": "TimestampTZ"
           }
         },
         "id": {
@@ -560,13 +603,13 @@
         "Lat": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int32"
           }
         },
         "Long": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int32"
           }
         }
       }
@@ -588,7 +631,7 @@
         "num": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int32"
           }
         },
         "text": {
@@ -683,7 +726,7 @@
         "Float32": {
           "type": {
             "type": "named",
-            "name": "Float"
+            "name": "Float32"
           }
         },
         "Float32Ptr": {
@@ -691,14 +734,14 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Float"
+              "name": "Float32"
             }
           }
         },
         "Float64": {
           "type": {
             "type": "named",
-            "name": "Float"
+            "name": "Float64"
           }
         },
         "Float64Ptr": {
@@ -706,20 +749,20 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Float"
+              "name": "Float64"
             }
           }
         },
         "Int": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int32"
           }
         },
         "Int16": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int16"
           }
         },
         "Int16Ptr": {
@@ -727,14 +770,14 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int16"
             }
           }
         },
         "Int32": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int32"
           }
         },
         "Int32Ptr": {
@@ -742,14 +785,14 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int32"
             }
           }
         },
         "Int64": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int64"
           }
         },
         "Int64Ptr": {
@@ -757,14 +800,14 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int64"
             }
           }
         },
         "Int8": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int8"
           }
         },
         "Int8Ptr": {
@@ -772,7 +815,7 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int8"
             }
           }
         },
@@ -781,7 +824,7 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int32"
             }
           }
         },
@@ -869,7 +912,7 @@
         "Time": {
           "type": {
             "type": "named",
-            "name": "DateTime"
+            "name": "TimestampTZ"
           }
         },
         "TimePtr": {
@@ -877,7 +920,7 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "DateTime"
+              "name": "TimestampTZ"
             }
           }
         },
@@ -908,13 +951,13 @@
         "Uint": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int32"
           }
         },
         "Uint16": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int16"
           }
         },
         "Uint16Ptr": {
@@ -922,14 +965,14 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int16"
             }
           }
         },
         "Uint32": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int32"
           }
         },
         "Uint32Ptr": {
@@ -937,14 +980,14 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int32"
             }
           }
         },
         "Uint64": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int64"
           }
         },
         "Uint64Ptr": {
@@ -952,14 +995,14 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int64"
             }
           }
         },
         "Uint8": {
           "type": {
             "type": "named",
-            "name": "Int"
+            "name": "Int8"
           }
         },
         "Uint8Ptr": {
@@ -967,7 +1010,7 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int8"
             }
           }
         },
@@ -976,7 +1019,7 @@
             "type": "nullable",
             "underlying_type": {
               "type": "named",
-              "name": "Int"
+              "name": "Int32"
             }
           }
         }
@@ -1008,7 +1051,7 @@
         "Limit": {
           "type": {
             "type": "named",
-            "name": "Float"
+            "name": "Float64"
           }
         }
       },
@@ -1047,7 +1090,7 @@
       "arguments": {},
       "result_type": {
         "type": "named",
-        "name": "Int"
+        "name": "Int32"
       }
     },
     {

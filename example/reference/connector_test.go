@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/hasura/ndc-sdk-go/connector"
@@ -13,7 +14,7 @@ import (
 	"github.com/hasura/ndc-sdk-go/schema"
 )
 
-const test_SpecVersion = "v0.1.1"
+const test_SpecVersion = "v0.1.2"
 
 func createTestServer(t *testing.T) *connector.Server[Configuration, State] {
 	server, err := connector.NewServer[Configuration, State](&Connector{}, &connector.ServerOptions{
@@ -83,14 +84,14 @@ func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int,
 func TestGeneralMethods(t *testing.T) {
 	server := createTestServer(t).BuildTestServer()
 	t.Run("capabilities", func(t *testing.T) {
-		expectedResp, err := http.Get(fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/capabilities/expected.json", test_SpecVersion))
+		expectedBytes, err := os.ReadFile("./testdata/capabilities")
 		if err != nil {
-			t.Errorf("failed to fetch expected schema: %s", err.Error())
+			t.Errorf("failed to get expected capabilities: %s", err.Error())
 			t.FailNow()
 		}
 
 		var expectedResult schema.CapabilitiesResponse
-		err = json.NewDecoder(expectedResp.Body).Decode(&expectedResult)
+		err = json.Unmarshal(expectedBytes, &expectedResult)
 		if err != nil {
 			t.Errorf("failed to read expected body: %s", err.Error())
 			t.FailNow()
@@ -106,14 +107,14 @@ func TestGeneralMethods(t *testing.T) {
 	})
 
 	t.Run("schema", func(t *testing.T) {
-		expectedSchemaResp, err := http.Get(fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/schema/expected.json", test_SpecVersion))
+		expectedBytes, err := os.ReadFile("./testdata/schema")
 		if err != nil {
 			t.Errorf("failed to fetch expected schema: %s", err.Error())
 			t.FailNow()
 		}
 
 		var expectedSchema schema.SchemaResponse
-		err = json.NewDecoder(expectedSchemaResp.Body).Decode(&expectedSchema)
+		err = json.Unmarshal(expectedBytes, &expectedSchema)
 		if err != nil {
 			t.Errorf("failed to read expected body: %s", err.Error())
 			t.FailNow()
