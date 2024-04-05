@@ -2956,7 +2956,7 @@ func (j *NestedField) UnmarshalJSON(b []byte) error {
 	switch ty {
 	case NestedFieldTypeObject:
 		rawFields, ok := raw["fields"]
-		if !ok {
+		if !ok || isNullJSON(rawFields) {
 			return errors.New("field fields in NestedField is required for object type")
 		}
 		var fields map[string]Field
@@ -2966,7 +2966,7 @@ func (j *NestedField) UnmarshalJSON(b []byte) error {
 		result["fields"] = fields
 	case NestedFieldTypeArray:
 		rawFields, ok := raw["fields"]
-		if !ok {
+		if !ok || isNullJSON(rawFields) {
 			return errors.New("field fields in NestedField is required for array type")
 		}
 		var fields NestedField

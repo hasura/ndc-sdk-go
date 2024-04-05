@@ -70,6 +70,7 @@ type CreateArticleArguments struct {
 type Author struct {
 	ID        string    `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
+	Tags      []string  `json:"tags"`
 }
 
 type CreateArticleResult struct {

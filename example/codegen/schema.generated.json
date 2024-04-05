@@ -80,7 +80,7 @@
         },
         "Float32": {
           "type": {
-            "name": "Float",
+            "name": "Float32",
             "type": "named"
           }
         },
@@ -88,14 +88,14 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Float",
+              "name": "Float32",
               "type": "named"
             }
           }
         },
         "Float64": {
           "type": {
-            "name": "Float",
+            "name": "Float64",
             "type": "named"
           }
         },
@@ -103,20 +103,20 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Float",
+              "name": "Float64",
               "type": "named"
             }
           }
         },
         "Int": {
           "type": {
-            "name": "Int",
+            "name": "Int32",
             "type": "named"
           }
         },
         "Int16": {
           "type": {
-            "name": "Int",
+            "name": "Int16",
             "type": "named"
           }
         },
@@ -124,14 +124,14 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int16",
               "type": "named"
             }
           }
         },
         "Int32": {
           "type": {
-            "name": "Int",
+            "name": "Int32",
             "type": "named"
           }
         },
@@ -139,14 +139,14 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int32",
               "type": "named"
             }
           }
         },
         "Int64": {
           "type": {
-            "name": "Int",
+            "name": "Int64",
             "type": "named"
           }
         },
@@ -154,14 +154,14 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int64",
               "type": "named"
             }
           }
         },
         "Int8": {
           "type": {
-            "name": "Int",
+            "name": "Int8",
             "type": "named"
           }
         },
@@ -169,7 +169,7 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int8",
               "type": "named"
             }
           }
@@ -178,7 +178,7 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int32",
               "type": "named"
             }
           }
@@ -266,7 +266,7 @@
         },
         "Time": {
           "type": {
-            "name": "DateTime",
+            "name": "TimestampTZ",
             "type": "named"
           }
         },
@@ -274,7 +274,7 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "DateTime",
+              "name": "TimestampTZ",
               "type": "named"
             }
           }
@@ -305,13 +305,13 @@
         },
         "Uint": {
           "type": {
-            "name": "Int",
+            "name": "Int32",
             "type": "named"
           }
         },
         "Uint16": {
           "type": {
-            "name": "Int",
+            "name": "Int16",
             "type": "named"
           }
         },
@@ -319,14 +319,14 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int16",
               "type": "named"
             }
           }
         },
         "Uint32": {
           "type": {
-            "name": "Int",
+            "name": "Int32",
             "type": "named"
           }
         },
@@ -334,14 +334,14 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int32",
               "type": "named"
             }
           }
         },
         "Uint64": {
           "type": {
-            "name": "Int",
+            "name": "Int64",
             "type": "named"
           }
         },
@@ -349,14 +349,14 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int64",
               "type": "named"
             }
           }
         },
         "Uint8": {
           "type": {
-            "name": "Int",
+            "name": "Int8",
             "type": "named"
           }
         },
@@ -364,7 +364,7 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int8",
               "type": "named"
             }
           }
@@ -373,7 +373,7 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int32",
               "type": "named"
             }
           }
@@ -404,7 +404,7 @@
       "arguments": {
         "Limit": {
           "type": {
-            "name": "Float",
+            "name": "Float64",
             "type": "named"
           }
         }
@@ -425,7 +425,7 @@
       "fields": {
         "created_at": {
           "type": {
-            "name": "DateTime",
+            "name": "TimestampTZ",
             "type": "named"
           }
         },
@@ -434,6 +434,15 @@
             "name": "String",
             "type": "named"
           }
+        },
+        "tags": {
+          "type": {
+            "element_type": {
+              "name": "String",
+              "type": "named"
+            },
+            "type": "array"
+          }
         }
       }
     },
@@ -441,7 +450,7 @@
       "fields": {
         "created_at": {
           "type": {
-            "name": "DateTime",
+            "name": "TimestampTZ",
             "type": "named"
           }
         },
@@ -466,7 +475,7 @@
         },
         "id": {
           "type": {
-            "name": "Int",
+            "name": "Int32",
             "type": "named"
           }
         }
@@ -476,13 +485,13 @@
       "fields": {
         "created_at": {
           "type": {
-            "name": "DateTime",
+            "name": "TimestampTZ",
             "type": "named"
           }
         },
         "id": {
           "type": {
-            "name": "Int",
+            "name": "Int32",
             "type": "named"
           }
         },
@@ -580,7 +589,7 @@
         },
         "Float32": {
           "type": {
-            "name": "Float",
+            "name": "Float32",
             "type": "named"
           }
         },
@@ -588,14 +597,14 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Float",
+              "name": "Float32",
               "type": "named"
             }
           }
         },
         "Float64": {
           "type": {
-            "name": "Float",
+            "name": "Float64",
             "type": "named"
           }
         },
@@ -603,20 +612,20 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Float",
+              "name": "Float64",
               "type": "named"
             }
           }
         },
         "Int": {
           "type": {
-            "name": "Int",
+            "name": "Int32",
             "type": "named"
           }
         },
         "Int16": {
           "type": {
-            "name": "Int",
+            "name": "Int16",
             "type": "named"
           }
         },
@@ -624,14 +633,14 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int16",
               "type": "named"
             }
           }
         },
         "Int32": {
           "type": {
-            "name": "Int",
+            "name": "Int32",
             "type": "named"
           }
         },
@@ -639,14 +648,14 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int32",
               "type": "named"
             }
           }
         },
         "Int64": {
           "type": {
-            "name": "Int",
+            "name": "Int64",
             "type": "named"
           }
         },
@@ -654,14 +663,14 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int64",
               "type": "named"
             }
           }
         },
         "Int8": {
           "type": {
-            "name": "Int",
+            "name": "Int8",
             "type": "named"
           }
         },
@@ -669,7 +678,7 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int8",
               "type": "named"
             }
           }
@@ -678,7 +687,7 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int32",
               "type": "named"
             }
           }
@@ -766,7 +775,7 @@
         },
         "Time": {
           "type": {
-            "name": "DateTime",
+            "name": "TimestampTZ",
             "type": "named"
           }
         },
@@ -774,7 +783,7 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "DateTime",
+              "name": "TimestampTZ",
               "type": "named"
             }
           }
@@ -805,13 +814,13 @@
         },
         "Uint": {
           "type": {
-            "name": "Int",
+            "name": "Int32",
             "type": "named"
           }
         },
         "Uint16": {
           "type": {
-            "name": "Int",
+            "name": "Int16",
             "type": "named"
           }
         },
@@ -819,14 +828,14 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int16",
               "type": "named"
             }
           }
         },
         "Uint32": {
           "type": {
-            "name": "Int",
+            "name": "Int32",
             "type": "named"
           }
         },
@@ -834,14 +843,14 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int32",
               "type": "named"
             }
           }
         },
         "Uint64": {
           "type": {
-            "name": "Int",
+            "name": "Int64",
             "type": "named"
           }
         },
@@ -849,14 +858,14 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int64",
               "type": "named"
             }
           }
         },
         "Uint8": {
           "type": {
-            "name": "Int",
+            "name": "Int8",
             "type": "named"
           }
         },
@@ -864,7 +873,7 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int8",
               "type": "named"
             }
           }
@@ -873,7 +882,7 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "Int",
+              "name": "Int32",
               "type": "named"
             }
           }
@@ -904,7 +913,7 @@
       "fields": {
         "created_at": {
           "type": {
-            "name": "DateTime",
+            "name": "TimestampTZ",
             "type": "named"
           }
         },
@@ -920,13 +929,13 @@
       "fields": {
         "Lat": {
           "type": {
-            "name": "Int",
+            "name": "Int32",
             "type": "named"
           }
         },
         "Long": {
           "type": {
-            "name": "Int",
+            "name": "Int32",
             "type": "named"
           }
         }
@@ -948,7 +957,7 @@
         },
         "num": {
           "type": {
-            "name": "Int",
+            "name": "Int32",
             "type": "named"
           }
         },
@@ -986,7 +995,7 @@
       "description": "Increase",
       "name": "increase",
       "result_type": {
-        "name": "Int",
+        "name": "Int32",
         "type": "named"
       }
     },
@@ -1047,26 +1056,50 @@
         "type": "string"
       }
     },
-    "DateTime": {
-      "aggregate_functions": {},
-      "comparison_operators": {}
-    },
-    "Float": {
+    "Float32": {
       "aggregate_functions": {},
       "comparison_operators": {},
       "representation": {
-        "type": "number"
+        "type": "float32"
+      }
+    },
+    "Float64": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "float64"
       }
     },
     "Foo": {
       "aggregate_functions": {},
       "comparison_operators": {}
     },
-    "Int": {
+    "Int16": {
       "aggregate_functions": {},
       "comparison_operators": {},
       "representation": {
-        "type": "integer"
+        "type": "int16"
+      }
+    },
+    "Int32": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "int32"
+      }
+    },
+    "Int64": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "int64"
+      }
+    },
+    "Int8": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "int8"
       }
     },
     "SomeEnum": {
@@ -1087,11 +1120,18 @@
         "type": "string"
       }
     },
+    "TimestampTZ": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "timestamptz"
+      }
+    },
     "UUID": {
       "aggregate_functions": {},
       "comparison_operators": {},
       "representation": {
-        "type": "string"
+        "type": "uuid"
       }
     }
   }
