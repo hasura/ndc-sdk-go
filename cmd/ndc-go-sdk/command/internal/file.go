@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-
-	"github.com/hasura/ndc-sdk-go/schema"
+	"slices"
 )
 
 // Decide the strategy to do when the written file exists
@@ -24,7 +23,7 @@ var enumValues_WriteFileStrategy = []WriteFileStrategy{
 // ParseWriteFileStrategy parses a WriteFileStrategy enum from string
 func ParseWriteFileStrategy(input string) (WriteFileStrategy, error) {
 	result := WriteFileStrategy(input)
-	if !schema.Contains(enumValues_WriteFileStrategy, result) {
+	if !slices.Contains(enumValues_WriteFileStrategy, result) {
 		return WriteFileStrategy(""), fmt.Errorf("failed to parse WriteFileStrategy, expect one of %v, got: %s", enumValues_WriteFileStrategy, input)
 	}
 

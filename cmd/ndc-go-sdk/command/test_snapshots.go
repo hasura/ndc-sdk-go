@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"slices"
 	"time"
 
 	"github.com/hasura/ndc-sdk-go/cmd/ndc-go-sdk/command/internal"
@@ -280,15 +281,15 @@ func (cmd *genTestSnapshotsCommand) genNestFieldAndValueInternal(rawType schema.
 }
 
 func (cmd genTestSnapshotsCommand) hasQuery(name string) bool {
-	if (len(cmd.args.Query) == 0 && len(cmd.args.Mutation) == 0) || schema.Contains(cmd.args.Query, "all") {
+	if (len(cmd.args.Query) == 0 && len(cmd.args.Mutation) == 0) || slices.Contains(cmd.args.Query, "all") {
 		return true
 	}
-	return schema.Contains(cmd.args.Query, name)
+	return slices.Contains(cmd.args.Query, name)
 }
 
 func (cmd genTestSnapshotsCommand) hasMutation(name string) bool {
-	if (len(cmd.args.Query) == 0 && len(cmd.args.Mutation) == 0) || schema.Contains(cmd.args.Mutation, "all") {
+	if (len(cmd.args.Query) == 0 && len(cmd.args.Mutation) == 0) || slices.Contains(cmd.args.Mutation, "all") {
 		return true
 	}
-	return schema.Contains(cmd.args.Mutation, name)
+	return slices.Contains(cmd.args.Mutation, name)
 }
