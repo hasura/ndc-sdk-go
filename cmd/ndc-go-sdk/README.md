@@ -40,6 +40,9 @@ Commands:
 
   generate
     Generate schema and implementation for the connector from functions.
+
+  test snapshots
+    Generate test snapshots.
 ```
 
 ### Initialize connector project
@@ -292,6 +295,43 @@ func ProcedureCreateAuthor(ctx context.Context, state *types.State, arguments *C
 // }
 ```
 
-### Example
+## Example
 
 See [example/codegen](../../example/codegen).
+
+## Test Snapshots
+
+The tool supports test snapshots generation for query and mutation requests and responses that are compatible with [ndc-test replay](https://github.com/hasura/ndc-spec/tree/main/ndc-test#custom-tests) command. See generated snapshots at [the codegen example](../../example/codegen/testdata).
+
+```bash
+Usage: hasura-ndc-go test snapshots
+
+Generate test snapshots.
+
+Flags:
+  -h, --help                     Show context-sensitive help.
+      --log-level="info"         Log level.
+
+      --schema=STRING            NDC schema file path. Use either endpoint or schema path
+      --endpoint=STRING          The endpoint of the connector. Use either endpoint or schema path
+      --dir=STRING               The directory of test snapshots.
+      --depth=10                 The selection depth of nested fields in result types.
+      --seed=SEED                Using a fixed seed will produce the same output on every run.
+      --query=QUERY,...          Specify individual queries to be generated. Separated by commas, or 'all' for all queries
+      --mutation=MUTATION,...    Specify individual mutations to be generated. Separated by commas, or 'all' for all mutations
+      --strategy="none"          Decide the strategy to do when the snapshot file exists.
+```
+
+The command accepts either a connector `--endpoint` or a JSON `--schema` file.
+
+**Endpoint**
+
+```bash
+hasura-ndc-go test snapshots --endpoint http://localhost:8080 --dir testdata
+```
+
+**NDC Schema**
+
+```bash
+hasura-ndc-go test snapshots --schema schema.generated.json --dir testdata
+```

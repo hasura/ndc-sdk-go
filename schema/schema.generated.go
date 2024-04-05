@@ -950,7 +950,8 @@ type ScalarType struct {
 	// must be defined scalar types declared in ScalarTypesCapabilities.
 	ComparisonOperators map[string]ComparisonOperatorDefinition `json:"comparison_operators" yaml:"comparison_operators" mapstructure:"comparison_operators"`
 
-	// An optional description of valid values for this scalar type
+	// A description of valid values for this scalar type. Defaults to
+	// `TypeRepresentation::JSON` if omitted
 	Representation TypeRepresentation `json:"representation,omitempty" yaml:"representation,omitempty" mapstructure:"representation,omitempty"`
 }
 

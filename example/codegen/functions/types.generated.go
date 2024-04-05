@@ -318,6 +318,7 @@ func (j Author) ToMap() map[string]any {
 	r := make(map[string]any)
 	r["created_at"] = j.CreatedAt
 	r["id"] = j.ID
+	r["tags"] = j.Tags
 
 	return r
 }

@@ -197,7 +197,7 @@ func TestDecodeDuration(t *testing.T) {
 
 func TestDecodeInt(t *testing.T) {
 
-	for _, expected := range []any{int(1), int8(2), int16(3), int32(4), int64(5), uint(6), uint8(7), uint16(8), uint32(9), uint64(10)} {
+	for _, expected := range []any{int(1), int8(2), int16(3), int32(4), int64(5), uint(6), uint8(7), uint16(8), uint32(9), uint64(10), "11"} {
 		t.Run(fmt.Sprintf("decode_%s", reflect.TypeOf(expected).String()), func(t *testing.T) {
 
 			value, err := DecodeInt[int64](expected)
@@ -292,10 +292,14 @@ func TestDecodeInt(t *testing.T) {
 
 func TestDecodeUint(t *testing.T) {
 
-	for _, expected := range []any{int(1), int8(2), int16(3), int32(4), int64(5), uint(6), uint8(7), uint16(8), uint32(9), uint64(10)} {
+	for _, expected := range []any{int(1), int8(2), int16(3), int32(4), int64(5), uint(6), uint8(7), uint16(8), uint32(9), uint64(10), "11"} {
 		t.Run(fmt.Sprintf("decode_%s", reflect.TypeOf(expected).String()), func(t *testing.T) {
 
 			value, err := DecodeUint[uint64](expected)
+			assertNoError(t, err)
+			assertEqual(t, fmt.Sprint(expected), fmt.Sprint(value))
+
+			value, err = DecodeUint[uint64](expected)
 			assertNoError(t, err)
 			assertEqual(t, fmt.Sprint(expected), fmt.Sprint(value))
 
