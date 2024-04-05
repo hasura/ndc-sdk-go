@@ -62,8 +62,10 @@ const (
 	TypeRepresentationTypeTimestamp TypeRepresentationType = "timestamp"
 	// ISO 8601 timestamp-with-timezone
 	TypeRepresentationTypeTimestampTZ TypeRepresentationType = "timestamptz"
-	// GeoJSON
+	// GeoJSON, per RFC 7946
 	TypeRepresentationTypeGeography TypeRepresentationType = "geography"
+	// GeoJSON Geometry object, per RFC 7946
+	TypeRepresentationTypeGeometry TypeRepresentationType = "geometry"
 	// Base64-encoded bytes
 	TypeRepresentationTypeBytes TypeRepresentationType = "bytes"
 	// Arbitrary JSON
@@ -88,6 +90,7 @@ var enumValues_TypeRepresentationType = []TypeRepresentationType{
 	TypeRepresentationTypeTimestamp,
 	TypeRepresentationTypeTimestampTZ,
 	TypeRepresentationTypeGeography,
+	TypeRepresentationTypeGeometry,
 	TypeRepresentationTypeBytes,
 	TypeRepresentationTypeJSON,
 }
@@ -418,7 +421,7 @@ func (ty TypeRepresentation) AsTimestampTZ() (*TypeRepresentationTimestampTZ, er
 	}, nil
 }
 
-// AsGeography tries to convert the current type to TypeRepresentationGeoJSON
+// AsGeography tries to convert the current type to TypeRepresentationGeography
 func (ty TypeRepresentation) AsGeography() (*TypeRepresentationGeography, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -429,6 +432,21 @@ func (ty TypeRepresentation) AsGeography() (*TypeRepresentationGeography, error)
 	}
 
 	return &TypeRepresentationGeography{
+		Type: t,
+	}, nil
+}
+
+// AsGeometry tries to convert the current type to TypeRepresentationGeometry
+func (ty TypeRepresentation) AsGeometry() (*TypeRepresentationGeometry, error) {
+	t, err := ty.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != TypeRepresentationTypeGeometry {
+		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeGeometry, t)
+	}
+
+	return &TypeRepresentationGeometry{
 		Type: t,
 	}, nil
 }
@@ -543,6 +561,8 @@ func (ty TypeRepresentation) InterfaceT() (TypeRepresentationEncoder, error) {
 		return ty.AsTimestampTZ()
 	case TypeRepresentationTypeGeography:
 		return ty.AsGeography()
+	case TypeRepresentationTypeGeometry:
+		return ty.AsGeometry()
 	case TypeRepresentationTypeBytes:
 		return ty.AsBytes()
 	case TypeRepresentationTypeJSON:
@@ -864,6 +884,25 @@ func NewTypeRepresentationGeography() *TypeRepresentationGeography {
 
 // Encode returns the raw TypeRepresentation instance
 func (ty TypeRepresentationGeography) Encode() TypeRepresentation {
+	return map[string]any{
+		"type": ty.Type,
+	}
+}
+
+// TypeRepresentationGeometry represents a geography JSON object
+type TypeRepresentationGeometry struct {
+	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
+}
+
+// NewTypeRepresentationGeometry creates a new TypeRepresentationGeometry instance
+func NewTypeRepresentationGeometry() *TypeRepresentationGeometry {
+	return &TypeRepresentationGeometry{
+		Type: TypeRepresentationTypeGeometry,
+	}
+}
+
+// Encode returns the raw TypeRepresentation instance
+func (ty TypeRepresentationGeometry) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}

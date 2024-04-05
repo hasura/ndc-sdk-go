@@ -19,33 +19,108 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-var defaultScalarTypes = schema.SchemaResponseScalarTypes{
-	"String": schema.ScalarType{
-		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
-		Representation:      schema.NewTypeRepresentationString().Encode(),
-	},
-	"Int": schema.ScalarType{
-		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
-		Representation:      schema.NewTypeRepresentationInteger().Encode(),
-	},
-	"Float": schema.ScalarType{
-		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
-		Representation:      schema.NewTypeRepresentationNumber().Encode(),
-	},
-	"Boolean": schema.ScalarType{
+type ScalarName string
+
+const (
+	ScalarBoolean     ScalarName = "Boolean"
+	ScalarString      ScalarName = "String"
+	ScalarInt8        ScalarName = "Int8"
+	ScalarInt16       ScalarName = "Int16"
+	ScalarInt32       ScalarName = "Int32"
+	ScalarInt64       ScalarName = "Int64"
+	ScalarFloat32     ScalarName = "Float32"
+	ScalarFloat64     ScalarName = "Float64"
+	ScalarBigDecimal  ScalarName = "BigDecimal"
+	ScalarUUID        ScalarName = "UUID"
+	ScalarDate        ScalarName = "Date"
+	ScalarTimestamp   ScalarName = "Timestamp"
+	ScalarTimestampTZ ScalarName = "TimestampTZ"
+	ScalarGeography   ScalarName = "Geography"
+	ScalarBytes       ScalarName = "Bytes"
+	ScalarJSON        ScalarName = "JSON"
+)
+
+var defaultScalarTypes = map[ScalarName]schema.ScalarType{
+	ScalarBoolean: {
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
 		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 		Representation:      schema.NewTypeRepresentationBoolean().Encode(),
 	},
-	"UUID": schema.ScalarType{
+	ScalarString: {
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
 		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 		Representation:      schema.NewTypeRepresentationString().Encode(),
 	},
-	"DateTime": *schema.NewScalarType(),
+	ScalarInt8: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationInt8().Encode(),
+	},
+	ScalarInt16: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationInt16().Encode(),
+	},
+	ScalarInt32: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationInt32().Encode(),
+	},
+	ScalarInt64: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationInt64().Encode(),
+	},
+	ScalarFloat32: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationFloat32().Encode(),
+	},
+	ScalarFloat64: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationFloat64().Encode(),
+	},
+	ScalarBigDecimal: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationBigDecimal().Encode(),
+	},
+	ScalarUUID: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationUUID().Encode(),
+	},
+	ScalarDate: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationDate().Encode(),
+	},
+	ScalarTimestamp: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationTimestamp().Encode(),
+	},
+	ScalarTimestampTZ: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationTimestampTZ().Encode(),
+	},
+	ScalarGeography: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationGeography().Encode(),
+	},
+	ScalarBytes: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationBytes().Encode(),
+	},
+	ScalarJSON: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationJSON().Encode(),
+	},
 }
 
 var ndcOperationNameRegex = regexp.MustCompile(`^(Function|Procedure)([A-Z][A-Za-z0-9]*)$`)
@@ -487,30 +562,30 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		if innerPkg != nil {
 			typeInfo.PackageName = innerPkg.Name()
 			typeInfo.PackagePath = innerPkg.Path()
-			var scalarName string
+			var scalarName ScalarName
 			switch innerPkg.Path() {
 			case "time":
 				switch innerType.Name() {
 				case "Time":
-					scalarName = "DateTime"
+					scalarName = ScalarTimestampTZ
 				case "Duration":
 					return nil, errors.New("unsupported type time.Duration. Create a scalar type wrapper with FromValue method to decode the any value")
 				}
 			case "github.com/google/uuid":
 				switch innerType.Name() {
 				case "UUID":
-					scalarName = "UUID"
+					scalarName = ScalarUUID
 				}
 			}
 
 			if scalarName != "" {
 				if scalar, ok := defaultScalarTypes[scalarName]; ok {
-					rawSchema.ScalarSchemas[scalarName] = scalar
+					rawSchema.ScalarSchemas[string(scalarName)] = scalar
 				} else {
-					rawSchema.ScalarSchemas[scalarName] = *schema.NewScalarType()
+					rawSchema.ScalarSchemas[string(scalarName)] = *schema.NewScalarType()
 				}
 				typeInfo.IsScalar = true
-				typeInfo.Schema = schema.NewNamedType(scalarName)
+				typeInfo.Schema = schema.NewNamedType(string(scalarName))
 				return typeInfo, nil
 			}
 		}
@@ -527,20 +602,32 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 
 		return sp.parseType(rawSchema, typeInfo, innerType.Type().Underlying(), append(fieldPaths, innerType.Name()), false)
 	case *types.Basic:
-		var scalarName string
+		var scalarName ScalarName
 		switch inferredType.Kind() {
 		case types.Bool:
-			scalarName = "Boolean"
-			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
-		case types.Int, types.Int8, types.Int16, types.Int32, types.Int64, types.Uint, types.Uint8, types.Uint16, types.Uint32, types.Uint64:
-			scalarName = "Int"
-			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
-		case types.Float32, types.Float64:
-			scalarName = "Float"
-			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
+			scalarName = ScalarBoolean
+			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
+		case types.Int8, types.Uint8:
+			scalarName = ScalarInt8
+			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
+		case types.Int16, types.Uint16:
+			scalarName = ScalarInt16
+			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
+		case types.Int, types.Int32, types.Uint, types.Uint32:
+			scalarName = ScalarInt32
+			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
+		case types.Int64, types.Uint64:
+			scalarName = ScalarInt64
+			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
+		case types.Float32:
+			scalarName = ScalarFloat32
+			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
+		case types.Float64:
+			scalarName = ScalarFloat64
+			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
 		case types.String:
-			scalarName = "String"
-			rawSchema.ScalarSchemas[scalarName] = defaultScalarTypes[scalarName]
+			scalarName = ScalarString
+			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
 		default:
 			return nil, fmt.Errorf("unsupported scalar type: %s", inferredType.String())
 		}
@@ -553,7 +640,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			}
 		}
 
-		rootType.Schema = schema.NewNamedType(scalarName)
+		rootType.Schema = schema.NewNamedType(string(scalarName))
 		rootType.IsScalar = true
 
 		return rootType, nil

@@ -501,7 +501,7 @@
           }
         },
         {
-          "description": "GeoJSON",
+          "description": "GeoJSON, per RFC 7946",
           "type": "object",
           "required": [
             "type"
@@ -511,6 +511,21 @@
               "type": "string",
               "enum": [
                 "geography"
+              ]
+            }
+          }
+        },
+        {
+          "description": "GeoJSON Geometry object, per RFC 7946",
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "geometry"
               ]
             }
           }

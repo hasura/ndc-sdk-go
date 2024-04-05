@@ -10,7 +10,7 @@ import (
 	"github.com/go-viper/mapstructure/v2"
 )
 
-type convertFunc[T any] func(value reflect.Value) (*T, error)
+type convertFunc[T any] func(value any) (*T, error)
 
 // ValueDecoder abstracts a type with the FromValue method to decode any value
 type ValueDecoder interface {
@@ -217,8 +217,8 @@ func (d Decoder) decodeValue(target any, value any) error {
 
 // DecodeNullableInt tries to convert an unknown value to a nullable integer
 func DecodeNullableInt[T int | int8 | int16 | int32 | int64](value any) (*T, error) {
-	return decodeNullableInt(value, func(v reflect.Value) (*T, error) {
-		rawResult, err := strconv.ParseInt(fmt.Sprint(v.Interface()), 10, 64)
+	return decodeNullableInt(value, func(v any) (*T, error) {
+		rawResult, err := strconv.ParseInt(fmt.Sprint(v), 10, 64)
 		if err != nil {
 			return nil, err
 		}
@@ -241,8 +241,8 @@ func DecodeInt[T int | int8 | int16 | int32 | int64](value any) (T, error) {
 
 // DecodeNullableUint tries to convert an unknown value to a nullable unsigned integer pointer
 func DecodeNullableUint[T uint | uint8 | uint16 | uint32 | uint64](value any) (*T, error) {
-	return decodeNullableInt(value, func(v reflect.Value) (*T, error) {
-		rawResult, err := strconv.ParseUint(fmt.Sprint(v.Interface()), 10, 64)
+	return decodeNullableInt(value, func(v any) (*T, error) {
+		rawResult, err := strconv.ParseUint(fmt.Sprint(v), 10, 64)
 		if err != nil {
 			return nil, err
 		}
@@ -293,6 +293,12 @@ func decodeNullableInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uin
 		result = T(v)
 	case float64:
 		result = T(v)
+	case string:
+		newVal, err := convertFn(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert integer, got: %s", v)
+		}
+		return newVal, err
 	case *int:
 		result = T(*v)
 	case *int8:
@@ -317,7 +323,13 @@ func decodeNullableInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uin
 		result = T(*v)
 	case *float64:
 		result = T(*v)
-	case bool, string, complex64, complex128, time.Time, time.Duration, time.Ticker, *bool, *string, *complex64, *complex128, *time.Time, *time.Duration, *time.Ticker, []bool, []string, []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64, []float32, []float64, []complex64, []complex128, []time.Time, []time.Duration, []time.Ticker:
+	case *string:
+		newVal, err := convertFn(*v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert integer, got: %s", *v)
+		}
+		return newVal, err
+	case bool, complex64, complex128, time.Time, time.Duration, time.Ticker, *bool, *complex64, *complex128, *time.Time, *time.Duration, *time.Ticker, []bool, []string, []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64, []float32, []float64, []complex64, []complex128, []time.Time, []time.Duration, []time.Ticker:
 		return nil, fmt.Errorf("failed to convert integer, got: %+v", value)
 	default:
 		inferredValue := reflect.ValueOf(value)
@@ -331,8 +343,8 @@ func decodeNullableInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uin
 			result = T(inferredValue.Int())
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 			result = T(inferredValue.Uint())
-		case reflect.Interface:
-			newVal, parseErr := convertFn(inferredValue)
+		case reflect.Interface, reflect.String:
+			newVal, parseErr := convertFn(inferredValue.Interface())
 			if parseErr != nil {
 				return nil, fmt.Errorf("failed to convert integer, got: %s (%+v)", originType.String(), inferredValue.Interface())
 			}

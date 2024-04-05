@@ -239,6 +239,18 @@ func TestTypeRepresentation(t *testing.T) {
 		assertDeepEqual(t, anyType, typeRep)
 	})
 
+	t.Run("geometry", func(t *testing.T) {
+		typeRep := NewTypeRepresentationGeometry()
+		rawType := typeRep.Encode()
+
+		_, err := rawType.AsString()
+		assertError(t, err, "invalid TypeRepresentation type; expected string, got geometry")
+
+		anyType, ok := rawType.Interface().(*TypeRepresentationGeometry)
+		assertDeepEqual(t, true, ok)
+		assertDeepEqual(t, anyType, typeRep)
+	})
+
 	t.Run("bytes", func(t *testing.T) {
 		typeRep := NewTypeRepresentationBytes()
 		rawType := typeRep.Encode()
