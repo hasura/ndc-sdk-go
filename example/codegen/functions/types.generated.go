@@ -4,6 +4,8 @@ package functions
 import (
 	"encoding/json"
 	"errors"
+
+	"github.com/hasura/ndc-sdk-go/scalar"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
 )
@@ -24,6 +26,15 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	err = functions_Decoder.DecodeObjectValue(&j.BigInt, input, "BigInt")
+	if err != nil {
+		return err
+	}
+	j.BigIntPtr = new(scalar.BigInt)
+	err = functions_Decoder.DecodeNullableObjectValue(j.BigIntPtr, input, "BigIntPtr")
+	if err != nil {
+		return err
+	}
 	j.Bool, err = utils.GetBool(input, "Bool")
 	if err != nil {
 		return err
@@ -38,6 +49,15 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	}
 	j.CustomScalarPtr = new(CommentText)
 	err = functions_Decoder.DecodeNullableObjectValue(j.CustomScalarPtr, input, "CustomScalarPtr")
+	if err != nil {
+		return err
+	}
+	err = functions_Decoder.DecodeObjectValue(&j.Date, input, "Date")
+	if err != nil {
+		return err
+	}
+	j.DatePtr = new(scalar.Date)
+	err = functions_Decoder.DecodeNullableObjectValue(j.DatePtr, input, "DatePtr")
 	if err != nil {
 		return err
 	}
@@ -287,10 +307,14 @@ func (j GetTypesArguments) ToMap() map[string]any {
 		}
 		r["ArrayObjectPtr"] = j_ArrayObjectPtr
 	}
+	r["BigInt"] = j.BigInt
+	r["BigIntPtr"] = j.BigIntPtr
 	r["Bool"] = j.Bool
 	r["BoolPtr"] = j.BoolPtr
 	r["CustomScalar"] = j.CustomScalar
 	r["CustomScalarPtr"] = j.CustomScalarPtr
+	r["Date"] = j.Date
+	r["DatePtr"] = j.DatePtr
 	r["Enum"] = j.Enum
 	r["EnumPtr"] = j.EnumPtr
 	r["Float32"] = j.Float32

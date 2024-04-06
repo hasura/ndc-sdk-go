@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-codegen-example/types"
+	"github.com/hasura/ndc-sdk-go/scalar"
 )
 
 type Text string
@@ -105,6 +106,8 @@ type GetTypesArguments struct {
 	Text         Text
 	CustomScalar CommentText
 	Enum         SomeEnum
+	BigInt       scalar.BigInt
+	Date         scalar.Date
 
 	UUIDPtr         *uuid.UUID
 	BoolPtr         *bool
@@ -125,6 +128,8 @@ type GetTypesArguments struct {
 	TextPtr         *Text
 	CustomScalarPtr *CommentText
 	EnumPtr         *SomeEnum
+	BigIntPtr       *scalar.BigInt
+	DatePtr         *scalar.Date
 
 	Object struct {
 		ID        uuid.UUID `json:"id"`

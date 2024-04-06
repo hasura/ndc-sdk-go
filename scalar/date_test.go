@@ -8,7 +8,7 @@ import (
 )
 
 func TestDate(t *testing.T) {
-	expected := "2024-04-01"
+	expected := NewDate(2014, 04, 1).String()
 	rawJSON := fmt.Sprintf(`"%s"`, expected)
 	var value Date
 	if err := json.Unmarshal([]byte(rawJSON), &value); err != nil {

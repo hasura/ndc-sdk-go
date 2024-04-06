@@ -13,6 +13,11 @@ import (
 // @scalar BigInt string
 type BigInt int64
 
+// NewBigInt creates a BigInt instance
+func NewBigInt(value int64) BigInt {
+	return BigInt(value)
+}
+
 // Stringer implements fmt.Stringer interface.
 func (bi BigInt) String() string {
 	return strconv.FormatInt(int64(bi), 10)
@@ -29,12 +34,14 @@ func (bi *BigInt) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &value); err != nil {
 		return err
 	}
-
-	iValue, err := utils.DecodeInt[int64](value)
+	iValue, err := utils.DecodeNullableInt[int64](value)
 	if err != nil {
 		return err
 	}
-	*bi = BigInt(iValue)
+	if iValue == nil {
+		return nil
+	}
+	*bi = BigInt(*iValue)
 
 	return nil
 }

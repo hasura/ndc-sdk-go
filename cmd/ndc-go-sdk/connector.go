@@ -621,7 +621,15 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableObjectUUID(input, "%s")`, fieldName, key))
 	default:
 		if ty.IsNullable() {
-			pkgName, tyName := buildTypeNameFromFragments(ty.TypeFragments[1:], sb.packagePath)
+			var pkgName, tyName string
+			typeName := strings.TrimLeft(typeName, "*")
+			scalarPackagePattern := fmt.Sprintf("%s.", sdkScalarPackageName)
+			if strings.HasPrefix(typeName, scalarPackagePattern) {
+				pkgName = sdkScalarPackageName
+				tyName = fmt.Sprintf("scalar.%s", strings.TrimLeft(typeName, scalarPackagePattern))
+			} else {
+				pkgName, tyName = buildTypeNameFromFragments(ty.TypeFragments[1:], sb.packagePath)
+			}
 			if pkgName != "" {
 				sb.imports[pkgName] = ""
 			}

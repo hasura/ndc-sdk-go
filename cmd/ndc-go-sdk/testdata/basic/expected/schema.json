@@ -1079,7 +1079,10 @@
     },
     "CommentString": {
       "aggregate_functions": {},
-      "comparison_operators": {}
+      "comparison_operators": {},
+      "representation": {
+        "type": "json"
+      }
     },
     "Float32": {
       "aggregate_functions": {},
@@ -1097,7 +1100,10 @@
     },
     "Foo": {
       "aggregate_functions": {},
-      "comparison_operators": {}
+      "comparison_operators": {},
+      "representation": {
+        "type": "json"
+      }
     },
     "Int16": {
       "aggregate_functions": {},

@@ -18,6 +18,22 @@ type Date struct {
 	time.Time
 }
 
+// NewDate creates a date instance
+func NewDate(year int, month time.Month, day int) *Date {
+	return &Date{
+		Time: time.Date(year, month, day, 0, 0, 0, 0, time.UTC),
+	}
+}
+
+// ParseDate parses a date from string
+func ParseDate(value string) (*Date, error) {
+	t, err := time.Parse(dateFormat, value)
+	if err != nil {
+		return nil, err
+	}
+	return &Date{Time: t}, nil
+}
+
 // Stringer implements fmt.Stringer interface.
 func (d Date) String() string {
 	return d.Format(dateFormat)
@@ -35,11 +51,11 @@ func (d *Date) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	date, err := time.Parse(dateFormat, value)
+	date, err := ParseDate(value)
 	if err != nil {
 		return err
 	}
-	d.Time = date
+	*d = *date
 
 	return nil
 }

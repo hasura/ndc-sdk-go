@@ -8,7 +8,7 @@ import (
 
 func TestBigInt(t *testing.T) {
 	expected := "9999"
-	var value BigInt
+	value := NewBigInt(0)
 	if err := json.Unmarshal([]byte(expected), &value); err != nil {
 		t.Errorf("failed to parse bigint: %s", err)
 		t.FailNow()

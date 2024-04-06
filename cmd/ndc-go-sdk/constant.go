@@ -5,6 +5,7 @@ const (
 	schemaOutputFile      = "schema.generated.json"
 	typeMethodsOutputFile = "types.generated.go"
 	googleUuidPackageName = "github.com/google/uuid"
+	sdkScalarPackageName  = "github.com/hasura/ndc-sdk-go/scalar"
 )
 
 const textBlockErrorCheck = `
