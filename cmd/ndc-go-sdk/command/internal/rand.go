@@ -44,7 +44,7 @@ func GenRandomScalarValue(random *rand.Rand, name string, scalar *schema.ScalarT
 	case *schema.TypeRepresentationBigDecimal:
 		return fmt.Sprintf("%.2f", random.Float64()*(10^8))
 	case *schema.TypeRepresentationDate:
-		return time.Now().Format(time.DateOnly)
+		return time.Now().Format("2006-01-02")
 	case *schema.TypeRepresentationTimestamp:
 		return time.Now().Format("2006-01-02T15:04:05Z")
 	case *schema.TypeRepresentationTimestampTZ:

@@ -10,7 +10,7 @@ import (
 // BigInt wraps the scalar implementation for 64-bit signed integer,
 // with string representation
 //
-// @scalar Int64 string
+// @scalar BigInt string
 type BigInt int64
 
 // Stringer implements fmt.Stringer interface.
