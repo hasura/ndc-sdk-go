@@ -7,6 +7,10 @@ import (
 	"github.com/hasura/ndc-sdk-go/utils"
 )
 
+const (
+	dateFormat = "2006-01-02"
+)
+
 // Date wraps the scalar implementation for date representation string
 //
 // @scalar Date date
@@ -16,7 +20,7 @@ type Date struct {
 
 // Stringer implements fmt.Stringer interface.
 func (d Date) String() string {
-	return d.Format(time.DateOnly)
+	return d.Format(dateFormat)
 }
 
 // MarshalJSON implements json.Marshaler.
@@ -31,7 +35,7 @@ func (d *Date) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	date, err := time.Parse(time.DateOnly, value)
+	date, err := time.Parse(dateFormat, value)
 	if err != nil {
 		return err
 	}
@@ -50,7 +54,7 @@ func (d *Date) FromValue(value any) error {
 		return nil
 	}
 
-	date, err := time.Parse(time.DateOnly, *sValue)
+	date, err := time.Parse(dateFormat, *sValue)
 	if err != nil {
 		return err
 	}
