@@ -69,7 +69,9 @@ var defaultScalarTypes = map[ScalarName]schema.ScalarType{
 	ScalarInt64: {
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
 		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
-		Representation:      schema.NewTypeRepresentationInt64().Encode(),
+		// json.Unmarshaler can't automatically parse integer to int64.
+		// if you want to parse int64 from string, use scalar.BigInt instead.
+		Representation: schema.NewTypeRepresentationInt32().Encode(),
 	},
 	ScalarFloat32: {
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
