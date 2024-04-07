@@ -503,3 +503,102 @@ func TestDecodeUUID(t *testing.T) {
 		assertError(t, err, "failed to parse uuid, got: false")
 	})
 }
+
+func TestDecodeNestedInterface(t *testing.T) {
+	boolValue := true
+	stringValue := "test"
+	intValue := 1
+	floatValue := 1.1
+	fixture := map[string]any{
+		"bool":      any(any(boolValue)),
+		"string":    any(any(stringValue)),
+		"int":       any(any(intValue)),
+		"float":     any(any(floatValue)),
+		"boolPtr":   any(any(&boolValue)),
+		"stringPtr": any(any(&stringValue)),
+		"intPtr":    any(any(&intValue)),
+		"floatPtr":  any(any(&floatValue)),
+		"array": any([]any{
+			any(
+				map[string]any{
+					"bool":      any(any(boolValue)),
+					"string":    any(any(stringValue)),
+					"int":       any(any(intValue)),
+					"float":     any(any(floatValue)),
+					"boolPtr":   any(any(&boolValue)),
+					"stringPtr": any(any(&stringValue)),
+					"intPtr":    any(any(&intValue)),
+					"floatPtr":  any(any(&floatValue)),
+				},
+			),
+		}),
+	}
+
+	b, err := GetBool(fixture, "bool")
+	assertNoError(t, err)
+	assertEqual(t, true, b)
+
+	s, err := GetString(fixture, "string")
+	assertNoError(t, err)
+	assertEqual(t, "test", s)
+
+	i, err := GetInt[int](fixture, "int")
+	assertNoError(t, err)
+	assertEqual(t, 1, i)
+
+	f, err := GetFloat[float32](fixture, "float")
+	assertNoError(t, err)
+	assertEqual(t, fmt.Sprint(1.1), fmt.Sprint(f))
+
+	b, err = GetBool(fixture, "boolPtr")
+	assertNoError(t, err)
+	assertEqual(t, true, b)
+
+	s, err = GetString(fixture, "stringPtr")
+	assertNoError(t, err)
+	assertEqual(t, "test", s)
+
+	i, err = GetInt[int](fixture, "intPtr")
+	assertNoError(t, err)
+	assertEqual(t, 1, i)
+
+	f, err = GetFloat[float32](fixture, "floatPtr")
+	assertNoError(t, err)
+	assertEqual(t, fmt.Sprint(1.1), fmt.Sprint(f))
+
+	arrItemAny := fixture["array"].([]any)[0]
+	arrItem := arrItemAny.(map[string]any)
+
+	b, err = GetBool(arrItem, "bool")
+	assertNoError(t, err)
+	assertEqual(t, true, b)
+
+	s, err = GetString(arrItem, "string")
+	assertNoError(t, err)
+	assertEqual(t, "test", s)
+
+	i, err = GetInt[int](arrItem, "int")
+	assertNoError(t, err)
+	assertEqual(t, 1, i)
+
+	f, err = GetFloat[float32](arrItem, "float")
+	assertNoError(t, err)
+	assertEqual(t, fmt.Sprint(1.1), fmt.Sprint(f))
+
+	b, err = GetBool(arrItem, "boolPtr")
+	assertNoError(t, err)
+	assertEqual(t, true, b)
+
+	s, err = GetString(arrItem, "stringPtr")
+	assertNoError(t, err)
+	assertEqual(t, "test", s)
+
+	i, err = GetInt[int](arrItem, "intPtr")
+	assertNoError(t, err)
+	assertEqual(t, 1, i)
+
+	f, err = GetFloat[float32](arrItem, "floatPtr")
+	assertNoError(t, err)
+	assertEqual(t, fmt.Sprint(1.1), fmt.Sprint(f))
+
+}
