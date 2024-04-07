@@ -11,7 +11,6 @@ import (
 	"encoding/base64"
 
 	"github.com/google/uuid"
-	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
 )
 
@@ -24,6 +23,8 @@ const (
 
 // GenRandomScalarValue generates random scalar value depending on its representation type
 func GenRandomScalarValue(random *rand.Rand, name string, scalar *schema.ScalarType) any {
+	baseTime := time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+
 	switch s := scalar.Representation.Interface().(type) {
 	case *schema.TypeRepresentationBoolean:
 		return random.Intn(2) == 1
@@ -40,19 +41,19 @@ func GenRandomScalarValue(random *rand.Rand, name string, scalar *schema.ScalarT
 	case *schema.TypeRepresentationFloat64:
 		return random.Float64() * (10 ^ 8)
 	case *schema.TypeRepresentationString:
-		return internal.GenRandomString(10)
+		return GenRandomString(random, 10)
 	case *schema.TypeRepresentationBigDecimal:
 		return fmt.Sprintf("%.2f", random.Float64()*(10^8))
 	case *schema.TypeRepresentationDate:
-		return time.Now().Format("2006-01-02")
+		return baseTime.Add(time.Duration(random.Intn(math.MaxInt32))).Format("2006-01-02")
 	case *schema.TypeRepresentationTimestamp:
-		return time.Now().Format("2006-01-02T15:04:05Z")
+		return baseTime.Add(time.Duration(random.Intn(math.MaxInt32))).Format("2006-01-02T15:04:05Z")
 	case *schema.TypeRepresentationTimestampTZ:
-		return time.Now().Format(time.RFC3339)
+		return baseTime.Add(time.Duration(random.Intn(math.MaxInt32))).Format(time.RFC3339)
 	case *schema.TypeRepresentationUUID:
 		return uuid.NewString()
 	case *schema.TypeRepresentationBytes:
-		return base64.StdEncoding.EncodeToString([]byte(internal.GenRandomString(10)))
+		return base64.StdEncoding.EncodeToString([]byte(GenRandomString(random, 10)))
 	case *schema.TypeRepresentationEnum:
 		return s.OneOf[rand.Intn(len(s.OneOf))]
 	default:
