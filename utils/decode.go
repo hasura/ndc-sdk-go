@@ -370,7 +370,19 @@ func DecodeNullableString(value any) (*string, error) {
 	case *string:
 		result = *v
 	default:
-		return nil, fmt.Errorf("failed to convert String, got: %v", value)
+		inferredValue := reflect.ValueOf(value)
+		for inferredValue.Kind() == reflect.Pointer {
+			inferredValue = inferredValue.Elem()
+		}
+
+		switch inferredValue.Kind() {
+		case reflect.String:
+			result = inferredValue.String()
+		case reflect.Interface:
+			result = fmt.Sprint(inferredValue.Interface())
+		default:
+			return nil, fmt.Errorf("failed to convert String, got: %v", value)
+		}
 	}
 
 	return &result, nil
@@ -498,7 +510,24 @@ func DecodeNullableBoolean(value any) (*bool, error) {
 	case *bool:
 		result = *v
 	default:
-		return nil, fmt.Errorf("failed to convert Boolean, got: %v", value)
+		inferredValue := reflect.ValueOf(value)
+		originType := inferredValue.Type()
+		for inferredValue.Kind() == reflect.Pointer {
+			inferredValue = inferredValue.Elem()
+		}
+
+		switch inferredValue.Kind() {
+		case reflect.Bool:
+			result = inferredValue.Bool()
+		case reflect.Interface:
+			b, err := strconv.ParseBool(fmt.Sprint(inferredValue.Interface()))
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert Boolean, got: %s (%+v)", originType.String(), inferredValue.Interface())
+			}
+			result = b
+		default:
+			return nil, fmt.Errorf("failed to convert Boolean, got: %v", value)
+		}
 	}
 
 	return &result, nil
