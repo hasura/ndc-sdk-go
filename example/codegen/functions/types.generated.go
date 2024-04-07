@@ -4,98 +4,13 @@ package functions
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"github.com/go-viper/mapstructure/v2"
-	"github.com/google/uuid"
+
+	"github.com/hasura/ndc-sdk-go/scalar"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
-	"reflect"
 )
 
-func decodeUUIDHookFunc() mapstructure.DecodeHookFunc {
-	return func(from reflect.Type, to reflect.Type, data any) (any, error) {
-		if to.PkgPath() != "github.com/google/uuid" || to.Name() != "UUID" {
-			return data, nil
-		}
-		result, err := _parseNullableUUID(data)
-		if err != nil || result == nil {
-			return uuid.UUID{}, err
-		}
-
-		return *result, nil
-	}
-}
-
-func _parseUUID(value any) (uuid.UUID, error) {
-	result, err := _parseNullableUUID(value)
-	if err != nil {
-		return uuid.UUID{}, err
-	}
-	if result == nil {
-		return uuid.UUID{}, errors.New("the uuid value must not be null")
-	}
-	return *result, nil
-}
-
-func _parseNullableUUID(value any) (*uuid.UUID, error) {
-	if utils.IsNil(value) {
-		return nil, nil
-	}
-	switch v := value.(type) {
-	case string:
-		result, err := uuid.Parse(v)
-		if err != nil {
-			return nil, err
-		}
-		return &result, nil
-	case *string:
-		if v == nil {
-			return nil, nil
-		}
-		result, err := uuid.Parse(*v)
-		if err != nil {
-			return nil, err
-		}
-		return &result, nil
-	case [16]byte:
-		result := uuid.UUID(v)
-		return &result, nil
-	case *[16]byte:
-		if v == nil {
-			return nil, nil
-		}
-		result := uuid.UUID(*v)
-		return &result, nil
-	default:
-		return nil, fmt.Errorf("failed to parse uuid, got: %+v", value)
-	}
-}
-
-func _getObjectUUID(object map[string]any, key string) (uuid.UUID, error) {
-	value, ok := utils.GetAny(object, key)
-	if !ok {
-		return uuid.UUID{}, fmt.Errorf("field %s is required", key)
-	}
-	result, err := _parseUUID(value)
-	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
-	}
-	return result, nil
-}
-
-func _getNullableObjectUUID(object map[string]any, key string) (*uuid.UUID, error) {
-	value, ok := utils.GetAny(object, key)
-	if !ok {
-		return nil, nil
-	}
-	result, err := _parseNullableUUID(value)
-	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
-	}
-	return result, nil
-}
-
-var functions_Decoder = utils.NewDecoder(decodeUUIDHookFunc())
+var functions_Decoder = utils.NewDecoder()
 
 // FromValue decodes values from map
 func (j *GetTypesArguments) FromValue(input map[string]any) error {
@@ -108,6 +23,15 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 		Content string "json:\"content\""
 	})
 	err = functions_Decoder.DecodeNullableObjectValue(j.ArrayObjectPtr, input, "ArrayObjectPtr")
+	if err != nil {
+		return err
+	}
+	err = functions_Decoder.DecodeObjectValue(&j.BigInt, input, "BigInt")
+	if err != nil {
+		return err
+	}
+	j.BigIntPtr = new(scalar.BigInt)
+	err = functions_Decoder.DecodeNullableObjectValue(j.BigIntPtr, input, "BigIntPtr")
 	if err != nil {
 		return err
 	}
@@ -125,6 +49,15 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	}
 	j.CustomScalarPtr = new(CommentText)
 	err = functions_Decoder.DecodeNullableObjectValue(j.CustomScalarPtr, input, "CustomScalarPtr")
+	if err != nil {
+		return err
+	}
+	err = functions_Decoder.DecodeObjectValue(&j.Date, input, "Date")
+	if err != nil {
+		return err
+	}
+	j.DatePtr = new(scalar.Date)
+	err = functions_Decoder.DecodeNullableObjectValue(j.DatePtr, input, "DatePtr")
 	if err != nil {
 		return err
 	}
@@ -248,7 +181,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.UUID, err = _getObjectUUID(input, "UUID")
+	j.UUID, err = utils.GetObjectUUID(input, "UUID")
 	if err != nil {
 		return err
 	}
@@ -256,7 +189,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.UUIDPtr, err = _getNullableObjectUUID(input, "UUIDPtr")
+	j.UUIDPtr, err = utils.GetNullableObjectUUID(input, "UUIDPtr")
 	if err != nil {
 		return err
 	}
@@ -374,10 +307,14 @@ func (j GetTypesArguments) ToMap() map[string]any {
 		}
 		r["ArrayObjectPtr"] = j_ArrayObjectPtr
 	}
+	r["BigInt"] = j.BigInt
+	r["BigIntPtr"] = j.BigIntPtr
 	r["Bool"] = j.Bool
 	r["BoolPtr"] = j.BoolPtr
 	r["CustomScalar"] = j.CustomScalar
 	r["CustomScalarPtr"] = j.CustomScalarPtr
+	r["Date"] = j.Date
+	r["DatePtr"] = j.DatePtr
 	r["Enum"] = j.Enum
 	r["EnumPtr"] = j.EnumPtr
 	r["Float32"] = j.Float32

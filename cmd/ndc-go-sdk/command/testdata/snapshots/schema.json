@@ -1,0 +1,2589 @@
+{
+  "collections": [],
+  "functions": [],
+  "procedures": [
+    {
+      "arguments": {
+        "after_expiration": {
+          "description": "Configure actions after a Checkout Session has expired.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "AfterExpirationParams",
+              "type": "named"
+            }
+          }
+        },
+        "allow_promotion_codes": {
+          "description": "Enables user redeemable promotion codes.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Boolean",
+              "type": "named"
+            }
+          }
+        },
+        "automatic_tax": {
+          "description": "Settings for automatic tax lookup for this session and resulting payments, invoices, and subscriptions.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "AutomaticTaxParams",
+              "type": "named"
+            }
+          }
+        },
+        "billing_address_collection": {
+          "description": "Specify whether Checkout should collect the customer's billing address. Defaults to `auto`.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "CheckoutBillingAddressCollection",
+              "type": "named"
+            }
+          }
+        },
+        "cancel_url": {
+          "description": "If set, Checkout displays a back button and customers will be directed to this URL if they decide to cancel payment and return to your website.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "client_reference_id": {
+          "description": "A unique string to reference the Checkout Session. This can be a\ncustomer ID, a cart ID, or similar, and can be used to reconcile the\nsession with your internal systems.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "consent_collection": {
+          "description": "Configure fields for the Checkout Session to gather active consent from customers.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "ConsentCollectionParams",
+              "type": "named"
+            }
+          }
+        },
+        "currency": {
+          "description": "Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies). Required in `setup` mode when `payment_method_types` is not set.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "custom_fields": {
+          "description": "Collect additional information from your customer using custom fields. Up to 3 fields are supported.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "PostCheckoutSessionsBodyCustomFields",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "custom_text": {
+          "description": "Display additional text for your customers using custom text.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "CustomTextParam",
+              "type": "named"
+            }
+          }
+        },
+        "customer": {
+          "description": "ID of an existing Customer, if one exists. In `payment` mode, the customer’s most recently saved card\npayment method will be used to prefill the email, name, card details, and billing address\non the Checkout page. In `subscription` mode, the customer’s [default payment method](https://stripe.com/docs/api/customers/update#update_customer-invoice_settings-default_payment_method)\nwill be used if it’s a card, otherwise the most recently saved card will be used. A valid billing address, billing name and billing email are required on the payment method for Checkout to prefill the customer's card details.\n\nIf the Customer already has a valid [email](https://stripe.com/docs/api/customers/object#customer_object-email) set, the email will be prefilled and not editable in Checkout.\nIf the Customer does not have a valid `email`, Checkout will set the email entered during the session on the Customer.\n\nIf blank for Checkout Sessions in `subscription` mode or with `customer_creation` set as `always` in `payment` mode, Checkout will create a new Customer object based on information provided during the payment flow.\n\nYou can set [`payment_intent_data.setup_future_usage`](https://stripe.com/docs/api/checkout/sessions/create#create_checkout_session-payment_intent_data-setup_future_usage) to have Checkout automatically attach the payment method to the Customer you pass in for future reuse.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "customer_creation": {
+          "description": "Configure whether a Checkout Session creates a [Customer](https://stripe.com/docs/api/customers) during Session confirmation.\n\nWhen a Customer is not created, you can still retrieve email, address, and other customer data entered in Checkout\nwith [customer_details](https://stripe.com/docs/api/checkout/sessions/object#checkout_session_object-customer_details).\n\nSessions that don't create Customers instead are grouped by [guest customers](https://stripe.com/docs/payments/checkout/guest-customers)\nin the Dashboard. Promotion codes limited to first time customers will return invalid for these Sessions.\n\nCan only be set in `payment` and `setup` mode.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "CheckoutCustomerCreation",
+              "type": "named"
+            }
+          }
+        },
+        "customer_email": {
+          "description": "If provided, this value will be used when the Customer object is created.\nIf not provided, customers will be asked to enter their email address.\nUse this parameter to prefill customer data if you already have an email\non file. To access information about the customer once a session is\ncomplete, use the `customer` field.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "customer_update": {
+          "description": "Controls what fields on Customer can be updated by the Checkout Session. Can only be provided when `customer` is provided.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "CustomerUpdateParams",
+              "type": "named"
+            }
+          }
+        },
+        "discounts": {
+          "description": "The coupon or promotion code to apply to this Session. Currently, only up to one may be specified.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "PostCheckoutSessionsBodyDiscounts",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "expand": {
+          "description": "Specifies which fields in the response should be expanded.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "String",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "expires_at": {
+          "description": "The Epoch time in seconds at which the Checkout Session will expire. It can be anywhere from 30 minutes to 24 hours after Checkout Session creation. By default, this value is 24 hours from creation.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "UnixTime",
+              "type": "named"
+            }
+          }
+        },
+        "invoice_creation": {
+          "description": "Generate a post-purchase Invoice for one-time payments.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "InvoiceCreationParams",
+              "type": "named"
+            }
+          }
+        },
+        "line_items": {
+          "description": "A list of items the customer is purchasing. Use this parameter to pass one-time or recurring [Prices](https://stripe.com/docs/api/prices).\n\nFor `payment` mode, there is a maximum of 100 line items, however it is recommended to consolidate line items if there are more than a few dozen.\n\nFor `subscription` mode, there is a maximum of 20 line items with recurring Prices and 20 line items with one-time Prices. Line items with one-time Prices will be on the initial invoice only.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "PostCheckoutSessionsBodyLineItems",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "locale": {
+          "description": "The IETF language tag of the locale Checkout is displayed in. If blank or `auto`, the browser's locale is used.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "CheckoutLocale",
+              "type": "named"
+            }
+          }
+        },
+        "metadata": {
+          "description": "Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Individual keys can be unset by posting an empty value to them. All keys can be unset by posting an empty value to `metadata`.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "mode": {
+          "description": "The mode of the Checkout Session. Pass `subscription` if the Checkout Session includes at least one recurring item.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "CheckoutMode",
+              "type": "named"
+            }
+          }
+        },
+        "payment_intent_data": {
+          "description": "A subset of parameters to be passed to PaymentIntent creation for Checkout Sessions in `payment` mode.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "PaymentIntentDataParams",
+              "type": "named"
+            }
+          }
+        },
+        "payment_method_collection": {
+          "description": "Specify whether Checkout should collect a payment method. When set to `if_required`, Checkout will not collect a payment method when the total due for the session is 0.\nThis may occur if the Checkout Session includes a free trial or a discount.\n\nCan only be set in `subscription` mode. Defaults to `always`.\n\nIf you'd like information on how to collect a payment method outside of Checkout, read the guide on configuring [subscriptions with a free trial](https://stripe.com/docs/payments/checkout/free-trials).",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "CheckoutPaymentMethodCollection",
+              "type": "named"
+            }
+          }
+        },
+        "payment_method_configuration": {
+          "description": "The ID of the payment method configuration to use with this Checkout session.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "payment_method_options": {
+          "description": "Payment-method-specific configuration.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "PaymentMethodOptionsParam",
+              "type": "named"
+            }
+          }
+        },
+        "payment_method_types": {
+          "description": "A list of the types of payment methods (e.g., `card`) this Checkout Session can accept.\n\nYou can omit this attribute to manage your payment methods from the [Stripe Dashboard](https://dashboard.stripe.com/settings/payment_methods).\nSee [Dynamic Payment Methods](https://stripe.com/docs/payments/payment-methods/integration-options#using-dynamic-payment-methods) for more details.\n\nRead more about the supported payment methods and their requirements in our [payment\nmethod details guide](/docs/payments/checkout/payment-methods).\n\nIf multiple payment methods are passed, Checkout will dynamically reorder them to\nprioritize the most relevant payment methods based on the customer's location and\nother characteristics.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "CheckoutPaymentMethodTypes",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "phone_number_collection": {
+          "description": "Controls phone number collection settings for the session.\n\nWe recommend that you review your privacy policy and check with your legal contacts\nbefore using this feature. Learn more about [collecting phone numbers with Checkout](https://stripe.com/docs/payments/checkout/phone-numbers).",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "PhoneNumberCollectionParams",
+              "type": "named"
+            }
+          }
+        },
+        "return_url": {
+          "description": "The URL to redirect your customer back to after they authenticate or cancel their payment on the\npayment method's app or site. This parameter is required if ui_mode is `embedded`\nand redirect-based payment methods are enabled on the session.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "setup_intent_data": {
+          "description": "A subset of parameters to be passed to SetupIntent creation for Checkout Sessions in `setup` mode.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SetupIntentDataParam",
+              "type": "named"
+            }
+          }
+        },
+        "shipping_address_collection": {
+          "description": "When set, provides configuration for Checkout to collect a shipping address from a customer.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "ShippingAddressCollectionParams",
+              "type": "named"
+            }
+          }
+        },
+        "shipping_options": {
+          "description": "The shipping rate options to apply to this Session. Up to a maximum of 5.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "PostCheckoutSessionsBodyShippingOptions",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "subscription_data": {
+          "description": "A subset of parameters to be passed to subscription creation for Checkout Sessions in `subscription` mode.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SubscriptionDataParams",
+              "type": "named"
+            }
+          }
+        },
+        "success_url": {
+          "description": "The URL to which Stripe should send customers when payment or setup\nis complete.\nThis parameter is not allowed if ui_mode is `embedded`. If you’d like to use\ninformation from the successful Checkout Session on your page, read the\nguide on [customizing your success page](https://stripe.com/docs/payments/checkout/custom-success-page).",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "tax_id_collection": {
+          "description": "Controls tax ID collection settings for the session.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "TaxIdCollectionParams",
+              "type": "named"
+            }
+          }
+        },
+        "ui_mode": {
+          "description": "The UI mode of the Session. Defaults to `hosted`.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "CheckoutUiMode",
+              "type": "named"
+            }
+          }
+        }
+      },
+      "name": "PostCheckoutSessions",
+      "result_type": {
+        "name": "CheckoutSession",
+        "type": "named"
+      }
+    }
+  ],
+  "object_types": {
+    "AfterExpirationParams": {
+      "description": "Configure actions after a Checkout Session has expired.",
+      "fields": {
+        "recovery": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "RecoveryParams",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "RecoveryParams": {
+      "fields": {
+        "allow_promotion_codes": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Boolean",
+              "type": "named"
+            }
+          }
+        },
+        "enabled": {
+          "type": {
+            "name": "Boolean",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "AutomaticTaxParams": {
+      "description": "Configuration for automatic tax collection.",
+      "fields": {
+        "enabled": {
+          "type": {
+            "name": "Boolean",
+            "type": "named"
+          }
+        },
+        "liability": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Param",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "Param": {
+      "fields": {
+        "country": {
+          "type": {
+            "name": "TestHelpersCountry",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "ConsentCollectionParams": {
+      "description": "Configure fields to gather active consent from customers.",
+      "fields": {
+        "payment_method_reuse_agreement": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "PaymentMethodReuseAgreementParams",
+              "type": "named"
+            }
+          }
+        },
+        "promotions": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "PaymentLinksPromotions",
+              "type": "named"
+            }
+          }
+        },
+        "terms_of_service": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "PaymentLinksTermsOfService",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "PaymentMethodReuseAgreementParams": {
+      "fields": {
+        "position": {
+          "type": {
+            "name": "PaymentLinksPosition",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "CustomTextParam": {
+      "description": "Display additional text for your customers using custom text.",
+      "fields": {
+        "after_submit": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "shipping_address": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "submit": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "terms_of_service_acceptance": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "CustomerUpdateParams": {
+      "description": "Controls what fields on Customer can be updated by the Checkout Session. Can only be provided when `customer` is provided.",
+      "fields": {
+        "address": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "CheckoutAddress",
+              "type": "named"
+            }
+          }
+        },
+        "name": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "CheckoutName",
+              "type": "named"
+            }
+          }
+        },
+        "shipping": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "CheckoutShipping",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "PostCheckoutSessionsBodyDiscounts": {
+      "fields": {
+        "coupon": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "promotion_code": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "InvoiceCreationParams": {
+      "description": "Generate a post-purchase Invoice for one-time payments.",
+      "fields": {
+        "enabled": {
+          "type": {
+            "name": "Boolean",
+            "type": "named"
+          }
+        },
+        "invoice_data": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "InvoiceDataParams",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "InvoiceDataParams": {
+      "fields": {
+        "account_tax_ids": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "custom_fields": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "description": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "footer": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "issuer": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Param",
+              "type": "named"
+            }
+          }
+        },
+        "metadata": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "rendering_options": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+
+    "PostCheckoutSessionsBodyLineItems": {
+      "fields": {
+        "adjustable_quantity": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "AdjustableQuantityParams",
+              "type": "named"
+            }
+          }
+        },
+        "dynamic_tax_rates": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "String",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "price": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "price_data": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "PriceDataWithProductData",
+              "type": "named"
+            }
+          }
+        },
+        "quantity": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int32",
+              "type": "named"
+            }
+          }
+        },
+        "tax_rates": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "String",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        }
+      }
+    },
+    "AdjustableQuantityParams": {
+      "fields": {
+        "enabled": {
+          "type": {
+            "name": "Boolean",
+            "type": "named"
+          }
+        },
+        "maximum": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int32",
+              "type": "named"
+            }
+          }
+        },
+        "minimum": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int32",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "OneTimePriceDataWithProductData": {
+      "fields": {
+        "currency": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "product": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "product_data": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "ProductData",
+              "type": "named"
+            }
+          }
+        },
+        "tax_behavior": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "InvoicesTaxBehavior",
+              "type": "named"
+            }
+          }
+        },
+        "unit_amount": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int32",
+              "type": "named"
+            }
+          }
+        },
+        "unit_amount_decimal": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "ProductData": {
+      "fields": {
+        "description": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "images": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "String",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "metadata": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "name": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "tax_code": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "RecurringAdhoc": {
+      "fields": {
+        "interval": {
+          "type": {
+            "name": "SubscriptionsInterval",
+            "type": "named"
+          }
+        },
+        "interval_count": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int32",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "PaymentIntentDataParams": {
+      "description": "A subset of parameters to be passed to PaymentIntent creation for Checkout Sessions in `payment` mode.",
+      "fields": {
+        "capture_method": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "PaymentLinksCaptureMethod",
+              "type": "named"
+            }
+          }
+        },
+        "description": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "metadata": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "setup_future_usage": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "PaymentLinksSetupFutureUsage",
+              "type": "named"
+            }
+          }
+        },
+        "statement_descriptor": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "statement_descriptor_suffix": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "transfer_group": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "PaymentMethodOptionsParam": {
+      "description": "Payment method-specific configuration for this SetupIntent.",
+      "fields": {
+        "acss_debit": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SetupIntentPaymentMethodOptionsParam",
+              "type": "named"
+            }
+          }
+        },
+        "card": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SetupIntentParam",
+              "type": "named"
+            }
+          }
+        },
+        "paypal": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "PaymentMethodOptionsParam",
+              "type": "named"
+            }
+          }
+        },
+        "sepa_debit": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SetupIntentPaymentMethodOptionsParam",
+              "type": "named"
+            }
+          }
+        },
+        "us_bank_account": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SetupIntentPaymentMethodOptionsParam",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "SetupIntentPaymentMethodOptionsParam": {
+      "fields": {
+        "financial_connections": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "LinkedAccountOptionsParam",
+              "type": "named"
+            }
+          }
+        },
+        "mandate_options": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "MandateOptionsParam",
+              "type": "named"
+            }
+          }
+        },
+        "networks": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "NetworksOptionsParam",
+              "type": "named"
+            }
+          }
+        },
+        "verification_method": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SetupIntentsVerificationMethod",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "LinkedAccountOptionsParam": {
+      "fields": {
+        "permissions": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "SetupIntentsPermissions",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "prefetch": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "SetupIntentsPrefetch",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "return_url": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "MandateOptionsParam": {
+      "fields": {
+        "collection_method": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SetupIntentsCollectionMethod",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "NetworksOptionsParam": {
+      "fields": {
+        "requested": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "SetupIntentsRequested",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        }
+      }
+    },
+    "SetupIntentParam": {
+      "fields": {
+        "mandate_options": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SetupIntentMandateOptionsParam",
+              "type": "named"
+            }
+          }
+        },
+        "network": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SetupIntentsNetwork",
+              "type": "named"
+            }
+          }
+        },
+        "request_three_d_secure": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SetupIntentsRequestThreeDSecure",
+              "type": "named"
+            }
+          }
+        },
+        "three_d_secure": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SetupIntentPaymentMethodOptionsParam",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "SetupIntentMandateOptionsParam": {
+      "fields": {
+        "amount": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "amount_type": {
+          "type": {
+            "name": "SetupIntentsAmountType",
+            "type": "named"
+          }
+        },
+        "currency": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "description": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "end_date": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "UnixTime",
+              "type": "named"
+            }
+          }
+        },
+        "interval": {
+          "type": {
+            "name": "SetupIntentsInterval",
+            "type": "named"
+          }
+        },
+        "interval_count": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int32",
+              "type": "named"
+            }
+          }
+        },
+        "reference": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "start_date": {
+          "type": {
+            "name": "UnixTime",
+            "type": "named"
+          }
+        },
+        "supported_types": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "SetupIntentsSupportedTypes",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        }
+      }
+    },
+    "PhoneNumberCollectionParams": {
+      "description": "Controls phone number collection settings during checkout.\n\nWe recommend that you review your privacy policy and check with your legal contacts.",
+      "fields": {
+        "enabled": {
+          "type": {
+            "name": "Boolean",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "SetupIntentDataParam": {
+      "description": "A subset of parameters to be passed to SetupIntent creation for Checkout Sessions in `setup` mode.",
+      "fields": {
+        "description": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "metadata": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "on_behalf_of": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "ShippingAddressCollectionParams": {
+      "description": "Configuration for collecting the customer's shipping address.",
+      "fields": {
+        "allowed_countries": {
+          "type": {
+            "element_type": {
+              "name": "PaymentLinksAllowedCountries",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        }
+      }
+    },
+    "PostCheckoutSessionsBodyShippingOptions": {
+      "fields": {
+        "shipping_rate": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "shipping_rate_data": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "MethodParams",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "MethodParams": {
+      "fields": {
+        "delivery_estimate": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "DeliveryEstimate",
+              "type": "named"
+            }
+          }
+        },
+        "display_name": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "fixed_amount": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "FixedAmount",
+              "type": "named"
+            }
+          }
+        },
+        "metadata": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "tax_behavior": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "InvoicesTaxBehavior",
+              "type": "named"
+            }
+          }
+        },
+        "tax_code": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "type": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "MethodParamsType",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "DeliveryEstimate": {
+      "description": "The estimated range for how long shipping will take, meant to be displayable to the customer. This will appear on CheckoutSessions.",
+      "fields": {
+        "maximum": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "DeliveryEstimateBound",
+              "type": "named"
+            }
+          }
+        },
+        "minimum": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "DeliveryEstimateBound",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "DeliveryEstimateBound": {
+      "fields": {
+        "unit": {
+          "type": {
+            "name": "ShippingRatesUnit",
+            "type": "named"
+          }
+        },
+        "value": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "FixedAmount": {
+      "description": "Describes a fixed amount to charge for shipping. Must be present if type is `fixed_amount`.",
+      "fields": {
+        "amount": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "currency": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "currency_options": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "SubscriptionDataParams": {
+      "description": "When creating a subscription, the specified configuration data will be used. There must be at least one line item with a recurring price to use `subscription_data`.",
+      "fields": {
+        "description": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "invoice_settings": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SubscriptionDataInvoiceSettingsParams",
+              "type": "named"
+            }
+          }
+        },
+        "metadata": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "trial_period_days": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int32",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "SubscriptionDataInvoiceSettingsParams": {
+      "fields": {
+        "issuer": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Param",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "TaxIdCollectionParams": {
+      "description": "Controls tax ID collection during checkout.",
+      "fields": {
+        "enabled": {
+          "type": {
+            "name": "Boolean",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "PriceDataWithProductData": {
+      "fields": {
+        "currency": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "product": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "product_data": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "ProductData",
+              "type": "named"
+            }
+          }
+        },
+        "recurring": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "RecurringAdhoc",
+              "type": "named"
+            }
+          }
+        },
+        "tax_behavior": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "CheckoutTaxBehavior",
+              "type": "named"
+            }
+          }
+        },
+        "unit_amount": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int32",
+              "type": "named"
+            }
+          }
+        },
+        "unit_amount_decimal": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "PostCheckoutSessionsBodyCustomFields": {
+      "fields": {
+        "key": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "optional": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Boolean",
+              "type": "named"
+            }
+          }
+        },
+        "type": {
+          "type": {
+            "name": "PostCheckoutSessionsBodyCustomFieldsType",
+            "type": "named"
+          }
+        }
+      }
+    },
+
+    "PaymentPagesCheckoutSessionInvoiceCreation": {
+      "fields": {
+        "enabled": {
+          "description": "Indicates whether invoice creation is enabled for the Checkout Session.",
+          "type": {
+            "name": "Boolean",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "PaymentPagesCheckoutSessionAfterExpiration": {
+      "fields": {
+        "recovery": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "PaymentPagesCheckoutSessionAfterExpirationRecovery",
+                "type": "named"
+              }
+            }
+          }
+        }
+      }
+    },
+    "PaymentPagesCheckoutSessionAfterExpirationRecovery": {
+      "fields": {
+        "allow_promotion_codes": {
+          "description": "Enables user redeemable promotion codes on the recovered Checkout Sessions. Defaults to `false`",
+          "type": {
+            "name": "Boolean",
+            "type": "named"
+          }
+        },
+        "enabled": {
+          "description": "If `true`, a recovery url will be generated to recover this Checkout Session if it\nexpires before a transaction is completed. It will be attached to the\nCheckout Session object upon expiration.",
+          "type": {
+            "name": "Boolean",
+            "type": "named"
+          }
+        },
+        "expires_at": {
+          "description": "The timestamp at which the recovery URL will expire.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "UnixTime",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "url": {
+          "description": "URL that creates a new Checkout Session when clicked that is a copy of this expired Checkout Session",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "String",
+                "type": "named"
+              }
+            }
+          }
+        }
+      }
+    },
+    "CheckoutSession": {
+      "description": "A Checkout Session represents your customer's session as they pay for\none-time purchases or subscriptions through [Checkout](https://stripe.com/docs/payments/checkout)\nor [Payment Links](https://stripe.com/docs/payments/payment-links). We recommend creating a\nnew Session each time your customer attempts to pay.\n\nOnce payment is successful, the Checkout Session will contain a reference\nto the [Customer](https://stripe.com/docs/api/customers), and either the successful\n[PaymentIntent](https://stripe.com/docs/api/payment_intents) or an active\n[Subscription](https://stripe.com/docs/api/subscriptions).\n\nYou can create a Checkout Session on your server and redirect to its URL\nto begin Checkout.\n\nRelated guide: [Checkout quickstart](https://stripe.com/docs/checkout/quickstart)",
+      "fields": {
+        "after_expiration": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "PaymentPagesCheckoutSessionAfterExpiration",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "allow_promotion_codes": {
+          "description": "Enables user redeemable promotion codes.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Boolean",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "amount_subtotal": {
+          "description": "Total of all items before discounts or taxes are applied.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "amount_total": {
+          "description": "Total of all items after discounts and taxes are applied.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "cancel_url": {
+          "description": "If set, Checkout displays a back button and customers will be directed to this URL if they decide to cancel payment and return to your website.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "String",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "client_reference_id": {
+          "description": "A unique string to reference the Checkout Session. This can be a\ncustomer ID, a cart ID, or similar, and can be used to reconcile the\nSession with your internal systems.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "String",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "client_secret": {
+          "description": "Client secret to be used when initializing Stripe.js embedded checkout.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "String",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "created": {
+          "description": "Time at which the object was created. Measured in seconds since the Unix epoch.",
+          "type": {
+            "name": "UnixTime",
+            "type": "named"
+          }
+        },
+        "currency": {
+          "description": "Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "String",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "currency_conversion": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "PaymentPagesCheckoutSessionCurrencyConversion",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "customer": {
+          "description": "The ID of the customer for this Session.\nFor Checkout Sessions in `subscription` mode or Checkout Sessions with `customer_creation` set as `always` in `payment` mode, Checkout\nwill create a new customer object based on information provided\nduring the payment flow unless an existing customer was provided when\nthe Session was created.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "customer_email": {
+          "description": "If provided, this value will be used when the Customer object is created.\nIf not provided, customers will be asked to enter their email address.\nUse this parameter to prefill customer data if you already have an email\non file. To access information about the customer once the payment flow is\ncomplete, use the `customer` attribute.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "String",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "expires_at": {
+          "description": "The timestamp at which the Checkout Session will expire.",
+          "type": {
+            "name": "UnixTime",
+            "type": "named"
+          }
+        },
+        "id": {
+          "description": "Unique identifier for the object.",
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "invoice": {
+          "description": "ID of the invoice created by the Checkout Session, if it exists.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "invoice_creation": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "PaymentPagesCheckoutSessionInvoiceCreation",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "livemode": {
+          "description": "Has the value `true` if the object exists in live mode or the value `false` if the object exists in test mode.",
+          "type": {
+            "name": "Boolean",
+            "type": "named"
+          }
+        },
+        "locale": {
+          "description": "The IETF language tag of the locale Checkout is displayed in. If blank or `auto`, the browser's locale is used.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "CheckoutSessionLocale",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "metadata": {
+          "description": "Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "payment_intent": {
+          "description": "The ID of the PaymentIntent for Checkout Sessions in `payment` mode.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "payment_link": {
+          "description": "The ID of the Payment Link that created this Session.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "payment_method_collection": {
+          "description": "Configure whether a Checkout Session should collect a payment method. Defaults to `always`.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "CheckoutSessionPaymentMethodCollection",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "payment_method_configuration_details": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "PaymentMethodConfigBizPaymentMethodConfigurationDetails",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "payment_method_types": {
+          "description": "A list of the types of payment methods (e.g. card) this Checkout\nSession is allowed to accept.",
+          "type": {
+            "element_type": {
+              "name": "String",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "phone_number_collection": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "PaymentPagesCheckoutSessionPhoneNumberCollection",
+              "type": "named"
+            }
+          }
+        },
+        "recovered_from": {
+          "description": "The ID of the original expired Checkout Session that triggered the recovery flow.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "String",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "return_url": {
+          "description": "Applies to Checkout Sessions with `ui_mode: embedded`. The URL to redirect your customer back to after they authenticate or cancel their payment on the payment method's app or site.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "setup_intent": {
+          "description": "The ID of the SetupIntent for Checkout Sessions in `setup` mode.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "shipping_cost": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "PaymentPagesCheckoutSessionShippingCost",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "shipping_options": {
+          "description": "The shipping rate options applied to this Session.",
+          "type": {
+            "element_type": {
+              "name": "PaymentPagesCheckoutSessionShippingOption",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "status": {
+          "description": "The status of the Checkout Session, one of `open`, `complete`, or `expired`.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "CheckoutSessionStatus",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "subscription": {
+          "description": "The ID of the subscription for Checkout Sessions in `subscription` mode.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "success_url": {
+          "description": "The URL the customer will be directed to after the payment or\nsubscription creation is successful.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "String",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "tax_id_collection": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "PaymentPagesCheckoutSessionTaxIdCollection",
+              "type": "named"
+            }
+          }
+        },
+        "total_details": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "PaymentPagesCheckoutSessionTotalDetails",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "ui_mode": {
+          "description": "The UI mode of the Session. Defaults to `hosted`.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "CheckoutSessionUiMode",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "url": {
+          "description": "The URL to the Checkout Session. Redirect customers to this URL to take them to Checkout. If you’re using [Custom Domains](https://stripe.com/docs/payments/checkout/custom-domains), the URL will use your subdomain. Otherwise, it’ll use `checkout.stripe.com.`\nThis value is only present when the session is active.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "String",
+                "type": "named"
+              }
+            }
+          }
+        }
+      }
+    },
+    "PaymentPagesCheckoutSessionCurrencyConversion": {
+      "fields": {
+        "amount_subtotal": {
+          "description": "Total of all items in source currency before discounts or taxes are applied.",
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "amount_total": {
+          "description": "Total of all items in source currency after discounts and taxes are applied.",
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "fx_rate": {
+          "description": "Exchange rate used to convert source currency amounts to customer currency amounts",
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "source_currency": {
+          "description": "Creation currency of the CheckoutSession before localization",
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "PaymentPagesCheckoutSessionTaxIdCollection": {
+      "fields": {
+        "enabled": {
+          "description": "Indicates whether tax ID collection is enabled for the session",
+          "type": {
+            "name": "Boolean",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "PaymentMethodConfigBizPaymentMethodConfigurationDetails": {
+      "fields": {
+        "id": {
+          "description": "ID of the payment method configuration used.",
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "parent": {
+          "description": "ID of the parent payment method configuration used.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "String",
+                "type": "named"
+              }
+            }
+          }
+        }
+      }
+    },
+    "PaymentPagesCheckoutSessionPhoneNumberCollection": {
+      "fields": {
+        "enabled": {
+          "description": "Indicates whether phone number collection is enabled for the session",
+          "type": {
+            "name": "Boolean",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "PaymentPagesCheckoutSessionTotalDetails": {
+      "fields": {
+        "amount_discount": {
+          "description": "This is the sum of all the discounts.",
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "amount_shipping": {
+          "description": "This is the sum of all the shipping amounts.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            }
+          }
+        },
+        "amount_tax": {
+          "description": "This is the sum of all the tax amounts.",
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "PaymentPagesCheckoutSessionShippingOption": {
+      "fields": {
+        "shipping_amount": {
+          "description": "A non-negative integer in cents representing how much to charge.",
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "shipping_rate": {
+          "description": "The shipping rate.",
+          "type": {
+            "name": "JSON",
+            "type": "named"
+          }
+        }
+      }
+    },
+
+    "PaymentPagesCheckoutSessionShippingCost": {
+      "fields": {
+        "amount_subtotal": {
+          "description": "Total shipping cost before any discounts or taxes are applied.",
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "amount_tax": {
+          "description": "Total tax amount applied due to shipping costs. If no tax was applied, defaults to 0.",
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "amount_total": {
+          "description": "Total shipping cost after discounts and taxes are applied.",
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "shipping_rate": {
+          "description": "The ID of the ShippingRate for this order.",
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        }
+      }
+    }
+  },
+  "scalar_types": {
+    "CheckoutSessionUiMode": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["embedded", "hosted"],
+        "type": "enum"
+      }
+    },
+    "Boolean": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "boolean"
+      }
+    },
+    "JSON": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "json"
+      }
+    },
+    "String": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "string"
+      }
+    },
+    "TestHelpersCountry": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["AT", "BE", "DE", "ES", "IT", "NL"],
+        "type": "enum"
+      }
+    },
+    "CheckoutBillingAddressCollection": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["auto", "required"],
+        "type": "enum"
+      }
+    },
+    "CheckoutCustomerCreation": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["always", "if_required"],
+        "type": "enum"
+      }
+    },
+    "PaymentLinksPosition": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["auto", "hidden"],
+        "type": "enum"
+      }
+    },
+    "PostCheckoutSessionsBodyCustomFieldsType": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["dropdown", "numeric", "text"],
+        "type": "enum"
+      }
+    },
+    "CheckoutAddress": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["auto", "never"],
+        "type": "enum"
+      }
+    },
+    "CheckoutName": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["auto", "never"],
+        "type": "enum"
+      }
+    },
+    "CheckoutShipping": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["auto", "never"],
+        "type": "enum"
+      }
+    },
+    "UnixTime": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "int32"
+      }
+    },
+    "CheckoutTaxBehavior": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["exclusive", "inclusive", "unspecified"],
+        "type": "enum"
+      }
+    },
+    "CheckoutSessionPaymentMethodCollection": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["always", "if_required"],
+        "type": "enum"
+      }
+    },
+    "CheckoutLocale": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["auto", "bg", "cs", "da"],
+        "type": "enum"
+      }
+    },
+    "CheckoutMode": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["payment", "setup", "subscription"],
+        "type": "enum"
+      }
+    },
+    "PaymentLinksCaptureMethod": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["automatic", "automatic_async", "manual"],
+        "type": "enum"
+      }
+    },
+    "PaymentLinksSetupFutureUsage": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["off_session", "on_session"],
+        "type": "enum"
+      }
+    },
+    "CheckoutPaymentMethodCollection": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["always", "if_required"],
+        "type": "enum"
+      }
+    },
+    "SetupIntentsPermissions": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["balances", "ownership", "payment_method", "transactions"],
+        "type": "enum"
+      }
+    },
+    "SetupIntentsPrefetch": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["balances", "transactions"],
+        "type": "enum"
+      }
+    },
+    "SetupIntentsCollectionMethod": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["", "paper"],
+        "type": "enum"
+      }
+    },
+    "SetupIntentsRequested": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["ach", "us_domestic_wire"],
+        "type": "enum"
+      }
+    },
+    "SetupIntentsVerificationMethod": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["automatic", "instant", "microdeposits"],
+        "type": "enum"
+      }
+    },
+    "SetupIntentsAmountType": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["fixed", "maximum"],
+        "type": "enum"
+      }
+    },
+    "SetupIntentsInterval": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["day", "month", "sporadic", "week", "year"],
+        "type": "enum"
+      }
+    },
+    "CheckoutPaymentMethodTypes": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["acss_debit", "affirm", "afterpay_clearpay", "alipay"],
+        "type": "enum"
+      }
+    },
+    "PaymentLinksAllowedCountries": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["AC", "AD", "AE", "AF", "AG"],
+        "type": "enum"
+      }
+    },
+    "ShippingRatesUnit": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["business_day", "day", "hour", "month", "week"],
+        "type": "enum"
+      }
+    },
+    "InvoicesTaxBehavior": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["exclusive", "inclusive", "unspecified"],
+        "type": "enum"
+      }
+    },
+    "CheckoutUiMode": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["embedded", "hosted"],
+        "type": "enum"
+      }
+    },
+    "PaymentLinksPromotions": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["auto", "none"],
+        "type": "enum"
+      }
+    },
+    "PaymentLinksTermsOfService": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["none", "required"],
+        "type": "enum"
+      }
+    },
+    "Int32": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "int32"
+      }
+    },
+    "MethodParamsType": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["fixed_amount"],
+        "type": "enum"
+      }
+    },
+    "SubscriptionsInterval": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["day", "month", "week", "year"],
+        "type": "enum"
+      }
+    },
+    "SetupIntentsSupportedTypes": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["india"],
+        "type": "enum"
+      }
+    },
+    "SetupIntentsNetwork": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["amex", "cartes_bancaires", "diners"],
+        "type": "enum"
+      }
+    },
+    "SetupIntentsRequestThreeDSecure": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["any", "automatic", "challenge"],
+        "type": "enum"
+      }
+    },
+    "CheckoutSessionStatus": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["complete", "expired", "open"],
+        "type": "enum"
+      }
+    },
+    "CheckoutSessionLocale": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["auto", "bg", "cs", "da", "de"],
+        "type": "enum"
+      }
+    }
+  }
+}

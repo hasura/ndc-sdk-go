@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 func assertNoError(t *testing.T, err error) {
@@ -469,5 +471,35 @@ func TestDecodeFloat(t *testing.T) {
 	t.Run("decode_invalid_type", func(t *testing.T) {
 		_, err := DecodeFloat[float64]("failure")
 		assertError(t, err, "failed to convert Float, got: failure")
+	})
+}
+
+func TestDecodeUUID(t *testing.T) {
+	t.Run("decode_value", func(t *testing.T) {
+		expected := uuid.NewString()
+		value, err := DecodeUUID(expected)
+		assertNoError(t, err)
+		assertEqual(t, expected, value.String())
+	})
+
+	t.Run("decode_pointer", func(t *testing.T) {
+		expected := uuid.NewString()
+		ptr, err := DecodeNullableUUID(&expected)
+		assertNoError(t, err)
+		assertEqual(t, expected, (*ptr).String())
+
+		ptr2, err := DecodeNullableUUID(ptr)
+		assertNoError(t, err)
+		assertEqual(t, ptr.String(), ptr2.String())
+	})
+
+	t.Run("decode_nil", func(t *testing.T) {
+		_, err := DecodeUUID(nil)
+		assertError(t, err, "the uuid value must not be null")
+	})
+
+	t.Run("decode_invalid_type", func(t *testing.T) {
+		_, err := DecodeUUID(false)
+		assertError(t, err, "failed to parse uuid, got: false")
 	})
 }

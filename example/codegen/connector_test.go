@@ -14,6 +14,7 @@ import (
 	"github.com/hasura/ndc-codegen-example/functions"
 	"github.com/hasura/ndc-codegen-example/types"
 	"github.com/hasura/ndc-sdk-go/connector"
+	"github.com/hasura/ndc-sdk-go/scalar"
 	"github.com/hasura/ndc-sdk-go/utils"
 	"github.com/stretchr/testify/assert"
 )
@@ -128,6 +129,14 @@ func TestQueryGetTypes(t *testing.T) {
 						"type": "literal",
 						"value": "foo"
 					},
+					"BigInt": {
+						"type": "literal",
+						"value": "10000"
+					},
+					"Date": {
+						"type": "literal",
+						"value": "2024-04-02"
+					},
 					"UUIDPtr": {
 						"type": "literal",
 						"value": "b085b0b9-007c-440e-9661-0d8f2de98a5b"
@@ -208,6 +217,14 @@ func TestQueryGetTypes(t *testing.T) {
 					"EnumPtr": {
 						"type": "literal",
 						"value": "bar"
+					},
+					"BigIntPtr": {
+						"type": "literal",
+						"value": "20000"
+					},
+					"DatePtr": {
+						"type": "literal",
+						"value": "2024-04-03"
 					},
 					"Object": {
 						"type": "literal",
@@ -394,6 +411,22 @@ func TestQueryGetTypes(t *testing.T) {
 									},
 									"IntPtr": {
 										"column": "IntPtr",
+										"type": "column"
+									},
+									"BigInt": {
+										"column": "BigInt",
+										"type": "column"
+									},
+									"BigIntPtr": {
+										"column": "BigIntPtr",
+										"type": "column"
+									},
+									"Date": {
+										"column": "Date",
+										"type": "column"
+									},
+									"DatePtr": {
+										"column": "DatePtr",
 										"type": "column"
 									},
 									"NamedArray": {
@@ -609,6 +642,8 @@ func TestQueryGetTypes(t *testing.T) {
 				Text:            "text",
 				CustomScalar:    commentText,
 				Enum:            functions.SomeEnumFoo,
+				BigInt:          10000,
+				Date:            *scalar.NewDate(2024, 04, 02),
 				UUIDPtr:         utils.ToPtr(uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5b")),
 				BoolPtr:         utils.ToPtr(true),
 				StringPtr:       utils.ToPtr("world"),
@@ -628,6 +663,8 @@ func TestQueryGetTypes(t *testing.T) {
 				TextPtr:         utils.ToPtr(functions.Text("text pointer")),
 				CustomScalarPtr: &commentTextPtr,
 				EnumPtr:         utils.ToPtr(functions.SomeEnumBar),
+				BigIntPtr:       utils.ToPtr(scalar.BigInt(20000)),
+				DatePtr:         scalar.NewDate(2024, 04, 03),
 				Object: struct {
 					ID        uuid.UUID `json:"id"`
 					CreatedAt time.Time `json:"created_at"`

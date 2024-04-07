@@ -20,7 +20,6 @@ type GenTestSnapshotArguments struct {
 	Endpoint string                     `help:"The endpoint of the connector. Use either endpoint or schema path"`
 	Dir      string                     `help:"The directory of test snapshots."`
 	Depth    uint                       `help:"The selection depth of nested fields in result types." default:"10"`
-	Seed     *int64                     `help:"Using a fixed seed will produce the same output on every run."`
 	Query    []string                   `help:"Specify individual queries to be generated. Separated by commas, or 'all' for all queries"`
 	Mutation []string                   `help:"Specify individual mutations to be generated. Separated by commas, or 'all' for all mutations"`
 	Strategy internal.WriteFileStrategy `help:"Decide the strategy to do when the snapshot file exists. Accept: none, override" enum:"none,override" default:"none"`
@@ -36,9 +35,6 @@ type genTestSnapshotsCommand struct {
 // GenTestSnapshots generates test snapshots from NDC schema
 func GenTestSnapshots(args *GenTestSnapshotArguments) error {
 	seed := time.Now().UnixNano()
-	if args.Seed != nil {
-		seed = *args.Seed
-	}
 	random := rand.New(rand.NewSource(seed))
 	cmd := genTestSnapshotsCommand{
 		args:   args,

@@ -69,7 +69,9 @@ var defaultScalarTypes = map[ScalarName]schema.ScalarType{
 	ScalarInt64: {
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
 		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
-		Representation:      schema.NewTypeRepresentationInt64().Encode(),
+		// json.Unmarshaler can't automatically parse integer to int64.
+		// if you want to parse int64 from string, use scalar.BigInt instead.
+		Representation: schema.NewTypeRepresentationInt32().Encode(),
 	},
 	ScalarFloat32: {
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
@@ -560,14 +562,16 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		innerPkg := innerType.Pkg()
 
 		if innerPkg != nil {
+			var scalarName ScalarName
 			typeInfo.PackageName = innerPkg.Name()
 			typeInfo.PackagePath = innerPkg.Path()
-			var scalarName ScalarName
+			scalarSchema := schema.NewScalarType()
 			switch innerPkg.Path() {
 			case "time":
 				switch innerType.Name() {
 				case "Time":
 					scalarName = ScalarTimestampTZ
+					scalarSchema.Representation = schema.NewTypeRepresentationTimestampTZ().Encode()
 				case "Duration":
 					return nil, errors.New("unsupported type time.Duration. Create a scalar type wrapper with FromValue method to decode the any value")
 				}
@@ -575,17 +579,22 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 				switch innerType.Name() {
 				case "UUID":
 					scalarName = ScalarUUID
+					scalarSchema.Representation = schema.NewTypeRepresentationUUID().Encode()
+				}
+			case "github.com/hasura/ndc-sdk-go/scalar":
+				scalarName = ScalarName(innerType.Name())
+				switch innerType.Name() {
+				case "Date":
+					scalarSchema.Representation = schema.NewTypeRepresentationDate().Encode()
+				case "BigInt":
+					scalarSchema.Representation = schema.NewTypeRepresentationInt64().Encode()
 				}
 			}
 
 			if scalarName != "" {
-				if scalar, ok := defaultScalarTypes[scalarName]; ok {
-					rawSchema.ScalarSchemas[string(scalarName)] = scalar
-				} else {
-					rawSchema.ScalarSchemas[string(scalarName)] = *schema.NewScalarType()
-				}
 				typeInfo.IsScalar = true
 				typeInfo.Schema = schema.NewNamedType(string(scalarName))
+				rawSchema.ScalarSchemas[string(scalarName)] = *scalarSchema
 				return typeInfo, nil
 			}
 		}
@@ -595,6 +604,9 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			scalarSchema := schema.NewScalarType()
 			if typeInfo.ScalarRepresentation != nil {
 				scalarSchema.Representation = typeInfo.ScalarRepresentation
+			} else {
+				// requires representation since NDC spec v0.1.2
+				scalarSchema.Representation = schema.NewTypeRepresentationJSON().Encode()
 			}
 			rawSchema.ScalarSchemas[typeInfo.SchemaName] = *scalarSchema
 			return typeInfo, nil
@@ -676,6 +688,7 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, scope *types.
 	}
 	comments := make([]string, 0)
 	commentGroup := findCommentsFromPos(sp.pkg, scope, typeName)
+
 	if commentGroup != nil {
 		for i, line := range commentGroup.List {
 			text := strings.TrimSpace(strings.TrimLeft(line.Text, "/"))

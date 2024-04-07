@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-viper/mapstructure/v2"
+	"github.com/google/uuid"
 )
 
 type convertFunc[T any] func(value any) (*T, error)
@@ -809,6 +810,83 @@ func GetDuration(object map[string]any, key string) (time.Duration, error) {
 	return result, nil
 }
 
+// DecodeUUID decodes UUID from string
+func DecodeUUID(value any) (uuid.UUID, error) {
+	result, err := DecodeNullableUUID(value)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	if result == nil {
+		return uuid.UUID{}, errors.New("the uuid value must not be null")
+	}
+	return *result, nil
+}
+
+// DecodeNullableUUID decodes UUID pointer from string or bytes
+func DecodeNullableUUID(value any) (*uuid.UUID, error) {
+	if IsNil(value) {
+		return nil, nil
+	}
+	switch v := value.(type) {
+	case string:
+		result, err := uuid.Parse(v)
+		if err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case *string:
+		if v == nil {
+			return nil, nil
+		}
+		result, err := uuid.Parse(*v)
+		if err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case [16]byte:
+		result := uuid.UUID(v)
+		return &result, nil
+	case *[16]byte:
+		if v == nil {
+			return nil, nil
+		}
+		result := uuid.UUID(*v)
+		return &result, nil
+	case uuid.UUID:
+		return &v, nil
+	case *uuid.UUID:
+		return v, nil
+	default:
+		return nil, fmt.Errorf("failed to parse uuid, got: %+v", value)
+	}
+}
+
+// GetObjectUUID get an UUID value from object by key
+func GetObjectUUID(object map[string]any, key string) (uuid.UUID, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return uuid.UUID{}, fmt.Errorf("field %s is required", key)
+	}
+	result, err := DecodeUUID(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+// GetNullableObjectUUID get an UUID pointer from object by key
+func GetNullableObjectUUID(object map[string]any, key string) (*uuid.UUID, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := DecodeNullableUUID(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
 func decodeAnyValue(target any, value any, decodeHook mapstructure.DecodeHookFunc) error {
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		Result:     target,
@@ -824,6 +902,7 @@ func decodeAnyValue(target any, value any, decodeHook mapstructure.DecodeHookFun
 var defaultDecodeFuncs = []mapstructure.DecodeHookFunc{
 	decodeValueHookFunc(),
 	decodeTimeHookFunc(),
+	decodeUUIDHookFunc(),
 }
 
 func decodeValueHookFunc() mapstructure.DecodeHookFunc {
@@ -875,5 +954,19 @@ func decodeTimeHookFunc() mapstructure.DecodeHookFunc {
 		default:
 			return nil, fmt.Errorf("failed to decode time.Time, got: %s", kind.String())
 		}
+	}
+}
+
+func decodeUUIDHookFunc() mapstructure.DecodeHookFunc {
+	return func(from reflect.Type, to reflect.Type, data any) (any, error) {
+		if to.PkgPath() != "github.com/google/uuid" || to.Name() != "UUID" {
+			return data, nil
+		}
+		result, err := DecodeNullableUUID(data)
+		if err != nil || result == nil {
+			return uuid.UUID{}, err
+		}
+
+		return *result, nil
 	}
 }
