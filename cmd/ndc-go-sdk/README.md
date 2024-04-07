@@ -183,13 +183,23 @@ type HelloArguments struct {
 
 The basic scalar types supported are:
 
-- `string` (NDC scalar type: `String`)
-- `int`, `int8`, `int16`, `int32`, `int64`, `uint`, `uint8`, `uint16`, `uint32`, `uint64` (NDC scalar type: `Int`)
-- `float32`, `float64` (NDC scalar type: `Float`)
-- `bool` (NDC scalar type: `Boolean`)
-- `time.Time` (NDC scalar type: `DateTime`, represented as an [ISO formatted](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString) string in JSON)
-- `github.com/google/uuid.UUID` (NDC scalar type: `UUID`, represented as a UUID string in JSON).
-- Type representation and enum.
+| Name        | Native type                 | Description                                                                           | JSON representation |
+| ----------- | --------------------------- | ------------------------------------------------------------------------------------- | ------------------- |
+| Boolean     | bool                        | A 8-bit signed integer with a minimum value of -2^7 and a maximum value of 2^7 - 1    | boolean             |
+| String      | string                      | String                                                                                | string              |
+| Int8        | int8, uin8                  | A 8-bit signed integer with a minimum value of -2^7 and a maximum value of 2^7 - 1    | int8                |
+| Int16       | int16, uint16               | A 16-bit signed integer with a minimum value of -2^15 and a maximum value of 2^15 - 1 | int16               |
+| Int32       | int32, uint32               | A 32-bit signed integer with a minimum value of -2^31 and a maximum value of 2^31 - 1 | int32               |
+| Int64       | int64, uint64               | A 64-bit signed integer with a minimum value of -2^63 and a maximum value of 2^63 - 1 | int32               |
+| Bigint      | scalar.BigInt               | A 64-bit signed integer with a minimum value of -2^63 and a maximum value of 2^63 - 1 | string              |
+| Float32     | float32                     | An IEEE-754 single-precision floating-point number                                    | float32             |
+| Float64     | float64                     | An IEEE-754 double-precision floating-point number                                    | float64             |
+| UUID        | github.com/google/uuid.UUID | UUID string (8-4-4-4-12)                                                              | uuid                |
+| Date        | scalar.Date                 | ISO 8601 date                                                                         | string              |
+| TimestampTZ | time.Time                   | ISO 8601 timestamp-with-timezone                                                      | string              |
+| Enum        |                             | Enumeration values                                                                    | string              |
+
+> json.Unmarshaler can't automatically decode string to `int64` value. If you want to parse int64 from string, use `scalar.BigInt` instead
 
 Alias scalar types will be inferred to the origin type in the schema.
 
@@ -279,6 +289,10 @@ The tool will help generate schema, constants and helper methods for it.
 ```
 
 ![Enum scalar](../../assets/scalar-enum.gif)
+
+#### Limitation
+
+Comments of types from third-party packages can't be parsed. If you want to use scalars from 3rd dependencies, you must wrap them with type alias.
 
 ### Documentation
 
