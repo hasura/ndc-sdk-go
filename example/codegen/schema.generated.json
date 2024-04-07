@@ -33,6 +33,21 @@
             }
           }
         },
+        "BigInt": {
+          "type": {
+            "name": "BigInt",
+            "type": "named"
+          }
+        },
+        "BigIntPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "BigInt",
+              "type": "named"
+            }
+          }
+        },
         "Bool": {
           "type": {
             "name": "Boolean",
@@ -59,6 +74,21 @@
             "type": "nullable",
             "underlying_type": {
               "name": "CommentString",
+              "type": "named"
+            }
+          }
+        },
+        "Date": {
+          "type": {
+            "name": "Date",
+            "type": "named"
+          }
+        },
+        "DatePtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Date",
               "type": "named"
             }
           }
@@ -542,6 +572,21 @@
             }
           }
         },
+        "BigInt": {
+          "type": {
+            "name": "BigInt",
+            "type": "named"
+          }
+        },
+        "BigIntPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "BigInt",
+              "type": "named"
+            }
+          }
+        },
         "Bool": {
           "type": {
             "name": "Boolean",
@@ -568,6 +613,21 @@
             "type": "nullable",
             "underlying_type": {
               "name": "CommentString",
+              "type": "named"
+            }
+          }
+        },
+        "Date": {
+          "type": {
+            "name": "Date",
+            "type": "named"
+          }
+        },
+        "DatePtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Date",
               "type": "named"
             }
           }
@@ -1042,6 +1102,13 @@
     }
   ],
   "scalar_types": {
+    "BigInt": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "int64"
+      }
+    },
     "Boolean": {
       "aggregate_functions": {},
       "comparison_operators": {},
@@ -1054,6 +1121,13 @@
       "comparison_operators": {},
       "representation": {
         "type": "string"
+      }
+    },
+    "Date": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "date"
       }
     },
     "Float32": {
@@ -1072,7 +1146,10 @@
     },
     "Foo": {
       "aggregate_functions": {},
-      "comparison_operators": {}
+      "comparison_operators": {},
+      "representation": {
+        "type": "json"
+      }
     },
     "Int16": {
       "aggregate_functions": {},
@@ -1092,7 +1169,7 @@
       "aggregate_functions": {},
       "comparison_operators": {},
       "representation": {
-        "type": "int64"
+        "type": "int32"
       }
     },
     "Int8": {

@@ -31,15 +31,6 @@ func (ctb *connectorTypeBuilder) SetImport(value string, alias string) {
 	ctb.imports[value] = alias
 }
 
-// SetUuidImports set required imports for uuid.UUID
-func (ctb *connectorTypeBuilder) SetUuidImports() {
-	ctb.SetImport("fmt", "")
-	ctb.SetImport("errors", "")
-	ctb.SetImport("reflect", "")
-	ctb.SetImport("github.com/go-viper/mapstructure/v2", "")
-	ctb.SetImport(googleUuidPackageName, "")
-}
-
 // GetDecoderName gets the global decoder name
 func (ctb connectorTypeBuilder) GetDecoderName() string {
 	return fmt.Sprintf("%s_Decoder", ctb.packageName)
@@ -63,12 +54,7 @@ func (ctb connectorTypeBuilder) String() string {
 	}
 
 	decoderName := ctb.GetDecoderName()
-	if _, ok := ctb.imports[googleUuidPackageName]; ok {
-		bs.WriteString(textBlockUUIDParsers)
-		bs.WriteString(fmt.Sprintf("var %s = utils.NewDecoder(decodeUUIDHookFunc())\n", decoderName))
-	} else {
-		bs.WriteString(fmt.Sprintf("var %s = utils.NewDecoder()\n", decoderName))
-	}
+	bs.WriteString(fmt.Sprintf("var %s = utils.NewDecoder()\n", decoderName))
 	bs.WriteString(ctb.builder.String())
 	return bs.String()
 }
@@ -472,6 +458,7 @@ func (j %s) ScalarName() string {
 
 			switch scalarRep := scalar.ScalarRepresentation.Interface().(type) {
 			case *schema.TypeRepresentationEnum:
+				sb.imports["errors"] = ""
 				sb.imports["encoding/json"] = ""
 				sb.imports["slices"] = ""
 
@@ -629,14 +616,20 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 	case "*time.Time":
 		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableDateTime(input, "%s")`, fieldName, key))
 	case "github.com/google/uuid.UUID":
-		sb.SetUuidImports()
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = _getObjectUUID(input, "%s")`, fieldName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetObjectUUID(input, "%s")`, fieldName, key))
 	case "*github.com/google/uuid.UUID":
-		sb.SetUuidImports()
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = _getNullableObjectUUID(input, "%s")`, fieldName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableObjectUUID(input, "%s")`, fieldName, key))
 	default:
 		if ty.IsNullable() {
-			pkgName, tyName := buildTypeNameFromFragments(ty.TypeFragments[1:], sb.packagePath)
+			var pkgName, tyName string
+			typeName := strings.TrimLeft(typeName, "*")
+			scalarPackagePattern := fmt.Sprintf("%s.", sdkScalarPackageName)
+			if strings.HasPrefix(typeName, scalarPackagePattern) {
+				pkgName = sdkScalarPackageName
+				tyName = fmt.Sprintf("scalar.%s", strings.TrimLeft(typeName, scalarPackagePattern))
+			} else {
+				pkgName, tyName = buildTypeNameFromFragments(ty.TypeFragments[1:], sb.packagePath)
+			}
 			if pkgName != "" {
 				sb.imports[pkgName] = ""
 			}
