@@ -30,6 +30,7 @@ const (
 	ScalarInt64       ScalarName = "Int64"
 	ScalarFloat32     ScalarName = "Float32"
 	ScalarFloat64     ScalarName = "Float64"
+	ScalarBigInt      ScalarName = "BigInt"
 	ScalarBigDecimal  ScalarName = "BigDecimal"
 	ScalarUUID        ScalarName = "UUID"
 	ScalarDate        ScalarName = "Date"
@@ -69,9 +70,7 @@ var defaultScalarTypes = map[ScalarName]schema.ScalarType{
 	ScalarInt64: {
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
 		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
-		// json.Unmarshaler can't automatically parse integer to int64.
-		// if you want to parse int64 from string, use scalar.BigInt instead.
-		Representation: schema.NewTypeRepresentationInt32().Encode(),
+		Representation:      schema.NewTypeRepresentationInt64().Encode(),
 	},
 	ScalarFloat32: {
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
@@ -82,6 +81,11 @@ var defaultScalarTypes = map[ScalarName]schema.ScalarType{
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
 		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 		Representation:      schema.NewTypeRepresentationFloat64().Encode(),
+	},
+	ScalarBigInt: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationBigInteger().Encode(),
 	},
 	ScalarBigDecimal: {
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
@@ -587,7 +591,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 				case "Date":
 					scalarSchema.Representation = schema.NewTypeRepresentationDate().Encode()
 				case "BigInt":
-					scalarSchema.Representation = schema.NewTypeRepresentationInt64().Encode()
+					scalarSchema.Representation = schema.NewTypeRepresentationBigInteger().Encode()
 				}
 			}
 

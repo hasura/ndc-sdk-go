@@ -7,7 +7,7 @@ import (
 	"github.com/hasura/ndc-sdk-go/utils"
 )
 
-// BigInt wraps the scalar implementation for 64-bit signed integer,
+// BigInt wraps the scalar implementation for big integer,
 // with string representation
 //
 // @scalar BigInt string

@@ -1067,7 +1067,7 @@
       "aggregate_functions": {},
       "comparison_operators": {},
       "representation": {
-        "type": "string"
+        "type": "biginteger"
       }
     },
     "Boolean": {
@@ -1123,7 +1123,7 @@
       "aggregate_functions": {},
       "comparison_operators": {},
       "representation": {
-        "type": "int32"
+        "type": "int64"
       }
     },
     "Int8": {

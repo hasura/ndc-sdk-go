@@ -190,7 +190,7 @@ The basic scalar types supported are:
 | Int8        | int8, uin8                  | A 8-bit signed integer with a minimum value of -2^7 and a maximum value of 2^7 - 1    | int8                |
 | Int16       | int16, uint16               | A 16-bit signed integer with a minimum value of -2^15 and a maximum value of 2^15 - 1 | int16               |
 | Int32       | int32, uint32               | A 32-bit signed integer with a minimum value of -2^31 and a maximum value of 2^31 - 1 | int32               |
-| Int64       | int64, uint64               | A 64-bit signed integer with a minimum value of -2^63 and a maximum value of 2^63 - 1 | int32               |
+| Int64       | int64, uint64               | A 64-bit signed integer with a minimum value of -2^63 and a maximum value of 2^63 - 1 | int64               |
 | Bigint      | scalar.BigInt               | A 64-bit signed integer with a minimum value of -2^63 and a maximum value of 2^63 - 1 | string              |
 | Float32     | float32                     | An IEEE-754 single-precision floating-point number                                    | float32             |
 | Float64     | float64                     | An IEEE-754 double-precision floating-point number                                    | float64             |
@@ -198,8 +198,6 @@ The basic scalar types supported are:
 | Date        | scalar.Date                 | ISO 8601 date                                                                         | string              |
 | TimestampTZ | time.Time                   | ISO 8601 timestamp-with-timezone                                                      | string              |
 | Enum        |                             | Enumeration values                                                                    | string              |
-
-> json.Unmarshaler can't automatically decode string to `int64` value. If you want to parse int64 from string, use `scalar.BigInt` instead
 
 Alias scalar types will be inferred to the origin type in the schema.
 
