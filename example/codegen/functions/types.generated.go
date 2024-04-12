@@ -4,7 +4,6 @@ package functions
 import (
 	"encoding/json"
 	"errors"
-
 	"github.com/hasura/ndc-sdk-go/scalar"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"

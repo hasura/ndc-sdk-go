@@ -167,6 +167,18 @@ func TestTypeRepresentation(t *testing.T) {
 		assertDeepEqual(t, anyType, typeRep)
 	})
 
+	t.Run("big integer", func(t *testing.T) {
+		typeRep := NewTypeRepresentationBigInteger()
+		rawType := typeRep.Encode()
+
+		_, err := rawType.AsString()
+		assertError(t, err, "invalid TypeRepresentation type; expected string, got biginteger")
+
+		anyType, ok := rawType.Interface().(*TypeRepresentationBigInteger)
+		assertDeepEqual(t, true, ok)
+		assertDeepEqual(t, anyType, typeRep)
+	})
+
 	t.Run("big decimal", func(t *testing.T) {
 		typeRep := NewTypeRepresentationBigDecimal()
 		rawType := typeRep.Encode()

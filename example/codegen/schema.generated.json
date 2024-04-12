@@ -1106,7 +1106,7 @@
       "aggregate_functions": {},
       "comparison_operators": {},
       "representation": {
-        "type": "int64"
+        "type": "biginteger"
       }
     },
     "Boolean": {
