@@ -3,6 +3,7 @@ package functions
 import (
   "encoding/json"
   "errors"
+  "github.com/hasura/ndc-sdk-go/scalar"
   "github.com/hasura/ndc-sdk-go/schema"
   "github.com/hasura/ndc-sdk-go/utils"
 )
@@ -25,7 +26,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
     if err != nil {
 		  return err
     }
-  j.BigIntPtr = new(BigInt)
+  j.BigIntPtr = new(scalar.BigInt)
   err = functions_Decoder.DecodeNullableObjectValue(j.BigIntPtr, input, "BigIntPtr")
     if err != nil {
 		  return err
@@ -362,11 +363,6 @@ func (j HelloResult) ToMap() map[string]any {
   r["text"] = j.Text
 
 	return r
-}
-
-// ScalarName get the schema name of the scalar
-func (j BigInt) ScalarName() string {
-  return "BigInt"
 }
 
 // ScalarName get the schema name of the scalar

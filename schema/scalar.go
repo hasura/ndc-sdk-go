@@ -52,6 +52,8 @@ const (
 	TypeRepresentationTypeFloat32 TypeRepresentationType = "float32"
 	// An IEEE-754 double-precision floating-point number
 	TypeRepresentationTypeFloat64 TypeRepresentationType = "float64"
+	// Arbitrary-precision integer string
+	TypeRepresentationTypeBigInteger TypeRepresentationType = "biginteger"
 	// Arbitrary-precision decimal string
 	TypeRepresentationTypeBigDecimal TypeRepresentationType = "bigdecimal"
 	// UUID string (8-4-4-4-12)
@@ -84,6 +86,7 @@ var enumValues_TypeRepresentationType = []TypeRepresentationType{
 	TypeRepresentationTypeInt64,
 	TypeRepresentationTypeFloat32,
 	TypeRepresentationTypeFloat64,
+	TypeRepresentationTypeBigInteger,
 	TypeRepresentationTypeBigDecimal,
 	TypeRepresentationTypeUUID,
 	TypeRepresentationTypeDate,
@@ -346,6 +349,21 @@ func (ty TypeRepresentation) AsFloat64() (*TypeRepresentationFloat64, error) {
 	}, nil
 }
 
+// AsBigInteger tries to convert the current type to TypeRepresentationBigInteger
+func (ty TypeRepresentation) AsBigInteger() (*TypeRepresentationBigInteger, error) {
+	t, err := ty.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != TypeRepresentationTypeBigInteger {
+		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeBigInteger, t)
+	}
+
+	return &TypeRepresentationBigInteger{
+		Type: t,
+	}, nil
+}
+
 // AsBigDecimal tries to convert the current type to TypeRepresentationBigDecimal
 func (ty TypeRepresentation) AsBigDecimal() (*TypeRepresentationBigDecimal, error) {
 	t, err := ty.Type()
@@ -549,6 +567,8 @@ func (ty TypeRepresentation) InterfaceT() (TypeRepresentationEncoder, error) {
 		return ty.AsFloat32()
 	case TypeRepresentationTypeFloat64:
 		return ty.AsFloat64()
+	case TypeRepresentationTypeBigInteger:
+		return ty.AsBigInteger()
 	case TypeRepresentationTypeBigDecimal:
 		return ty.AsBigDecimal()
 	case TypeRepresentationTypeUUID:
@@ -770,6 +790,25 @@ func NewTypeRepresentationFloat64() *TypeRepresentationFloat64 {
 
 // Encode returns the raw TypeRepresentation instance
 func (ty TypeRepresentationFloat64) Encode() TypeRepresentation {
+	return map[string]any{
+		"type": ty.Type,
+	}
+}
+
+// TypeRepresentationBigInteger represents an arbitrary-precision integer string
+type TypeRepresentationBigInteger struct {
+	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
+}
+
+// NewTypeRepresentationBigInteger creates a new TypeRepresentationBigInteger instance
+func NewTypeRepresentationBigInteger() *TypeRepresentationBigInteger {
+	return &TypeRepresentationBigInteger{
+		Type: TypeRepresentationTypeBigInteger,
+	}
+}
+
+// Encode returns the raw TypeRepresentation instance
+func (ty TypeRepresentationBigInteger) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
