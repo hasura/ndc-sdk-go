@@ -12,6 +12,6 @@ func TestGenerateNewProject(t *testing.T) {
 		Name:    "test",
 		Module:  "hasura.dev/connector",
 		Output:  tempDir,
-		Version: "v1.1.0",
+		Version: "v1.1.1",
 	}, true))
 }
