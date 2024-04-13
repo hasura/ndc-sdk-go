@@ -19,24 +19,38 @@ type Scalar interface {
 
 // EvalNestedColumnObject evaluate and prune nested fields from an object without relationship
 func EvalNestedColumnObject(fields *schema.NestedObject, value any) (any, error) {
-	row, err := EncodeObject(value)
+	return evalNestedColumnObject(fields, value, "")
+}
+
+func evalNestedColumnObject(fields *schema.NestedObject, value any, fieldPath string) (any, error) {
+	row, err := encodeObject(value, fieldPath)
 	if err != nil {
-		return nil, fmt.Errorf("expected object, got %s", reflect.ValueOf(value).Kind())
+		return nil, &schema.ErrorResponse{
+			Message: "failed to evaluate nested field",
+			Details: map[string]any{
+				"reason": fmt.Sprintf("expected object, got %s", reflect.ValueOf(value).Kind()),
+				"path":   fieldPath,
+			},
+		}
 	}
 
-	return EvalObjectWithColumnSelection(fields.Fields, row)
+	return evalObjectWithColumnSelection(fields.Fields, row, fieldPath)
 }
 
 // EvalNestedColumnArrayIntoSlice evaluate and prune nested fields from array without relationship
 func EvalNestedColumnArrayIntoSlice[T any](fields *schema.NestedArray, value []T) (any, error) {
-	array, err := EncodeObjectSlice(value)
+	return evalNestedColumnArrayIntoSlice(fields, value, "")
+}
+
+func evalNestedColumnArrayIntoSlice[T any](fields *schema.NestedArray, value []T, fieldPath string) (any, error) {
+	array, err := encodeObjectSlice(value, fieldPath)
 	if err != nil {
 		return nil, err
 	}
 
 	result := []any{}
-	for _, item := range array {
-		val, err := EvalNestedColumnFields(fields.Fields, item)
+	for i, item := range array {
+		val, err := evalNestedColumnFields(fields.Fields, item, fmt.Sprintf("%s[%d]", fieldPath, i))
 		if err != nil {
 			return nil, err
 		}
@@ -47,14 +61,18 @@ func EvalNestedColumnArrayIntoSlice[T any](fields *schema.NestedArray, value []T
 
 // EvalNestedColumnArray evaluate and prune nested fields from array without relationship
 func EvalNestedColumnArray(fields *schema.NestedArray, value any) (any, error) {
-	array, err := EncodeObjects(value)
+	return evalNestedColumnArray(fields, value, "")
+}
+
+func evalNestedColumnArray(fields *schema.NestedArray, value any, fieldPath string) (any, error) {
+	array, err := encodeObjects(value, fieldPath)
 	if err != nil {
 		return nil, err
 	}
 
 	result := []any{}
-	for _, item := range array {
-		val, err := EvalNestedColumnFields(fields.Fields, item)
+	for i, item := range array {
+		val, err := evalNestedColumnFields(fields.Fields, item, fmt.Sprintf("%s[%d]", fieldPath, i))
 		if err != nil {
 			return nil, err
 		}
@@ -65,6 +83,10 @@ func EvalNestedColumnArray(fields *schema.NestedArray, value any) (any, error) {
 
 // EvalNestedColumnFields evaluate and prune nested fields without relationship
 func EvalNestedColumnFields(fields schema.NestedField, value any) (any, error) {
+	return evalNestedColumnFields(fields, value, "")
+}
+
+func evalNestedColumnFields(fields schema.NestedField, value any, fieldPath string) (any, error) {
 	if IsNil(value) {
 		return nil, nil
 	}
@@ -72,9 +94,9 @@ func EvalNestedColumnFields(fields schema.NestedField, value any) (any, error) {
 	iNestedField, err := fields.InterfaceT()
 	switch nf := iNestedField.(type) {
 	case *schema.NestedObject:
-		return EvalNestedColumnObject(nf, value)
+		return evalNestedColumnObject(nf, value, fieldPath)
 	case *schema.NestedArray:
-		return EvalNestedColumnArray(nf, value)
+		return evalNestedColumnArray(nf, value, fieldPath)
 	default:
 		return nil, err
 	}
@@ -82,27 +104,39 @@ func EvalNestedColumnFields(fields schema.NestedField, value any) (any, error) {
 
 // EncodeObjectsWithColumnSelection encodes objects with column fields selection without relationship
 func EncodeObjectsWithColumnSelection[T any](fields map[string]schema.Field, data []T) ([]map[string]any, error) {
-	objects, err := EncodeObjectSlice[T](data)
+	return encodeObjectsWithColumnSelection(fields, data, "")
+}
+
+func encodeObjectsWithColumnSelection[T any](fields map[string]schema.Field, data []T, fieldPath string) ([]map[string]any, error) {
+	objects, err := encodeObjectSlice[T](data, fieldPath)
 	if err != nil {
 		return nil, err
 	}
-	return EvalObjectsWithColumnSelection(fields, objects)
+	return evalObjectsWithColumnSelection(fields, objects, fieldPath)
 }
 
 // EncodeObjectWithColumnSelection encodes an object with column fields selection without relationship
 func EncodeObjectWithColumnSelection[T any](fields map[string]schema.Field, data T) (map[string]any, error) {
-	objects, err := EncodeObject(data)
+	return encodeObjectWithColumnSelection(fields, data, "")
+}
+
+func encodeObjectWithColumnSelection[T any](fields map[string]schema.Field, data T, fieldPath string) (map[string]any, error) {
+	objects, err := encodeObject(data, fieldPath)
 	if err != nil {
 		return nil, err
 	}
-	return EvalObjectWithColumnSelection(fields, objects)
+	return evalObjectWithColumnSelection(fields, objects, fieldPath)
 }
 
 // EvalObjectsWithColumnSelection evaluate and prune column fields of array objects without relationship
 func EvalObjectsWithColumnSelection(fields map[string]schema.Field, data []map[string]any) ([]map[string]any, error) {
+	return evalObjectsWithColumnSelection(fields, data, "")
+}
+
+func evalObjectsWithColumnSelection(fields map[string]schema.Field, data []map[string]any, fieldPath string) ([]map[string]any, error) {
 	results := make([]map[string]any, len(data))
 	for i, item := range data {
-		result, err := EvalObjectWithColumnSelection(fields, item)
+		result, err := evalObjectWithColumnSelection(fields, item, fmt.Sprintf("%s[%d]", fieldPath, i))
 		if err != nil {
 			return nil, err
 		}
@@ -113,6 +147,10 @@ func EvalObjectsWithColumnSelection(fields map[string]schema.Field, data []map[s
 
 // EvalObjectWithColumnSelection evaluate and prune column fields without relationship
 func EvalObjectWithColumnSelection(fields map[string]schema.Field, data map[string]any) (map[string]any, error) {
+	return evalObjectWithColumnSelection(fields, data, "")
+}
+
+func evalObjectWithColumnSelection(fields map[string]schema.Field, data map[string]any, fieldPath string) (map[string]any, error) {
 	if len(fields) == 0 {
 		return data, nil
 	}
@@ -123,7 +161,7 @@ func EvalObjectWithColumnSelection(fields map[string]schema.Field, data map[stri
 		case *schema.ColumnField:
 			if col, ok := data[fi.Column]; ok {
 				if fi.Fields != nil {
-					nestedValue, err := EvalNestedColumnFields(fi.Fields, col)
+					nestedValue, err := evalNestedColumnFields(fi.Fields, col, fmt.Sprintf("%s.%s", fieldPath, key))
 					if err != nil {
 						return nil, err
 					}
@@ -135,9 +173,21 @@ func EvalObjectWithColumnSelection(fields map[string]schema.Field, data map[stri
 				output[fi.Column] = nil
 			}
 		case *schema.RelationshipField:
-			return nil, fmt.Errorf("unsupported relationship field,  %s", key)
+			return nil, &schema.ErrorResponse{
+				Message: "failed to evaluate object field",
+				Details: map[string]any{
+					"reason": "unsupported relationship field",
+					"path":   fmt.Sprintf("%s.%s", fieldPath, key),
+				},
+			}
 		default:
-			return nil, fmt.Errorf("invalid column field, %s", key)
+			return nil, &schema.ErrorResponse{
+				Message: "failed to evaluate object field",
+				Details: map[string]any{
+					"reason": "invalid column field",
+					"path":   fmt.Sprintf("%s.%s", fieldPath, key),
+				},
+			}
 		}
 	}
 
@@ -154,11 +204,23 @@ func ResolveArgumentVariables(arguments map[string]schema.Argument, variables ma
 		case schema.ArgumentTypeVariable:
 			value, ok := variables[arg.Name]
 			if !ok {
-				return nil, fmt.Errorf("variable %s not found", arg.Name)
+				return nil, &schema.ErrorResponse{
+					Message: "failed to resolve argument",
+					Details: map[string]any{
+						"reason": fmt.Sprintf("variable %s not found", arg.Name),
+						"path":   fmt.Sprintf(".%s", key),
+					},
+				}
 			}
 			results[key] = value
 		default:
-			return nil, fmt.Errorf("unsupported argument type: %s", arg.Type)
+			return nil, &schema.ErrorResponse{
+				Message: "failed to resolve argument",
+				Details: map[string]any{
+					"reason": fmt.Errorf("unsupported argument type: %s", arg.Type),
+					"path":   fmt.Sprintf(".%s", key),
+				},
+			}
 		}
 	}
 
