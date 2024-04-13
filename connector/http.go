@@ -309,18 +309,18 @@ func writeError(w http.ResponseWriter, logger zerolog.Logger, err error) int {
 	var errorResponse schema.ErrorResponse
 	if errors.As(err, &errorResponse) {
 		writeJson(w, logger, http.StatusBadRequest, errorResponse)
-		return http.StatusBadRequest
+		return http.StatusInternalServerError
 	}
 
 	var errorResponsePtr *schema.ErrorResponse
 	if errors.As(err, &errorResponsePtr) {
 		writeJson(w, logger, http.StatusBadRequest, errorResponsePtr)
-		return http.StatusBadRequest
+		return http.StatusInternalServerError
 	}
 
 	writeJson(w, logger, http.StatusBadRequest, schema.ErrorResponse{
 		Message: err.Error(),
 	})
 
-	return http.StatusBadRequest
+	return http.StatusInternalServerError
 }
