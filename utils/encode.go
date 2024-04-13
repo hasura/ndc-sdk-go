@@ -48,14 +48,18 @@ func EncodeObject(input any) (map[string]any, error) {
 	if IsNil(input) {
 		return nil, nil
 	}
-	return encodeObject(input)
+	return encodeObject(input, "")
 }
 
 // EncodeObjectSlice encodes array of unknown type to map[string]any slice, using json tag to convert object keys
 func EncodeObjectSlice[T any](input []T) ([]map[string]any, error) {
+	return encodeObjectSlice(input, "")
+}
+
+func encodeObjectSlice[T any](input []T, fieldPath string) ([]map[string]any, error) {
 	results := make([]map[string]any, len(input))
 	for i, item := range input {
-		result, err := EncodeObject(item)
+		result, err := encodeObject(item, fmt.Sprintf("%s[%d]", fieldPath, i))
 		if err != nil {
 			return nil, err
 		}
@@ -70,32 +74,44 @@ func ToPtr[V any](value V) *V {
 	return &value
 }
 
-func encodeObject(input any) (map[string]any, error) {
+func encodeObject(input any, fieldPath string) (map[string]any, error) {
 	switch value := input.(type) {
 	case map[string]any:
 		return value, nil
 	case MapEncoder:
 		return value.ToMap(), nil
 	case Scalar:
-		return nil, schema.UnprocessableContentError("cannot encode scalar to object", map[string]any{
-			"value": input,
-		})
+		return nil, &schema.ErrorResponse{
+			Message: "cannot encode scalar to object",
+			Details: map[string]any{
+				"reason": fmt.Sprintf("expected object, got %s", reflect.TypeOf(input).Kind()),
+				"path":   fieldPath,
+			},
+		}
 	case bool, string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128, time.Time, time.Duration, time.Ticker, *bool, *string, *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64, *float32, *float64, *complex64, *complex128, *time.Time, *time.Duration, *time.Ticker, []bool, []string, []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64, []float32, []float64, []complex64, []complex128, []time.Time, []time.Duration, []time.Ticker:
-		return nil, schema.UnprocessableContentError("failed to encode object", map[string]any{
-			"value": input,
-		})
+		return nil, &schema.ErrorResponse{
+			Message: "cannot encode scalar to object",
+			Details: map[string]any{
+				"reason": fmt.Sprintf("expected object, got %s", reflect.TypeOf(input).Kind()),
+				"path":   fieldPath,
+			},
+		}
 	default:
 		inputValue := reflect.ValueOf(input)
 		kind := inputValue.Kind()
 		switch kind {
 		case reflect.Pointer:
-			return encodeObject(inputValue.Elem().Interface())
+			return encodeObject(inputValue.Elem().Interface(), fieldPath)
 		case reflect.Struct:
 			return encodeStruct(inputValue), nil
 		default:
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("failed to encode object, got %s", kind.String()), map[string]any{
-				"value": input,
-			})
+			return nil, &schema.ErrorResponse{
+				Message: "cannot encode object",
+				Details: map[string]any{
+					"reason": fmt.Sprintf("expected object, got %s", kind),
+					"path":   fieldPath,
+				},
+			}
 		}
 	}
 }
@@ -177,20 +193,29 @@ func encodeStruct(input reflect.Value) map[string]any {
 
 // EncodeObjects encodes an object rows to a slice of map[string]any, using json tag to convert object keys
 func EncodeObjects(input any) ([]map[string]any, error) {
+	return encodeObjects(input, "")
+}
+
+func encodeObjects(input any, fieldPath string) ([]map[string]any, error) {
 	if IsNil(input) {
 		return nil, nil
 	}
 	inputValue := reflect.ValueOf(input)
-	if inputValue.Kind() != reflect.Array && inputValue.Kind() != reflect.Slice {
-		return nil, schema.UnprocessableContentError("failed to encode array objects", map[string]any{
-			"value": input,
-		})
+	inputKind := inputValue.Kind()
+	if inputKind != reflect.Array && inputKind != reflect.Slice {
+		return nil, &schema.ErrorResponse{
+			Message: "failed to encode array objects",
+			Details: map[string]any{
+				"reason": fmt.Sprintf("expected array objects, got %s", inputKind),
+				"path":   fieldPath,
+			},
+		}
 	}
 	len := inputValue.Len()
 	results := make([]map[string]any, len)
 
 	for i := 0; i < len; i++ {
-		item, err := EncodeObject(inputValue.Index(i).Interface())
+		item, err := encodeObject(inputValue.Index(i).Interface(), fieldPath)
 		if err != nil {
 			return nil, err
 		}
