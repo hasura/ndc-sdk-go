@@ -39,6 +39,8 @@ github.com/prometheus/procfs v0.13.0 h1:GqzLlQyfsPbaEHaQkO7tbDlriv/4o5Hudv6OXHGK
 github.com/prometheus/procfs v0.13.0/go.mod h1:cd4PFCR54QLnGKPaKGA6l+cfuNXtht43ZKY6tow0Y1g=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
+go.opentelemetry.io/contrib/propagators/b3 v1.25.0 h1:QU8UEKyPqgr/8vCC9LlDmkPnfFmiWAUF9GtJdcLz+BU=
+go.opentelemetry.io/contrib/propagators/b3 v1.25.0/go.mod h1:qonC7wyvtX1E6cEpAR+bJmhcGr6IVRGc/f6ZTpvi7jA=
 go.opentelemetry.io/otel v1.25.0 h1:gldB5FfhRl7OJQbUHt/8s0a7cE8fbsPAtdpRaApKy4k=
 go.opentelemetry.io/otel v1.25.0/go.mod h1:Wa2ds5NOXEMkCmUou1WA7ZBfLTHWIsp034OVD7AO+Vg=
 go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.25.0 h1:hDKnobznDpcdTlNzO0S/owRB8tyVr1OoeZZhDoqY+Cs=
