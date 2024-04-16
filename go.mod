@@ -8,6 +8,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1
 	github.com/google/uuid v1.6.0
 	github.com/prometheus/client_golang v1.19.0
+	go.opentelemetry.io/contrib/propagators/b3 v1.25.0
 	go.opentelemetry.io/otel v1.25.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.25.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.25.0
