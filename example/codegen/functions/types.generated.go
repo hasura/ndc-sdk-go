@@ -14,6 +14,15 @@ var functions_Decoder = utils.NewDecoder()
 // FromValue decodes values from map
 func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	var err error
+	err = functions_Decoder.DecodeObjectValue(&j.ArrayMap, input, "ArrayMap")
+	if err != nil {
+		return err
+	}
+	j.ArrayMapPtr = new([]map[string]any)
+	err = functions_Decoder.DecodeNullableObjectValue(j.ArrayMapPtr, input, "ArrayMapPtr")
+	if err != nil {
+		return err
+	}
 	err = functions_Decoder.DecodeObjectValue(&j.ArrayObject, input, "ArrayObject")
 	if err != nil {
 		return err
@@ -39,6 +48,15 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 		return err
 	}
 	j.BoolPtr, err = utils.GetNullableBool(input, "BoolPtr")
+	if err != nil {
+		return err
+	}
+	err = functions_Decoder.DecodeObjectValue(&j.Bytes, input, "Bytes")
+	if err != nil {
+		return err
+	}
+	j.BytesPtr = new(scalar.Bytes)
+	err = functions_Decoder.DecodeNullableObjectValue(j.BytesPtr, input, "BytesPtr")
 	if err != nil {
 		return err
 	}
@@ -125,6 +143,23 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	j.JSON, err = utils.GetArbitraryJSON(input, "JSON")
+	if err != nil {
+		return err
+	}
+	j.JSONPtr, err = utils.GetNullableArbitraryJSON(input, "JSONPtr")
+	if err != nil {
+		return err
+	}
+	err = functions_Decoder.DecodeObjectValue(&j.Map, input, "Map")
+	if err != nil {
+		return err
+	}
+	j.MapPtr = new(map[string]any)
+	err = functions_Decoder.DecodeNullableObjectValue(j.MapPtr, input, "MapPtr")
+	if err != nil {
+		return err
+	}
 	err = functions_Decoder.DecodeObjectValue(&j.NamedArray, input, "NamedArray")
 	if err != nil {
 		return err
@@ -152,6 +187,14 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 		Lat  int
 	})
 	err = functions_Decoder.DecodeNullableObjectValue(j.ObjectPtr, input, "ObjectPtr")
+	if err != nil {
+		return err
+	}
+	j.RawJSON, err = utils.GetObjectRawJSON(input, "RawJSON")
+	if err != nil {
+		return err
+	}
+	j.RawJSONPtr, err = utils.GetNullableObjectRawJSON(input, "RawJSONPtr")
 	if err != nil {
 		return err
 	}
@@ -290,6 +333,8 @@ func (j GetArticlesResult) ToMap() map[string]any {
 // ToMap encodes the struct to a value map
 func (j GetTypesArguments) ToMap() map[string]any {
 	r := make(map[string]any)
+	r["ArrayMap"] = j.ArrayMap
+	r["ArrayMapPtr"] = j.ArrayMapPtr
 	j_ArrayObject := make([]map[string]any, len(j.ArrayObject))
 	for i, j_ArrayObject_v := range j.ArrayObject {
 		j_ArrayObject_v_obj := make(map[string]any)
@@ -310,6 +355,8 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["BigIntPtr"] = j.BigIntPtr
 	r["Bool"] = j.Bool
 	r["BoolPtr"] = j.BoolPtr
+	r["Bytes"] = j.Bytes
+	r["BytesPtr"] = j.BytesPtr
 	r["CustomScalar"] = j.CustomScalar
 	r["CustomScalarPtr"] = j.CustomScalarPtr
 	r["Date"] = j.Date
@@ -330,6 +377,10 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["Int8"] = j.Int8
 	r["Int8Ptr"] = j.Int8Ptr
 	r["IntPtr"] = j.IntPtr
+	r["JSON"] = j.JSON
+	r["JSONPtr"] = j.JSONPtr
+	r["Map"] = j.Map
+	r["MapPtr"] = j.MapPtr
 	j_NamedArray := make([]map[string]any, len(j.NamedArray))
 	for i, j_NamedArray_v := range j.NamedArray {
 		j_NamedArray[i] = utils.EncodeMap(j_NamedArray_v)
@@ -356,6 +407,8 @@ func (j GetTypesArguments) ToMap() map[string]any {
 		j_ObjectPtr__obj["Long"] = (*j.ObjectPtr).Long
 		r["ObjectPtr"] = j_ObjectPtr__obj
 	}
+	r["RawJSON"] = j.RawJSON
+	r["RawJSONPtr"] = j.RawJSONPtr
 	r["String"] = j.String
 	r["StringPtr"] = j.StringPtr
 	r["Text"] = j.Text

@@ -2,6 +2,7 @@ package functions
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -143,6 +144,18 @@ type GetTypesArguments struct {
 	NamedArray     []Author
 	NamedArrayPtr  *[]Author
 	UUIDArray      []uuid.UUID
+
+	Map         map[string]any
+	MapPtr      *map[string]any
+	ArrayMap    []map[string]any
+	ArrayMapPtr *[]map[string]any
+
+	JSON       any
+	JSONPtr    *interface{}
+	RawJSON    json.RawMessage
+	RawJSONPtr *json.RawMessage
+	Bytes      scalar.Bytes
+	BytesPtr   *scalar.Bytes
 }
 
 func FunctionGetTypes(ctx context.Context, state *types.State, arguments *GetTypesArguments) (*GetTypesArguments, error) {
