@@ -144,8 +144,11 @@ func (cg *connectorGenerator) generateConnector() error {
 func (cg *connectorGenerator) genConnectorCodeFromTemplate(w io.Writer) error {
 	queries := cg.genConnectorFunctions(cg.rawSchema)
 	procedures := cg.genConnectorProcedures(cg.rawSchema)
+
+	sortedImports := getSortedKeys(cg.rawSchema.Imports)
+
 	importLines := []string{}
-	for importPath := range cg.rawSchema.Imports {
+	for _, importPath := range sortedImports {
 		importLines = append(importLines, fmt.Sprintf(`"%s"`, importPath))
 	}
 
