@@ -51,6 +51,11 @@ func TestBytes(t *testing.T) {
 		t.FailNow()
 	}
 
+	if value1.Len() != len(value1.Bytes()) {
+		t.Errorf("expected equal bytes length, got: %d != %d", value1.Len(), len(value1.Bytes()))
+		t.FailNow()
+	}
+
 	if err := value1.FromValue(0); err == nil {
 		t.Error("expected error, got nil")
 		t.FailNow()

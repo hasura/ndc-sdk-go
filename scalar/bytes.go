@@ -29,7 +29,17 @@ func ParseBytes(value string) (*Bytes, error) {
 	return &Bytes{data: bs}, nil
 }
 
-// Bytes implements fmt.Stringer interface.
+// Bytes get the inner bytes value.
+func (bs Bytes) Bytes() []byte {
+	return bs.data
+}
+
+// Bytes get the inner bytes length.
+func (bs Bytes) Len() int {
+	return len(bs.data)
+}
+
+// String implements fmt.Stringer interface.
 func (bs Bytes) String() string {
 	return string(bs.data)
 }
