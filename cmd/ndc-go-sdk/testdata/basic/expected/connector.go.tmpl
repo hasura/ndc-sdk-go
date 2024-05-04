@@ -3,9 +3,9 @@ package main
 import (
   "context"
   _ "embed"
-  "encoding/json"
   "fmt"
   "github.com/hasura/ndc-codegen-test/functions"
+  "encoding/json"
   "github.com/hasura/ndc-codegen-test/types"
   "github.com/hasura/ndc-sdk-go/connector"
   "github.com/hasura/ndc-sdk-go/schema"
@@ -234,8 +234,9 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 }
 func execProcedure(ctx context.Context, state *types.State, operation *schema.MutationOperation, span trace.Span) (schema.MutationOperationResults, error) {
   logger := connector.GetLogger(ctx)
-	span.AddEvent("validate_request")
-  var result any
+  connector_addSpanEvent(span, logger, "validate_request", map[string]any{
+    "operations_name": operation.Name,
+  })
   switch operation.Name {
   case "create_article":
     selection, err := operation.Fields.AsObject()
@@ -261,20 +262,22 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
 		})
-    result, err = utils.EvalNestedColumnObject(selection, rawResult)
+    result, err := utils.EvalNestedColumnObject(selection, rawResult)
 		if err != nil {
       return nil, err
     }
+		return schema.NewProcedureResult(result).Encode(), nil
 	case "increase":
 		if len(operation.Fields) > 0 {
 			return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
     }
 		span.AddEvent("execute_procedure")
     var err error
-    result, err = functions.Increase(ctx, state)
+    result, err := functions.Increase(ctx, state)
 		if err != nil {
 			return nil, err
 		}
+		return schema.NewProcedureResult(result).Encode(), nil
   case "createAuthor":
     selection, err := operation.Fields.AsObject()
     if err != nil {
@@ -299,10 +302,11 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
 		})
-    result, err = utils.EvalNestedColumnObject(selection, rawResult)
+    result, err := utils.EvalNestedColumnObject(selection, rawResult)
 		if err != nil {
       return nil, err
     }
+		return schema.NewProcedureResult(result).Encode(), nil
 	case "createAuthors":
 		selection, err := operation.Fields.AsArray()
 		if err != nil {
@@ -327,14 +331,14 @@ func execProcedure(ctx context.Context, state *types.State, operation *schema.Mu
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
 		})
-		result, err = utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)
+		result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)
 		if err != nil {
       return nil, err
     }
+		return schema.NewProcedureResult(result).Encode(), nil
   default:
     return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported procedure operation: %s", operation.Name), nil)
   }
-  return schema.NewProcedureResult(result).Encode(), nil
 }
 func connector_addSpanEvent(span trace.Span, logger zerolog.Logger, name string, data map[string]any, options ...trace.EventOption) {
 	logger.Debug().Interface("data", data).Msg(name)
