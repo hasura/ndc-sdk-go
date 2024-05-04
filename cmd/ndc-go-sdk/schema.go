@@ -307,6 +307,8 @@ func (rcs RawConnectorSchema) Schema() *schema.SchemaResponse {
 		ScalarTypes: rcs.ScalarSchemas,
 		ObjectTypes: rcs.ObjectSchemas,
 		Collections: []schema.CollectionInfo{},
+		Functions:   []schema.FunctionInfo{},
+		Procedures:  []schema.ProcedureInfo{},
 	}
 	for _, function := range rcs.Functions {
 		result.Functions = append(result.Functions, function.Schema())
