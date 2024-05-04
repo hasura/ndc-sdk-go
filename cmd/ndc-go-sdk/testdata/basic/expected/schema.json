@@ -12,6 +12,27 @@
     },
     {
       "arguments": {
+        "ArrayMap": {
+          "type": {
+            "element_type": {
+              "name": "JSON",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayMapPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "JSON",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
         "ArrayObject": {
           "type": {
             "element_type": {
@@ -59,6 +80,21 @@
             "type": "nullable",
             "underlying_type": {
               "name": "Boolean",
+              "type": "named"
+            }
+          }
+        },
+        "Bytes": {
+          "type": {
+            "name": "Bytes",
+            "type": "named"
+          }
+        },
+        "BytesPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Bytes",
               "type": "named"
             }
           }
@@ -198,6 +234,36 @@
             }
           }
         },
+        "JSON": {
+          "type": {
+            "name": "JSON",
+            "type": "named"
+          }
+        },
+        "JSONPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "Map": {
+          "type": {
+            "name": "JSON",
+            "type": "named"
+          }
+        },
+        "MapPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
         "NamedArray": {
           "type": {
             "element_type": {
@@ -245,6 +311,21 @@
             "type": "nullable",
             "underlying_type": {
               "name": "GetTypesArgumentsObjectPtr",
+              "type": "named"
+            }
+          }
+        },
+        "RawJSON": {
+          "type": {
+            "name": "RawJSON",
+            "type": "named"
+          }
+        },
+        "RawJSONPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "RawJSON",
               "type": "named"
             }
           }
@@ -527,6 +608,27 @@
     },
     "GetTypesArguments": {
       "fields": {
+        "ArrayMap": {
+          "type": {
+            "element_type": {
+              "name": "JSON",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayMapPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "JSON",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
         "ArrayObject": {
           "type": {
             "element_type": {
@@ -574,6 +676,21 @@
             "type": "nullable",
             "underlying_type": {
               "name": "Boolean",
+              "type": "named"
+            }
+          }
+        },
+        "Bytes": {
+          "type": {
+            "name": "Bytes",
+            "type": "named"
+          }
+        },
+        "BytesPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Bytes",
               "type": "named"
             }
           }
@@ -713,6 +830,36 @@
             }
           }
         },
+        "JSON": {
+          "type": {
+            "name": "JSON",
+            "type": "named"
+          }
+        },
+        "JSONPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "Map": {
+          "type": {
+            "name": "JSON",
+            "type": "named"
+          }
+        },
+        "MapPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
         "NamedArray": {
           "type": {
             "element_type": {
@@ -760,6 +907,21 @@
             "type": "nullable",
             "underlying_type": {
               "name": "GetTypesArgumentsObjectPtr",
+              "type": "named"
+            }
+          }
+        },
+        "RawJSON": {
+          "type": {
+            "name": "RawJSON",
+            "type": "named"
+          }
+        },
+        "RawJSONPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "RawJSON",
               "type": "named"
             }
           }
@@ -1077,6 +1239,13 @@
         "type": "boolean"
       }
     },
+    "Bytes": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "bytes"
+      }
+    },
     "CommentString": {
       "aggregate_functions": {},
       "comparison_operators": {},
@@ -1131,6 +1300,13 @@
       "comparison_operators": {},
       "representation": {
         "type": "int8"
+      }
+    },
+    "RawJSON": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "json"
       }
     },
     "SomeEnum": {

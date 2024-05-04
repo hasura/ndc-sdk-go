@@ -601,4 +601,19 @@ func TestDecodeNestedInterface(t *testing.T) {
 	assertNoError(t, err)
 	assertEqual(t, fmt.Sprint(1.1), fmt.Sprint(f))
 
+	j, err := GetArbitraryJSON(arrItem, "int")
+	assertNoError(t, err)
+	assertEqual(t, 1, j)
+
+	jp, err := GetNullableArbitraryJSON(arrItem, "int")
+	assertNoError(t, err)
+	assertEqual(t, 1, *jp)
+
+	jp, err = GetNullableArbitraryJSON(arrItem, "floatPtr")
+	assertNoError(t, err)
+	assertEqual(t, fmt.Sprint(1.1), fmt.Sprint(*jp))
+
+	jp, err = GetNullableArbitraryJSON(arrItem, "not_exist")
+	assertNoError(t, err)
+	assertEqual(t, true, jp == nil)
 }

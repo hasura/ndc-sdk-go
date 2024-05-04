@@ -619,6 +619,14 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetObjectUUID(input, "%s")`, fieldName, key))
 	case "*github.com/google/uuid.UUID":
 		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableObjectUUID(input, "%s")`, fieldName, key))
+	case "encoding/json.RawMessage":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetObjectRawJSON(input, "%s")`, fieldName, key))
+	case "*encoding/json.RawMessage":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableObjectRawJSON(input, "%s")`, fieldName, key))
+	case "any", "interface{}":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetArbitraryJSON(input, "%s")`, fieldName, key))
+	case "*any", "*interface{}":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableArbitraryJSON(input, "%s")`, fieldName, key))
 	default:
 		if ty.IsNullable() {
 			var pkgName, tyName string
