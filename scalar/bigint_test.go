@@ -43,8 +43,16 @@ func TestBigInt(t *testing.T) {
 		t.Error("expected error, got nil")
 		t.FailNow()
 	}
-	if err := json.Unmarshal([]byte(""), &value1); err == nil {
-		t.Error("expected error, got nil")
+
+	if err := json.Unmarshal([]byte("null"), &value1); err != nil {
+		t.Errorf("expected nil, got error: %v", err)
 		t.FailNow()
+	}
+
+	for _, b := range [][]byte{[]byte(""), []byte(`"abc"`)} {
+		if err := json.Unmarshal(b, &value1); err == nil {
+			t.Error("expected error, got nil")
+			t.FailNow()
+		}
 	}
 }

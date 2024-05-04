@@ -45,7 +45,27 @@ func TestDate(t *testing.T) {
 		t.Error("expected error, got nil")
 		t.FailNow()
 	}
-	if err := json.Unmarshal([]byte(""), &value1); err == nil {
+
+	if err := value1.FromValue(0); err == nil {
+		t.Error("expected error, got nil")
+		t.FailNow()
+	}
+
+	if err := value1.FromValue(nil); err != nil {
+		t.Errorf("expected no error, got %v", err)
+		t.FailNow()
+	}
+
+	if err := json.Unmarshal([]byte(`"abc"`), &value1); err == nil {
+		t.Error("expected error, got nil")
+		t.FailNow()
+	}
+
+	if err := json.Unmarshal([]byte("0"), &value1); err == nil {
+		t.Error("expected error, got nil")
+		t.FailNow()
+	}
+	if _, err := ParseDate(""); err == nil {
 		t.Error("expected error, got nil")
 		t.FailNow()
 	}
