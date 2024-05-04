@@ -39,6 +39,11 @@ const (
 	ScalarGeography   ScalarName = "Geography"
 	ScalarBytes       ScalarName = "Bytes"
 	ScalarJSON        ScalarName = "JSON"
+	// ScalarRawJSON is a special scalar for raw json data serialization.
+	// The underlying Go type for this scalar is json.RawMessage.
+	// Note: we don't recommend to use this scalar for function arguments
+	// because the decoder will re-encode the value to []byte that isn't performance-wise.
+	ScalarRawJSON ScalarName = "RawJSON"
 )
 
 var defaultScalarTypes = map[ScalarName]schema.ScalarType{
@@ -123,6 +128,11 @@ var defaultScalarTypes = map[ScalarName]schema.ScalarType{
 		Representation:      schema.NewTypeRepresentationBytes().Encode(),
 	},
 	ScalarJSON: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationJSON().Encode(),
+	},
+	ScalarRawJSON: {
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
 		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 		Representation:      schema.NewTypeRepresentationJSON().Encode(),
@@ -555,6 +565,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 
 		return rootType, nil
 	case *types.Named:
+
 		innerType := inferredType.Obj()
 		if innerType == nil {
 			return nil, fmt.Errorf("failed to parse named type: %s", inferredType.String())
@@ -570,6 +581,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			typeInfo.PackageName = innerPkg.Name()
 			typeInfo.PackagePath = innerPkg.Path()
 			scalarSchema := schema.NewScalarType()
+
 			switch innerPkg.Path() {
 			case "time":
 				switch innerType.Name() {
@@ -578,6 +590,12 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 					scalarSchema.Representation = schema.NewTypeRepresentationTimestampTZ().Encode()
 				case "Duration":
 					return nil, errors.New("unsupported type time.Duration. Create a scalar type wrapper with FromValue method to decode the any value")
+				}
+			case "encoding/json":
+				switch innerType.Name() {
+				case "RawMessage":
+					scalarName = ScalarRawJSON
+					scalarSchema.Representation = schema.NewTypeRepresentationJSON().Encode()
 				}
 			case "github.com/google/uuid":
 				switch innerType.Name() {
@@ -592,6 +610,8 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 					scalarSchema.Representation = schema.NewTypeRepresentationDate().Encode()
 				case "BigInt":
 					scalarSchema.Representation = schema.NewTypeRepresentationBigInteger().Encode()
+				case "Bytes":
+					scalarSchema.Representation = schema.NewTypeRepresentationBytes().Encode()
 				}
 			}
 
@@ -651,7 +671,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			rootType = &TypeInfo{
 				Name:          inferredType.Name(),
 				SchemaName:    inferredType.Name(),
-				TypeFragments: []string{ty.String()},
+				TypeFragments: []string{inferredType.Name()},
 				TypeAST:       ty,
 			}
 		}
@@ -677,6 +697,20 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		innerType.TypeFragments = append([]string{"[]"}, innerType.TypeFragments...)
 		innerType.Schema = schema.NewArrayType(innerType.Schema)
 		return innerType, nil
+	case *types.Map, *types.Interface:
+		scalarName := ScalarJSON
+		if rootType == nil {
+			rootType = &TypeInfo{
+				Name:       inferredType.String(),
+				SchemaName: string(scalarName),
+				TypeAST:    ty,
+			}
+		}
+		rootType.TypeFragments = append(rootType.TypeFragments, inferredType.String())
+		rootType.Schema = schema.NewNamedType(string(scalarName))
+		rootType.IsScalar = true
+
+		return rootType, nil
 	default:
 		return nil, fmt.Errorf("unsupported type: %s", ty.String())
 	}

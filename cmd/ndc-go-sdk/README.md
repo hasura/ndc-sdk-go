@@ -198,6 +198,12 @@ The basic scalar types supported are:
 | Date        | scalar.Date                 | ISO 8601 date                                                                         | string              |
 | TimestampTZ | time.Time                   | ISO 8601 timestamp-with-timezone                                                      | string              |
 | Enum        |                             | Enumeration values                                                                    | string              |
+| Bytes       | scalar.Bytes                | Base64-encoded bytes                                                                  | string              |
+| JSON        | any, map[K]V                | Arbitrary JSON                                                                        | json                |
+| RawJSON     | json.RawMessage             | Raw arbitrary JSON                                                                    | json                |
+
+> [!NOTE]
+> We don't recommend to use the `RawJSON` scalar for `function` arguments because the decoder will re-encode the value to `[]byte` that isn't performance-wise.
 
 Alias scalar types will be inferred to the origin type in the schema.
 

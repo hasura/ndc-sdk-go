@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -657,6 +658,25 @@ func GetAny(object map[string]any, key string) (any, bool) {
 	return value, ok
 }
 
+// GetNullableArbitraryJSON get an arbitrary json pointer from object by key
+func GetNullableArbitraryJSON(object map[string]any, key string) (*any, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	return &value, nil
+}
+
+// GetArbitraryJSON get an arbitrary json value from object by key
+func GetArbitraryJSON(object map[string]any, key string) (any, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, fmt.Errorf("field `%s` is required", key)
+	}
+
+	return value, nil
+}
+
 // GetNullableInt get an integer pointer from object by key
 func GetNullableInt[T int | int8 | int16 | int32 | int64](object map[string]any, key string) (*T, error) {
 	value, ok := GetAny(object, key)
@@ -914,6 +934,54 @@ func GetNullableObjectUUID(object map[string]any, key string) (*uuid.UUID, error
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
 	return result, nil
+}
+
+// GetObjectRawJSON get a raw json.RawMessage value from object by key
+func GetObjectRawJSON(object map[string]any, key string) (json.RawMessage, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, fmt.Errorf("field %s is required", key)
+	}
+	if IsNil(value) {
+		return nil, nil
+	}
+	switch v := value.(type) {
+	case []byte:
+		return v, nil
+	case *[]byte:
+		result := json.RawMessage(*v)
+		return result, nil
+	default:
+		result, err := json.Marshal(value)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %s", key, err)
+		}
+		return result, nil
+	}
+}
+
+// GetNullableObjectRawJSON get a raw json.RawMessage pointer from object by key
+func GetNullableObjectRawJSON(object map[string]any, key string) (*json.RawMessage, error) {
+	value, ok := GetAny(object, key)
+	if !ok || IsNil(value) {
+		return nil, nil
+	}
+
+	switch v := value.(type) {
+	case []byte:
+		vp := json.RawMessage(v)
+		return &vp, nil
+	case *[]byte:
+		result := json.RawMessage(*v)
+		return &result, nil
+	default:
+		result, err := json.Marshal(value)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %s", key, err)
+		}
+		rawResult := json.RawMessage(result)
+		return &rawResult, nil
+	}
 }
 
 func decodeAnyValue(target any, value any, decodeHook mapstructure.DecodeHookFunc) error {

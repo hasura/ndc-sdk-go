@@ -293,6 +293,54 @@ func TestQueryGetTypes(t *testing.T) {
 							"b085b0b9-007c-440e-9661-0d8f2de98a5a",
 							"b085b0b9-007c-440e-9661-0d8f2de98a5b"
 						]
+					},
+					"Map": {
+						"type": "literal",
+						"value": {
+							"foo": "bar"
+						}
+					},
+					"MapPtr": {
+						"type": "literal",
+						"value": {
+							"foo": "bar_ptr"
+						}
+					},
+					"ArrayMap": {
+						"type": "literal",
+						"value": [{
+							"foo": "bar"
+						}]
+					},
+					"ArrayMapPtr": {
+						"type": "literal",
+						"value": [{
+							"foo": "bar_ptr"
+						}]
+					},
+					"JSON": {
+						"type": "literal",
+						"value": {"message":"json"}
+					},
+					"JSONPtr": {
+						"type": "literal",
+						"value": {"message":"json_ptr"}
+					},
+					"RawJSON": {
+						"type": "literal",
+						"value": {"message":"raw_json"}
+					},
+					"RawJSONPtr": {
+						"type": "literal",
+						"value": {"message":"raw_json_ptr"}
+					},
+					"Bytes": {
+						"type": "literal",
+						"value": "aGVsbG8gd29ybGQ="
+					},
+					"BytesPtr": {
+						"type": "literal",
+						"value": "aGVsbG8gcG9pbnRlcg=="
 					}
 				},
 				"query": {
@@ -612,6 +660,46 @@ func TestQueryGetTypes(t *testing.T) {
 									"UintPtr": {
 										"column": "UintPtr",
 										"type": "column"
+									},
+									"Map": {
+										"column": "Map",
+										"type": "column"
+									},
+									"MapPtr": {
+										"column": "MapPtr",
+										"type": "column"
+									},
+									"ArrayMap": {
+										"column": "ArrayMap",
+										"type": "column"
+									},
+									"ArrayMapPtr": {
+										"column": "ArrayMapPtr",
+										"type": "column"
+									},
+									"JSON": {
+										"column": "JSON",
+										"type": "column"
+									},
+									"JSONPtr": {
+										"column": "JSONPtr",
+										"type": "column"
+									},
+									"RawJSON": {
+										"column": "RawJSON",
+										"type": "column"
+									},
+									"RawJSONPtr": {
+										"column": "RawJSONPtr",
+										"type": "column"
+									},
+									"Bytes": {
+										"column": "Bytes",
+										"type": "column"
+									},
+									"BytesPtr": {
+										"column": "BytesPtr",
+										"type": "column"
 									}
 								},
 								"type": "object"
@@ -717,6 +805,24 @@ func TestQueryGetTypes(t *testing.T) {
 					uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5a"),
 					uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5b"),
 				},
+				Map: map[string]any{
+					"foo": "bar",
+				},
+				MapPtr: &map[string]any{
+					"foo": "bar_ptr",
+				},
+				ArrayMap: []map[string]any{
+					{"foo": "bar"},
+				},
+				ArrayMapPtr: &[]map[string]any{
+					{"foo": "bar_ptr"},
+				},
+				JSON:       map[string]any{"message": "json"},
+				JSONPtr:    utils.ToPtr(any(map[string]any{"message": "json_ptr"})),
+				RawJSON:    json.RawMessage(`{"message":"raw_json"}`),
+				RawJSONPtr: utils.ToPtr(json.RawMessage(`{"message":"raw_json_ptr"}`)),
+				Bytes:      *scalar.NewBytes([]byte("hello world")),
+				BytesPtr:   scalar.NewBytes([]byte("hello pointer")),
 			},
 		},
 	}
