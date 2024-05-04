@@ -35,15 +35,22 @@ func TestConnectorGeneration(t *testing.T) {
 			BasePath:   "./testdata/basic",
 			ModuleName: "github.com/hasura/ndc-codegen-test",
 		},
+		{
+			Name:       "empty",
+			BasePath:   "./testdata/empty",
+			ModuleName: "github.com/hasura/ndc-codegen-empty-test",
+		},
 	}
 
+	rootDir, err := os.Getwd()
+	assert.NoError(t, err)
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
+			assert.NoError(t, os.Chdir(rootDir))
+
 			expectedSchemaBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/schema.json"))
 			assert.NoError(t, err)
 			connectorContentBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/connector.go.tmpl"))
-			assert.NoError(t, err)
-			expectedFunctionTypesBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/functions.go.tmpl"))
 			assert.NoError(t, err)
 
 			srcDir := path.Join(tc.BasePath, "source")
@@ -72,9 +79,14 @@ func TestConnectorGeneration(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, formatTextContent(string(connectorContentBytes)), formatTextContent(string(connectorBytes)))
 
-			functionTypesBytes, err := os.ReadFile("functions/types.generated.go")
-			assert.NoError(t, err)
-			assert.Equal(t, formatTextContent(string(expectedFunctionTypesBytes)), formatTextContent(string(functionTypesBytes)))
+			expectedFunctionTypesBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/functions.go.tmpl"))
+			if err == nil {
+				functionTypesBytes, err := os.ReadFile("functions/types.generated.go")
+				assert.NoError(t, err)
+				assert.Equal(t, formatTextContent(string(expectedFunctionTypesBytes)), formatTextContent(string(functionTypesBytes)))
+			} else if !os.IsNotExist(err) {
+				assert.NoError(t, err)
+			}
 
 			// generate test cases
 			assert.NoError(t, command.GenTestSnapshots(&command.GenTestSnapshotArguments{
