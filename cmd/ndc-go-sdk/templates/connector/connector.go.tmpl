@@ -4,7 +4,6 @@ package main
 import (
   "context"
   _ "embed"
-  "encoding/json"
   "fmt"
 
   {{.Imports}}
@@ -137,14 +136,14 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 
 func execProcedure(ctx context.Context, state *types.State, operation *schema.MutationOperation, span trace.Span) (schema.MutationOperationResults, error) {
   logger := connector.GetLogger(ctx)
-	span.AddEvent("validate_request")
-  var result any
+  connector_addSpanEvent(span, logger, "validate_request", map[string]any{
+		"operations_name": operation.Name,
+	})
   switch operation.Name {
 {{.Procedures}}
   default:
     return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported procedure operation: %s", operation.Name), nil)
   }
-  return schema.NewProcedureResult(result).Encode(), nil
 }
 
 func connector_addSpanEvent(span trace.Span, logger zerolog.Logger, name string, data map[string]any, options ...trace.EventOption) {

@@ -265,6 +265,8 @@ func (cg *connectorGenerator) genConnectorProcedures(rawSchema *RawConnectorSche
 		return ""
 	}
 
+	cg.rawSchema.Imports["encoding/json"] = true
+
 	var sb strings.Builder
 	for _, fn := range rawSchema.Procedures {
 		if _, ok := cg.rawSchema.Imports[fn.PackagePath]; !ok {
@@ -310,7 +312,7 @@ func (cg *connectorGenerator) genConnectorProcedures(rawSchema *RawConnectorSche
 		if fn.ResultType.IsScalar {
 			sb.WriteString(fmt.Sprintf(`
     var err error
-    result, err = %s.%s(ctx, state%s)`, fn.PackageName, fn.OriginName, argumentParamStr))
+    result, err := %s.%s(ctx, state%s)`, fn.PackageName, fn.OriginName, argumentParamStr))
 		} else {
 			sb.WriteString(fmt.Sprintf("\n    rawResult, err := %s.%s(ctx, state%s)\n", fn.PackageName, fn.OriginName, argumentParamStr))
 			genGeneralOperationResult(&sb, fn.ResultType)
@@ -319,13 +321,14 @@ func (cg *connectorGenerator) genConnectorProcedures(rawSchema *RawConnectorSche
 			"raw_result": rawResult,
 		})`)
 			if fn.ResultType.IsArray() {
-				sb.WriteString("\n    result, err = utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)\n")
+				sb.WriteString("\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)\n")
 			} else {
-				sb.WriteString("\n    result, err = utils.EvalNestedColumnObject(selection, rawResult)\n")
+				sb.WriteString("\n    result, err := utils.EvalNestedColumnObject(selection, rawResult)\n")
 			}
 		}
 
 		sb.WriteString(textBlockErrorCheck2)
+		sb.WriteString("    return schema.NewProcedureResult(result).Encode(), nil\n")
 	}
 
 	return sb.String()
