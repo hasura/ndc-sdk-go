@@ -661,9 +661,17 @@ func GetAny(object map[string]any, key string) (any, bool) {
 // GetNullableArbitraryJSON get an arbitrary json pointer from object by key
 func GetNullableArbitraryJSON(object map[string]any, key string) (*any, error) {
 	value, ok := GetAny(object, key)
-	if !ok {
+	if !ok || value == nil {
 		return nil, nil
 	}
+	reflectValue := reflect.ValueOf(value)
+	if reflectValue.Kind() != reflect.Pointer {
+		return &value, nil
+	}
+	if reflectValue.IsNil() {
+		return nil, nil
+	}
+	value = reflectValue.Elem().Interface()
 	return &value, nil
 }
 
