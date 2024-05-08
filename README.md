@@ -20,7 +20,7 @@ The SDK fully supports [NDC Specification v0.1.2](https://hasura.github.io/ndc-s
 
 ## Quick start
 
-Check out the [generation tool](cmd/ndc-go-sdk) to quickly setup and develop data connectors.
+Check out the [generation tool](cmd/hasura-ndc-go) to quickly setup and develop data connectors.
 
 ## Using this SDK
 

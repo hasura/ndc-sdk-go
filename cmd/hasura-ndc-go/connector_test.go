@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hasura/ndc-sdk-go/cmd/ndc-go-sdk/command"
+	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/command"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/stretchr/testify/assert"
 )

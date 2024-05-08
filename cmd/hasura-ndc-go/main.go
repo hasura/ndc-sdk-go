@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/alecthomas/kong"
-	"github.com/hasura/ndc-sdk-go/cmd/ndc-go-sdk/command"
-	"github.com/hasura/ndc-sdk-go/cmd/ndc-go-sdk/version"
+	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/command"
+	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/version"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -27,7 +27,7 @@ type NewArguments struct {
 
 var cli struct {
 	LogLevel string            `help:"Log level." enum:"debug,info,warn,error" default:"info"`
-	New      NewArguments      `cmd:"" help:"Initialize an NDC connector boilerplate. For example:\n ndc-go-sdk new -n example -m github.com/foo/example"`
+	New      NewArguments      `cmd:"" help:"Initialize an NDC connector boilerplate. For example:\n hasura-ndc-go new -n example -m github.com/foo/example"`
 	Generate GenerateArguments `cmd:"" help:"Generate schema and implementation for the connector from functions."`
 	Test     struct {
 		Snapshots command.GenTestSnapshotArguments `cmd:"" help:"Generate test snapshots."`
