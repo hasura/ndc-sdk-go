@@ -3,7 +3,7 @@ package command
 import (
 	"testing"
 
-	"github.com/hasura/ndc-sdk-go/cmd/ndc-go-sdk/command/internal"
+	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/command/internal"
 	"github.com/stretchr/testify/assert"
 )
 
