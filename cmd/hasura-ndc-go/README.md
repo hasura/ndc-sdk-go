@@ -15,12 +15,7 @@ Get a release [here](https://github.com/hasura/ndc-sdk-go/releases).
 To install with Go 1.19+:
 
 ```bash
-git clone github.com/hasura/ndc-sdk-go
-cd ndc-sdk-go
-make build-codegen
-
-# (optional) move the binary to /usr/bin
-# sudo mv _output/hasura-ndc-go /usr/bin/hasura-ndc-go
+go install github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go@v0
 ```
 
 ## How to Use
