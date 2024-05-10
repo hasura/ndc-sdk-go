@@ -1,3 +1,20 @@
+ROOT = $(shell pwd)
+
+.PHONY: start
+start:
+	cd .hasura-connector/scripts && \
+  HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH=$(ROOT) $(SHELL) ./start.sh
+
+.PHONY: update
+update:
+	cd .hasura-connector/scripts && \
+  HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH=$(ROOT) $(SHELL) ./update.sh
+
+.PHONY: watch
+watch:
+	cd .hasura-connector/scripts && \
+  HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH=$(ROOT) $(SHELL) ./watch.sh
+
 .PHONY: format
 format:
 	gofmt -w -s .
@@ -11,7 +28,3 @@ test:
 .PHONY: lint
 lint:
 	golangci-lint run
-
-.PHONY: generate
-generate:
-	$(SHELL) ./scripts/generate.sh

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -eu -o pipefail
+
+if ! command -v go &>/dev/null; then
+	echo "go could not be found on the PATH. Please install Go v1.21 or above"
+	exit 1
+fi
+
+export GOBIN="$(go env GOPATH)/bin"
+export PATH=$PATH:$GOBIN
+
+if ! command -v hasura-ndc-go &>/dev/null; then
+	go install github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go@latest
+fi
