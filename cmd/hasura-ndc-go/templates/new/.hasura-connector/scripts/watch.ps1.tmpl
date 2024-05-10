@@ -6,7 +6,7 @@ if (-not (Get-Command "hasura-ndc-go" -ErrorAction SilentlyContinue)) {
 }
 
 if (-not (Get-Command "air" -ErrorAction SilentlyContinue)) {
-  Invoke-Expression "go install github.com/cosmtrek/air@v1.41.0"
+  Invoke-Expression "go install github.com/cosmtrek/air@v1.49.0"
 }
 
 Push-Location $env:HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH
