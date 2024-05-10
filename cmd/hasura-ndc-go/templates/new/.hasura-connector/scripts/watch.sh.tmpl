@@ -3,7 +3,7 @@ set -eu -o pipefail
 
 . ./requirements.sh
 
-if [ ! command -v air &>/dev/null ]; then
+if ! command -v air &>/dev/null; then
 	go install github.com/cosmtrek/air@v1.41.0
 fi
 
