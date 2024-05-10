@@ -1,0 +1,22 @@
+$ErrorActionPreference = "Stop"
+
+& ./requirements.ps1
+if (-not (Get-Command "hasura-ndc-go" -ErrorAction SilentlyContinue)) {
+  $env:PATH = "$($env:PATH);$($env:GOPATH)bin;$($env:USERPROFILE)bin"
+}
+
+if (-not (Get-Command "air" -ErrorAction SilentlyContinue)) {
+  Invoke-Expression "go install github.com/cosmtrek/air@v1.49.0"
+}
+
+Push-Location $env:HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH
+
+try {
+  $WatchExpr = "air -c .air.windows.toml"
+  Invoke-Expression $WatchExpr
+  if ($LASTEXITCODE -ne 0) {
+    exit 1
+  }
+} finally {
+  Pop-Location
+}

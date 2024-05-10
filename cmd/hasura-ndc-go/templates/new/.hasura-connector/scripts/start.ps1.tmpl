@@ -1,0 +1,21 @@
+$ErrorActionPreference = "Stop"
+
+& ./requirements.ps1
+
+if (-not (Get-Command "hasura-ndc-go" -ErrorAction SilentlyContinue)) {
+  $env:PATH = "$($env:PATH);$($env:GOPATH)bin;$($env:USERPROFILE)bin"
+}
+
+Push-Location $env:HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH
+
+try {
+  $GenerateExpr = "hasura-ndc-go generate"
+  $StartExpr = "go run . serve"
+  Invoke-Expression $GenerateExpr
+  Invoke-Expression $StartExpr
+  if ($LASTEXITCODE -ne 0) {
+    exit 1
+  }
+} finally {
+  Pop-Location
+}
