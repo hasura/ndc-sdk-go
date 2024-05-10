@@ -13,6 +13,10 @@ const DevVersion = "v0"
 var BuildVersion = ""
 
 func init() {
+	initBuildVersion()
+}
+
+func initBuildVersion() {
 	if BuildVersion != "" {
 		return
 	}
