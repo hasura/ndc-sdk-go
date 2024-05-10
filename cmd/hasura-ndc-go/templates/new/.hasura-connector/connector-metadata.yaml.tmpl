@@ -1,7 +1,16 @@
 packagingDefinition:
   type: ManagedDockerBuild
 supportedEnvironmentVariables: []
-commands: {}
+commands:
+  commands:
+    start:
+      type: ShellScript
+      bash: ./start.sh
+      powershell: ./start.ps1
+    watch:
+      type: ShellScript
+      bash: ./watch.sh
+      powershell: ./watch.ps1
 dockerComposeWatch: 
   # Rebuild the container if root files or dependencies are changed
   - path: go.mod
