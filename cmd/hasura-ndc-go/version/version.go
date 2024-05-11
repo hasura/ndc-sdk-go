@@ -6,7 +6,7 @@ import (
 )
 
 // DevVersion is the version string for development versions.
-const DevVersion = "main"
+const DevVersion = "latest"
 
 // BuildVersion is the version string with which CLI is built. Set during
 // the build time.
