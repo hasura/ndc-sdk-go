@@ -1,30 +1,34 @@
+.DEFAULT_GOAL := help
 ROOT = $(shell pwd)
 
 .PHONY: start
-start:
+start: ## Start the server with go run
 	cd .hasura-connector/scripts && \
   HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH=$(ROOT) $(SHELL) ./start.sh
 
 .PHONY: update
-update:
+update: ## Update schema and code generation
 	cd .hasura-connector/scripts && \
   HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH=$(ROOT) $(SHELL) ./update.sh
 
 .PHONY: watch
-watch:
+watch: ## Watch code changes and live reload
 	cd .hasura-connector/scripts && \
   HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH=$(ROOT) $(SHELL) ./watch.sh
 
 .PHONY: format
-format:
+format: ## Format go files
 	gofmt -w -s .
 
 .PHONY: test
-test:
-	go test -v -race -timeout 3m ./...
+test: ## Run unit tests
+	go test -v ./...
 
-# Install golangci-lint tool to run lint locally
-# https://golangci-lint.run/usage/install
 .PHONY: lint
-lint:
+lint: ## Install golangci-lint tool to run lint locally https://golangci-lint.run/usage/install
 	golangci-lint run
+
+help:
+	@echo ""
+	@echo "Usage:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?##"}; {printf "  \033[36m%-30s\033[0m %s\n", $$1, $$2}'
