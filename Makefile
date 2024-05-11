@@ -9,9 +9,23 @@ typegen:
 format:
 	gofmt -w -s .
 
-.PHONY: test
-test:
+
+.PHONY: test-sdk
+test-sdk:
 	go test -v -race -timeout 3m ./...
+
+.PHONY: test-hasura-ndc-go
+test-hasura-ndc-go:
+	cd cmd/hasura-ndc-go && \
+		go test -v -race ./...
+
+.PHONY: test-example-codegen
+test-example-codegen:
+	cd example/codegen && \
+		go test -v -race ./...
+
+.PHONY: test
+test: test-sdk test-hasura-ndc-go test-example-codegen
 
 # Install golangci-lint tool to run lint locally
 # https://golangci-lint.run/usage/install
