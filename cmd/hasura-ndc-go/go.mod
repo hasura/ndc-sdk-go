@@ -10,7 +10,7 @@ require (
 	github.com/rs/zerolog v1.32.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/mod v0.17.0
-	golang.org/x/tools v0.20.0
+	golang.org/x/tools v0.21.0
 )
 
 require (

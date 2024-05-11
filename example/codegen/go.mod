@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/hasura/ndc-sdk-go v1.1.2
+	github.com/hasura/ndc-sdk-go v1.1.3
 	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/otel v1.26.0
 	go.opentelemetry.io/otel/trace v1.26.0
