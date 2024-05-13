@@ -67,12 +67,12 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 		return nil, err
 	}
 
-	state, err := connector.TryInitState(ctx, configuration, nil)
+	telemetry, err := setupOTelSDK(ctx, &options.OTLPConfig, defaultOptions.version, defaultOptions.metricsPrefix, defaultOptions.logger)
 	if err != nil {
 		return nil, err
 	}
 
-	telemetry, err := setupOTelSDK(ctx, &options.OTLPConfig, defaultOptions.version, defaultOptions.metricsPrefix, defaultOptions.logger)
+	state, err := connector.TryInitState(ctx, configuration, telemetry)
 	if err != nil {
 		return nil, err
 	}
