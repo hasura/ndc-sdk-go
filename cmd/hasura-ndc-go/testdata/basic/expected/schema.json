@@ -12,6 +12,174 @@
     },
     {
       "arguments": {
+        "ArrayBool": {
+          "type": {
+            "element_type": {
+              "name": "Boolean",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayBoolPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Boolean",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayFloat32": {
+          "type": {
+            "element_type": {
+              "name": "Float32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayFloat32Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Float32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayFloat64": {
+          "type": {
+            "element_type": {
+              "name": "Float64",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayFloat64Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Float64",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt": {
+          "type": {
+            "element_type": {
+              "name": "Int32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt16": {
+          "type": {
+            "element_type": {
+              "name": "Int16",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt16Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int16",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt32": {
+          "type": {
+            "element_type": {
+              "name": "Int32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt32Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt64": {
+          "type": {
+            "element_type": {
+              "name": "Int64",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt64Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int64",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt8": {
+          "type": {
+            "element_type": {
+              "name": "Int8",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt8Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int8",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayIntPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
         "ArrayMap": {
           "type": {
             "element_type": {
@@ -52,6 +220,132 @@
               },
               "type": "array"
             }
+          }
+        },
+        "ArrayString": {
+          "type": {
+            "element_type": {
+              "name": "String",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayStringPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "String",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint": {
+          "type": {
+            "element_type": {
+              "name": "Int32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint16": {
+          "type": {
+            "element_type": {
+              "name": "Int16",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint16Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int16",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint32": {
+          "type": {
+            "element_type": {
+              "name": "Int32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint32Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint64": {
+          "type": {
+            "element_type": {
+              "name": "Int64",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint64Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int64",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint8": {
+          "type": {
+            "element_type": {
+              "name": "Int8",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint8Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int8",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUintPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            },
+            "type": "array"
           }
         },
         "BigInt": {
@@ -608,6 +902,174 @@
     },
     "GetTypesArguments": {
       "fields": {
+        "ArrayBool": {
+          "type": {
+            "element_type": {
+              "name": "Boolean",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayBoolPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Boolean",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayFloat32": {
+          "type": {
+            "element_type": {
+              "name": "Float32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayFloat32Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Float32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayFloat64": {
+          "type": {
+            "element_type": {
+              "name": "Float64",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayFloat64Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Float64",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt": {
+          "type": {
+            "element_type": {
+              "name": "Int32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt16": {
+          "type": {
+            "element_type": {
+              "name": "Int16",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt16Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int16",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt32": {
+          "type": {
+            "element_type": {
+              "name": "Int32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt32Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt64": {
+          "type": {
+            "element_type": {
+              "name": "Int64",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt64Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int64",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt8": {
+          "type": {
+            "element_type": {
+              "name": "Int8",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt8Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int8",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayIntPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
         "ArrayMap": {
           "type": {
             "element_type": {
@@ -648,6 +1110,132 @@
               },
               "type": "array"
             }
+          }
+        },
+        "ArrayString": {
+          "type": {
+            "element_type": {
+              "name": "String",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayStringPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "String",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint": {
+          "type": {
+            "element_type": {
+              "name": "Int32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint16": {
+          "type": {
+            "element_type": {
+              "name": "Int16",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint16Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int16",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint32": {
+          "type": {
+            "element_type": {
+              "name": "Int32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint32Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint64": {
+          "type": {
+            "element_type": {
+              "name": "Int64",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint64Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int64",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint8": {
+          "type": {
+            "element_type": {
+              "name": "Int8",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint8Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int8",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUintPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            },
+            "type": "array"
           }
         },
         "BigInt": {

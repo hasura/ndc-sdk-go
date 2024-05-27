@@ -125,6 +125,36 @@ type GetTypesArguments struct {
 	EnumPtr         *SomeEnum
 	BigIntPtr       *scalar.BigInt
 
+	ArrayBool    []bool
+	ArrayString  []string
+	ArrayInt     []int
+	ArrayInt8    []int8
+	ArrayInt16   []int16
+	ArrayInt32   []int32
+	ArrayInt64   []int64
+	ArrayUint    []uint
+	ArrayUint8   []uint8
+	ArrayUint16  []uint16
+	ArrayUint32  []uint32
+	ArrayUint64  []uint64
+	ArrayFloat32 []float32
+	ArrayFloat64 []float64
+
+	ArrayBoolPtr    []*bool
+	ArrayStringPtr  []*string
+	ArrayIntPtr     []*int
+	ArrayInt8Ptr    []*int8
+	ArrayInt16Ptr   []*int16
+	ArrayInt32Ptr   []*int32
+	ArrayInt64Ptr   []*int64
+	ArrayUintPtr    []*uint
+	ArrayUint8Ptr   []*uint8
+	ArrayUint16Ptr  []*uint16
+	ArrayUint32Ptr  []*uint32
+	ArrayUint64Ptr  []*uint64
+	ArrayFloat32Ptr []*float32
+	ArrayFloat64Ptr []*float64
+
 	Object struct {
 		ID        uuid.UUID `json:"id"`
 		CreatedAt time.Time `json:"created_at"`

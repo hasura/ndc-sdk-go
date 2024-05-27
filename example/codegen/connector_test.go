@@ -341,6 +341,118 @@ func TestQueryGetTypes(t *testing.T) {
 					"BytesPtr": {
 						"type": "literal",
 						"value": "aGVsbG8gcG9pbnRlcg=="
+					},
+					"ArrayBool": {
+						"type": "literal",
+						"value": [true]
+					},
+					"ArrayString": {
+						"type": "literal",
+						"value": ["foo"]
+					},
+					"ArrayInt": {
+						"type": "literal",
+						"value": [1]
+					},
+					"ArrayInt8": {
+						"type": "literal",
+						"value": [2]
+					},
+					"ArrayInt16": {
+						"type": "literal",
+						"value": [3]
+					},
+					"ArrayInt32": {
+						"type": "literal",
+						"value": [4]
+					},
+					"ArrayInt64": {
+						"type": "literal",
+						"value": [5]
+					},
+					"ArrayUint": {
+						"type": "literal",
+						"value": [6]
+					},
+					"ArrayUint8": {
+						"type": "literal",
+						"value": [7]
+					},
+					"ArrayUint16": {
+						"type": "literal",
+						"value": [8]
+					},
+					"ArrayUint32": {
+						"type": "literal",
+						"value": [9]
+					},
+					"ArrayUint64": {
+						"type": "literal",
+						"value": [10]
+					},
+					"ArrayFloat32": {
+						"type": "literal",
+						"value": [11.1]
+					},
+					"ArrayFloat64": {
+						"type": "literal",
+						"value": [12.2]
+					},
+					"ArrayBoolPtr": {
+						"type": "literal",
+						"value": [true]
+					},
+					"ArrayStringPtr": {
+						"type": "literal",
+						"value": ["foo"]
+					},
+					"ArrayIntPtr": {
+						"type": "literal",
+						"value": [1]
+					},
+					"ArrayInt8Ptr": {
+						"type": "literal",
+						"value": [2]
+					},
+					"ArrayInt16Ptr": {
+						"type": "literal",
+						"value": [3]
+					},
+					"ArrayInt32Ptr": {
+						"type": "literal",
+						"value": [4]
+					},
+					"ArrayInt64Ptr": {
+						"type": "literal",
+						"value": [5]
+					},
+					"ArrayUintPtr": {
+						"type": "literal",
+						"value": [6]
+					},
+					"ArrayUint8Ptr": {
+						"type": "literal",
+						"value": [7]
+					},
+					"ArrayUint16Ptr": {
+						"type": "literal",
+						"value": [8]
+					},
+					"ArrayUint32Ptr": {
+						"type": "literal",
+						"value": [9]
+					},
+					"ArrayUint64Ptr": {
+						"type": "literal",
+						"value": [10]
+					},
+					"ArrayFloat32Ptr": {
+						"type": "literal",
+						"value": [11.1]
+					},
+					"ArrayFloat64Ptr": {
+						"type": "literal",
+						"value": [12.2]
 					}
 				},
 				"query": {
@@ -700,6 +812,62 @@ func TestQueryGetTypes(t *testing.T) {
 									"BytesPtr": {
 										"column": "BytesPtr",
 										"type": "column"
+									},
+									"ArrayBool": {
+										"column": "ArrayBool",
+										"type": "column"
+									},
+									"ArrayString": {
+										"column": "ArrayString",
+										"type": "column"
+									},
+									"ArrayInt": {
+										"column": "ArrayInt",
+										"type": "column"
+									},
+									"ArrayInt8": {
+										"column": "ArrayInt8",
+										"type": "column"
+									},
+									"ArrayInt16": {
+										"column": "ArrayInt16",
+										"type": "column"
+									},
+									"ArrayInt32": {
+										"column": "ArrayInt32",
+										"type": "column"
+									},
+									"ArrayInt64": {
+										"column": "ArrayInt64",
+										"type": "column"
+									},
+									"ArrayUint": {
+										"column": "ArrayUint",
+										"type": "column"
+									},
+									"ArrayUint8": {
+										"column": "ArrayUint8",
+										"type": "column"
+									},
+									"ArrayUint16": {
+										"column": "ArrayUint16",
+										"type": "column"
+									},
+									"ArrayUint32": {
+										"column": "ArrayUint32",
+										"type": "column"
+									},
+									"ArrayUint64": {
+										"column": "ArrayUint64",
+										"type": "column"
+									},
+									"ArrayFloat32": {
+										"column": "ArrayFloat32",
+										"type": "column"
+									},
+									"ArrayFloat64": {
+										"column": "ArrayFloat64",
+										"type": "column"
 									}
 								},
 								"type": "object"
@@ -817,12 +985,26 @@ func TestQueryGetTypes(t *testing.T) {
 				ArrayMapPtr: &[]map[string]any{
 					{"foo": "bar_ptr"},
 				},
-				JSON:       map[string]any{"message": "json"},
-				JSONPtr:    utils.ToPtr(any(map[string]any{"message": "json_ptr"})),
-				RawJSON:    json.RawMessage(`{"message":"raw_json"}`),
-				RawJSONPtr: utils.ToPtr(json.RawMessage(`{"message":"raw_json_ptr"}`)),
-				Bytes:      *scalar.NewBytes([]byte("hello world")),
-				BytesPtr:   scalar.NewBytes([]byte("hello pointer")),
+				JSON:         map[string]any{"message": "json"},
+				JSONPtr:      utils.ToPtr(any(map[string]any{"message": "json_ptr"})),
+				RawJSON:      json.RawMessage(`{"message":"raw_json"}`),
+				RawJSONPtr:   utils.ToPtr(json.RawMessage(`{"message":"raw_json_ptr"}`)),
+				Bytes:        *scalar.NewBytes([]byte("hello world")),
+				BytesPtr:     scalar.NewBytes([]byte("hello pointer")),
+				ArrayBool:    []bool{true},
+				ArrayString:  []string{"foo"},
+				ArrayInt:     []int{1},
+				ArrayInt8:    []int8{2},
+				ArrayInt16:   []int16{3},
+				ArrayInt32:   []int32{4},
+				ArrayInt64:   []int64{5},
+				ArrayUint:    []uint{6},
+				ArrayUint8:   []uint8{7},
+				ArrayUint16:  []uint16{8},
+				ArrayUint32:  []uint32{9},
+				ArrayUint64:  []uint64{10},
+				ArrayFloat32: []float32{11.1},
+				ArrayFloat64: []float64{12.2},
 			},
 		},
 	}

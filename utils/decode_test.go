@@ -8,29 +8,32 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hasura/ndc-sdk-go/internal"
 )
 
 func assertNoError(t *testing.T, err error) {
 	if err != nil {
-		t.Errorf("expected no error, got: %s", err)
-		t.FailNow()
+		t.Fatalf("expected no error, got: %s", err)
 	}
 }
 
 func assertError(t *testing.T, err error, message string) {
 	if err == nil {
-		t.Error("expected error, got nil")
-		t.FailNow()
+		t.Fatal("expected error, got nil")
 	} else if !strings.Contains(err.Error(), message) {
-		t.Errorf("expected error with content: %s, got: %s", err.Error(), message)
-		t.FailNow()
+		t.Fatalf("expected error with content: %s, got: %s", err.Error(), message)
 	}
 }
 
 func assertEqual(t *testing.T, expected any, reality any) {
 	if expected != reality {
-		t.Errorf("not equal, expected: %+v got: %+v", expected, reality)
-		t.FailNow()
+		t.Fatalf("not equal, expected: %+v got: %+v", expected, reality)
+	}
+}
+
+func assertDeepEqual(t *testing.T, expected any, reality any) {
+	if !internal.DeepEqual(expected, reality) {
+		t.Fatalf("not equal, expected: %+v got: %+v", expected, reality)
 	}
 }
 
@@ -54,6 +57,74 @@ func TestDecodeBool(t *testing.T) {
 	assertError(t, err, "failed to convert Boolean, got: failure")
 }
 
+func TestDecodeBooleanSlice(t *testing.T) {
+	value, err := DecodeBooleanSlice([]bool{true, false})
+	assertNoError(t, err)
+	assertDeepEqual(t, []bool{true, false}, value)
+
+	value, err = DecodeBooleanSlice([]any{false, true})
+	assertNoError(t, err)
+	assertDeepEqual(t, []bool{false, true}, value)
+
+	value, err = DecodeBooleanSlice(&[]any{true})
+	assertNoError(t, err)
+	assertDeepEqual(t, []bool{true}, value)
+
+	value, err = DecodeBooleanSlice(nil)
+	assertNoError(t, err)
+	assertDeepEqual(t, []bool{}, value)
+
+	_, err = DecodeBooleanSlice("failure")
+	assertError(t, err, "failed to convert boolean slice, got: failure")
+
+	_, err = DecodeBooleanSlice(time.Now())
+	assertError(t, err, "failed to convert boolean slice")
+
+	_, err = DecodeBooleanSlice([]any{nil})
+	assertError(t, err, "failed to convert boolean item at 0 (<nil>): the Boolean value must not be null")
+
+	_, err = DecodeBooleanSlice(&[]any{nil})
+	assertError(t, err, "failed to convert boolean item at 0 (<nil>): the Boolean value must not be null")
+}
+
+func TestDecodeNullableBooleanSlice(t *testing.T) {
+	_, err := DecodeNullableBooleanSlice([]bool{true, false})
+	assertNoError(t, err)
+
+	_, err = DecodeNullableBooleanSlice([]*bool{ToPtr(true), ToPtr(false)})
+	assertNoError(t, err)
+
+	_, err = DecodeNullableBooleanSlice(&[]*bool{ToPtr(true), ToPtr(false)})
+	assertNoError(t, err)
+
+	_, err = DecodeNullableBooleanSlice([]any{false, true})
+	assertNoError(t, err)
+
+	_, err = DecodeNullableBooleanSlice(&[]any{true})
+	assertNoError(t, err)
+
+	value, err := DecodeNullableBooleanSlice([]any{nil})
+	assertNoError(t, err)
+	assertDeepEqual(t, []*bool{nil}, value)
+
+	value, err = DecodeNullableBooleanSlice(nil)
+	assertNoError(t, err)
+	assertDeepEqual(t, []*bool{}, value)
+
+	_, err = DecodeNullableBooleanSlice([]any{"true"})
+	assertError(t, err, "failed to convert boolean item at 0 (true)")
+
+	_, err = DecodeNullableBooleanSlice("failure")
+	assertError(t, err, "failed to convert boolean slice, got: failure")
+
+	_, err = DecodeNullableBooleanSlice(time.Now())
+	assertError(t, err, "failed to convert boolean slice")
+
+	_, err = DecodeNullableBooleanSlice(time.Now())
+	assertError(t, err, "failed to convert boolean slice")
+
+}
+
 func TestDecodeString(t *testing.T) {
 	value, err := DecodeString("success")
 	assertNoError(t, err)
@@ -72,6 +143,76 @@ func TestDecodeString(t *testing.T) {
 
 	_, err = DecodeString(0)
 	assertError(t, err, "failed to convert String, got: 0")
+}
+
+func TestDecodeStringSlice(t *testing.T) {
+	value, err := DecodeStringSlice([]string{"foo", "bar"})
+	assertNoError(t, err)
+	assertDeepEqual(t, []string{"foo", "bar"}, value)
+
+	value, err = DecodeStringSlice([]*string{ToPtr("foo"), ToPtr("bar")})
+	assertNoError(t, err)
+	assertDeepEqual(t, []string{"foo", "bar"}, value)
+
+	value, err = DecodeStringSlice(&[]*string{ToPtr("foo")})
+	assertNoError(t, err)
+	assertDeepEqual(t, []string{"foo"}, value)
+
+	value, err = DecodeStringSlice([]any{"bar", "foo"})
+	assertNoError(t, err)
+	assertDeepEqual(t, []string{"bar", "foo"}, value)
+
+	value, err = DecodeStringSlice(&[]any{"foo"})
+	assertNoError(t, err)
+	assertDeepEqual(t, []string{"foo"}, value)
+
+	value, err = DecodeStringSlice(nil)
+	assertNoError(t, err)
+	assertDeepEqual(t, []string{}, value)
+
+	_, err = DecodeStringSlice("failure")
+	assertError(t, err, "failed to convert string slice, got: failure")
+
+	_, err = DecodeStringSlice(time.Now())
+	assertError(t, err, "failed to convert string slice")
+
+	_, err = DecodeStringSlice([]any{nil})
+	assertError(t, err, "failed to convert string item at 0 (<nil>): the String value must not be null")
+
+	_, err = DecodeStringSlice(&[]any{nil})
+	assertError(t, err, "failed to convert string item at 0 (<nil>): the String value must not be null")
+}
+
+func TestDecodeNullableStringSlice(t *testing.T) {
+	_, err := DecodeNullableStringSlice([]string{"foo", "bar"})
+	assertNoError(t, err)
+
+	_, err = DecodeNullableStringSlice([]*string{ToPtr("foo"), ToPtr("bar")})
+	assertNoError(t, err)
+
+	_, err = DecodeNullableStringSlice(&[]*string{ToPtr("foo")})
+	assertNoError(t, err)
+
+	_, err = DecodeNullableStringSlice([]any{"bar", "foo"})
+	assertNoError(t, err)
+
+	_, err = DecodeNullableStringSlice(&[]any{"foo"})
+	assertNoError(t, err)
+
+	value, err := DecodeNullableStringSlice(nil)
+	assertNoError(t, err)
+	assertDeepEqual(t, []string{}, value)
+
+	_, err = DecodeNullableStringSlice("failure")
+	assertError(t, err, "failed to convert string slice, got: failure")
+
+	_, err = DecodeNullableStringSlice(time.Now())
+	assertError(t, err, "failed to convert string slice")
+
+	value, err = DecodeNullableStringSlice([]any{nil})
+	assertNoError(t, err)
+	assertDeepEqual(t, []*string{nil}, value)
+
 }
 
 func TestDecodeDateTime(t *testing.T) {
@@ -292,8 +433,100 @@ func TestDecodeInt(t *testing.T) {
 	})
 }
 
-func TestDecodeUint(t *testing.T) {
+func TestDecodeIntSlice(t *testing.T) {
+	for _, tc := range []struct {
+		input    any
+		expected []int
+	}{
+		{[]int{1}, []int{1}}, {[]int8{2}, []int{2}}, {[]int16{3}, []int{3}}, {[]int32{4}, []int{4}}, {[]int64{5}, []int{5}},
+		{[]uint{6}, []int{6}}, {[]uint8{7}, []int{7}}, {[]uint16{8}, []int{8}}, {[]uint32{9}, []int{9}}, {[]uint64{10}, []int{10}},
+		{[]string{"11"}, []int{11}}, {[]float32{12}, []int{12}}, {[]float64{13}, []int{13}},
 
+		{[]*int{ToPtr(1)}, []int{1}}, {[]*int8{ToPtr(int8(2))}, []int{2}}, {[]*int16{ToPtr[int16](3)}, []int{3}}, {[]*int32{ToPtr[int32](4)}, []int{4}}, {[]*int64{ToPtr(int64(5))}, []int{5}},
+		{[]*uint{ToPtr[uint](6)}, []int{6}}, {[]*uint8{ToPtr(uint8(7))}, []int{7}}, {[]*uint16{ToPtr(uint16(8))}, []int{8}}, {[]*uint32{ToPtr(uint32(9))}, []int{9}}, {[]*uint64{ToPtr(uint64(10))}, []int{10}},
+		{[]*string{ToPtr("11")}, []int{11}}, {[]*float32{ToPtr[float32](12)}, []int{12}}, {[]*float64{ToPtr[float64](13)}, []int{13}},
+
+		{&[]int{1}, []int{1}}, {&[]int8{2}, []int{2}}, {&[]int16{3}, []int{3}}, {&[]int32{4}, []int{4}}, {&[]int64{5}, []int{5}},
+		{&[]uint{6}, []int{6}}, {&[]uint8{7}, []int{7}}, {&[]uint16{8}, []int{8}}, {&[]uint32{9}, []int{9}}, {&[]uint64{10}, []int{10}},
+		{&[]string{"11"}, []int{11}}, {&[]float32{12}, []int{12}}, {&[]float64{13}, []int{13}},
+
+		{&[]*int{ToPtr(1)}, []int{1}}, {&[]*int8{ToPtr(int8(2))}, []int{2}}, {&[]*int16{ToPtr[int16](3)}, []int{3}}, {&[]*int32{ToPtr[int32](4)}, []int{4}}, {&[]*int64{ToPtr(int64(5))}, []int{5}},
+		{&[]*uint{ToPtr[uint](6)}, []int{6}}, {&[]*uint8{ToPtr(uint8(7))}, []int{7}}, {&[]*uint16{ToPtr(uint16(8))}, []int{8}}, {&[]*uint32{ToPtr(uint32(9))}, []int{9}}, {&[]*uint64{ToPtr(uint64(10))}, []int{10}},
+		{&[]*string{ToPtr("11")}, []int{11}}, {&[]*float32{ToPtr[float32](12)}, []int{12}}, {&[]*float64{ToPtr[float64](13)}, []int{13}},
+	} {
+		value, err := DecodeIntSlice[int](tc.input)
+		assertNoError(t, err)
+		assertDeepEqual(t, tc.expected, value)
+	}
+
+	value, err := DecodeIntSlice[int](&[]any{"1", 2})
+	assertNoError(t, err)
+	assertDeepEqual(t, []int{1, 2}, value)
+
+	value, err = DecodeIntSlice[int](nil)
+	assertNoError(t, err)
+	assertDeepEqual(t, []int{}, value)
+
+	_, err = DecodeIntSlice[int]("failure")
+	assertError(t, err, "failed to convert int slice, got: failure")
+
+	_, err = DecodeIntSlice[int](time.Now())
+	assertError(t, err, "failed to convert int slice")
+
+	_, err = DecodeIntSlice[int]([]any{nil})
+	assertError(t, err, "failed to convert int slice, got: [<nil>]")
+
+	_, err = DecodeIntSlice[int](&[]any{nil})
+	assertError(t, err, "expected not null array item")
+}
+
+func TestDecodeNullableIntSlice(t *testing.T) {
+	for _, tc := range []struct {
+		input    any
+		expected []int
+	}{
+		{[]int{1}, []int{1}}, {[]int8{2}, []int{2}}, {[]int16{3}, []int{3}}, {[]int32{4}, []int{4}}, {[]int64{5}, []int{5}},
+		{[]uint{6}, []int{6}}, {[]uint8{7}, []int{7}}, {[]uint16{8}, []int{8}}, {[]uint32{9}, []int{9}}, {[]uint64{10}, []int{10}},
+		{[]string{"11"}, []int{11}}, {[]float32{12}, []int{12}}, {[]float64{13}, []int{13}},
+
+		{[]*int{ToPtr(1)}, []int{1}}, {[]*int8{ToPtr(int8(2))}, []int{2}}, {[]*int16{ToPtr[int16](3)}, []int{3}}, {[]*int32{ToPtr[int32](4)}, []int{4}}, {[]*int64{ToPtr(int64(5))}, []int{5}},
+		{[]*uint{ToPtr[uint](6)}, []int{6}}, {[]*uint8{ToPtr(uint8(7))}, []int{7}}, {[]*uint16{ToPtr(uint16(8))}, []int{8}}, {[]*uint32{ToPtr(uint32(9))}, []int{9}}, {[]*uint64{ToPtr(uint64(10))}, []int{10}},
+		{[]*string{ToPtr("11")}, []int{11}}, {[]*float32{ToPtr[float32](12)}, []int{12}}, {[]*float64{ToPtr[float64](13)}, []int{13}},
+
+		{&[]int{1}, []int{1}}, {&[]int8{2}, []int{2}}, {&[]int16{3}, []int{3}}, {&[]int32{4}, []int{4}}, {&[]int64{5}, []int{5}},
+		{&[]uint{6}, []int{6}}, {&[]uint8{7}, []int{7}}, {&[]uint16{8}, []int{8}}, {&[]uint32{9}, []int{9}}, {&[]uint64{10}, []int{10}},
+		{&[]string{"11"}, []int{11}}, {&[]float32{12}, []int{12}}, {&[]float64{13}, []int{13}},
+
+		{&[]*int{ToPtr(1)}, []int{1}}, {&[]*int8{ToPtr(int8(2))}, []int{2}}, {&[]*int16{ToPtr[int16](3)}, []int{3}}, {&[]*int32{ToPtr[int32](4)}, []int{4}}, {&[]*int64{ToPtr(int64(5))}, []int{5}},
+		{&[]*uint{ToPtr[uint](6)}, []int{6}}, {&[]*uint8{ToPtr(uint8(7))}, []int{7}}, {&[]*uint16{ToPtr(uint16(8))}, []int{8}}, {&[]*uint32{ToPtr(uint32(9))}, []int{9}}, {&[]*uint64{ToPtr(uint64(10))}, []int{10}},
+		{&[]*string{ToPtr("11")}, []int{11}}, {&[]*float32{ToPtr[float32](12)}, []int{12}}, {&[]*float64{ToPtr[float64](13)}, []int{13}},
+	} {
+		value, err := DecodeNullableIntSlice[int](tc.input)
+		assertNoError(t, err)
+		assertDeepEqual(t, tc.expected, value)
+	}
+
+	value, err := DecodeNullableIntSlice[int](&[]any{"1", 2})
+	assertNoError(t, err)
+	assertDeepEqual(t, []int{1, 2}, value)
+
+	value, err = DecodeNullableIntSlice[int](nil)
+	assertNoError(t, err)
+	assertDeepEqual(t, []int{}, value)
+
+	value, err = DecodeNullableIntSlice[int]([]any{nil})
+	assertNoError(t, err)
+	assertDeepEqual(t, []*int{nil}, value)
+
+	_, err = DecodeNullableIntSlice[int]("failure")
+	assertError(t, err, "failed to convert int slice, got: failure")
+
+	_, err = DecodeNullableIntSlice[int](time.Now())
+	assertError(t, err, "failed to convert int slice")
+
+}
+
+func TestDecodeUint(t *testing.T) {
 	for _, expected := range []any{int(1), int8(2), int16(3), int32(4), int64(5), uint(6), uint8(7), uint16(8), uint32(9), uint64(10), "11"} {
 		t.Run(fmt.Sprintf("decode_%s", reflect.TypeOf(expected).String()), func(t *testing.T) {
 
@@ -340,6 +573,42 @@ func TestDecodeUint(t *testing.T) {
 		_, err := DecodeUint[uint]("failure")
 		assertError(t, err, "failed to convert integer, got: failure")
 	})
+}
+
+func TestDecodeUintSlice(t *testing.T) {
+	for _, expected := range []any{
+		[]int{1}, []int8{2}, []int16{3}, []int32{4}, []int64{5}, []uint{6}, []uint8{7}, []uint16{8}, []uint32{9}, []uint64{10}, []string{"11"}, []float32{12}, []float64{13},
+		&[]int{1}, &[]int8{2}, &[]int16{3}, &[]int32{4}, &[]int64{5}, &[]uint{6}, &[]uint8{7}, &[]uint16{8}, &[]uint32{9}, &[]uint64{10}, &[]string{"11"}, &[]float32{12}, &[]float64{13},
+	} {
+		value, err := DecodeUintSlice[uint64](expected)
+		assertNoError(t, err)
+		rexpected := reflect.ValueOf(expected)
+		if rexpected.Kind() == reflect.Pointer {
+			assertDeepEqual(t, fmt.Sprint(rexpected.Elem().Interface()), fmt.Sprint(value))
+		} else {
+			assertDeepEqual(t, fmt.Sprint(expected), fmt.Sprint(value))
+		}
+	}
+
+	value, err := DecodeUintSlice[uint64](&[]any{"1", 2})
+	assertNoError(t, err)
+	assertDeepEqual(t, []int{1, 2}, value)
+
+	value, err = DecodeUintSlice[uint64](nil)
+	assertNoError(t, err)
+	assertDeepEqual(t, []int{}, value)
+
+	_, err = DecodeUintSlice[uint64]("failure")
+	assertError(t, err, "failed to convert int slice, got: failure")
+
+	_, err = DecodeUintSlice[uint64](time.Now())
+	assertError(t, err, "failed to convert int slice")
+
+	_, err = DecodeUintSlice[uint64]([]any{nil})
+	assertError(t, err, "failed to convert int slice, got: [<nil>]")
+
+	_, err = DecodeUintSlice[uint64](&[]any{nil})
+	assertError(t, err, "expected not null array item")
 }
 
 func TestDecodeFloat(t *testing.T) {
@@ -509,15 +778,26 @@ func TestDecodeNestedInterface(t *testing.T) {
 	stringValue := "test"
 	intValue := 1
 	floatValue := 1.1
+	boolSliceValue := []bool{true, false}
+	stringSliceValue := []string{"foo", "bar"}
+	intSliceValue := []int{1, 2, 3}
+	uintSliceValue := []uint{1, 2, 3}
+	floatSliceValue := []float64{1.1, 2.2, 3.3}
+
 	fixture := map[string]any{
-		"bool":      any(any(boolValue)),
-		"string":    any(any(stringValue)),
-		"int":       any(any(intValue)),
-		"float":     any(any(floatValue)),
-		"boolPtr":   any(any(&boolValue)),
-		"stringPtr": any(any(&stringValue)),
-		"intPtr":    any(any(&intValue)),
-		"floatPtr":  any(any(&floatValue)),
+		"bool":           any(any(boolValue)),
+		"string":         any(any(stringValue)),
+		"int":            any(any(intValue)),
+		"float":          any(any(floatValue)),
+		"boolPtr":        any(any(&boolValue)),
+		"stringPtr":      any(any(&stringValue)),
+		"intPtr":         any(any(&intValue)),
+		"floatPtr":       any(any(&floatValue)),
+		"boolSlicePtr":   any(any(&boolSliceValue)),
+		"stringSlicePtr": any(any(&stringSliceValue)),
+		"intSlicePtr":    any(any(&intSliceValue)),
+		"uintSlicePtr":   any(any(&uintSliceValue)),
+		"floatSlicePtr":  any(any(&floatSliceValue)),
 		"array": any([]any{
 			any(
 				map[string]any{
@@ -534,7 +814,7 @@ func TestDecodeNestedInterface(t *testing.T) {
 		}),
 	}
 
-	b, err := GetBool(fixture, "bool")
+	b, err := GetBoolean(fixture, "bool")
 	assertNoError(t, err)
 	assertEqual(t, true, b)
 
@@ -550,7 +830,7 @@ func TestDecodeNestedInterface(t *testing.T) {
 	assertNoError(t, err)
 	assertEqual(t, fmt.Sprint(1.1), fmt.Sprint(f))
 
-	b, err = GetBool(fixture, "boolPtr")
+	b, err = GetBoolean(fixture, "boolPtr")
 	assertNoError(t, err)
 	assertEqual(t, true, b)
 
@@ -569,7 +849,7 @@ func TestDecodeNestedInterface(t *testing.T) {
 	arrItemAny := fixture["array"].([]any)[0]
 	arrItem := arrItemAny.(map[string]any)
 
-	b, err = GetBool(arrItem, "bool")
+	b, err = GetBoolean(arrItem, "bool")
 	assertNoError(t, err)
 	assertEqual(t, true, b)
 
@@ -585,7 +865,7 @@ func TestDecodeNestedInterface(t *testing.T) {
 	assertNoError(t, err)
 	assertEqual(t, fmt.Sprint(1.1), fmt.Sprint(f))
 
-	b, err = GetBool(arrItem, "boolPtr")
+	b, err = GetBoolean(arrItem, "boolPtr")
 	assertNoError(t, err)
 	assertEqual(t, true, b)
 
@@ -616,4 +896,39 @@ func TestDecodeNestedInterface(t *testing.T) {
 	jp, err = GetNullableArbitraryJSON(arrItem, "not_exist")
 	assertNoError(t, err)
 	assertEqual(t, true, jp == nil)
+
+	bs, err := GetBooleanSlice(fixture, "boolSlicePtr")
+	assertNoError(t, err)
+	assertDeepEqual(t, []bool{true, false}, bs)
+
+	_, err = GetNullableBooleanSlice(fixture, "boolSlicePtr")
+	assertNoError(t, err)
+
+	ss, err := GetStringSlice(fixture, "stringSlicePtr")
+	assertNoError(t, err)
+	assertDeepEqual(t, []string{"foo", "bar"}, ss)
+
+	_, err = GetNullableStringSlice(fixture, "stringSlicePtr")
+	assertNoError(t, err)
+
+	is, err := GetIntSlice[int64](fixture, "intSlicePtr")
+	assertNoError(t, err)
+	assertDeepEqual(t, []int64{1, 2, 3}, is)
+
+	_, err = GetNullableIntSlice[int64](fixture, "intSlicePtr")
+	assertNoError(t, err)
+
+	uis, err := GetUintSlice[uint64](fixture, "uintSlicePtr")
+	assertNoError(t, err)
+	assertDeepEqual(t, []uint64{1, 2, 3}, uis)
+
+	_, err = GetNullableUintSlice[uint64](fixture, "uintSlicePtr")
+	assertNoError(t, err)
+
+	fis, err := GetFloatSlice[float32](fixture, "floatSlicePtr")
+	assertNoError(t, err)
+	assertDeepEqual(t, []float32{1.1, 2.2, 3.3}, fis)
+
+	_, err = GetNullableFloatSlice[float32](fixture, "floatSlicePtr")
+	assertNoError(t, err)
 }

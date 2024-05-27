@@ -14,6 +14,70 @@ var functions_Decoder = utils.NewDecoder()
 // FromValue decodes values from map
 func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	var err error
+	j.ArrayBool, err = utils.GetBooleanSlice(input, "ArrayBool")
+	if err != nil {
+		return err
+	}
+	j.ArrayBoolPtr, err = utils.GetNullableBooleanSlice(input, "ArrayBoolPtr")
+	if err != nil {
+		return err
+	}
+	j.ArrayFloat32, err = utils.GetFloatSlice[float32](input, "ArrayFloat32")
+	if err != nil {
+		return err
+	}
+	j.ArrayFloat32Ptr, err = utils.GetNullableFloatSlice[float32](input, "ArrayFloat32Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayFloat64, err = utils.GetFloatSlice[float64](input, "ArrayFloat64")
+	if err != nil {
+		return err
+	}
+	j.ArrayFloat64Ptr, err = utils.GetNullableFloatSlice[float64](input, "ArrayFloat64Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt, err = utils.GetIntSlice[int](input, "ArrayInt")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt16, err = utils.GetIntSlice[int16](input, "ArrayInt16")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt16Ptr, err = utils.GetNullableIntSlice[int16](input, "ArrayInt16Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt32, err = utils.GetIntSlice[int32](input, "ArrayInt32")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt32Ptr, err = utils.GetNullableIntSlice[int32](input, "ArrayInt32Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt64, err = utils.GetIntSlice[int64](input, "ArrayInt64")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt64Ptr, err = utils.GetNullableIntSlice[int64](input, "ArrayInt64Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt8, err = utils.GetIntSlice[int8](input, "ArrayInt8")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt8Ptr, err = utils.GetNullableIntSlice[int8](input, "ArrayInt8Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayIntPtr, err = utils.GetNullableIntSlice[int](input, "ArrayIntPtr")
+	if err != nil {
+		return err
+	}
 	err = functions_Decoder.DecodeObjectValue(&j.ArrayMap, input, "ArrayMap")
 	if err != nil {
 		return err
@@ -34,6 +98,54 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	j.ArrayString, err = utils.GetStringSlice(input, "ArrayString")
+	if err != nil {
+		return err
+	}
+	j.ArrayStringPtr, err = utils.GetNullableStringSlice(input, "ArrayStringPtr")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint, err = utils.GetUintSlice[uint](input, "ArrayUint")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint16, err = utils.GetUintSlice[uint16](input, "ArrayUint16")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint16Ptr, err = utils.GetNullableUintSlice[uint16](input, "ArrayUint16Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint32, err = utils.GetUintSlice[uint32](input, "ArrayUint32")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint32Ptr, err = utils.GetNullableUintSlice[uint32](input, "ArrayUint32Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint64, err = utils.GetUintSlice[uint64](input, "ArrayUint64")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint64Ptr, err = utils.GetNullableUintSlice[uint64](input, "ArrayUint64Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint8, err = utils.GetUintSlice[uint8](input, "ArrayUint8")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint8Ptr, err = utils.GetNullableUintSlice[uint8](input, "ArrayUint8Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayUintPtr, err = utils.GetNullableUintSlice[uint](input, "ArrayUintPtr")
+	if err != nil {
+		return err
+	}
 	err = functions_Decoder.DecodeObjectValue(&j.BigInt, input, "BigInt")
 	if err != nil {
 		return err
@@ -43,11 +155,11 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.Bool, err = utils.GetBool(input, "Bool")
+	j.Bool, err = utils.GetBoolean(input, "Bool")
 	if err != nil {
 		return err
 	}
-	j.BoolPtr, err = utils.GetNullableBool(input, "BoolPtr")
+	j.BoolPtr, err = utils.GetNullableBoolean(input, "BoolPtr")
 	if err != nil {
 		return err
 	}
@@ -333,6 +445,22 @@ func (j GetArticlesResult) ToMap() map[string]any {
 // ToMap encodes the struct to a value map
 func (j GetTypesArguments) ToMap() map[string]any {
 	r := make(map[string]any)
+	r["ArrayBool"] = j.ArrayBool
+	r["ArrayBoolPtr"] = j.ArrayBoolPtr
+	r["ArrayFloat32"] = j.ArrayFloat32
+	r["ArrayFloat32Ptr"] = j.ArrayFloat32Ptr
+	r["ArrayFloat64"] = j.ArrayFloat64
+	r["ArrayFloat64Ptr"] = j.ArrayFloat64Ptr
+	r["ArrayInt"] = j.ArrayInt
+	r["ArrayInt16"] = j.ArrayInt16
+	r["ArrayInt16Ptr"] = j.ArrayInt16Ptr
+	r["ArrayInt32"] = j.ArrayInt32
+	r["ArrayInt32Ptr"] = j.ArrayInt32Ptr
+	r["ArrayInt64"] = j.ArrayInt64
+	r["ArrayInt64Ptr"] = j.ArrayInt64Ptr
+	r["ArrayInt8"] = j.ArrayInt8
+	r["ArrayInt8Ptr"] = j.ArrayInt8Ptr
+	r["ArrayIntPtr"] = j.ArrayIntPtr
 	r["ArrayMap"] = j.ArrayMap
 	r["ArrayMapPtr"] = j.ArrayMapPtr
 	j_ArrayObject := make([]map[string]any, len(j.ArrayObject))
@@ -351,6 +479,18 @@ func (j GetTypesArguments) ToMap() map[string]any {
 		}
 		r["ArrayObjectPtr"] = j_ArrayObjectPtr
 	}
+	r["ArrayString"] = j.ArrayString
+	r["ArrayStringPtr"] = j.ArrayStringPtr
+	r["ArrayUint"] = j.ArrayUint
+	r["ArrayUint16"] = j.ArrayUint16
+	r["ArrayUint16Ptr"] = j.ArrayUint16Ptr
+	r["ArrayUint32"] = j.ArrayUint32
+	r["ArrayUint32Ptr"] = j.ArrayUint32Ptr
+	r["ArrayUint64"] = j.ArrayUint64
+	r["ArrayUint64Ptr"] = j.ArrayUint64Ptr
+	r["ArrayUint8"] = j.ArrayUint8
+	r["ArrayUint8Ptr"] = j.ArrayUint8Ptr
+	r["ArrayUintPtr"] = j.ArrayUintPtr
 	r["BigInt"] = j.BigInt
 	r["BigIntPtr"] = j.BigIntPtr
 	r["Bool"] = j.Bool

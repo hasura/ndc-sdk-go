@@ -198,6 +198,174 @@ func (d Decoder) decodeValue(target any, value any) error {
 			return err
 		}
 		*t = *v
+	case *[]bool:
+		v, err := DecodeBooleanSlice(value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]string:
+		v, err := DecodeStringSlice(value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]int:
+		v, err := DecodeIntSlice[int](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]int8:
+		v, err := DecodeIntSlice[int8](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]int16:
+		v, err := DecodeIntSlice[int16](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]int32:
+		v, err := DecodeIntSlice[int32](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]int64:
+		v, err := DecodeIntSlice[int64](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]uint:
+		v, err := DecodeUintSlice[uint](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]uint8:
+		v, err := DecodeUintSlice[uint8](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]uint16:
+		v, err := DecodeUintSlice[uint16](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]uint32:
+		v, err := DecodeUintSlice[uint32](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]uint64:
+		v, err := DecodeUintSlice[uint64](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]float32:
+		v, err := DecodeFloatSlice[float32](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]float64:
+		v, err := DecodeFloatSlice[float64](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]*bool:
+		v, err := DecodeNullableBooleanSlice(value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]*string:
+		v, err := DecodeNullableStringSlice(value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]*int:
+		v, err := DecodeNullableIntSlice[int](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]*int8:
+		v, err := DecodeNullableIntSlice[int8](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]*int16:
+		v, err := DecodeNullableIntSlice[int16](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]*int32:
+		v, err := DecodeNullableIntSlice[int32](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]*int64:
+		v, err := DecodeNullableIntSlice[int64](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]*uint:
+		v, err := DecodeNullableUintSlice[uint](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]*uint8:
+		v, err := DecodeNullableUintSlice[uint8](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]*uint16:
+		v, err := DecodeNullableUintSlice[uint16](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]*uint32:
+		v, err := DecodeNullableUintSlice[uint32](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]*uint64:
+		v, err := DecodeNullableUintSlice[uint64](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]*float32:
+		v, err := DecodeNullableFloatSlice[float32](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]*float64:
+		v, err := DecodeNullableFloatSlice[float64](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
 	case *time.Time:
 		v, err := DecodeNullableDateTime(value)
 		if err != nil || v == nil {
@@ -776,7 +944,7 @@ func GetNullableString(object map[string]any, key string) (*string, error) {
 	return result, nil
 }
 
-// GetString get a bool value from object by key
+// GetString get a string value from object by key
 func GetString(object map[string]any, key string) (string, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -789,8 +957,8 @@ func GetString(object map[string]any, key string) (string, error) {
 	return result, nil
 }
 
-// GetNullableBool get a bool pointer from object by key
-func GetNullableBool(object map[string]any, key string) (*bool, error) {
+// GetNullableBoolean get a bool pointer from object by key
+func GetNullableBoolean(object map[string]any, key string) (*bool, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
@@ -802,8 +970,15 @@ func GetNullableBool(object map[string]any, key string) (*bool, error) {
 	return result, nil
 }
 
-// GetBool get a bool value from object by key
-func GetBool(object map[string]any, key string) (bool, error) {
+// GetNullableBool get a bool pointer from object by key
+//
+// Deprecated: use GetNullableBoolean instead
+func GetNullableBool(object map[string]any, key string) (*bool, error) {
+	return GetNullableBoolean(object, key)
+}
+
+// GetBoolean get a bool value from object by key
+func GetBoolean(object map[string]any, key string) (bool, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return false, fmt.Errorf("field `%s` is required", key)
@@ -813,6 +988,13 @@ func GetBool(object map[string]any, key string) (bool, error) {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
 	return result, nil
+}
+
+// GetBool get a bool pointer from object by key
+//
+// Deprecated: use GetBoolean instead
+func GetBool(object map[string]any, key string) (bool, error) {
+	return GetBoolean(object, key)
 }
 
 // GetNullableDateTime get a time.Time pointer from object by key
@@ -990,6 +1172,847 @@ func GetNullableObjectRawJSON(object map[string]any, key string) (*json.RawMessa
 		rawResult := json.RawMessage(result)
 		return &rawResult, nil
 	}
+}
+
+// DecodeNullableIntSlice decodes an integer pointer slice from an unknown value
+func DecodeNullableIntSlice[T int | int8 | int16 | int32 | int64](value any) ([]*T, error) {
+	return decodeNullableNumberSlice(value, DecodeNullableInt[T])
+}
+
+// DecodeNullableUintSlice decodes an unsigned integer slice from an unknown value
+func DecodeNullableUintSlice[T uint | uint8 | uint16 | uint32 | uint64](value any) ([]*T, error) {
+	return decodeNullableNumberSlice(value, DecodeNullableUint[T])
+}
+
+// DecodeNullableFloatSlice decodes a float slice from an unknown value
+func DecodeNullableFloatSlice[T float32 | float64](value any) ([]*T, error) {
+	return decodeNullableNumberSlice(value, DecodeNullableFloat[T])
+}
+
+// DecodeIntSlice decodes an integer slice from an unknown value
+func DecodeIntSlice[T int | int8 | int16 | int32 | int64](value any) ([]T, error) {
+	return decodeNumberSlice(value, DecodeNullableInt[T])
+}
+
+// DecodeUintSlice decodes an unsigned integer slice from an unknown value
+func DecodeUintSlice[T uint | uint8 | uint16 | uint32 | uint64](value any) ([]T, error) {
+	return decodeNumberSlice(value, DecodeNullableUint[T])
+}
+
+// DecodeFloatSlice decodes a float slice from an unknown value
+func DecodeFloatSlice[T float32 | float64](value any) ([]T, error) {
+	return decodeNumberSlice(value, DecodeNullableFloat[T])
+}
+
+// GetNullableIntSlice get an integer pointer slice from object by key
+func GetNullableIntSlice[T int | int8 | int16 | int32 | int64](object map[string]any, key string) ([]*T, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, fmt.Errorf("field `%s` is required", key)
+	}
+	result, err := DecodeNullableIntSlice[T](value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+// GetNullableUintSlice get an unsigned integer pointer slice from object by key
+func GetNullableUintSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) ([]*T, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, fmt.Errorf("field `%s` is required", key)
+	}
+	result, err := DecodeNullableUintSlice[T](value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+// GetNullableFloatSlice get a float pointer slice from object by key
+func GetNullableFloatSlice[T float32 | float64](object map[string]any, key string) ([]*T, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, fmt.Errorf("field `%s` is required", key)
+	}
+	result, err := DecodeNullableFloatSlice[T](value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+// GetIntSlice get an integer slice from object by key
+func GetIntSlice[T int | int8 | int16 | int32 | int64](object map[string]any, key string) ([]T, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, fmt.Errorf("field `%s` is required", key)
+	}
+	result, err := DecodeIntSlice[T](value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+// GetUintSlice get an unsigned integer slice from object by key
+func GetUintSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) ([]T, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, fmt.Errorf("field `%s` is required", key)
+	}
+	result, err := DecodeUintSlice[T](value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+// GetFloatSlice get a float slice from object by key
+func GetFloatSlice[T float32 | float64](object map[string]any, key string) ([]T, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, fmt.Errorf("field `%s` is required", key)
+	}
+	result, err := DecodeFloatSlice[T](value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+// decodeNumberSlice tries to convert an unknown value to a number slice
+func decodeNumberSlice[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](value any, convertFn convertFunc[T]) ([]T, error) {
+	if IsNil(value) {
+		return []T{}, nil
+	}
+	switch v := value.(type) {
+	case []int:
+		return convertNumberSlice[int, T](v), nil
+	case []int8:
+		return convertNumberSlice[int8, T](v), nil
+	case []int16:
+		return convertNumberSlice[int16, T](v), nil
+	case []int32:
+		return convertNumberSlice[int32, T](v), nil
+	case []int64:
+		return convertNumberSlice[int64, T](v), nil
+	case []uint:
+		return convertNumberSlice[uint, T](v), nil
+	case []uint8:
+		return convertNumberSlice[uint8, T](v), nil
+	case []uint16:
+		return convertNumberSlice[uint16, T](v), nil
+	case []uint32:
+		return convertNumberSlice[uint32, T](v), nil
+	case []uint64:
+		return convertNumberSlice[uint64, T](v), nil
+	case []float32:
+		return convertNumberSlice[float32, T](v), nil
+	case []float64:
+		return convertNumberSlice[float64, T](v), nil
+	case []string:
+		newVal, err := convertSlice(v, convertFn)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice, got: %s", v)
+		}
+		return newVal, err
+	case []*int:
+		values, err := PointersToValues(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[int, T](values), nil
+	case []*int8:
+		values, err := PointersToValues(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[int8, T](values), nil
+	case []*int16:
+		values, err := PointersToValues(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[int16, T](values), nil
+	case []*int32:
+		values, err := PointersToValues(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[int32, T](values), nil
+	case []*int64:
+		values, err := PointersToValues(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[int64, T](values), nil
+	case []*uint:
+		values, err := PointersToValues(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[uint, T](values), nil
+	case []*uint8:
+		values, err := PointersToValues(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[uint8, T](values), nil
+	case []*uint16:
+		values, err := PointersToValues(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[uint16, T](values), nil
+	case []*uint32:
+		values, err := PointersToValues(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[uint32, T](values), nil
+	case []*uint64:
+		values, err := PointersToValues(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[uint64, T](values), nil
+	case []*float32:
+		values, err := PointersToValues(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[float32, T](values), nil
+	case []*float64:
+		values, err := PointersToValues(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[float64, T](values), nil
+	case []*string:
+		values, err := PointersToValues(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		newVal, err := convertSlice(values, convertFn)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice, got: %v", v)
+		}
+		return newVal, err
+	case *[]int:
+		return convertNumberSlice[int, T](*v), nil
+	case *[]int8:
+		return convertNumberSlice[int8, T](*v), nil
+	case *[]int16:
+		return convertNumberSlice[int16, T](*v), nil
+	case *[]int32:
+		return convertNumberSlice[int32, T](*v), nil
+	case *[]int64:
+		return convertNumberSlice[int64, T](*v), nil
+	case *[]uint:
+		return convertNumberSlice[uint, T](*v), nil
+	case *[]uint8:
+		return convertNumberSlice[uint8, T](*v), nil
+	case *[]uint16:
+		return convertNumberSlice[uint16, T](*v), nil
+	case *[]uint32:
+		return convertNumberSlice[uint32, T](*v), nil
+	case *[]uint64:
+		return convertNumberSlice[uint64, T](*v), nil
+	case *[]float32:
+		return convertNumberSlice[float32, T](*v), nil
+	case *[]float64:
+		return convertNumberSlice[float64, T](*v), nil
+	case *[]string:
+		newVal, err := convertSlice(*v, convertFn)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice, got: %s", v)
+		}
+		return newVal, err
+
+	case *[]*int:
+		values, err := PointersToValues(*v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[int, T](values), nil
+	case *[]*int8:
+		values, err := PointersToValues(*v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[int8, T](values), nil
+	case *[]*int16:
+		values, err := PointersToValues(*v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[int16, T](values), nil
+	case *[]*int32:
+		values, err := PointersToValues(*v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[int32, T](values), nil
+	case *[]*int64:
+		values, err := PointersToValues(*v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[int64, T](values), nil
+	case *[]*uint:
+		values, err := PointersToValues(*v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[uint, T](values), nil
+	case *[]*uint8:
+		values, err := PointersToValues(*v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[uint8, T](values), nil
+	case *[]*uint16:
+		values, err := PointersToValues(*v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[uint16, T](values), nil
+	case *[]*uint32:
+		values, err := PointersToValues(*v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[uint32, T](values), nil
+	case *[]*uint64:
+		values, err := PointersToValues(*v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[uint64, T](values), nil
+	case *[]*float32:
+		values, err := PointersToValues(*v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[float32, T](values), nil
+	case *[]*float64:
+		values, err := PointersToValues(*v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		return convertNumberSlice[float64, T](values), nil
+	case *[]*string:
+		values, err := PointersToValues(*v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice: %v", v)
+		}
+		newVal, err := convertSlice(values, convertFn)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice, got: %v", v)
+		}
+		return newVal, err
+	case []any:
+		newVal, err := convertSlice(v, convertFn)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice, got: %s", v)
+		}
+		return newVal, err
+	case bool, string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128, *bool, *string, *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64, *float32, *float64, *complex64, *complex128, []bool, []complex64, []complex128:
+		return nil, fmt.Errorf("failed to convert int slice, got: %+v", v)
+	default:
+		reflectValue := reflect.ValueOf(value)
+		for reflectValue.Kind() == reflect.Pointer {
+			if reflectValue.IsNil() {
+				return []T{}, nil
+			}
+			reflectValue = reflectValue.Elem()
+		}
+		if reflectValue.Kind() != reflect.Slice {
+			return nil, fmt.Errorf("failed to convert int slice, got: %s", v)
+		}
+		valueLen := reflectValue.Len()
+		results := make([]T, valueLen)
+		for i := 0; i < valueLen; i++ {
+			item := reflectValue.Index(i)
+			result, err := convertFn(item.Interface())
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert int item at %d (%v): %s", i, item, err)
+			}
+			if result == nil {
+				return nil, errors.New("expected not null array item")
+			}
+			results[i] = *result
+		}
+		return results, nil
+	}
+}
+
+// decodeNullableNumberSlice tries to convert an unknown value to a number slice
+func decodeNullableNumberSlice[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](value any, convertFn convertFunc[T]) ([]*T, error) {
+	if IsNil(value) {
+		return []*T{}, nil
+	}
+	switch v := value.(type) {
+	case []int:
+		return convertNullableNumberSlice[int, T](ToPtrs(v)), nil
+	case []int8:
+		return convertNullableNumberSlice[int8, T](ToPtrs(v)), nil
+	case []int16:
+		return convertNullableNumberSlice[int16, T](ToPtrs(v)), nil
+	case []int32:
+		return convertNullableNumberSlice[int32, T](ToPtrs(v)), nil
+	case []int64:
+		return convertNullableNumberSlice[int64, T](ToPtrs(v)), nil
+	case []uint:
+		return convertNullableNumberSlice[uint, T](ToPtrs(v)), nil
+	case []uint8:
+		return convertNullableNumberSlice[uint8, T](ToPtrs(v)), nil
+	case []uint16:
+		return convertNullableNumberSlice[uint16, T](ToPtrs(v)), nil
+	case []uint32:
+		return convertNullableNumberSlice[uint32, T](ToPtrs(v)), nil
+	case []uint64:
+		return convertNullableNumberSlice[uint64, T](ToPtrs(v)), nil
+	case []float32:
+		return convertNullableNumberSlice[float32, T](ToPtrs(v)), nil
+	case []float64:
+		return convertNullableNumberSlice[float64, T](ToPtrs(v)), nil
+	case []string:
+		newVal, err := convertNullableSlice(v, convertFn)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice, got: %v", v)
+		}
+		return newVal, err
+
+	case []*int:
+		return convertNullableNumberSlice[int, T](v), nil
+	case []*int8:
+		return convertNullableNumberSlice[int8, T](v), nil
+	case []*int16:
+		return convertNullableNumberSlice[int16, T](v), nil
+	case []*int32:
+		return convertNullableNumberSlice[int32, T](v), nil
+	case []*int64:
+		return convertNullableNumberSlice[int64, T](v), nil
+	case []*uint:
+		return convertNullableNumberSlice[uint, T](v), nil
+	case []*uint8:
+		return convertNullableNumberSlice[uint8, T](v), nil
+	case []*uint16:
+		return convertNullableNumberSlice[uint16, T](v), nil
+	case []*uint32:
+		return convertNullableNumberSlice[uint32, T](v), nil
+	case []*uint64:
+		return convertNullableNumberSlice[uint64, T](v), nil
+	case []*float32:
+		return convertNullableNumberSlice[float32, T](v), nil
+	case []*float64:
+		return convertNullableNumberSlice[float64, T](v), nil
+	case []*string:
+		newVal, err := convertNullableSlice(v, convertFn)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice, got: %v", v)
+		}
+		return newVal, err
+	case *[]int:
+		return convertNullableNumberSlice[int, T](ToPtrs(*v)), nil
+	case *[]int8:
+		return convertNullableNumberSlice[int8, T](ToPtrs(*v)), nil
+	case *[]int16:
+		return convertNullableNumberSlice[int16, T](ToPtrs(*v)), nil
+	case *[]int32:
+		return convertNullableNumberSlice[int32, T](ToPtrs(*v)), nil
+	case *[]int64:
+		return convertNullableNumberSlice[int64, T](ToPtrs(*v)), nil
+	case *[]uint:
+		return convertNullableNumberSlice[uint, T](ToPtrs(*v)), nil
+	case *[]uint8:
+		return convertNullableNumberSlice[uint8, T](ToPtrs(*v)), nil
+	case *[]uint16:
+		return convertNullableNumberSlice[uint16, T](ToPtrs(*v)), nil
+	case *[]uint32:
+		return convertNullableNumberSlice[uint32, T](ToPtrs(*v)), nil
+	case *[]uint64:
+		return convertNullableNumberSlice[uint64, T](ToPtrs(*v)), nil
+	case *[]float32:
+		return convertNullableNumberSlice[float32, T](ToPtrs(*v)), nil
+	case *[]float64:
+		return convertNullableNumberSlice[float64, T](ToPtrs(*v)), nil
+	case *[]string:
+		newVal, err := convertNullableSlice(*v, convertFn)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice, got: %s", v)
+		}
+		return newVal, err
+	case *[]*int:
+		return convertNullableNumberSlice[int, T](*v), nil
+	case *[]*int8:
+		return convertNullableNumberSlice[int8, T](*v), nil
+	case *[]*int16:
+		return convertNullableNumberSlice[int16, T](*v), nil
+	case *[]*int32:
+		return convertNullableNumberSlice[int32, T](*v), nil
+	case *[]*int64:
+		return convertNullableNumberSlice[int64, T](*v), nil
+	case *[]*uint:
+		return convertNullableNumberSlice[uint, T](*v), nil
+	case *[]*uint8:
+		return convertNullableNumberSlice[uint8, T](*v), nil
+	case *[]*uint16:
+		return convertNullableNumberSlice[uint16, T](*v), nil
+	case *[]*uint32:
+		return convertNullableNumberSlice[uint32, T](*v), nil
+	case *[]*uint64:
+		return convertNullableNumberSlice[uint64, T](*v), nil
+	case *[]*float32:
+		return convertNullableNumberSlice[float32, T](*v), nil
+	case *[]*float64:
+		return convertNullableNumberSlice[float64, T](*v), nil
+	case *[]*string:
+		newVal, err := convertNullableSlice(*v, convertFn)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice, got: %v", v)
+		}
+		return newVal, err
+	case []any:
+		newVal, err := convertNullableSlice(v, convertFn)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert int slice, got: %s", v)
+		}
+		return newVal, err
+	case bool, string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128, *bool, *string, *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64, *float32, *float64, *complex64, *complex128, []bool, []complex64, []complex128:
+		return nil, fmt.Errorf("failed to convert int slice, got: %+v", v)
+	default:
+		reflectValue := reflect.ValueOf(value)
+		for reflectValue.Kind() == reflect.Pointer {
+			if reflectValue.IsNil() {
+				return []*T{}, nil
+			}
+			reflectValue = reflectValue.Elem()
+		}
+		if reflectValue.Kind() != reflect.Slice {
+			return nil, fmt.Errorf("failed to convert int slice, got: %s", v)
+		}
+		valueLen := reflectValue.Len()
+		results := make([]*T, valueLen)
+		for i := 0; i < valueLen; i++ {
+			item := reflectValue.Index(i)
+			result, err := convertFn(item.Interface())
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert int item at %d (%v): %s", i, item, err)
+			}
+			results[i] = result
+		}
+		return results, nil
+	}
+}
+
+// DecodeStringSlice decodes a string slice from an unknown value
+func DecodeStringSlice(value any) ([]string, error) {
+	if IsNil(value) {
+		return []string{}, nil
+	}
+	switch v := value.(type) {
+	case []string:
+		return v, nil
+	case []*string:
+		return PointersToValues(v)
+	case *[]string:
+		return *v, nil
+	case *[]*string:
+		return PointersToValues(*v)
+	case []any:
+		results := make([]string, len(v))
+		for i, item := range v {
+			str, err := DecodeString(item)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert string item at %d (%v): %s", i, item, err)
+			}
+			results[i] = str
+		}
+		return results, nil
+	case bool, string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128, *bool, *string, *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64, *float32, *float64, *complex64, *complex128, []bool, []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64, []float32, []float64, []complex64, []complex128:
+		return nil, fmt.Errorf("failed to convert string slice, got: %+v", v)
+	default:
+		reflectValue := reflect.ValueOf(value)
+		for reflectValue.Kind() == reflect.Pointer {
+			if reflectValue.IsNil() {
+				return []string{}, nil
+			}
+			reflectValue = reflectValue.Elem()
+		}
+		if reflectValue.Kind() != reflect.Slice {
+			return nil, fmt.Errorf("failed to convert string slice, got: %+v", v)
+		}
+		valueLen := reflectValue.Len()
+		results := make([]string, valueLen)
+		for i := 0; i < valueLen; i++ {
+			item := reflectValue.Index(i)
+			str, err := DecodeString(item.Interface())
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert string item at %d (%v): %s", i, item, err)
+			}
+			results[i] = str
+		}
+		return results, nil
+	}
+}
+
+// DecodeNullableStringSlice decodes a nullable string slice from an unknown value
+func DecodeNullableStringSlice(value any) ([]*string, error) {
+	if IsNil(value) {
+		return []*string{}, nil
+	}
+	switch v := value.(type) {
+	case []string:
+		return ToPtrs(v), nil
+	case []*string:
+		return v, nil
+	case *[]string:
+		return ToPtrs(*v), nil
+	case *[]*string:
+		return *v, nil
+	case []any:
+		results := make([]*string, len(v))
+		for i, item := range v {
+			str, err := DecodeNullableString(item)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert string item at %d (%v): %s", i, item, err)
+			}
+			results[i] = str
+		}
+		return results, nil
+	case bool, string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128, *bool, *string, *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64, *float32, *float64, *complex64, *complex128, []bool, []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64, []float32, []float64, []complex64, []complex128:
+		return nil, fmt.Errorf("failed to convert string slice, got: %+v", v)
+	default:
+		reflectValue := reflect.ValueOf(value)
+		for reflectValue.Kind() == reflect.Pointer {
+			if reflectValue.IsNil() {
+				return []*string{}, nil
+			}
+			reflectValue = reflectValue.Elem()
+		}
+		if reflectValue.Kind() != reflect.Slice {
+			return nil, fmt.Errorf("failed to convert string slice, got: %+v", v)
+		}
+		valueLen := reflectValue.Len()
+		results := make([]*string, valueLen)
+		for i := 0; i < valueLen; i++ {
+			item := reflectValue.Index(i)
+			str, err := DecodeNullableString(item.Interface())
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert string item at %d (%v): %s", i, item, err)
+			}
+			results[i] = str
+		}
+		return results, nil
+	}
+}
+
+// GetStringSlice get a string slice value from object by key
+func GetStringSlice(object map[string]any, key string) ([]string, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, fmt.Errorf("field `%s` is required", key)
+	}
+	result, err := DecodeStringSlice(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+// GetNullableStringSlice get a string pointer slice from object by key
+func GetNullableStringSlice(object map[string]any, key string) ([]*string, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, fmt.Errorf("field `%s` is required", key)
+	}
+	result, err := DecodeNullableStringSlice(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+// DecodeBooleanSlice decodes a boolean slice from an unknown value
+func DecodeBooleanSlice(value any) ([]bool, error) {
+	if IsNil(value) {
+		return []bool{}, nil
+	}
+	switch v := value.(type) {
+	case []bool:
+		return v, nil
+	case *[]bool:
+		return *v, nil
+	case []any:
+		results := make([]bool, len(v))
+		for i, item := range v {
+			str, err := DecodeBoolean(item)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert boolean item at %d (%v): %s", i, item, err)
+			}
+			results[i] = str
+		}
+		return results, nil
+	case bool, string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128, *bool, *string, *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64, *float32, *float64, *complex64, *complex128, []string, []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64, []float32, []float64, []complex64, []complex128:
+		return nil, fmt.Errorf("failed to convert boolean slice, got: %+v", v)
+	default:
+		reflectValue := reflect.ValueOf(value)
+		for reflectValue.Kind() == reflect.Pointer {
+			if reflectValue.IsNil() {
+				return []bool{}, nil
+			}
+			reflectValue = reflectValue.Elem()
+		}
+		if reflectValue.Kind() != reflect.Slice {
+			return nil, fmt.Errorf("failed to convert boolean slice, got: %+v", v)
+		}
+		valueLen := reflectValue.Len()
+		results := make([]bool, valueLen)
+		for i := 0; i < valueLen; i++ {
+			item := reflectValue.Index(i)
+			b, err := DecodeBoolean(item.Interface())
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert boolean item at %d (%v): %s", i, item, err)
+			}
+			results[i] = b
+		}
+		return results, nil
+	}
+}
+
+// DecodeNullableBooleanSlice decodes a boolean pointer slice from an unknown value
+func DecodeNullableBooleanSlice(value any) ([]*bool, error) {
+	if IsNil(value) {
+		return []*bool{}, nil
+	}
+	switch v := value.(type) {
+	case []bool:
+		return ToPtrs(v), nil
+	case *[]bool:
+		return ToPtrs(*v), nil
+	case []*bool:
+		return v, nil
+	case *[]*bool:
+		return *v, nil
+	case []any:
+		results := make([]*bool, len(v))
+		for i, item := range v {
+			str, err := DecodeNullableBoolean(item)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert boolean item at %d (%v): %s", i, item, err)
+			}
+			results[i] = str
+		}
+		return results, nil
+	case bool, string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128, *bool, *string, *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64, *float32, *float64, *complex64, *complex128, []string, []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64, []float32, []float64, []complex64, []complex128:
+		return nil, fmt.Errorf("failed to convert boolean slice, got: %+v", v)
+	default:
+		reflectValue := reflect.ValueOf(value)
+		for reflectValue.Kind() == reflect.Pointer {
+			if reflectValue.IsNil() {
+				return []*bool{}, nil
+			}
+			reflectValue = reflectValue.Elem()
+		}
+		if reflectValue.Kind() != reflect.Slice {
+			return nil, fmt.Errorf("failed to convert boolean slice, got: %+v", v)
+		}
+		valueLen := reflectValue.Len()
+		results := make([]*bool, valueLen)
+		for i := 0; i < valueLen; i++ {
+			item := reflectValue.Index(i)
+			b, err := DecodeNullableBoolean(item.Interface())
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert boolean item at %d (%v): %s", i, item, err)
+			}
+			results[i] = b
+		}
+		return results, nil
+	}
+}
+
+// GetBooleanSlice get a boolean slice value from object by key
+func GetBooleanSlice(object map[string]any, key string) ([]bool, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, fmt.Errorf("field `%s` is required", key)
+	}
+	result, err := DecodeBooleanSlice(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+// GetNullableBooleanSlice get a nullable boolean slice from object by key
+func GetNullableBooleanSlice(object map[string]any, key string) ([]*bool, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, fmt.Errorf("field `%s` is required", key)
+	}
+	result, err := DecodeNullableBooleanSlice(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+func convertSlice[F any, T any](input []F, convertFn convertFunc[T]) ([]T, error) {
+	results := make([]T, len(input))
+	for i, v := range input {
+		result, err := convertFn(v)
+		if err != nil {
+			return nil, err
+		}
+		if result == nil {
+			return nil, errors.New("expected not null array item")
+		}
+		results[i] = *result
+	}
+	return results, nil
+}
+
+func convertNullableSlice[F any, T any](input []F, convertFn convertFunc[T]) ([]*T, error) {
+	results := make([]*T, len(input))
+	for i, v := range input {
+		result, err := convertFn(v)
+		if err != nil {
+			return nil, err
+		}
+		results[i] = result
+	}
+	return results, nil
+}
+
+func convertNumberSlice[
+	F int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64,
+	T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64,
+](input []F) []T {
+	result := make([]T, len(input))
+	for i, v := range input {
+		result[i] = T(v)
+	}
+	return result
+}
+
+func convertNullableNumberSlice[
+	F int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64,
+	T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64,
+](input []*F) []*T {
+	result := make([]*T, len(input))
+	for i, v := range input {
+		if v == nil {
+			result[i] = nil
+		} else {
+			t := T(*v)
+			result[i] = &t
+		}
+	}
+	return result
 }
 
 func decodeAnyValue(target any, value any, decodeHook mapstructure.DecodeHookFunc) error {
