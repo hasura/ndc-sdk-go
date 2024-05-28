@@ -282,6 +282,12 @@ func (d Decoder) decodeValue(target any, value any) error {
 			return err
 		}
 		*t = v
+	case *[]json.RawMessage:
+		v, err := DecodeRawJSONSlice(value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
 	case *[]*bool:
 		v, err := DecodeNullableBooleanSlice(value)
 		if err != nil || v == nil {
@@ -362,6 +368,12 @@ func (d Decoder) decodeValue(target any, value any) error {
 		*t = v
 	case *[]*float64:
 		v, err := DecodeNullableFloatSlice[float64](value)
+		if err != nil || v == nil {
+			return err
+		}
+		*t = v
+	case *[]*json.RawMessage:
+		v, err := DecodeNullableRawJSONSlice(value)
 		if err != nil || v == nil {
 			return err
 		}
@@ -832,14 +844,10 @@ func GetNullableArbitraryJSON(object map[string]any, key string) (*any, error) {
 	if !ok || value == nil {
 		return nil, nil
 	}
-	reflectValue := reflect.ValueOf(value)
-	if reflectValue.Kind() != reflect.Pointer {
-		return &value, nil
-	}
-	if reflectValue.IsNil() {
+	value, ok = UnwrapPointerFromAny(value)
+	if !ok {
 		return nil, nil
 	}
-	value = reflectValue.Elem().Interface()
 	return &value, nil
 }
 
@@ -850,7 +858,78 @@ func GetArbitraryJSON(object map[string]any, key string) (any, error) {
 		return nil, fmt.Errorf("field `%s` is required", key)
 	}
 
+	value, ok = UnwrapPointerFromAny(value)
+	if !ok {
+		return nil, fmt.Errorf("field `%s` must not be null", key)
+	}
 	return value, nil
+}
+
+// GetNullableArbitraryJSONSlice get an arbitrary json pointer slice from object by key
+func GetNullableArbitraryJSONSlice(object map[string]any, key string) ([]*any, error) {
+	value, ok := GetAny(object, key)
+	if !ok || value == nil {
+		return nil, nil
+	}
+
+	switch v := value.(type) {
+	case []any:
+		return ToPtrs(v), nil
+	case []*any:
+		return v, nil
+	default:
+		reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
+		if !ok {
+			return nil, nil
+		}
+		if reflectValue.Kind() != reflect.Slice {
+			return nil, fmt.Errorf("failed to convert arbitrary json, got: %v", reflectValue.Kind())
+		}
+		valueLen := reflectValue.Len()
+		results := make([]*any, valueLen)
+		for i := 0; i < valueLen; i++ {
+			item, ok := UnwrapPointerFromReflectValue(reflectValue.Index(i))
+			if !ok {
+				continue
+			}
+			result := item.Interface()
+			results[i] = &result
+		}
+		return results, nil
+	}
+}
+
+// GetArbitraryJSON get an arbitrary json slice from object by key
+func GetArbitraryJSONSlice(object map[string]any, key string) ([]any, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, fmt.Errorf("field `%s` is required", key)
+	}
+
+	switch v := value.(type) {
+	case []any:
+		return v, nil
+	case []*any:
+		return PointersToValues(v)
+	default:
+		reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
+		if !ok {
+			return nil, fmt.Errorf("field `%s` is required", key)
+		}
+		if reflectValue.Kind() != reflect.Slice {
+			return nil, fmt.Errorf("failed to convert arbitrary json, got: %v", reflectValue.Kind())
+		}
+		valueLen := reflectValue.Len()
+		results := make([]any, valueLen)
+		for i := 0; i < valueLen; i++ {
+			item, ok := UnwrapPointerFromReflectValue(reflectValue.Index(i))
+			if !ok {
+				return nil, fmt.Errorf("element %d of field `%s` must not be null", i, key)
+			}
+			results[i] = item.Interface()
+		}
+		return results, nil
+	}
 }
 
 // GetNullableInt get an integer pointer from object by key
@@ -1100,8 +1179,8 @@ func DecodeNullableUUID(value any) (*uuid.UUID, error) {
 	}
 }
 
-// GetObjectUUID get an UUID value from object by key
-func GetObjectUUID(object map[string]any, key string) (uuid.UUID, error) {
+// GetUUID get an UUID value from object by key
+func GetUUID(object map[string]any, key string) (uuid.UUID, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return uuid.UUID{}, fmt.Errorf("field %s is required", key)
@@ -1113,8 +1192,15 @@ func GetObjectUUID(object map[string]any, key string) (uuid.UUID, error) {
 	return result, nil
 }
 
-// GetNullableObjectUUID get an UUID pointer from object by key
-func GetNullableObjectUUID(object map[string]any, key string) (*uuid.UUID, error) {
+// GetObjectUUID get an UUID value from object by key
+//
+// Deprecated: use GetUUID instead
+func GetObjectUUID(object map[string]any, key string) (uuid.UUID, error) {
+	return GetUUID(object, key)
+}
+
+// GetNullableUUID get an UUID pointer from object by key
+func GetNullableUUID(object map[string]any, key string) (*uuid.UUID, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return nil, nil
@@ -1126,37 +1212,142 @@ func GetNullableObjectUUID(object map[string]any, key string) (*uuid.UUID, error
 	return result, nil
 }
 
-// GetObjectRawJSON get a raw json.RawMessage value from object by key
-func GetObjectRawJSON(object map[string]any, key string) (json.RawMessage, error) {
+// GetNullableObjectUUID get an UUID pointer from object by key
+//
+// Deprecated: use GetNullableUUID instead
+func GetNullableObjectUUID(object map[string]any, key string) (*uuid.UUID, error) {
+	return GetNullableUUID(object, key)
+}
+
+// DecodeUUIDSlice decodes UUID slice from array string
+func DecodeUUIDSlice(value any) ([]uuid.UUID, error) {
+	strSlice, err := DecodeNullableStringSlice(value)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse uuid slice, got: %+v", value)
+	}
+	results := make([]uuid.UUID, len(strSlice))
+	for i, str := range strSlice {
+		if str == nil {
+			return nil, fmt.Errorf("uuid element at %d must not be null", i)
+		}
+		uid, err := uuid.Parse(*str)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse uuid element at %d: %s", i, err)
+		}
+		results[i] = uid
+	}
+	return results, nil
+}
+
+// DecodeNullableUUIDSlice decodes UUID pointer slice from array string
+func DecodeNullableUUIDSlice(value any) ([]*uuid.UUID, error) {
+	strSlice, err := DecodeNullableStringSlice(value)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse uuid slice, got: %+v", value)
+	}
+	results := make([]*uuid.UUID, len(strSlice))
+	for i, str := range strSlice {
+		if str == nil {
+			continue
+		}
+		uid, err := uuid.Parse(*str)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse uuid element at %d: %s", i, err)
+		}
+		results[i] = &uid
+	}
+	return results, nil
+}
+
+// GetUUIDSlice get an UUID slice from object by key
+func GetUUIDSlice(object map[string]any, key string) ([]uuid.UUID, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return nil, fmt.Errorf("field %s is required", key)
 	}
+	result, err := DecodeUUIDSlice(value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+// GetNullableUUIDSlice get an UUID pointer slice from object by key
+func GetNullableUUIDSlice(object map[string]any, key string) ([]*uuid.UUID, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := DecodeNullableUUIDSlice(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+// GetRawJSON get a raw json.RawMessage value from object by key
+func GetRawJSON(object map[string]any, key string) (json.RawMessage, error) {
+	value, ok := GetAny(object, key)
+	if !ok || IsNil(value) {
+		return nil, fmt.Errorf("field %s is required", key)
+	}
+	result, err := DecodeNullableRawJSON(value)
+	if err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+// GetObjectRawJSON get a raw json.RawMessage value from object by key
+//
+// Deprecated: use GetRawJSON instead
+func GetObjectRawJSON(object map[string]any, key string) (json.RawMessage, error) {
+	return GetRawJSON(object, key)
+}
+
+// GetRawJSONSlice get a raw json.RawMessage slice from object by key
+func GetRawJSONSlice(object map[string]any, key string) ([]json.RawMessage, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, fmt.Errorf("field %s is required", key)
+	}
+	return DecodeRawJSONSlice(value)
+}
+
+// DecodeRawJSONSlice decodes a raw json.RawMessage slice from object by key
+func DecodeRawJSONSlice(value any) ([]json.RawMessage, error) {
+	if IsNil(value) {
+		return []json.RawMessage{}, nil
+	}
+	reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
+	if !ok {
+		return nil, errors.New("raw json must not be null")
+	}
+	if reflectValue.Kind() != reflect.Slice {
+		return nil, fmt.Errorf("failed to convert raw json, expected a slice, got: %s", reflectValue.Kind())
+	}
+
+	valueLen := reflectValue.Len()
+	results := make([]json.RawMessage, valueLen)
+	for i := 0; i < valueLen; i++ {
+		item, ok := UnwrapPointerFromReflectValue(reflectValue.Index(i))
+		if !ok {
+			return nil, fmt.Errorf("element at %d must not be null", i)
+		}
+		result, err := DecodeNullableRawJSON(item.Interface())
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode slice element at %d: %s", i, err)
+		}
+		results[i] = *result
+	}
+	return results, nil
+}
+
+// DecodeNullableRawJSON decodes a raw json.RawMessage pointer from object by key
+func DecodeNullableRawJSON(value any) (*json.RawMessage, error) {
 	if IsNil(value) {
 		return nil, nil
 	}
-	switch v := value.(type) {
-	case []byte:
-		return v, nil
-	case *[]byte:
-		result := json.RawMessage(*v)
-		return result, nil
-	default:
-		result, err := json.Marshal(value)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %s", key, err)
-		}
-		return result, nil
-	}
-}
-
-// GetNullableObjectRawJSON get a raw json.RawMessage pointer from object by key
-func GetNullableObjectRawJSON(object map[string]any, key string) (*json.RawMessage, error) {
-	value, ok := GetAny(object, key)
-	if !ok || IsNil(value) {
-		return nil, nil
-	}
-
 	switch v := value.(type) {
 	case []byte:
 		vp := json.RawMessage(v)
@@ -1167,11 +1358,66 @@ func GetNullableObjectRawJSON(object map[string]any, key string) (*json.RawMessa
 	default:
 		result, err := json.Marshal(value)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %s", key, err)
+			return nil, err
 		}
 		rawResult := json.RawMessage(result)
 		return &rawResult, nil
 	}
+}
+
+// GetNullableRawJSON gets a raw json.RawMessage pointer from object by key
+func GetNullableRawJSON(object map[string]any, key string) (*json.RawMessage, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	return DecodeNullableRawJSON(value)
+}
+
+// GetNullableObjectRawJSON get a raw json.RawMessage pointer from object by key
+//
+// Deprecated: use GetNullableRawJSON instead
+func GetNullableObjectRawJSON(object map[string]any, key string) (*json.RawMessage, error) {
+	return GetNullableRawJSON(object, key)
+}
+
+// GetNullableRawJSONSlice get a raw json.RawMessage pointer slice from object by key
+func GetNullableRawJSONSlice(object map[string]any, key string) ([]*json.RawMessage, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return []*json.RawMessage{}, nil
+	}
+	return DecodeNullableRawJSONSlice(value)
+}
+
+// DecodeNullableRawJSONSlice decodes a raw json.RawMessage pointer slice from object by key
+func DecodeNullableRawJSONSlice(value any) ([]*json.RawMessage, error) {
+	if IsNil(value) {
+		return []*json.RawMessage{}, nil
+	}
+
+	reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
+	if !ok {
+		return []*json.RawMessage{}, nil
+	}
+	if reflectValue.Kind() != reflect.Slice {
+		return nil, fmt.Errorf("failed to convert raw json, expected a slice, got: %s", reflectValue.Kind())
+	}
+
+	valueLen := reflectValue.Len()
+	results := make([]*json.RawMessage, valueLen)
+	for i := 0; i < valueLen; i++ {
+		item, ok := UnwrapPointerFromReflectValue(reflectValue.Index(i))
+		if !ok {
+			continue
+		}
+		result, err := DecodeNullableRawJSON(item.Interface())
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode slice element at %d: %s", i, err)
+		}
+		results[i] = result
+	}
+	return results, nil
 }
 
 // DecodeNullableIntSlice decodes an integer pointer slice from an unknown value
@@ -2035,27 +2281,54 @@ var defaultDecodeFuncs = []mapstructure.DecodeHookFunc{
 
 func decodeValueHookFunc() mapstructure.DecodeHookFunc {
 	return func(from reflect.Value, to reflect.Value) (any, error) {
+		if from.Kind() == reflect.Pointer && from.IsNil() {
+			return nil, nil
+		}
+		if to.Kind() == reflect.Pointer {
+			if to.IsNil() {
+				to = reflect.New(to.Type().Elem())
+			}
+		}
 		toValue := to.Interface()
 		fromValue := from.Interface()
-		if IsNil(fromValue) {
-			return fromValue, nil
-		}
 		decoder, ok := toValue.(ValueDecoder)
 		if ok {
 			err := decoder.FromValue(fromValue)
 			return decoder, err
 		}
 
-		if objDecoder, ok := toValue.(ObjectDecoder); ok {
+		if to.CanAddr() {
+			decoder, ok = to.Addr().Interface().(ValueDecoder)
+			if ok {
+				if err := decoder.FromValue(fromValue); err != nil {
+					return nil, err
+				}
+				return reflect.ValueOf(decoder).Elem().Interface(), nil
+			}
+		}
+
+		objDecoder, ok := toValue.(ObjectDecoder)
+		isObjectPtr := false
+		if !ok && to.CanAddr() {
+			objDecoder, ok = to.Addr().Interface().(ObjectDecoder)
+			isObjectPtr = true
+		}
+		if ok {
+			var err error
 			switch v := fromValue.(type) {
 			case map[string]any:
-				err := objDecoder.FromValue(v)
-				return objDecoder, err
+				err = objDecoder.FromValue(v)
 			case MapEncoder:
 				mapValue := v.ToMap()
-				err := objDecoder.FromValue(mapValue)
-				return objDecoder, err
+				err = objDecoder.FromValue(mapValue)
 			}
+			if err != nil {
+				return nil, err
+			}
+			if isObjectPtr {
+				return reflect.ValueOf(objDecoder).Elem().Interface(), nil
+			}
+			return objDecoder, nil
 		}
 
 		return fromValue, nil

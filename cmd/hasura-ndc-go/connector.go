@@ -9,15 +9,12 @@ import (
 	"io"
 	"os"
 	"path"
-	"regexp"
 	"runtime/trace"
 	"sort"
 	"strings"
 
 	"github.com/hasura/ndc-sdk-go/schema"
 )
-
-var fieldNameRegex = regexp.MustCompile(`[^\w]`)
 
 type connectorTypeBuilder struct {
 	packageName string
@@ -662,26 +659,46 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 	case "*time.Time":
 		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableDateTime(input, "%s")`, fieldName, key))
 	case "github.com/google/uuid.UUID":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetObjectUUID(input, "%s")`, fieldName, key))
+		if strings.Join(ty.TypeFragments, "") == "[]UUID" {
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUUIDSlice(input, "%s")`, fieldName, key))
+		} else {
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUUID(input, "%s")`, fieldName, key))
+		}
 	case "*github.com/google/uuid.UUID":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableObjectUUID(input, "%s")`, fieldName, key))
+		if strings.Join(ty.TypeFragments, "") == "[]*UUID" {
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUUIDSlice(input, "%s")`, fieldName, key))
+		} else {
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUUID(input, "%s")`, fieldName, key))
+		}
 	case "encoding/json.RawMessage":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetObjectRawJSON(input, "%s")`, fieldName, key))
+		if strings.Join(ty.TypeFragments, "") == "[]RawMessage" {
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetRawJSONSlice(input, "%s")`, fieldName, key))
+		} else {
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetRawJSON(input, "%s")`, fieldName, key))
+		}
 	case "*encoding/json.RawMessage":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableObjectRawJSON(input, "%s")`, fieldName, key))
+		if strings.Join(ty.TypeFragments, "") == "[]*RawMessage" {
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableRawJSONSlice(input, "%s")`, fieldName, key))
+		} else {
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableRawJSON(input, "%s")`, fieldName, key))
+		}
 	case "any", "interface{}":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetArbitraryJSON(input, "%s")`, fieldName, key))
+		if schema.Contains([]string{"[]any", "[]interface{}"}, strings.Join(ty.TypeFragments, "")) {
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetArbitraryJSONSlice(input, "%s")`, fieldName, key))
+		} else {
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetArbitraryJSON(input, "%s")`, fieldName, key))
+		}
 	case "*any", "*interface{}":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableArbitraryJSON(input, "%s")`, fieldName, key))
+		if schema.Contains([]string{"[]*any", "[]*interface{}"}, strings.Join(ty.TypeFragments, "")) {
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableArbitraryJSONSlice(input, "%s")`, fieldName, key))
+		} else {
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableArbitraryJSON(input, "%s")`, fieldName, key))
+		}
 	default:
 		if ty.IsNullable() {
-			var pkgName, tyName string
 			typeName := strings.TrimLeft(typeName, "*")
-			scalarPackagePattern := fmt.Sprintf("%s.", sdkScalarPackageName)
-			if strings.HasPrefix(typeName, scalarPackagePattern) {
-				pkgName = sdkScalarPackageName
-				tyName = fmt.Sprintf("scalar.%s", strings.TrimLeft(typeName, scalarPackagePattern))
-			} else {
+			pkgName, tyName, ok := findAndReplaceNativeScalarPackage(typeName)
+			if !ok {
 				pkgName, tyName = buildTypeNameFromFragments(ty.TypeFragments[1:], sb.packagePath)
 			}
 			if pkgName != "" {

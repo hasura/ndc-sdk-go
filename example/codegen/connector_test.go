@@ -287,11 +287,18 @@ func TestQueryGetTypes(t *testing.T) {
 							}
 						]
 					},
-					"UUIDArray": {
+					"ArrayUUID": {
 						"type": "literal",
 						"value": [
 							"b085b0b9-007c-440e-9661-0d8f2de98a5a",
 							"b085b0b9-007c-440e-9661-0d8f2de98a5b"
+						]
+					},
+					"ArrayUUIDPtr": {
+						"type": "literal",
+						"value": [
+							"b085b0b9-007c-440e-9661-0d8f2de98a5c",
+							"b085b0b9-007c-440e-9661-0d8f2de98a5d"
 						]
 					},
 					"Map": {
@@ -453,6 +460,167 @@ func TestQueryGetTypes(t *testing.T) {
 					"ArrayFloat64Ptr": {
 						"type": "literal",
 						"value": [12.2]
+					},
+					"ArrayBigInt": {
+						"type": "literal",
+						"value": ["13"]
+					},
+					"ArrayBigIntPtr": {
+						"type": "literal",
+						"value": ["14"]
+					},
+					"ArrayJSON": {
+						"type": "literal",
+						"value": [{"foo": "bar"}]
+					},
+					"ArrayJSONPtr": {
+						"type": "literal",
+						"value": [{"foo": "baz"}]
+					},
+					"ArrayRawJSON": {
+						"type": "literal",
+						"value": [{"message":"raw_json"}]
+					},
+					"ArrayRawJSONPtr": {
+						"type": "literal",
+						"value": [{"message":"raw_json_ptr"}]
+					},
+
+					"PtrArrayBool": {
+						"type": "literal",
+						"value": [true]
+					},
+					"PtrArrayString": {
+						"type": "literal",
+						"value": ["foo"]
+					},
+					"PtrArrayInt": {
+						"type": "literal",
+						"value": [1]
+					},
+					"PtrArrayInt8": {
+						"type": "literal",
+						"value": [2]
+					},
+					"PtrArrayInt16": {
+						"type": "literal",
+						"value": [3]
+					},
+					"PtrArrayInt32": {
+						"type": "literal",
+						"value": [4]
+					},
+					"PtrArrayInt64": {
+						"type": "literal",
+						"value": [5]
+					},
+					"PtrArrayUint": {
+						"type": "literal",
+						"value": [6]
+					},
+					"PtrArrayUint8": {
+						"type": "literal",
+						"value": [7]
+					},
+					"PtrArrayUint16": {
+						"type": "literal",
+						"value": [8]
+					},
+					"PtrArrayUint32": {
+						"type": "literal",
+						"value": [9]
+					},
+					"PtrArrayUint64": {
+						"type": "literal",
+						"value": [10]
+					},
+					"PtrArrayFloat32": {
+						"type": "literal",
+						"value": [11.1]
+					},
+					"PtrArrayFloat64": {
+						"type": "literal",
+						"value": [12.2]
+					},
+					"PtrArrayBoolPtr": {
+						"type": "literal",
+						"value": [true]
+					},
+					"PtrArrayStringPtr": {
+						"type": "literal",
+						"value": ["foo"]
+					},
+					"PtrArrayIntPtr": {
+						"type": "literal",
+						"value": [1]
+					},
+					"PtrArrayInt8Ptr": {
+						"type": "literal",
+						"value": [2]
+					},
+					"PtrArrayInt16Ptr": {
+						"type": "literal",
+						"value": [3]
+					},
+					"PtrArrayInt32Ptr": {
+						"type": "literal",
+						"value": [4]
+					},
+					"PtrArrayInt64Ptr": {
+						"type": "literal",
+						"value": [5]
+					},
+					"PtrArrayUintPtr": {
+						"type": "literal",
+						"value": [6]
+					},
+					"PtrArrayUint8Ptr": {
+						"type": "literal",
+						"value": [7]
+					},
+					"PtrArrayUint16Ptr": {
+						"type": "literal",
+						"value": [8]
+					},
+					"PtrArrayUint32Ptr": {
+						"type": "literal",
+						"value": [9]
+					},
+					"PtrArrayUint64Ptr": {
+						"type": "literal",
+						"value": [10]
+					},
+					"PtrArrayFloat32Ptr": {
+						"type": "literal",
+						"value": [11.1]
+					},
+					"PtrArrayFloat64Ptr": {
+						"type": "literal",
+						"value": [12.2]
+					},
+					"PtrArrayBigInt": {
+						"type": "literal",
+						"value": ["13"]
+					},
+					"PtrArrayBigIntPtr": {
+						"type": "literal",
+						"value": ["14"]
+					},
+					"PtrArrayJSON": {
+						"type": "literal",
+						"value": [{"foo": "bar"}]
+					},
+					"PtrArrayJSONPtr": {
+						"type": "literal",
+						"value": [{"foo": "baz"}]
+					},
+					"PtrArrayRawJSON": {
+						"type": "literal",
+						"value": [{"message":"raw_json"}]
+					},
+					"PtrArrayRawJSONPtr": {
+						"type": "literal",
+						"value": [{"message":"raw_json_ptr"}]
 					}
 				},
 				"query": {
@@ -725,8 +893,12 @@ func TestQueryGetTypes(t *testing.T) {
 										"column": "UUID",
 										"type": "column"
 									},
-									"UUIDArray": {
-										"column": "UUIDArray",
+									"ArrayUUID": {
+										"column": "ArrayUUID",
+										"type": "column"
+									},
+									"ArrayUUIDPtr": {
+										"column": "ArrayUUIDPtr",
 										"type": "column"
 									},
 									"UUIDPtr": {
@@ -868,6 +1040,223 @@ func TestQueryGetTypes(t *testing.T) {
 									"ArrayFloat64": {
 										"column": "ArrayFloat64",
 										"type": "column"
+									},
+									"ArrayBoolPtr": {
+										"column": "ArrayBoolPtr",
+										"type": "column"
+									},
+									"ArrayStringPtr": {
+										"column": "ArrayStringPtr",
+										"type": "column"
+									},
+									"ArrayIntPtr": {
+										"column": "ArrayIntPtr",
+										"type": "column"
+									},
+									"ArrayInt8Ptr": {
+										"column": "ArrayInt8Ptr",
+										"type": "column"
+									},
+									"ArrayInt16Ptr": {
+										"column": "ArrayInt16Ptr",
+										"type": "column"
+									},
+									"ArrayInt32Ptr": {
+										"column": "ArrayInt32Ptr",
+										"type": "column"
+									},
+									"ArrayInt64Ptr": {
+										"column": "ArrayInt64Ptr",
+										"type": "column"
+									},
+									"ArrayUintPtr": {
+										"column": "ArrayUintPtr",
+										"type": "column"
+									},
+									"ArrayUint8Ptr": {
+										"column": "ArrayUint8Ptr",
+										"type": "column"
+									},
+									"ArrayUint16Ptr": {
+										"column": "ArrayUint16Ptr",
+										"type": "column"
+									},
+									"ArrayUint32Ptr": {
+										"column": "ArrayUint32Ptr",
+										"type": "column"
+									},
+									"ArrayUint64Ptr": {
+										"column": "ArrayUint64Ptr",
+										"type": "column"
+									},
+									"ArrayFloat32Ptr": {
+										"column": "ArrayFloat32Ptr",
+										"type": "column"
+									},
+									"ArrayFloat64Ptr": {
+										"column": "ArrayFloat64Ptr",
+										"type": "column"
+									},
+									"ArrayBigInt": {
+										"column": "ArrayBigInt",
+										"type": "column"
+									},
+									"ArrayBigIntPtr": {
+										"column": "ArrayBigIntPtr",
+										"type": "column"
+									},
+									"ArrayJSON": {
+										"column": "ArrayJSON",
+										"type": "column"
+									},
+									"ArrayJSONPtr": {
+										"column": "ArrayJSONPtr",
+										"type": "column"
+									},
+									"ArrayRawJSON": {
+										"column": "ArrayRawJSON",
+										"type": "column"
+									},
+									"ArrayRawJSONPtr": {
+										"column": "ArrayRawJSONPtr",
+										"type": "column"
+									},
+
+									"PtrArrayBool": {
+										"column": "PtrArrayBool",
+										"type": "column"
+									},
+									"PtrArrayString": {
+										"column": "PtrArrayString",
+										"type": "column"
+									},
+									"PtrArrayInt": {
+										"column": "PtrArrayInt",
+										"type": "column"
+									},
+									"PtrArrayInt8": {
+										"column": "PtrArrayInt8",
+										"type": "column"
+									},
+									"PtrArrayInt16": {
+										"column": "PtrArrayInt16",
+										"type": "column"
+									},
+									"PtrArrayInt32": {
+										"column": "PtrArrayInt32",
+										"type": "column"
+									},
+									"PtrArrayInt64": {
+										"column": "PtrArrayInt64",
+										"type": "column"
+									},
+									"PtrArrayUint": {
+										"column": "PtrArrayUint",
+										"type": "column"
+									},
+									"PtrArrayUint8": {
+										"column": "PtrArrayUint8",
+										"type": "column"
+									},
+									"PtrArrayUint16": {
+										"column": "PtrArrayUint16",
+										"type": "column"
+									},
+									"PtrArrayUint32": {
+										"column": "PtrArrayUint32",
+										"type": "column"
+									},
+									"PtrArrayUint64": {
+										"column": "PtrArrayUint64",
+										"type": "column"
+									},
+									"PtrArrayFloat32": {
+										"column": "PtrArrayFloat32",
+										"type": "column"
+									},
+									"PtrArrayFloat64": {
+										"column": "PtrArrayFloat64",
+										"type": "column"
+									},
+									"PtrArrayBoolPtr": {
+										"column": "PtrArrayBoolPtr",
+										"type": "column"
+									},
+									"PtrArrayStringPtr": {
+										"column": "PtrArrayStringPtr",
+										"type": "column"
+									},
+									"PtrArrayIntPtr": {
+										"column": "PtrArrayIntPtr",
+										"type": "column"
+									},
+									"PtrArrayInt8Ptr": {
+										"column": "PtrArrayInt8Ptr",
+										"type": "column"
+									},
+									"PtrArrayInt16Ptr": {
+										"column": "PtrArrayInt16Ptr",
+										"type": "column"
+									},
+									"PtrArrayInt32Ptr": {
+										"column": "PtrArrayInt32Ptr",
+										"type": "column"
+									},
+									"PtrArrayInt64Ptr": {
+										"column": "PtrArrayInt64Ptr",
+										"type": "column"
+									},
+									"PtrArrayUintPtr": {
+										"column": "PtrArrayUintPtr",
+										"type": "column"
+									},
+									"PtrArrayUint8Ptr": {
+										"column": "PtrArrayUint8Ptr",
+										"type": "column"
+									},
+									"PtrArrayUint16Ptr": {
+										"column": "PtrArrayUint16Ptr",
+										"type": "column"
+									},
+									"PtrArrayUint32Ptr": {
+										"column": "PtrArrayUint32Ptr",
+										"type": "column"
+									},
+									"PtrArrayUint64Ptr": {
+										"column": "PtrArrayUint64Ptr",
+										"type": "column"
+									},
+									"PtrArrayFloat32Ptr": {
+										"column": "PtrArrayFloat32Ptr",
+										"type": "column"
+									},
+									"PtrArrayFloat64Ptr": {
+										"column": "PtrArrayFloat64Ptr",
+										"type": "column"
+									},
+									"PtrArrayBigInt": {
+										"column": "PtrArrayBigInt",
+										"type": "column"
+									},
+									"PtrArrayBigIntPtr": {
+										"column": "PtrArrayBigIntPtr",
+										"type": "column"
+									},
+									"PtrArrayJSON": {
+										"column": "PtrArrayJSON",
+										"type": "column"
+									},
+									"PtrArrayJSONPtr": {
+										"column": "PtrArrayJSONPtr",
+										"type": "column"
+									},
+									"PtrArrayRawJSON": {
+										"column": "PtrArrayRawJSON",
+										"type": "column"
+									},
+									"PtrArrayRawJSONPtr": {
+										"column": "PtrArrayRawJSONPtr",
+										"type": "column"
 									}
 								},
 								"type": "object"
@@ -969,9 +1358,13 @@ func TestQueryGetTypes(t *testing.T) {
 						CreatedAt: time.Date(2024, 3, 5, 2, 0, 0, 0, time.UTC),
 					},
 				},
-				UUIDArray: []uuid.UUID{
+				ArrayUUID: []uuid.UUID{
 					uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5a"),
 					uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5b"),
+				},
+				ArrayUUIDPtr: []*uuid.UUID{
+					utils.ToPtr(uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5c")),
+					utils.ToPtr(uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5d")),
 				},
 				Map: map[string]any{
 					"foo": "bar",
@@ -985,26 +1378,81 @@ func TestQueryGetTypes(t *testing.T) {
 				ArrayMapPtr: &[]map[string]any{
 					{"foo": "bar_ptr"},
 				},
-				JSON:         map[string]any{"message": "json"},
-				JSONPtr:      utils.ToPtr(any(map[string]any{"message": "json_ptr"})),
-				RawJSON:      json.RawMessage(`{"message":"raw_json"}`),
-				RawJSONPtr:   utils.ToPtr(json.RawMessage(`{"message":"raw_json_ptr"}`)),
-				Bytes:        *scalar.NewBytes([]byte("hello world")),
-				BytesPtr:     scalar.NewBytes([]byte("hello pointer")),
-				ArrayBool:    []bool{true},
-				ArrayString:  []string{"foo"},
-				ArrayInt:     []int{1},
-				ArrayInt8:    []int8{2},
-				ArrayInt16:   []int16{3},
-				ArrayInt32:   []int32{4},
-				ArrayInt64:   []int64{5},
-				ArrayUint:    []uint{6},
-				ArrayUint8:   []uint8{7},
-				ArrayUint16:  []uint16{8},
-				ArrayUint32:  []uint32{9},
-				ArrayUint64:  []uint64{10},
-				ArrayFloat32: []float32{11.1},
-				ArrayFloat64: []float64{12.2},
+				JSON:            map[string]any{"message": "json"},
+				JSONPtr:         utils.ToPtr(any(map[string]any{"message": "json_ptr"})),
+				RawJSON:         json.RawMessage(`{"message":"raw_json"}`),
+				RawJSONPtr:      utils.ToPtr(json.RawMessage(`{"message":"raw_json_ptr"}`)),
+				Bytes:           *scalar.NewBytes([]byte("hello world")),
+				BytesPtr:        scalar.NewBytes([]byte("hello pointer")),
+				ArrayBool:       []bool{true},
+				ArrayString:     []string{"foo"},
+				ArrayInt:        []int{1},
+				ArrayInt8:       []int8{2},
+				ArrayInt16:      []int16{3},
+				ArrayInt32:      []int32{4},
+				ArrayInt64:      []int64{5},
+				ArrayUint:       []uint{6},
+				ArrayUint8:      []uint8{7},
+				ArrayUint16:     []uint16{8},
+				ArrayUint32:     []uint32{9},
+				ArrayUint64:     []uint64{10},
+				ArrayFloat32:    []float32{11.1},
+				ArrayFloat64:    []float64{12.2},
+				ArrayBoolPtr:    []*bool{utils.ToPtr(true)},
+				ArrayStringPtr:  []*string{utils.ToPtr("foo")},
+				ArrayIntPtr:     []*int{utils.ToPtr(1)},
+				ArrayInt8Ptr:    []*int8{utils.ToPtr[int8](2)},
+				ArrayInt16Ptr:   []*int16{utils.ToPtr[int16](3)},
+				ArrayInt32Ptr:   []*int32{utils.ToPtr[int32](4)},
+				ArrayInt64Ptr:   []*int64{utils.ToPtr[int64](5)},
+				ArrayUintPtr:    []*uint{utils.ToPtr[uint](6)},
+				ArrayUint8Ptr:   []*uint8{utils.ToPtr[uint8](7)},
+				ArrayUint16Ptr:  []*uint16{utils.ToPtr[uint16](8)},
+				ArrayUint32Ptr:  []*uint32{utils.ToPtr[uint32](9)},
+				ArrayUint64Ptr:  []*uint64{utils.ToPtr[uint64](10)},
+				ArrayFloat32Ptr: []*float32{utils.ToPtr[float32](11.1)},
+				ArrayFloat64Ptr: []*float64{utils.ToPtr[float64](12.2)},
+				ArrayBigInt:     []scalar.BigInt{scalar.BigInt(13)},
+				ArrayBigIntPtr:  []*scalar.BigInt{utils.ToPtr(scalar.BigInt(14))},
+				ArrayJSON:       []any{map[string]any{"foo": "bar"}},
+				ArrayJSONPtr:    []*any{utils.ToPtr(any(map[string]any{"foo": "baz"}))},
+				ArrayRawJSON:    []json.RawMessage{json.RawMessage(`{"message":"raw_json"}`)},
+				ArrayRawJSONPtr: []*json.RawMessage{utils.ToPtr(json.RawMessage(`{"message":"raw_json_ptr"}`))},
+
+				PtrArrayBool:       &[]bool{true},
+				PtrArrayString:     &[]string{"foo"},
+				PtrArrayInt:        &[]int{1},
+				PtrArrayInt8:       &[]int8{2},
+				PtrArrayInt16:      &[]int16{3},
+				PtrArrayInt32:      &[]int32{4},
+				PtrArrayInt64:      &[]int64{5},
+				PtrArrayUint:       &[]uint{6},
+				PtrArrayUint8:      &[]uint8{7},
+				PtrArrayUint16:     &[]uint16{8},
+				PtrArrayUint32:     &[]uint32{9},
+				PtrArrayUint64:     &[]uint64{10},
+				PtrArrayFloat32:    &[]float32{11.1},
+				PtrArrayFloat64:    &[]float64{12.2},
+				PtrArrayBoolPtr:    &[]*bool{utils.ToPtr(true)},
+				PtrArrayStringPtr:  &[]*string{utils.ToPtr("foo")},
+				PtrArrayIntPtr:     &[]*int{utils.ToPtr(1)},
+				PtrArrayInt8Ptr:    &[]*int8{utils.ToPtr[int8](2)},
+				PtrArrayInt16Ptr:   &[]*int16{utils.ToPtr[int16](3)},
+				PtrArrayInt32Ptr:   &[]*int32{utils.ToPtr[int32](4)},
+				PtrArrayInt64Ptr:   &[]*int64{utils.ToPtr[int64](5)},
+				PtrArrayUintPtr:    &[]*uint{utils.ToPtr[uint](6)},
+				PtrArrayUint8Ptr:   &[]*uint8{utils.ToPtr[uint8](7)},
+				PtrArrayUint16Ptr:  &[]*uint16{utils.ToPtr[uint16](8)},
+				PtrArrayUint32Ptr:  &[]*uint32{utils.ToPtr[uint32](9)},
+				PtrArrayUint64Ptr:  &[]*uint64{utils.ToPtr[uint64](10)},
+				PtrArrayFloat32Ptr: &[]*float32{utils.ToPtr[float32](11.1)},
+				PtrArrayFloat64Ptr: &[]*float64{utils.ToPtr[float64](12.2)},
+				PtrArrayBigInt:     &[]scalar.BigInt{scalar.BigInt(13)},
+				PtrArrayBigIntPtr:  &[]*scalar.BigInt{utils.ToPtr(scalar.BigInt(14))},
+				PtrArrayJSON:       &[]any{map[string]any{"foo": "bar"}},
+				PtrArrayJSONPtr:    &[]*any{utils.ToPtr(any(map[string]any{"foo": "baz"}))},
+				PtrArrayRawJSON:    &[]json.RawMessage{json.RawMessage(`{"message":"raw_json"}`)},
+				PtrArrayRawJSONPtr: &[]*json.RawMessage{utils.ToPtr(json.RawMessage(`{"message":"raw_json_ptr"}`))},
 			},
 		},
 	}

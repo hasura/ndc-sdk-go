@@ -1,6 +1,9 @@
 package utils
 
-import "fmt"
+import (
+	"fmt"
+	"reflect"
+)
 
 // GetDefault returns the value or default one if value is empty
 func GetDefault[T comparable](value T, defaultValue T) T {
@@ -55,4 +58,24 @@ func PointersToValues[T any](input []*T) ([]T, error) {
 		results[i] = *v
 	}
 	return results, nil
+}
+
+// UnwrapPointerFromReflectValue unwraps pointers from the reflect value
+func UnwrapPointerFromReflectValue(reflectValue reflect.Value) (reflect.Value, bool) {
+	for reflectValue.Kind() == reflect.Pointer {
+		if reflectValue.IsNil() {
+			return reflect.Value{}, false
+		}
+		reflectValue = reflectValue.Elem()
+	}
+	return reflectValue, true
+}
+
+// UnwrapPointerFromAny unwraps pointers from the input any type
+func UnwrapPointerFromAny(value any) (any, bool) {
+	reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
+	if !ok {
+		return nil, false
+	}
+	return reflectValue.Interface(), true
 }

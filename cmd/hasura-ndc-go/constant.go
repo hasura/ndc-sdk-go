@@ -1,12 +1,34 @@
 package main
 
+import "regexp"
+
 const (
 	connectorOutputFile   = "connector.generated.go"
 	schemaOutputFile      = "schema.generated.json"
 	typeMethodsOutputFile = "types.generated.go"
-	googleUuidPackageName = "github.com/google/uuid"
-	sdkScalarPackageName  = "github.com/hasura/ndc-sdk-go/scalar"
 )
+
+type nativeScalarPackageConfig struct {
+	PackageName string
+	Pattern     *regexp.Regexp
+}
+
+var fieldNameRegex = regexp.MustCompile(`[^\w]`)
+
+var nativeScalarPackages map[string]nativeScalarPackageConfig = map[string]nativeScalarPackageConfig{
+	"scalar": {
+		PackageName: "github.com/hasura/ndc-sdk-go/scalar",
+		Pattern:     regexp.MustCompile(`^(\[\]|\*)*github\.com\/hasura\/ndc-sdk-go\/scalar\.`),
+	},
+	"json": {
+		PackageName: "encoding/json",
+		Pattern:     regexp.MustCompile(`^(\[\]|\*)*encoding\/json\.`),
+	},
+	"uuid": {
+		PackageName: "github.com/google/uuid",
+		Pattern:     regexp.MustCompile(`^(\[\]|\*)*github\.com\/google\/uuid\.`),
+	},
+}
 
 const textBlockErrorCheck = `
     if err != nil {
