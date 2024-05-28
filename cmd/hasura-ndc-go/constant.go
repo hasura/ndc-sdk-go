@@ -28,6 +28,10 @@ var nativeScalarPackages map[string]nativeScalarPackageConfig = map[string]nativ
 		PackageName: "github.com/google/uuid",
 		Pattern:     regexp.MustCompile(`^(\[\]|\*)*github\.com\/google\/uuid\.`),
 	},
+	"time": {
+		PackageName: "time",
+		Pattern:     regexp.MustCompile(`^(\[\]|\*)*time\.`),
+	},
 }
 
 const textBlockErrorCheck = `

@@ -767,6 +767,157 @@ func DecodeDateTime(value any) (time.Time, error) {
 	return *result, nil
 }
 
+// DecodeNullableDateTimeSlice tries to convert an unknown value to a time.Time pointer slice
+func DecodeNullableDateTimeSlice(value any) ([]*time.Time, error) {
+	if IsNil(value) {
+		return []*time.Time{}, nil
+	}
+
+	switch v := value.(type) {
+	case []time.Time:
+		return ToPtrs(v), nil
+	case []*time.Time:
+		return v, nil
+	case []string:
+		results := make([]*time.Time, len(v))
+		for i, str := range v {
+			d, err := parseDateTime(str)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert DateTime element at %d, got: %s", i, str)
+			}
+			results[i] = d
+		}
+		return results, nil
+	case []*string:
+		results := make([]*time.Time, len(v))
+		for i, str := range v {
+			if str == nil {
+				continue
+			}
+			d, err := parseDateTime(*str)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert DateTime element at %d, got: %s", i, *str)
+			}
+			results[i] = d
+		}
+		return results, nil
+	case []any:
+		results := make([]*time.Time, len(v))
+		for i, item := range v {
+			d, err := DecodeNullableDateTime(item)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert DateTime element at %d, got: %v", i, item)
+			}
+			results[i] = d
+		}
+		return results, nil
+	case bool, string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128, *bool, *string, *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64, *float32, *float64, *complex64, *complex128, []bool, []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64, []float32, []float64, []complex64, []complex128:
+		return nil, fmt.Errorf("failed to convert DateTime slice, got: %+v", v)
+	default:
+		reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
+		if !ok {
+			return []*time.Time{}, nil
+		}
+		if reflectValue.Kind() != reflect.Slice {
+			return nil, fmt.Errorf("failed to convert DateTime slice, got: %v", reflectValue.Kind())
+		}
+
+		valueLen := reflectValue.Len()
+		results := make([]*time.Time, valueLen)
+		for i := 0; i < valueLen; i++ {
+			elem, ok := UnwrapPointerFromReflectValue(reflectValue.Index(i))
+			if !ok {
+				continue
+			}
+			itemValue, err := DecodeNullableDateTime(elem.Interface())
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert DateTime element at %d: %v", i, err)
+			}
+			results[i] = itemValue
+		}
+		return results, nil
+	}
+
+}
+
+// DecodeDateTimeSlice tries to convert an unknown value to a time.Time pointer slice
+func DecodeDateTimeSlice(value any) ([]time.Time, error) {
+	if IsNil(value) {
+		return []time.Time{}, nil
+	}
+
+	switch v := value.(type) {
+	case []time.Time:
+		return v, nil
+	case []*time.Time:
+		return PointersToValues(v)
+	case []string:
+		results := make([]time.Time, len(v))
+		for i, str := range v {
+			d, err := parseDateTime(str)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert DateTime element at %d, got: %s", i, str)
+			}
+			if d == nil {
+				return nil, fmt.Errorf("DateTime element at %d must not be null", i)
+			}
+			results[i] = *d
+		}
+		return results, nil
+	case []*string:
+		results := make([]time.Time, len(v))
+		for i, str := range v {
+			if str == nil {
+				return nil, fmt.Errorf("DateTime element at %d must not be null", i)
+			}
+			d, err := parseDateTime(*str)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert DateTime element at %d, got: %s", i, *str)
+			}
+			if d == nil {
+				return nil, fmt.Errorf("DateTime element at %d must not be null", i)
+			}
+			results[i] = *d
+		}
+		return results, nil
+	case []any:
+		results := make([]time.Time, len(v))
+		for i, item := range v {
+			d, err := DecodeDateTime(item)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert DateTime element at %d, got: %v", i, item)
+			}
+			results[i] = d
+		}
+		return results, nil
+	case bool, string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128, *bool, *string, *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16, *uint32, *uint64, *float32, *float64, *complex64, *complex128, []bool, []float32, []float64, []complex64, []complex128:
+		return nil, fmt.Errorf("failed to convert DateTime slice, got: %+v", v)
+	default:
+		reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
+		if !ok {
+			return []time.Time{}, nil
+		}
+		if reflectValue.Kind() != reflect.Slice {
+			return nil, fmt.Errorf("failed to convert DateTime slice, got: %v", reflectValue.Kind())
+		}
+
+		valueLen := reflectValue.Len()
+		results := make([]time.Time, valueLen)
+		for i := 0; i < valueLen; i++ {
+			elem, ok := UnwrapPointerFromReflectValue(reflectValue.Index(i))
+			if !ok {
+				continue
+			}
+			itemValue, err := DecodeDateTime(elem.Interface())
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert DateTime element at %d: %v", i, err)
+			}
+			results[i] = itemValue
+		}
+		return results, nil
+	}
+}
+
 // parse date time with fallback ISO8601 formats
 func parseDateTime(value string) (*time.Time, error) {
 	for _, format := range []string{time.RFC3339, "2006-01-02T15:04:05Z0700", "2006-01-02T15:04:05-0700", time.RFC3339Nano} {
@@ -1096,6 +1247,32 @@ func GetDateTime(object map[string]any, key string) (time.Time, error) {
 		return time.Time{}, fmt.Errorf("field `%s` is required", key)
 	}
 	result, err := DecodeDateTime(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+// GetNullableDateTimeSlice get a time.Time pointer slice from object by key
+func GetNullableDateTimeSlice(object map[string]any, key string) ([]*time.Time, error) {
+	value, ok := GetAny(object, key)
+	if !ok || value == nil {
+		return []*time.Time{}, nil
+	}
+	result, err := DecodeNullableDateTimeSlice(value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %s", key, err)
+	}
+	return result, nil
+}
+
+// GetDateTimeSlice get a time.Time slice from object by key
+func GetDateTimeSlice(object map[string]any, key string) ([]time.Time, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, fmt.Errorf("field `%s` is required", key)
+	}
+	result, err := DecodeDateTimeSlice(value)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}

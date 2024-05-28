@@ -655,9 +655,17 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableFloat[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
 		}
 	case "time.Time":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTime(input, "%s")`, fieldName, key))
+		if strings.Join(ty.TypeFragments, "") == "[]Time" {
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTimeSlice(input, "%s")`, fieldName, key))
+		} else {
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTime(input, "%s")`, fieldName, key))
+		}
 	case "*time.Time":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableDateTime(input, "%s")`, fieldName, key))
+		if strings.Join(ty.TypeFragments, "") == "[]*Time" {
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableDateTimeSlice(input, "%s")`, fieldName, key))
+		} else {
+			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableDateTime(input, "%s")`, fieldName, key))
+		}
 	case "github.com/google/uuid.UUID":
 		if strings.Join(ty.TypeFragments, "") == "[]UUID" {
 			sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUUIDSlice(input, "%s")`, fieldName, key))

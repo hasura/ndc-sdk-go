@@ -109,42 +109,27 @@ type GetTypesArguments struct {
 	BigInt       scalar.BigInt
 	Date         scalar.Date
 
-	PtrArrayBool       *[]bool
-	PtrArrayString     *[]string
-	PtrArrayInt        *[]int
-	PtrArrayInt8       *[]int8
-	PtrArrayInt16      *[]int16
-	PtrArrayInt32      *[]int32
-	PtrArrayInt64      *[]int64
-	PtrArrayUint       *[]uint
-	PtrArrayUint8      *[]uint8
-	PtrArrayUint16     *[]uint16
-	PtrArrayUint32     *[]uint32
-	PtrArrayUint64     *[]uint64
-	PtrArrayFloat32    *[]float32
-	PtrArrayFloat64    *[]float64
-	PtrArrayUUID       *[]uuid.UUID
-	PtrArrayBoolPtr    *[]*bool
-	PtrArrayStringPtr  *[]*string
-	PtrArrayIntPtr     *[]*int
-	PtrArrayInt8Ptr    *[]*int8
-	PtrArrayInt16Ptr   *[]*int16
-	PtrArrayInt32Ptr   *[]*int32
-	PtrArrayInt64Ptr   *[]*int64
-	PtrArrayUintPtr    *[]*uint
-	PtrArrayUint8Ptr   *[]*uint8
-	PtrArrayUint16Ptr  *[]*uint16
-	PtrArrayUint32Ptr  *[]*uint32
-	PtrArrayUint64Ptr  *[]*uint64
-	PtrArrayFloat32Ptr *[]*float32
-	PtrArrayFloat64Ptr *[]*float64
-	PtrArrayUUIDPtr    *[]*uuid.UUID
-	PtrArrayJSON       *[]any
-	PtrArrayJSONPtr    *[]*interface{}
-	PtrArrayRawJSON    *[]json.RawMessage
-	PtrArrayRawJSONPtr *[]*json.RawMessage
-	PtrArrayBigInt     *[]scalar.BigInt
-	PtrArrayBigIntPtr  *[]*scalar.BigInt
+	UUIDPtr         *uuid.UUID
+	BoolPtr         *bool
+	StringPtr       *string
+	IntPtr          *int
+	Int8Ptr         *int8
+	Int16Ptr        *int16
+	Int32Ptr        *int32
+	Int64Ptr        *int64
+	UintPtr         *uint
+	Uint8Ptr        *uint8
+	Uint16Ptr       *uint16
+	Uint32Ptr       *uint32
+	Uint64Ptr       *uint64
+	Float32Ptr      *float32
+	Float64Ptr      *float64
+	TimePtr         *time.Time
+	TextPtr         *Text
+	CustomScalarPtr *CommentText
+	EnumPtr         *SomeEnum
+	BigIntPtr       *scalar.BigInt
+	DatePtr         *scalar.Date
 
 	ArrayBool       []bool
 	ArrayString     []string
@@ -182,28 +167,47 @@ type GetTypesArguments struct {
 	ArrayRawJSONPtr []*json.RawMessage
 	ArrayBigInt     []scalar.BigInt
 	ArrayBigIntPtr  []*scalar.BigInt
+	ArrayTime       []time.Time
+	ArrayTimePtr    []*time.Time
 
-	UUIDPtr         *uuid.UUID
-	BoolPtr         *bool
-	StringPtr       *string
-	IntPtr          *int
-	Int8Ptr         *int8
-	Int16Ptr        *int16
-	Int32Ptr        *int32
-	Int64Ptr        *int64
-	UintPtr         *uint
-	Uint8Ptr        *uint8
-	Uint16Ptr       *uint16
-	Uint32Ptr       *uint32
-	Uint64Ptr       *uint64
-	Float32Ptr      *float32
-	Float64Ptr      *float64
-	TimePtr         *time.Time
-	TextPtr         *Text
-	CustomScalarPtr *CommentText
-	EnumPtr         *SomeEnum
-	BigIntPtr       *scalar.BigInt
-	DatePtr         *scalar.Date
+	PtrArrayBool       *[]bool
+	PtrArrayString     *[]string
+	PtrArrayInt        *[]int
+	PtrArrayInt8       *[]int8
+	PtrArrayInt16      *[]int16
+	PtrArrayInt32      *[]int32
+	PtrArrayInt64      *[]int64
+	PtrArrayUint       *[]uint
+	PtrArrayUint8      *[]uint8
+	PtrArrayUint16     *[]uint16
+	PtrArrayUint32     *[]uint32
+	PtrArrayUint64     *[]uint64
+	PtrArrayFloat32    *[]float32
+	PtrArrayFloat64    *[]float64
+	PtrArrayUUID       *[]uuid.UUID
+	PtrArrayBoolPtr    *[]*bool
+	PtrArrayStringPtr  *[]*string
+	PtrArrayIntPtr     *[]*int
+	PtrArrayInt8Ptr    *[]*int8
+	PtrArrayInt16Ptr   *[]*int16
+	PtrArrayInt32Ptr   *[]*int32
+	PtrArrayInt64Ptr   *[]*int64
+	PtrArrayUintPtr    *[]*uint
+	PtrArrayUint8Ptr   *[]*uint8
+	PtrArrayUint16Ptr  *[]*uint16
+	PtrArrayUint32Ptr  *[]*uint32
+	PtrArrayUint64Ptr  *[]*uint64
+	PtrArrayFloat32Ptr *[]*float32
+	PtrArrayFloat64Ptr *[]*float64
+	PtrArrayUUIDPtr    *[]*uuid.UUID
+	PtrArrayJSON       *[]any
+	PtrArrayJSONPtr    *[]*interface{}
+	PtrArrayRawJSON    *[]json.RawMessage
+	PtrArrayRawJSONPtr *[]*json.RawMessage
+	PtrArrayBigInt     *[]scalar.BigInt
+	PtrArrayBigIntPtr  *[]*scalar.BigInt
+	PtrArrayTime       *[]time.Time
+	PtrArrayTimePtr    *[]*time.Time
 
 	Object struct {
 		ID        uuid.UUID `json:"id"`

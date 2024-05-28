@@ -621,6 +621,22 @@ func TestQueryGetTypes(t *testing.T) {
 					"PtrArrayRawJSONPtr": {
 						"type": "literal",
 						"value": [{"message":"raw_json_ptr"}]
+					},
+					"ArrayTime": {
+						"type": "literal",
+						"value": ["2024-03-05T07:00:56Z"]
+					},
+					"ArrayTimePtr": {
+						"type": "literal",
+						"value": ["2024-03-05T07:00:56Z"]
+					},
+					"PtrArrayTime": {
+						"type": "literal",
+						"value": ["2024-03-05T07:00:56Z"]
+					},
+					"PtrArrayTimePtr": {
+						"type": "literal",
+						"value": ["2024-03-05T07:00:56Z"]
 					}
 				},
 				"query": {
@@ -1121,6 +1137,14 @@ func TestQueryGetTypes(t *testing.T) {
 										"column": "ArrayRawJSONPtr",
 										"type": "column"
 									},
+									"ArrayTime": {
+										"column": "ArrayTime",
+										"type": "column"
+									},
+									"ArrayTimePtr": {
+										"column": "ArrayTimePtr",
+										"type": "column"
+									},
 
 									"PtrArrayBool": {
 										"column": "PtrArrayBool",
@@ -1256,6 +1280,14 @@ func TestQueryGetTypes(t *testing.T) {
 									},
 									"PtrArrayRawJSONPtr": {
 										"column": "PtrArrayRawJSONPtr",
+										"type": "column"
+									},
+									"PtrArrayTime": {
+										"column": "PtrArrayTime",
+										"type": "column"
+									},
+									"PtrArrayTimePtr": {
+										"column": "PtrArrayTimePtr",
 										"type": "column"
 									}
 								},
@@ -1418,6 +1450,8 @@ func TestQueryGetTypes(t *testing.T) {
 				ArrayJSONPtr:    []*any{utils.ToPtr(any(map[string]any{"foo": "baz"}))},
 				ArrayRawJSON:    []json.RawMessage{json.RawMessage(`{"message":"raw_json"}`)},
 				ArrayRawJSONPtr: []*json.RawMessage{utils.ToPtr(json.RawMessage(`{"message":"raw_json_ptr"}`))},
+				ArrayTime:       []time.Time{time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC)},
+				ArrayTimePtr:    []*time.Time{utils.ToPtr(time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC))},
 
 				PtrArrayBool:       &[]bool{true},
 				PtrArrayString:     &[]string{"foo"},
@@ -1453,6 +1487,8 @@ func TestQueryGetTypes(t *testing.T) {
 				PtrArrayJSONPtr:    &[]*any{utils.ToPtr(any(map[string]any{"foo": "baz"}))},
 				PtrArrayRawJSON:    &[]json.RawMessage{json.RawMessage(`{"message":"raw_json"}`)},
 				PtrArrayRawJSONPtr: &[]*json.RawMessage{utils.ToPtr(json.RawMessage(`{"message":"raw_json_ptr"}`))},
+				PtrArrayTime:       &[]time.Time{time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC)},
+				PtrArrayTimePtr:    &[]*time.Time{utils.ToPtr(time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC))},
 			},
 		},
 	}

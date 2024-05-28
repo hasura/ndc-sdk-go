@@ -306,6 +306,27 @@
             "type": "array"
           }
         },
+        "ArrayTime": {
+          "type": {
+            "element_type": {
+              "name": "TimestampTZ",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayTimePtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "TimestampTZ",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
         "ArrayUUID": {
           "type": {
             "element_type": {
@@ -1025,6 +1046,33 @@
                 "type": "nullable",
                 "underlying_type": {
                   "name": "String",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayTime": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "TimestampTZ",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayTimePtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "TimestampTZ",
                   "type": "named"
                 }
               },
@@ -1781,6 +1829,27 @@
             "type": "array"
           }
         },
+        "ArrayTime": {
+          "type": {
+            "element_type": {
+              "name": "TimestampTZ",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayTimePtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "TimestampTZ",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
         "ArrayUUID": {
           "type": {
             "element_type": {
@@ -2500,6 +2569,33 @@
                 "type": "nullable",
                 "underlying_type": {
                   "name": "String",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayTime": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "TimestampTZ",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayTimePtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "TimestampTZ",
                   "type": "named"
                 }
               },

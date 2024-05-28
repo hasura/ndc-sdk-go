@@ -8,6 +8,7 @@ import (
 	"github.com/hasura/ndc-sdk-go/scalar"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
+	"time"
 )
 
 var functions_Decoder = utils.NewDecoder()
@@ -128,6 +129,14 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 		return err
 	}
 	j.ArrayStringPtr, err = utils.GetNullableStringSlice(input, "ArrayStringPtr")
+	if err != nil {
+		return err
+	}
+	j.ArrayTime, err = utils.GetDateTimeSlice(input, "ArrayTime")
+	if err != nil {
+		return err
+	}
+	j.ArrayTimePtr, err = utils.GetNullableDateTimeSlice(input, "ArrayTimePtr")
 	if err != nil {
 		return err
 	}
@@ -455,6 +464,16 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	j.PtrArrayTime = new([]time.Time)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayTime, input, "PtrArrayTime")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayTimePtr = new([]*time.Time)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayTimePtr, input, "PtrArrayTimePtr")
+	if err != nil {
+		return err
+	}
 	j.PtrArrayUUID = new([]uuid.UUID)
 	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayUUID, input, "PtrArrayUUID")
 	if err != nil {
@@ -696,6 +715,8 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["ArrayRawJSONPtr"] = j.ArrayRawJSONPtr
 	r["ArrayString"] = j.ArrayString
 	r["ArrayStringPtr"] = j.ArrayStringPtr
+	r["ArrayTime"] = j.ArrayTime
+	r["ArrayTimePtr"] = j.ArrayTimePtr
 	r["ArrayUUID"] = j.ArrayUUID
 	r["ArrayUUIDPtr"] = j.ArrayUUIDPtr
 	r["ArrayUint"] = j.ArrayUint
@@ -788,6 +809,8 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["PtrArrayRawJSONPtr"] = j.PtrArrayRawJSONPtr
 	r["PtrArrayString"] = j.PtrArrayString
 	r["PtrArrayStringPtr"] = j.PtrArrayStringPtr
+	r["PtrArrayTime"] = j.PtrArrayTime
+	r["PtrArrayTimePtr"] = j.PtrArrayTimePtr
 	r["PtrArrayUUID"] = j.PtrArrayUUID
 	r["PtrArrayUUIDPtr"] = j.PtrArrayUUIDPtr
 	r["PtrArrayUint"] = j.PtrArrayUint
