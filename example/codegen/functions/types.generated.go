@@ -4,9 +4,11 @@ package functions
 import (
 	"encoding/json"
 	"errors"
+	"github.com/google/uuid"
 	"github.com/hasura/ndc-sdk-go/scalar"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
+	"time"
 )
 
 var functions_Decoder = utils.NewDecoder()
@@ -14,6 +16,86 @@ var functions_Decoder = utils.NewDecoder()
 // FromValue decodes values from map
 func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	var err error
+	err = functions_Decoder.DecodeObjectValue(&j.ArrayBigInt, input, "ArrayBigInt")
+	if err != nil {
+		return err
+	}
+	err = functions_Decoder.DecodeObjectValue(&j.ArrayBigIntPtr, input, "ArrayBigIntPtr")
+	if err != nil {
+		return err
+	}
+	j.ArrayBool, err = utils.GetBooleanSlice(input, "ArrayBool")
+	if err != nil {
+		return err
+	}
+	j.ArrayBoolPtr, err = utils.GetNullableBooleanSlice(input, "ArrayBoolPtr")
+	if err != nil {
+		return err
+	}
+	j.ArrayFloat32, err = utils.GetFloatSlice[float32](input, "ArrayFloat32")
+	if err != nil {
+		return err
+	}
+	j.ArrayFloat32Ptr, err = utils.GetNullableFloatSlice[float32](input, "ArrayFloat32Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayFloat64, err = utils.GetFloatSlice[float64](input, "ArrayFloat64")
+	if err != nil {
+		return err
+	}
+	j.ArrayFloat64Ptr, err = utils.GetNullableFloatSlice[float64](input, "ArrayFloat64Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt, err = utils.GetIntSlice[int](input, "ArrayInt")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt16, err = utils.GetIntSlice[int16](input, "ArrayInt16")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt16Ptr, err = utils.GetNullableIntSlice[int16](input, "ArrayInt16Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt32, err = utils.GetIntSlice[int32](input, "ArrayInt32")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt32Ptr, err = utils.GetNullableIntSlice[int32](input, "ArrayInt32Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt64, err = utils.GetIntSlice[int64](input, "ArrayInt64")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt64Ptr, err = utils.GetNullableIntSlice[int64](input, "ArrayInt64Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt8, err = utils.GetIntSlice[int8](input, "ArrayInt8")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt8Ptr, err = utils.GetNullableIntSlice[int8](input, "ArrayInt8Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayIntPtr, err = utils.GetNullableIntSlice[int](input, "ArrayIntPtr")
+	if err != nil {
+		return err
+	}
+	j.ArrayJSON, err = utils.GetArbitraryJSONSlice(input, "ArrayJSON")
+	if err != nil {
+		return err
+	}
+	j.ArrayJSONPtr, err = utils.GetNullableArbitraryJSONSlice(input, "ArrayJSONPtr")
+	if err != nil {
+		return err
+	}
 	err = functions_Decoder.DecodeObjectValue(&j.ArrayMap, input, "ArrayMap")
 	if err != nil {
 		return err
@@ -34,6 +116,78 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	j.ArrayRawJSON, err = utils.GetRawJSONSlice(input, "ArrayRawJSON")
+	if err != nil {
+		return err
+	}
+	j.ArrayRawJSONPtr, err = utils.GetNullableRawJSONSlice(input, "ArrayRawJSONPtr")
+	if err != nil {
+		return err
+	}
+	j.ArrayString, err = utils.GetStringSlice(input, "ArrayString")
+	if err != nil {
+		return err
+	}
+	j.ArrayStringPtr, err = utils.GetNullableStringSlice(input, "ArrayStringPtr")
+	if err != nil {
+		return err
+	}
+	j.ArrayTime, err = utils.GetDateTimeSlice(input, "ArrayTime")
+	if err != nil {
+		return err
+	}
+	j.ArrayTimePtr, err = utils.GetNullableDateTimeSlice(input, "ArrayTimePtr")
+	if err != nil {
+		return err
+	}
+	j.ArrayUUID, err = utils.GetUUIDSlice(input, "ArrayUUID")
+	if err != nil {
+		return err
+	}
+	j.ArrayUUIDPtr, err = utils.GetNullableUUIDSlice(input, "ArrayUUIDPtr")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint, err = utils.GetUintSlice[uint](input, "ArrayUint")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint16, err = utils.GetUintSlice[uint16](input, "ArrayUint16")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint16Ptr, err = utils.GetNullableUintSlice[uint16](input, "ArrayUint16Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint32, err = utils.GetUintSlice[uint32](input, "ArrayUint32")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint32Ptr, err = utils.GetNullableUintSlice[uint32](input, "ArrayUint32Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint64, err = utils.GetUintSlice[uint64](input, "ArrayUint64")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint64Ptr, err = utils.GetNullableUintSlice[uint64](input, "ArrayUint64Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint8, err = utils.GetUintSlice[uint8](input, "ArrayUint8")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint8Ptr, err = utils.GetNullableUintSlice[uint8](input, "ArrayUint8Ptr")
+	if err != nil {
+		return err
+	}
+	j.ArrayUintPtr, err = utils.GetNullableUintSlice[uint](input, "ArrayUintPtr")
+	if err != nil {
+		return err
+	}
 	err = functions_Decoder.DecodeObjectValue(&j.BigInt, input, "BigInt")
 	if err != nil {
 		return err
@@ -43,11 +197,11 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.Bool, err = utils.GetBool(input, "Bool")
+	j.Bool, err = utils.GetBoolean(input, "Bool")
 	if err != nil {
 		return err
 	}
-	j.BoolPtr, err = utils.GetNullableBool(input, "BoolPtr")
+	j.BoolPtr, err = utils.GetNullableBoolean(input, "BoolPtr")
 	if err != nil {
 		return err
 	}
@@ -190,11 +344,201 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.RawJSON, err = utils.GetObjectRawJSON(input, "RawJSON")
+	j.PtrArrayBigInt = new([]scalar.BigInt)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayBigInt, input, "PtrArrayBigInt")
 	if err != nil {
 		return err
 	}
-	j.RawJSONPtr, err = utils.GetNullableObjectRawJSON(input, "RawJSONPtr")
+	j.PtrArrayBigIntPtr = new([]*scalar.BigInt)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayBigIntPtr, input, "PtrArrayBigIntPtr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayBool = new([]bool)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayBool, input, "PtrArrayBool")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayBoolPtr = new([]*bool)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayBoolPtr, input, "PtrArrayBoolPtr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayFloat32 = new([]float32)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayFloat32, input, "PtrArrayFloat32")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayFloat32Ptr = new([]*float32)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayFloat32Ptr, input, "PtrArrayFloat32Ptr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayFloat64 = new([]float64)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayFloat64, input, "PtrArrayFloat64")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayFloat64Ptr = new([]*float64)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayFloat64Ptr, input, "PtrArrayFloat64Ptr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayInt = new([]int)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayInt, input, "PtrArrayInt")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayInt16 = new([]int16)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayInt16, input, "PtrArrayInt16")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayInt16Ptr = new([]*int16)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayInt16Ptr, input, "PtrArrayInt16Ptr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayInt32 = new([]int32)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayInt32, input, "PtrArrayInt32")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayInt32Ptr = new([]*int32)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayInt32Ptr, input, "PtrArrayInt32Ptr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayInt64 = new([]int64)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayInt64, input, "PtrArrayInt64")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayInt64Ptr = new([]*int64)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayInt64Ptr, input, "PtrArrayInt64Ptr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayInt8 = new([]int8)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayInt8, input, "PtrArrayInt8")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayInt8Ptr = new([]*int8)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayInt8Ptr, input, "PtrArrayInt8Ptr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayIntPtr = new([]*int)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayIntPtr, input, "PtrArrayIntPtr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayJSON = new([]any)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayJSON, input, "PtrArrayJSON")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayJSONPtr = new([]*interface{})
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayJSONPtr, input, "PtrArrayJSONPtr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayRawJSON = new([]json.RawMessage)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayRawJSON, input, "PtrArrayRawJSON")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayRawJSONPtr = new([]*json.RawMessage)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayRawJSONPtr, input, "PtrArrayRawJSONPtr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayString = new([]string)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayString, input, "PtrArrayString")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayStringPtr = new([]*string)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayStringPtr, input, "PtrArrayStringPtr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayTime = new([]time.Time)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayTime, input, "PtrArrayTime")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayTimePtr = new([]*time.Time)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayTimePtr, input, "PtrArrayTimePtr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayUUID = new([]uuid.UUID)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayUUID, input, "PtrArrayUUID")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayUUIDPtr = new([]*uuid.UUID)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayUUIDPtr, input, "PtrArrayUUIDPtr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayUint = new([]uint)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayUint, input, "PtrArrayUint")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayUint16 = new([]uint16)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayUint16, input, "PtrArrayUint16")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayUint16Ptr = new([]*uint16)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayUint16Ptr, input, "PtrArrayUint16Ptr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayUint32 = new([]uint32)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayUint32, input, "PtrArrayUint32")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayUint32Ptr = new([]*uint32)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayUint32Ptr, input, "PtrArrayUint32Ptr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayUint64 = new([]uint64)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayUint64, input, "PtrArrayUint64")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayUint64Ptr = new([]*uint64)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayUint64Ptr, input, "PtrArrayUint64Ptr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayUint8 = new([]uint8)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayUint8, input, "PtrArrayUint8")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayUint8Ptr = new([]*uint8)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayUint8Ptr, input, "PtrArrayUint8Ptr")
+	if err != nil {
+		return err
+	}
+	j.PtrArrayUintPtr = new([]*uint)
+	err = functions_Decoder.DecodeNullableObjectValue(j.PtrArrayUintPtr, input, "PtrArrayUintPtr")
+	if err != nil {
+		return err
+	}
+	j.RawJSON, err = utils.GetRawJSON(input, "RawJSON")
+	if err != nil {
+		return err
+	}
+	j.RawJSONPtr, err = utils.GetNullableRawJSON(input, "RawJSONPtr")
 	if err != nil {
 		return err
 	}
@@ -223,15 +567,11 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.UUID, err = utils.GetObjectUUID(input, "UUID")
+	j.UUID, err = utils.GetUUID(input, "UUID")
 	if err != nil {
 		return err
 	}
-	err = functions_Decoder.DecodeObjectValue(&j.UUIDArray, input, "UUIDArray")
-	if err != nil {
-		return err
-	}
-	j.UUIDPtr, err = utils.GetNullableObjectUUID(input, "UUIDPtr")
+	j.UUIDPtr, err = utils.GetNullableUUID(input, "UUIDPtr")
 	if err != nil {
 		return err
 	}
@@ -333,6 +673,26 @@ func (j GetArticlesResult) ToMap() map[string]any {
 // ToMap encodes the struct to a value map
 func (j GetTypesArguments) ToMap() map[string]any {
 	r := make(map[string]any)
+	r["ArrayBigInt"] = j.ArrayBigInt
+	r["ArrayBigIntPtr"] = j.ArrayBigIntPtr
+	r["ArrayBool"] = j.ArrayBool
+	r["ArrayBoolPtr"] = j.ArrayBoolPtr
+	r["ArrayFloat32"] = j.ArrayFloat32
+	r["ArrayFloat32Ptr"] = j.ArrayFloat32Ptr
+	r["ArrayFloat64"] = j.ArrayFloat64
+	r["ArrayFloat64Ptr"] = j.ArrayFloat64Ptr
+	r["ArrayInt"] = j.ArrayInt
+	r["ArrayInt16"] = j.ArrayInt16
+	r["ArrayInt16Ptr"] = j.ArrayInt16Ptr
+	r["ArrayInt32"] = j.ArrayInt32
+	r["ArrayInt32Ptr"] = j.ArrayInt32Ptr
+	r["ArrayInt64"] = j.ArrayInt64
+	r["ArrayInt64Ptr"] = j.ArrayInt64Ptr
+	r["ArrayInt8"] = j.ArrayInt8
+	r["ArrayInt8Ptr"] = j.ArrayInt8Ptr
+	r["ArrayIntPtr"] = j.ArrayIntPtr
+	r["ArrayJSON"] = j.ArrayJSON
+	r["ArrayJSONPtr"] = j.ArrayJSONPtr
 	r["ArrayMap"] = j.ArrayMap
 	r["ArrayMapPtr"] = j.ArrayMapPtr
 	j_ArrayObject := make([]map[string]any, len(j.ArrayObject))
@@ -351,6 +711,24 @@ func (j GetTypesArguments) ToMap() map[string]any {
 		}
 		r["ArrayObjectPtr"] = j_ArrayObjectPtr
 	}
+	r["ArrayRawJSON"] = j.ArrayRawJSON
+	r["ArrayRawJSONPtr"] = j.ArrayRawJSONPtr
+	r["ArrayString"] = j.ArrayString
+	r["ArrayStringPtr"] = j.ArrayStringPtr
+	r["ArrayTime"] = j.ArrayTime
+	r["ArrayTimePtr"] = j.ArrayTimePtr
+	r["ArrayUUID"] = j.ArrayUUID
+	r["ArrayUUIDPtr"] = j.ArrayUUIDPtr
+	r["ArrayUint"] = j.ArrayUint
+	r["ArrayUint16"] = j.ArrayUint16
+	r["ArrayUint16Ptr"] = j.ArrayUint16Ptr
+	r["ArrayUint32"] = j.ArrayUint32
+	r["ArrayUint32Ptr"] = j.ArrayUint32Ptr
+	r["ArrayUint64"] = j.ArrayUint64
+	r["ArrayUint64Ptr"] = j.ArrayUint64Ptr
+	r["ArrayUint8"] = j.ArrayUint8
+	r["ArrayUint8Ptr"] = j.ArrayUint8Ptr
+	r["ArrayUintPtr"] = j.ArrayUintPtr
 	r["BigInt"] = j.BigInt
 	r["BigIntPtr"] = j.BigIntPtr
 	r["Bool"] = j.Bool
@@ -407,6 +785,44 @@ func (j GetTypesArguments) ToMap() map[string]any {
 		j_ObjectPtr__obj["Long"] = (*j.ObjectPtr).Long
 		r["ObjectPtr"] = j_ObjectPtr__obj
 	}
+	r["PtrArrayBigInt"] = j.PtrArrayBigInt
+	r["PtrArrayBigIntPtr"] = j.PtrArrayBigIntPtr
+	r["PtrArrayBool"] = j.PtrArrayBool
+	r["PtrArrayBoolPtr"] = j.PtrArrayBoolPtr
+	r["PtrArrayFloat32"] = j.PtrArrayFloat32
+	r["PtrArrayFloat32Ptr"] = j.PtrArrayFloat32Ptr
+	r["PtrArrayFloat64"] = j.PtrArrayFloat64
+	r["PtrArrayFloat64Ptr"] = j.PtrArrayFloat64Ptr
+	r["PtrArrayInt"] = j.PtrArrayInt
+	r["PtrArrayInt16"] = j.PtrArrayInt16
+	r["PtrArrayInt16Ptr"] = j.PtrArrayInt16Ptr
+	r["PtrArrayInt32"] = j.PtrArrayInt32
+	r["PtrArrayInt32Ptr"] = j.PtrArrayInt32Ptr
+	r["PtrArrayInt64"] = j.PtrArrayInt64
+	r["PtrArrayInt64Ptr"] = j.PtrArrayInt64Ptr
+	r["PtrArrayInt8"] = j.PtrArrayInt8
+	r["PtrArrayInt8Ptr"] = j.PtrArrayInt8Ptr
+	r["PtrArrayIntPtr"] = j.PtrArrayIntPtr
+	r["PtrArrayJSON"] = j.PtrArrayJSON
+	r["PtrArrayJSONPtr"] = j.PtrArrayJSONPtr
+	r["PtrArrayRawJSON"] = j.PtrArrayRawJSON
+	r["PtrArrayRawJSONPtr"] = j.PtrArrayRawJSONPtr
+	r["PtrArrayString"] = j.PtrArrayString
+	r["PtrArrayStringPtr"] = j.PtrArrayStringPtr
+	r["PtrArrayTime"] = j.PtrArrayTime
+	r["PtrArrayTimePtr"] = j.PtrArrayTimePtr
+	r["PtrArrayUUID"] = j.PtrArrayUUID
+	r["PtrArrayUUIDPtr"] = j.PtrArrayUUIDPtr
+	r["PtrArrayUint"] = j.PtrArrayUint
+	r["PtrArrayUint16"] = j.PtrArrayUint16
+	r["PtrArrayUint16Ptr"] = j.PtrArrayUint16Ptr
+	r["PtrArrayUint32"] = j.PtrArrayUint32
+	r["PtrArrayUint32Ptr"] = j.PtrArrayUint32Ptr
+	r["PtrArrayUint64"] = j.PtrArrayUint64
+	r["PtrArrayUint64Ptr"] = j.PtrArrayUint64Ptr
+	r["PtrArrayUint8"] = j.PtrArrayUint8
+	r["PtrArrayUint8Ptr"] = j.PtrArrayUint8Ptr
+	r["PtrArrayUintPtr"] = j.PtrArrayUintPtr
 	r["RawJSON"] = j.RawJSON
 	r["RawJSONPtr"] = j.RawJSONPtr
 	r["String"] = j.String
@@ -416,7 +832,6 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["Time"] = j.Time
 	r["TimePtr"] = j.TimePtr
 	r["UUID"] = j.UUID
-	r["UUIDArray"] = j.UUIDArray
 	r["UUIDPtr"] = j.UUIDPtr
 	r["Uint"] = j.Uint
 	r["Uint16"] = j.Uint16
