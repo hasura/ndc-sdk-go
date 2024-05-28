@@ -39,7 +39,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
     if err != nil {
 		  return err
     }
-  j.Bool, err = utils.GetBool(input, "Bool")
+  j.Bool, err = utils.GetBoolean(input, "Bool")
     if err != nil {
 		  return err
     }
