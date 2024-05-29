@@ -61,6 +61,22 @@ type Argument struct {
 	Value any          `json:"value" yaml:"value" mapstructure:"value"`
 }
 
+// NewLiteralArgument creates an argument with a literal value
+func NewLiteralArgument(value any) *Argument {
+	return &Argument{
+		Type:  ArgumentTypeLiteral,
+		Value: value,
+	}
+}
+
+// NewVariableArgument creates an argument with a variable name
+func NewVariableArgument(name string) *Argument {
+	return &Argument{
+		Type: ArgumentTypeVariable,
+		Name: name,
+	}
+}
+
 // MarshalJSON implements json.Marshaler.
 func (j Argument) MarshalJSON() ([]byte, error) {
 	result := map[string]any{
@@ -298,6 +314,14 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 			}
 			results["fields"] = fields
 		}
+		var arguments map[string]Argument
+		rawArguments, ok := raw["arguments"]
+		if ok && !isNullJSON(rawArguments) {
+			if err = json.Unmarshal(rawArguments, &arguments); err != nil {
+				return fmt.Errorf("field arguments in Field: %s", err)
+			}
+			results["arguments"] = arguments
+		}
 	case FieldTypeRelationship:
 		relationship, err := unmarshalStringFromJsonMap(raw, "relationship", true)
 		if err != nil {
@@ -378,6 +402,15 @@ func (j Field) AsColumn() (*ColumnField, error) {
 		result.Fields = fields
 	}
 
+	rawArguments, ok := j["arguments"]
+	if ok && !isNil(rawArguments) {
+		arguments, ok := rawArguments.(map[string]Argument)
+		if !ok {
+			return nil, fmt.Errorf("invalid ColumnField.arguments type; expected map[string]Argument, got %+v", rawArguments)
+		}
+		result.Arguments = arguments
+	}
+
 	return result, nil
 }
 
@@ -453,6 +486,8 @@ type ColumnField struct {
 	// the caller can request a subset of the complete column data, by specifying fields to fetch here.
 	// If omitted, the column data will be fetched in full.
 	Fields NestedField `json:"fields,omitempty" yaml:"fields,omitempty" mapstructure:"fields"`
+
+	Arguments map[string]Argument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"fields"`
 }
 
 // Encode converts the instance to raw Field
@@ -464,6 +499,9 @@ func (f ColumnField) Encode() Field {
 
 	if len(f.Fields) > 0 {
 		r["fields"] = f.Fields
+	}
+	if len(f.Arguments) > 0 {
+		r["arguments"] = f.Arguments
 	}
 	return r
 }
@@ -479,6 +517,13 @@ func NewColumnField(column string, fields NestedFieldEncoder) *ColumnField {
 		Column: column,
 		Fields: field,
 	}
+}
+
+// NewColumnFieldWithArguments creates a new ColumnField instance with arguments
+func NewColumnFieldWithArguments(column string, fields NestedFieldEncoder, arguments map[string]Argument) *ColumnField {
+	cf := NewColumnField(column, fields)
+	cf.Arguments = arguments
+	return cf
 }
 
 // RelationshipField represents a relationship field
@@ -562,6 +607,25 @@ type ComparisonTarget struct {
 	Name      string               `json:"name" yaml:"name" mapstructure:"name"`
 	Path      []PathElement        `json:"path,omitempty" yaml:"path,omitempty" mapstructure:"path"`
 	FieldPath []string             `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
+}
+
+// NewComparisonTargetColumn creates a ComparisonTarget with column type
+func NewComparisonTargetColumn(name string, fieldPath []string, path []PathElement) *ComparisonTarget {
+	return &ComparisonTarget{
+		Type:      ComparisonTargetTypeColumn,
+		Name:      name,
+		Path:      path,
+		FieldPath: fieldPath,
+	}
+}
+
+// NewComparisonTargetRootCollectionColumn creates a ComparisonTarget with root_collection_column type
+func NewComparisonTargetRootCollectionColumn(name string, fieldPath []string) *ComparisonTarget {
+	return &ComparisonTarget{
+		Type:      ComparisonTargetTypeRootCollectionColumn,
+		Name:      name,
+		FieldPath: fieldPath,
+	}
 }
 
 // ExpressionType represents the filtering expression enums
@@ -843,6 +907,14 @@ type ComparisonValueColumn struct {
 	Column ComparisonTarget    `json:"column" yaml:"column" mapstructure:"column"`
 }
 
+// NewComparisonValueColumn creates a new ComparisonValueColumn instance
+func NewComparisonValueColumn(column ComparisonTarget) *ComparisonValueColumn {
+	return &ComparisonValueColumn{
+		Type:   ComparisonValueTypeColumn,
+		Column: column,
+	}
+}
+
 // Encode converts to the raw comparison value
 func (cv ComparisonValueColumn) Encode() ComparisonValue {
 	return map[string]any{
@@ -857,6 +929,14 @@ type ComparisonValueScalar struct {
 	Value any                 `json:"value" yaml:"value" mapstructure:"value"`
 }
 
+// NewComparisonValueScalar creates a new ComparisonValueScalar instance
+func NewComparisonValueScalar(value any) *ComparisonValueScalar {
+	return &ComparisonValueScalar{
+		Type:  ComparisonValueTypeScalar,
+		Value: value,
+	}
+}
+
 // Encode converts to the raw comparison value
 func (cv ComparisonValueScalar) Encode() ComparisonValue {
 	return map[string]any{
@@ -869,6 +949,14 @@ func (cv ComparisonValueScalar) Encode() ComparisonValue {
 type ComparisonValueVariable struct {
 	Type ComparisonValueType `json:"type" yaml:"type" mapstructure:"type"`
 	Name string              `json:"name" yaml:"name" mapstructure:"name"`
+}
+
+// NewComparisonValueVariable creates a new ComparisonValueVariable instance
+func NewComparisonValueVariable(name string) *ComparisonValueVariable {
+	return &ComparisonValueVariable{
+		Type: ComparisonValueTypeVariable,
+		Name: name,
+	}
 }
 
 // Encode converts to the raw comparison value
@@ -1510,6 +1598,21 @@ type ExpressionAnd struct {
 	Expressions []Expression   `json:"expressions" yaml:"expressions" mapstructure:"expressions"`
 }
 
+// NewExpressionAnd creates an ExpressionAnd instance
+func NewExpressionAnd(expressions ...ExpressionEncoder) *ExpressionAnd {
+	exprs := make([]Expression, len(expressions))
+	for i, expr := range expressions {
+		if expr == nil {
+			continue
+		}
+		exprs[i] = expr.Encode()
+	}
+	return &ExpressionAnd{
+		Type:        ExpressionTypeAnd,
+		Expressions: exprs,
+	}
+}
+
 // Encode converts the instance to a raw Expression
 func (exp ExpressionAnd) Encode() Expression {
 	return Expression{
@@ -1524,6 +1627,21 @@ func (exp ExpressionAnd) Encode() Expression {
 type ExpressionOr struct {
 	Type        ExpressionType `json:"type" yaml:"type" mapstructure:"type"`
 	Expressions []Expression   `json:"expressions" yaml:"expressions" mapstructure:"expressions"`
+}
+
+// NewExpressionOr creates an ExpressionOr instance
+func NewExpressionOr(expressions ...ExpressionEncoder) *ExpressionOr {
+	exprs := make([]Expression, len(expressions))
+	for i, expr := range expressions {
+		if expr == nil {
+			continue
+		}
+		exprs[i] = expr.Encode()
+	}
+	return &ExpressionOr{
+		Type:        ExpressionTypeOr,
+		Expressions: exprs,
+	}
 }
 
 // Encode converts the instance to a raw Expression
@@ -1542,6 +1660,17 @@ type ExpressionNot struct {
 	Expression Expression     `json:"expression" yaml:"expression" mapstructure:"expression"`
 }
 
+// NewExpressionNot creates an ExpressionNot instance
+func NewExpressionNot(expression ExpressionEncoder) *ExpressionNot {
+	result := &ExpressionNot{
+		Type: ExpressionTypeNot,
+	}
+	if expression != nil {
+		result.Expression = expression.Encode()
+	}
+	return result
+}
+
 // Encode converts the instance to a raw Expression
 func (exp ExpressionNot) Encode() Expression {
 	return Expression{
@@ -1557,6 +1686,15 @@ type ExpressionUnaryComparisonOperator struct {
 	Type     ExpressionType          `json:"type" yaml:"type" mapstructure:"type"`
 	Operator UnaryComparisonOperator `json:"operator" yaml:"operator" mapstructure:"operator"`
 	Column   ComparisonTarget        `json:"column" yaml:"column" mapstructure:"column"`
+}
+
+// NewExpressionUnaryComparisonOperator creates an ExpressionUnaryComparisonOperator instance
+func NewExpressionUnaryComparisonOperator(column ComparisonTarget, operator UnaryComparisonOperator) *ExpressionUnaryComparisonOperator {
+	return &ExpressionUnaryComparisonOperator{
+		Type:     ExpressionTypeUnaryComparisonOperator,
+		Column:   column,
+		Operator: operator,
+	}
 }
 
 // Encode converts the instance to a raw Expression
@@ -1578,6 +1716,19 @@ type ExpressionBinaryComparisonOperator struct {
 	Value    ComparisonValue  `json:"value" yaml:"value" mapstructure:"value"`
 }
 
+// NewExpressionBinaryComparisonOperator creates an ExpressionBinaryComparisonOperator instance
+func NewExpressionBinaryComparisonOperator(column ComparisonTarget, operator string, value ComparisonValueEncoder) *ExpressionBinaryComparisonOperator {
+	result := &ExpressionBinaryComparisonOperator{
+		Type:     ExpressionTypeBinaryComparisonOperator,
+		Column:   column,
+		Operator: operator,
+	}
+	if value != nil {
+		result.Value = value.Encode()
+	}
+	return result
+}
+
 // Encode converts the instance to a raw Expression
 func (exp ExpressionBinaryComparisonOperator) Encode() Expression {
 	return Expression{
@@ -1595,6 +1746,21 @@ type ExpressionExists struct {
 	Type         ExpressionType     `json:"type" yaml:"type" mapstructure:"type"`
 	Predicate    Expression         `json:"predicate" yaml:"predicate" mapstructure:"predicate"`
 	InCollection ExistsInCollection `json:"in_collection" yaml:"in_collection" mapstructure:"in_collection"`
+}
+
+// NewExpressionExists creates an ExpressionExists instance
+func NewExpressionExists(predicate ExpressionEncoder, inCollection ExistsInCollectionEncoder) *ExpressionExists {
+	result := &ExpressionExists{
+		Type:         ExpressionTypeExists,
+		InCollection: inCollection.Encode(),
+	}
+	if predicate != nil {
+		result.Predicate = predicate.Encode()
+	}
+	if inCollection != nil {
+		result.InCollection = inCollection.Encode()
+	}
+	return result
 }
 
 // Encode converts the instance to a raw Expression
@@ -2225,7 +2391,17 @@ type OrderByColumn struct {
 	// Any relationships to traverse to reach this column
 	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
 	// Any field path to a nested field within the column
-	FieldPath []string `json:"field_path" yaml:"field_path" mapstructure:"field_path"`
+	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
+}
+
+// NewOrderByColumn creates an OrderByColumn instance
+func NewOrderByColumn(name string, fieldPath []string, path []PathElement) *OrderByColumn {
+	return &OrderByColumn{
+		Type:      OrderByTargetTypeColumn,
+		Name:      name,
+		FieldPath: fieldPath,
+		Path:      path,
+	}
 }
 
 // Encode converts the instance to raw OrderByTarget
@@ -2252,6 +2428,16 @@ type OrderBySingleColumnAggregate struct {
 	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
 }
 
+// NewOrderBySingleColumnAggregate creates an OrderBySingleColumnAggregate instance
+func NewOrderBySingleColumnAggregate(column string, function string, path []PathElement) *OrderBySingleColumnAggregate {
+	return &OrderBySingleColumnAggregate{
+		Type:     OrderByTargetTypeSingleColumnAggregate,
+		Column:   column,
+		Function: function,
+		Path:     path,
+	}
+}
+
 // Encode converts the instance to raw OrderByTarget
 func (ob OrderBySingleColumnAggregate) Encode() OrderByTarget {
 	return OrderByTarget{
@@ -2270,6 +2456,14 @@ type OrderByStarCountAggregate struct {
 	Type OrderByTargetType `json:"type" yaml:"type" mapstructure:"type"`
 	// Non-empty collection of relationships to traverse
 	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
+}
+
+// NewOrderByStarCountAggregate creates an OrderByStarCountAggregate instance
+func NewOrderByStarCountAggregate(path []PathElement) *OrderByStarCountAggregate {
+	return &OrderByStarCountAggregate{
+		Type: OrderByTargetTypeStarCountAggregate,
+		Path: path,
+	}
 }
 
 // Encode converts the instance to raw OrderByTarget
