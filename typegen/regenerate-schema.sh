@@ -27,7 +27,6 @@ sed -i 's/RowSetRowsElem/map[string]any/g' ../schema/schema.generated.go
 sed -i 's/type MutationOperationResultsReturningElem map\[string\]interface{}//g' ../schema/schema.generated.go
 sed -i 's/MutationOperationResultsReturningElem/map[string]any/g' ../schema/schema.generated.go
 sed -i 's/Query interface{}/Query Query/g' ../schema/schema.generated.go
-sed -i 's/OrderBy interface{}/OrderBy *OrderBy/g' ../schema/schema.generated.go
 sed -i 's/type Expression interface{}//g' ../schema/schema.generated.go
 sed -i 's/type ComparisonTarget interface{}//g' ../schema/schema.generated.go
 sed -i 's/type BinaryComparisonOperator interface{}//g' ../schema/schema.generated.go
@@ -55,6 +54,9 @@ sed -i 's/type MutationResponseOperationResultsElem interface{}//g' ../schema/sc
 sed -i 's/MutationResponseOperationResultsElem/MutationOperationResults/g' ../schema/schema.generated.go
 sed -i 's/type TypeRepresentation interface{}//g' ../schema/schema.generated.go
 sed -i 's/Representation interface{}/Representation TypeRepresentation/g' ../schema/schema.generated.go
+sed -i '/type NestedFieldCapabilities struct {/,/}/s/OrderBy \*OrderBy/OrderBy interface{}/g' ../schema/schema.generated.go
+sed -i '/type Query struct {/,/}/s/OrderBy \interface{}/OrderBy *OrderBy/g' ../schema/schema.generated.go
+sed -i 's/NestedFields interface{}/NestedFields NestedFieldCapabilities/g' ../schema/schema.generated.go
 
 # format codes
 gofmt -w -s ../
