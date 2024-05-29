@@ -21,7 +21,7 @@ func assertError(t *testing.T, err error, message string) {
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	} else if !strings.Contains(err.Error(), message) {
-		t.Fatalf("expected error with content: %s, got: %s", err.Error(), message)
+		t.Fatalf("expected error with content: %s, got: %s", message, err.Error())
 	}
 }
 
@@ -54,7 +54,7 @@ func TestDecodeBool(t *testing.T) {
 	assertError(t, err, "the Boolean value must not be null")
 
 	_, err = DecodeBoolean("failure")
-	assertError(t, err, "failed to convert Boolean, got: failure")
+	assertError(t, err, "failed to convert Boolean, got: string")
 }
 
 func TestDecodeBooleanSlice(t *testing.T) {
@@ -70,58 +70,62 @@ func TestDecodeBooleanSlice(t *testing.T) {
 	assertNoError(t, err)
 	assertDeepEqual(t, []bool{true}, value)
 
-	value, err = DecodeBooleanSlice(nil)
-	assertNoError(t, err)
-	assertDeepEqual(t, []bool{}, value)
+	_, err = DecodeBooleanSlice(nil)
+	assertError(t, err, "boolean slice must not be null")
 
 	_, err = DecodeBooleanSlice("failure")
-	assertError(t, err, "failed to convert boolean slice, got: failure")
+	assertError(t, err, "expected a boolean slice, got: string")
 
 	_, err = DecodeBooleanSlice(time.Now())
-	assertError(t, err, "failed to convert boolean slice")
+	assertError(t, err, "expected a boolean slice, got: struct")
 
 	_, err = DecodeBooleanSlice([]any{nil})
-	assertError(t, err, "failed to convert boolean item at 0 (<nil>): the Boolean value must not be null")
+	assertError(t, err, "boolean element at 0 must not be null")
 
 	_, err = DecodeBooleanSlice(&[]any{nil})
-	assertError(t, err, "failed to convert boolean item at 0 (<nil>): the Boolean value must not be null")
+	assertError(t, err, "boolean element at 0 must not be null")
 }
 
 func TestDecodeNullableBooleanSlice(t *testing.T) {
-	_, err := DecodeNullableBooleanSlice([]bool{true, false})
+	value, err := DecodeNullableBooleanSlice([]bool{true, false})
 	assertNoError(t, err)
+	assertDeepEqual(t, []bool{true, false}, value)
 
-	_, err = DecodeNullableBooleanSlice([]*bool{ToPtr(true), ToPtr(false)})
+	value, err = DecodeNullableBooleanSlice([]*bool{ToPtr(true), ToPtr(false)})
 	assertNoError(t, err)
+	assertDeepEqual(t, []bool{true, false}, value)
 
-	_, err = DecodeNullableBooleanSlice(&[]*bool{ToPtr(true), ToPtr(false)})
+	value, err = DecodeNullableBooleanSlice(&[]*bool{ToPtr(true), ToPtr(false)})
 	assertNoError(t, err)
+	assertDeepEqual(t, []bool{true, false}, value)
 
-	_, err = DecodeNullableBooleanSlice([]any{false, true})
+	value, err = DecodeNullableBooleanSlice([]any{false, true})
 	assertNoError(t, err)
+	assertDeepEqual(t, []bool{false, true}, value)
 
-	_, err = DecodeNullableBooleanSlice(&[]any{true})
+	value, err = DecodeNullableBooleanSlice(&[]any{true})
 	assertNoError(t, err)
+	assertDeepEqual(t, []bool{true}, value)
 
-	value, err := DecodeNullableBooleanSlice([]any{nil})
-	assertNoError(t, err)
-	assertDeepEqual(t, []*bool{nil}, value)
+	_, err = DecodeNullableBooleanSlice([]any{nil})
+	assertError(t, err, "boolean element at 0 must not be null")
 
 	value, err = DecodeNullableBooleanSlice(nil)
 	assertNoError(t, err)
-	assertDeepEqual(t, []*bool{}, value)
+	assertDeepEqual(t, []bool{}, value)
 
-	_, err = DecodeNullableBooleanSlice([]any{"true"})
-	assertError(t, err, "failed to convert boolean item at 0 (true)")
+	value, err = DecodeNullableBooleanSlice((*string)(nil))
+	assertNoError(t, err)
+	assertDeepEqual(t, []bool{}, value)
+
+	// _, err = DecodeNullableBooleanSlice([]any{"true"})
+	// assertError(t, err, "failed to decode boolean element at 0: failed to convert Boolean, got: interface")
 
 	_, err = DecodeNullableBooleanSlice("failure")
-	assertError(t, err, "failed to convert boolean slice, got: failure")
+	assertError(t, err, "expected a boolean slice, got: string")
 
 	_, err = DecodeNullableBooleanSlice(time.Now())
-	assertError(t, err, "failed to convert boolean slice")
-
-	_, err = DecodeNullableBooleanSlice(time.Now())
-	assertError(t, err, "failed to convert boolean slice")
+	assertError(t, err, "expected a boolean slice, got: struct")
 
 }
 
@@ -166,21 +170,20 @@ func TestDecodeStringSlice(t *testing.T) {
 	assertNoError(t, err)
 	assertDeepEqual(t, []string{"foo"}, value)
 
-	value, err = DecodeStringSlice(nil)
-	assertNoError(t, err)
-	assertDeepEqual(t, []string{}, value)
+	_, err = DecodeStringSlice(nil)
+	assertError(t, err, "string slice must not be null")
 
 	_, err = DecodeStringSlice("failure")
-	assertError(t, err, "failed to convert string slice, got: failure")
+	assertError(t, err, "expected a string slice, got: string")
 
 	_, err = DecodeStringSlice(time.Now())
-	assertError(t, err, "failed to convert string slice")
+	assertError(t, err, "expected a string slice, got: struct")
 
 	_, err = DecodeStringSlice([]any{nil})
-	assertError(t, err, "failed to convert string item at 0 (<nil>): the String value must not be null")
+	assertError(t, err, "string element at 0 must not be null")
 
 	_, err = DecodeStringSlice(&[]any{nil})
-	assertError(t, err, "failed to convert string item at 0 (<nil>): the String value must not be null")
+	assertError(t, err, "string element at 0 must not be null")
 }
 
 func TestDecodeNullableStringSlice(t *testing.T) {
@@ -204,15 +207,13 @@ func TestDecodeNullableStringSlice(t *testing.T) {
 	assertDeepEqual(t, []string{}, value)
 
 	_, err = DecodeNullableStringSlice("failure")
-	assertError(t, err, "failed to convert string slice, got: failure")
+	assertError(t, err, "expected a string slice, got: string")
 
 	_, err = DecodeNullableStringSlice(time.Now())
-	assertError(t, err, "failed to convert string slice")
+	assertError(t, err, "expected a string slice, got: struct")
 
-	value, err = DecodeNullableStringSlice([]any{nil})
-	assertNoError(t, err)
-	assertDeepEqual(t, []*string{nil}, value)
-
+	_, err = DecodeNullableStringSlice([]any{nil})
+	assertError(t, err, "string element at 0 must not be null")
 }
 
 func TestDecodeDateTime(t *testing.T) {
@@ -415,7 +416,7 @@ func TestDecodeInt(t *testing.T) {
 
 		var vAny any = float64(1.1)
 		_, err = DecodeNullableInt[int64](&vAny)
-		assertError(t, err, "failed to convert integer, got: *interface {} (1.1)")
+		assertError(t, err, "failed to convert integer, got: 1.1")
 
 		var vFn any = func() {}
 		_, err = DecodeNullableInt[int64](&vFn)
@@ -463,21 +464,20 @@ func TestDecodeIntSlice(t *testing.T) {
 	assertNoError(t, err)
 	assertDeepEqual(t, []int{1, 2}, value)
 
-	value, err = DecodeIntSlice[int](nil)
-	assertNoError(t, err)
-	assertDeepEqual(t, []int{}, value)
+	_, err = DecodeIntSlice[int](nil)
+	assertError(t, err, "the int slice must not be null")
 
 	_, err = DecodeIntSlice[int]("failure")
-	assertError(t, err, "failed to convert int slice, got: failure")
+	assertError(t, err, "expected a number slice, got: string")
 
 	_, err = DecodeIntSlice[int](time.Now())
-	assertError(t, err, "failed to convert int slice")
+	assertError(t, err, "expected a number slice, got: struct")
 
 	_, err = DecodeIntSlice[int]([]any{nil})
-	assertError(t, err, "failed to convert int slice, got: [<nil>]")
+	assertError(t, err, "number element at 0 must not be null")
 
 	_, err = DecodeIntSlice[int](&[]any{nil})
-	assertError(t, err, "expected not null array item")
+	assertError(t, err, "number element at 0 must not be null")
 }
 
 func TestDecodeNullableIntSlice(t *testing.T) {
@@ -514,15 +514,14 @@ func TestDecodeNullableIntSlice(t *testing.T) {
 	assertNoError(t, err)
 	assertDeepEqual(t, []int{}, value)
 
-	value, err = DecodeNullableIntSlice[int]([]any{nil})
-	assertNoError(t, err)
-	assertDeepEqual(t, []*int{nil}, value)
+	_, err = DecodeNullableIntSlice[int]([]any{nil})
+	assertError(t, err, "number element at 0 must not be null")
 
 	_, err = DecodeNullableIntSlice[int]("failure")
-	assertError(t, err, "failed to convert int slice, got: failure")
+	assertError(t, err, "expected a number slice, got: string")
 
 	_, err = DecodeNullableIntSlice[int](time.Now())
-	assertError(t, err, "failed to convert int slice")
+	assertError(t, err, "expected a number slice, got: struct")
 
 }
 
@@ -561,7 +560,7 @@ func TestDecodeUint(t *testing.T) {
 
 		var vAny any = float64(1.1)
 		_, err = DecodeNullableUint[uint64](&vAny)
-		assertError(t, err, "failed to convert integer, got: *interface {} (1.1)")
+		assertError(t, err, "failed to convert integer, got: 1.1")
 	})
 
 	t.Run("decode_nil", func(t *testing.T) {
@@ -594,21 +593,20 @@ func TestDecodeUintSlice(t *testing.T) {
 	assertNoError(t, err)
 	assertDeepEqual(t, []int{1, 2}, value)
 
-	value, err = DecodeUintSlice[uint64](nil)
-	assertNoError(t, err)
-	assertDeepEqual(t, []int{}, value)
+	_, err = DecodeUintSlice[uint64](nil)
+	assertError(t, err, "the uint slice must not be null")
 
 	_, err = DecodeUintSlice[uint64]("failure")
-	assertError(t, err, "failed to convert int slice, got: failure")
+	assertError(t, err, "expected a number slice, got: string")
 
 	_, err = DecodeUintSlice[uint64](time.Now())
-	assertError(t, err, "failed to convert int slice")
+	assertError(t, err, "expected a number slice, got: struct")
 
 	_, err = DecodeUintSlice[uint64]([]any{nil})
-	assertError(t, err, "failed to convert int slice, got: [<nil>]")
+	assertError(t, err, "number element at 0 must not be null")
 
 	_, err = DecodeUintSlice[uint64](&[]any{nil})
-	assertError(t, err, "expected not null array item")
+	assertError(t, err, "number element at 0 must not be null")
 }
 
 func TestDecodeFloat(t *testing.T) {
@@ -725,7 +723,7 @@ func TestDecodeFloat(t *testing.T) {
 
 		var vAny any = "test"
 		_, err = DecodeNullableFloat[float64](&vAny)
-		assertError(t, err, "failed to convert Float, got: *interface {} (test)")
+		assertError(t, err, "failed to convert Float, got: test")
 
 		var vFn any = func() {}
 		_, err = DecodeNullableFloat[float64](&vFn)

@@ -64,9 +64,13 @@ func PointersToValues[T any](input []*T) ([]T, error) {
 func UnwrapPointerFromReflectValue(reflectValue reflect.Value) (reflect.Value, bool) {
 	for reflectValue.Kind() == reflect.Pointer {
 		if reflectValue.IsNil() {
-			return reflect.Value{}, false
+			return reflectValue, false
 		}
 		reflectValue = reflectValue.Elem()
+	}
+	kind := reflectValue.Kind()
+	if (kind == reflect.Slice || kind == reflect.Interface || kind == reflect.Map) && reflectValue.IsNil() {
+		return reflectValue, false
 	}
 	return reflectValue, true
 }
