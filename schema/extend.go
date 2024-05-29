@@ -2393,6 +2393,16 @@ type OrderByColumn struct {
 	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
 }
 
+// NewOrderByColumn creates an OrderByColumn instance
+func NewOrderByColumn(name string, fieldPath []string, path []PathElement) *OrderByColumn {
+	return &OrderByColumn{
+		Type:      OrderByTargetTypeColumn,
+		Name:      name,
+		FieldPath: fieldPath,
+		Path:      path,
+	}
+}
+
 // Encode converts the instance to raw OrderByTarget
 func (ob OrderByColumn) Encode() OrderByTarget {
 	return OrderByTarget{
@@ -2417,6 +2427,16 @@ type OrderBySingleColumnAggregate struct {
 	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
 }
 
+// NewOrderBySingleColumnAggregate creates an OrderBySingleColumnAggregate instance
+func NewOrderBySingleColumnAggregate(column string, function string, path []PathElement) *OrderBySingleColumnAggregate {
+	return &OrderBySingleColumnAggregate{
+		Type:     OrderByTargetTypeSingleColumnAggregate,
+		Column:   column,
+		Function: function,
+		Path:     path,
+	}
+}
+
 // Encode converts the instance to raw OrderByTarget
 func (ob OrderBySingleColumnAggregate) Encode() OrderByTarget {
 	return OrderByTarget{
@@ -2435,6 +2455,14 @@ type OrderByStarCountAggregate struct {
 	Type OrderByTargetType `json:"type" yaml:"type" mapstructure:"type"`
 	// Non-empty collection of relationships to traverse
 	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
+}
+
+// NewOrderByStarCountAggregate creates an OrderByStarCountAggregate instance
+func NewOrderByStarCountAggregate(path []PathElement) *OrderByStarCountAggregate {
+	return &OrderByStarCountAggregate{
+		Type: OrderByTargetTypeStarCountAggregate,
+		Path: path,
+	}
 }
 
 // Encode converts the instance to raw OrderByTarget
