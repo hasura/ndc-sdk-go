@@ -113,6 +113,75 @@ func TestQueryRequest(t *testing.T) {
 				},
 			},
 		},
+		{
+			"predicate_with_nested_field_eq",
+			[]byte(`{
+				"collection": "institutions",
+				"arguments": {},
+				"query": {
+						"fields": {
+								"id": {
+										"type": "column",
+										"column": "id"
+								},
+								"location": {
+										"type": "column",
+										"column": "location",
+										"fields": {
+												"type": "object",
+												"fields": {
+														"city": {
+																"type": "column",
+																"column": "city"
+														},
+														"campuses": {
+																"type": "column",
+																"column": "campuses",
+																"arguments": {
+																		"limit": {
+																				"type": "literal",
+																				"value": null
+																		}
+																}
+														}
+												}
+										}
+								}
+						},
+						"predicate": {
+								"type": "binary_comparison_operator",
+								"column": {
+										"type": "column",
+										"name": "location",
+										"field_path": ["city"],
+										"path": []
+								},
+								"operator": "eq",
+								"value": {
+										"type": "scalar",
+										"value": "London"
+								}
+						}
+				},
+				"collection_relationships": {}
+		}`),
+			QueryRequest{
+				Collection: "institutions",
+				Query: Query{
+					Fields: QueryFields{
+						"id": NewColumnField("id", nil).Encode(),
+						"location": NewColumnField("location", NewNestedObject(map[string]FieldEncoder{
+							"city": NewColumnField("city", nil),
+							"campuses": NewColumnFieldWithArguments("campuses", nil, map[string]Argument{
+								"limit": *NewLiteralArgument(nil),
+							}),
+						})).Encode(),
+					},
+					Predicate: NewExpressionBinaryComparisonOperator(*NewComparisonTargetColumn("location", []string{"city"}, []PathElement{}), "eq", NewComparisonValueScalar("London")).Encode(),
+				},
+				CollectionRelationships: QueryRequestCollectionRelationships{},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
