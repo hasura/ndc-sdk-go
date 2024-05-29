@@ -297,6 +297,14 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 			}
 			results["fields"] = fields
 		}
+		var arguments map[string]Argument
+		rawArguments, ok := raw["arguments"]
+		if ok && !isNullJSON(rawArguments) {
+			if err = json.Unmarshal(rawArguments, &arguments); err != nil {
+				return fmt.Errorf("field arguments in Field: %s", err)
+			}
+			results["arguments"] = arguments
+		}
 	case FieldTypeRelationship:
 		relationship, err := unmarshalStringFromJsonMap(raw, "relationship", true)
 		if err != nil {
@@ -377,6 +385,15 @@ func (j Field) AsColumn() (*ColumnField, error) {
 		result.Fields = fields
 	}
 
+	rawArguments, ok := j["arguments"]
+	if ok && !isNil(rawArguments) {
+		arguments, ok := rawArguments.(map[string]Argument)
+		if !ok {
+			return nil, fmt.Errorf("invalid ColumnField.arguments type; expected map[string]Argument, got %+v", rawArguments)
+		}
+		result.Arguments = arguments
+	}
+
 	return result, nil
 }
 
@@ -452,6 +469,8 @@ type ColumnField struct {
 	// the caller can request a subset of the complete column data, by specifying fields to fetch here.
 	// If omitted, the column data will be fetched in full.
 	Fields NestedField `json:"fields,omitempty" yaml:"fields,omitempty" mapstructure:"fields"`
+
+	Arguments map[string]Argument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"fields"`
 }
 
 // Encode converts the instance to raw Field
@@ -463,6 +482,9 @@ func (f ColumnField) Encode() Field {
 
 	if len(f.Fields) > 0 {
 		r["fields"] = f.Fields
+	}
+	if len(f.Arguments) > 0 {
+		r["arguments"] = f.Arguments
 	}
 	return r
 }
@@ -478,6 +500,13 @@ func NewColumnField(column string, fields NestedFieldEncoder) *ColumnField {
 		Column: column,
 		Fields: field,
 	}
+}
+
+// NewColumnFieldWithArguments creates a new ColumnField instance with arguments
+func NewColumnFieldWithArguments(column string, fields NestedFieldEncoder, arguments map[string]Argument) *ColumnField {
+	cf := NewColumnField(column, fields)
+	cf.Arguments = arguments
+	return cf
 }
 
 // RelationshipField represents a relationship field
@@ -2224,7 +2253,7 @@ type OrderByColumn struct {
 	// Any relationships to traverse to reach this column
 	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
 	// Any field path to a nested field within the column
-	FieldPath []string `json:"field_path" yaml:"field_path" mapstructure:"field_path"`
+	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
 }
 
 // Encode converts the instance to raw OrderByTarget
