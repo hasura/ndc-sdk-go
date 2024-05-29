@@ -11,372 +11,6 @@ var (
 	errTypeRequired = errors.New("type field is required")
 )
 
-/*
- * Types track the valid representations of values as JSON
- */
-
-type TypeEnum string
-
-const (
-	TypeNamed     TypeEnum = "named"
-	TypeNullable  TypeEnum = "nullable"
-	TypeArray     TypeEnum = "array"
-	TypePredicate TypeEnum = "predicate"
-)
-
-var enumValues_Type = []TypeEnum{
-	TypeNamed,
-	TypeNullable,
-	TypeArray,
-	TypePredicate,
-}
-
-// ParseTypeEnum parses a type enum from string
-func ParseTypeEnum(input string) (TypeEnum, error) {
-	result := TypeEnum(input)
-
-	if !slices.Contains(enumValues_Type, result) {
-		return TypeEnum(""), fmt.Errorf("failed to parse TypeEnum, expect one of %v, got %s", enumValues_Type, input)
-	}
-
-	return result, nil
-}
-
-// IsValid checks if the value is invalid
-func (j TypeEnum) IsValid() bool {
-	return slices.Contains(enumValues_Type, j)
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *TypeEnum) UnmarshalJSON(b []byte) error {
-	var rawValue string
-	if err := json.Unmarshal(b, &rawValue); err != nil {
-		return err
-	}
-
-	value, err := ParseTypeEnum(rawValue)
-	if err != nil {
-		return err
-	}
-
-	*j = value
-	return nil
-}
-
-// Types track the valid representations of values as JSON
-type Type map[string]any
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Type) UnmarshalJSON(b []byte) error {
-	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-
-	rawType, ok := raw["type"]
-	if !ok {
-		return errors.New("field type in Type: required")
-	}
-
-	var ty TypeEnum
-	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in Type: %s", err)
-	}
-
-	result := map[string]any{
-		"type": ty,
-	}
-	switch ty {
-	case TypeNamed:
-		rawName, ok := raw["name"]
-		if !ok {
-			return errors.New("field name in Type is required for named type")
-		}
-		var name string
-		if err := json.Unmarshal(rawName, &name); err != nil {
-			return fmt.Errorf("field name in Type: %s", err)
-		}
-		if name == "" {
-			return fmt.Errorf("field name in Type: required")
-		}
-		result["name"] = name
-	case TypeNullable:
-		rawUnderlyingType, ok := raw["underlying_type"]
-		if !ok {
-			return errors.New("field underlying_type in Type is required for nullable type")
-		}
-		var underlyingType Type
-		if err := json.Unmarshal(rawUnderlyingType, &underlyingType); err != nil {
-			return fmt.Errorf("field underlying_type in Type: %s", err)
-		}
-		result["underlying_type"] = underlyingType
-	case TypeArray:
-		rawElementType, ok := raw["element_type"]
-		if !ok {
-			return errors.New("field element_type in Type is required for array type")
-		}
-		var elementType Type
-		if err := json.Unmarshal(rawElementType, &elementType); err != nil {
-			return fmt.Errorf("field element_type in Type: %s", err)
-		}
-		result["element_type"] = elementType
-	case TypePredicate:
-		rawName, ok := raw["object_type_name"]
-		if !ok {
-			return errors.New("field object_type_name in Type is required for predicate type")
-		}
-		var objectTypeName string
-		if err := json.Unmarshal(rawName, &objectTypeName); err != nil {
-			return fmt.Errorf("field object_type_name in Type: %s", err)
-		}
-		if objectTypeName == "" {
-			return fmt.Errorf("field object_type_name in Type: required")
-		}
-		result["object_type_name"] = objectTypeName
-	}
-	*j = result
-	return nil
-}
-
-// Type gets the type enum of the current type
-func (ty Type) Type() (TypeEnum, error) {
-	t, ok := ty["type"]
-	if !ok {
-		return TypeEnum(""), errTypeRequired
-	}
-	switch raw := t.(type) {
-	case string:
-		v, err := ParseTypeEnum(raw)
-		if err != nil {
-			return TypeEnum(""), err
-		}
-		return v, nil
-	case TypeEnum:
-		return raw, nil
-	default:
-		return TypeEnum(""), fmt.Errorf("invalid Type type: %+v", t)
-	}
-}
-
-// AsNamed tries to convert the current type to NamedType
-func (ty Type) AsNamed() (*NamedType, error) {
-	t, err := ty.Type()
-	if err != nil {
-		return nil, err
-	}
-	if t != TypeNamed {
-		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypeNamed, t)
-	}
-	return &NamedType{
-		Type: t,
-		Name: getStringValueByKey(ty, "name"),
-	}, nil
-}
-
-// AsNullable tries to convert the current type to NullableType
-func (ty Type) AsNullable() (*NullableType, error) {
-	t, err := ty.Type()
-	if err != nil {
-		return nil, err
-	}
-	if t != TypeNullable {
-		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypeNullable, t)
-	}
-
-	rawUnderlyingType, ok := ty["underlying_type"]
-	if !ok {
-		return nil, errors.New("underlying_type is required")
-	}
-	underlyingType, ok := rawUnderlyingType.(Type)
-	if !ok {
-		return nil, errors.New("underlying_type is not Type type")
-	}
-	return &NullableType{
-		Type:           t,
-		UnderlyingType: underlyingType,
-	}, nil
-}
-
-// AsArray tries to convert the current type to ArrayType
-func (ty Type) AsArray() (*ArrayType, error) {
-	t, err := ty.Type()
-	if err != nil {
-		return nil, err
-	}
-	if t != TypeArray {
-		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypeArray, t)
-	}
-
-	rawElementType, ok := ty["element_type"]
-	if !ok {
-		return nil, errors.New("element_type is required in Type")
-	}
-	elementType, ok := rawElementType.(Type)
-	if !ok {
-		return nil, errors.New("element_type is not Type type")
-	}
-	return &ArrayType{
-		Type:        t,
-		ElementType: elementType,
-	}, nil
-}
-
-// AsPredicate tries to convert the current type to PredicateType
-func (ty Type) AsPredicate() (*PredicateType, error) {
-	t, err := ty.Type()
-	if err != nil {
-		return nil, err
-	}
-	if t != TypePredicate {
-		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypePredicate, t)
-	}
-
-	return &PredicateType{
-		Type:           t,
-		ObjectTypeName: getStringValueByKey(ty, "object_type_name"),
-	}, nil
-}
-
-// Interface converts the instance to the TypeEncoder interface
-func (ty Type) Interface() TypeEncoder {
-	result, _ := ty.InterfaceT()
-	return result
-}
-
-// InterfaceT converts the instance to the TypeEncoder interface safely with explicit error
-func (ty Type) InterfaceT() (TypeEncoder, error) {
-	t, err := ty.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	switch t {
-	case TypeNamed:
-		return ty.AsNamed()
-	case TypeNullable:
-		return ty.AsNullable()
-	case TypeArray:
-		return ty.AsArray()
-	case TypePredicate:
-		return ty.AsPredicate()
-	default:
-		return nil, fmt.Errorf("invalid Type type: %s", t)
-	}
-}
-
-// TypeEncoder abstracts the Type interface
-type TypeEncoder interface {
-	Encode() Type
-}
-
-// NamedType represents a named type
-type NamedType struct {
-	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
-	// The name can refer to a primitive type or a scalar type
-	Name string `json:"name" yaml:"name" mapstructure:"name"`
-}
-
-// NewNamedType creates a new NamedType instance
-func NewNamedType(name string) *NamedType {
-	return &NamedType{
-		Type: TypeNamed,
-		Name: name,
-	}
-}
-
-// Encode returns the raw Type instance
-func (ty NamedType) Encode() Type {
-	return map[string]any{
-		"type": ty.Type,
-		"name": ty.Name,
-	}
-}
-
-// NullableType represents a nullable type
-type NullableType struct {
-	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
-	// The type of the non-null inhabitants of this type
-	UnderlyingType Type `json:"underlying_type" yaml:"underlying_type" mapstructure:"underlying_type"`
-}
-
-// NewNullableType creates a new NullableType instance with underlying type
-func NewNullableType(underlyingType TypeEncoder) *NullableType {
-	return &NullableType{
-		Type:           TypeNullable,
-		UnderlyingType: underlyingType.Encode(),
-	}
-}
-
-// NewNullableNamedType creates a new NullableType instance with underlying named type
-func NewNullableNamedType(name string) *NullableType {
-	return &NullableType{
-		Type:           TypeNullable,
-		UnderlyingType: NewNamedType(name).Encode(),
-	}
-}
-
-// Encode returns the raw Type instance
-func (ty NullableType) Encode() Type {
-	return map[string]any{
-		"type":            ty.Type,
-		"underlying_type": ty.UnderlyingType,
-	}
-}
-
-// NewNullableArrayType creates a new NullableType instance with underlying array type
-func NewNullableArrayType(elementType TypeEncoder) *NullableType {
-	return &NullableType{
-		Type:           TypeNullable,
-		UnderlyingType: elementType.Encode(),
-	}
-}
-
-// ArrayType represents an array type
-type ArrayType struct {
-	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
-	// The type of the elements of the array
-	ElementType Type `json:"element_type" yaml:"element_type" mapstructure:"element_type"`
-}
-
-// Encode returns the raw Type instance
-func (ty ArrayType) Encode() Type {
-	return map[string]any{
-		"type":         ty.Type,
-		"element_type": ty.ElementType,
-	}
-}
-
-// NewArrayType creates a new ArrayType instance
-func NewArrayType(elementType TypeEncoder) *ArrayType {
-	return &ArrayType{
-		Type:        TypeArray,
-		ElementType: elementType.Encode(),
-	}
-}
-
-// PredicateType represents a predicate type for a given object type
-type PredicateType struct {
-	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
-	// The name can refer to a primitive type or a scalar type
-	ObjectTypeName string `json:"object_type_name" yaml:"object_type_name" mapstructure:"object_type_name"`
-}
-
-// NewPredicateType creates a new PredicateType instance
-func NewPredicateType(objectTypeName string) *PredicateType {
-	return &PredicateType{
-		Type:           TypePredicate,
-		ObjectTypeName: objectTypeName,
-	}
-}
-
-// Encode returns the raw Type instance
-func (ty PredicateType) Encode() Type {
-	return map[string]any{
-		"type":             ty.Type,
-		"object_type_name": ty.ObjectTypeName,
-	}
-}
-
 // ArgumentType represents an argument type enum
 type ArgumentType string
 
@@ -393,7 +27,7 @@ var enumValues_ArgumentType = []ArgumentType{
 // ParseArgumentType parses an argument type from string
 func ParseArgumentType(input string) (ArgumentType, error) {
 	result := ArgumentType(input)
-	if !slices.Contains(enumValues_ArgumentType, result) {
+	if !result.IsValid() {
 		return ArgumentType(""), fmt.Errorf("failed to parse ArgumentType, expect one of %v, got %s", enumValues_ArgumentType, input)
 	}
 	return result, nil
@@ -499,7 +133,7 @@ var enumValues_RelationshipArgumentType = []RelationshipArgumentType{
 // ParseRelationshipArgumentType parses a relationship argument type from string
 func ParseRelationshipArgumentType(input string) (RelationshipArgumentType, error) {
 	result := RelationshipArgumentType(input)
-	if !slices.Contains(enumValues_RelationshipArgumentType, result) {
+	if !result.IsValid() {
 		return RelationshipArgumentType(""), fmt.Errorf("failed to parse RelationshipArgumentType, expect one of %v, got %s", enumValues_RelationshipArgumentType, input)
 	}
 	return result, nil
@@ -589,7 +223,7 @@ var enumValues_FieldType = []FieldType{
 // ParseFieldType parses a field type from string
 func ParseFieldType(input string) (FieldType, error) {
 	result := FieldType(input)
-	if !slices.Contains(enumValues_FieldType, result) {
+	if !result.IsValid() {
 		return FieldType(""), fmt.Errorf("failed to parse FieldType, expect one of %v, got %s", enumValues_FieldType, input)
 	}
 	return result, nil
@@ -894,7 +528,7 @@ var enumValues_ComparisonTargetType = []ComparisonTargetType{
 // ParseComparisonTargetType parses a comparison target type argument type from string
 func ParseComparisonTargetType(input string) (ComparisonTargetType, error) {
 	result := ComparisonTargetType(input)
-	if !slices.Contains(enumValues_ComparisonTargetType, result) {
+	if !result.IsValid() {
 		return ComparisonTargetType(""), fmt.Errorf("failed to parse ComparisonTargetType, expect one of %v, got: %s", enumValues_ComparisonTargetType, input)
 	}
 
@@ -954,7 +588,7 @@ var enumValues_ExpressionType = []ExpressionType{
 // ParseExpressionType parses a comparison target type argument type from string
 func ParseExpressionType(input string) (ExpressionType, error) {
 	result := ExpressionType(input)
-	if !slices.Contains(enumValues_ExpressionType, ExpressionType(input)) {
+	if !result.IsValid() {
 		return ExpressionType(""), fmt.Errorf("failed to parse ExpressionType, expect one of %v, got %s", enumValues_ExpressionType, input)
 	}
 
@@ -1000,7 +634,7 @@ var enumValues_ComparisonValueType = []ComparisonValueType{
 // ParseComparisonValueType parses a comparison value type from string
 func ParseComparisonValueType(input string) (ComparisonValueType, error) {
 	result := ComparisonValueType(input)
-	if !slices.Contains(enumValues_ComparisonValueType, ComparisonValueType(input)) {
+	if !result.IsValid() {
 		return ComparisonValueType(""), fmt.Errorf("failed to parse ComparisonValueType, expect one of %v, got %s", enumValues_ComparisonValueType, input)
 	}
 
@@ -1261,7 +895,7 @@ var enumValues_ExistsInCollectionType = []ExistsInCollectionType{
 // ParseExistsInCollectionType parses a comparison value type from string
 func ParseExistsInCollectionType(input string) (ExistsInCollectionType, error) {
 	result := ExistsInCollectionType(input)
-	if !slices.Contains(enumValues_ExistsInCollectionType, result) {
+	if !result.IsValid() {
 		return result, fmt.Errorf("failed to parse ExistsInCollectionType, expect one of %v, got %s", enumValues_ExistsInCollectionType, input)
 	}
 
@@ -1994,7 +1628,7 @@ var enumValues_AggregateType = []AggregateType{
 // ParseAggregateType parses an aggregate type argument type from string
 func ParseAggregateType(input string) (AggregateType, error) {
 	result := AggregateType(input)
-	if !slices.Contains(enumValues_AggregateType, result) {
+	if !result.IsValid() {
 		return AggregateType(""), fmt.Errorf("failed to parse AggregateType, expect one of %v, got %s", enumValues_AggregateType, input)
 	}
 
@@ -2308,7 +1942,7 @@ var enumValues_OrderByTargetType = []OrderByTargetType{
 // ParseOrderByTargetType parses a ordering target type argument type from string
 func ParseOrderByTargetType(input string) (OrderByTargetType, error) {
 	result := OrderByTargetType(input)
-	if !slices.Contains(enumValues_OrderByTargetType, result) {
+	if !result.IsValid() {
 		return OrderByTargetType(""), fmt.Errorf("failed to parse OrderByTargetType, expect one of %v, got %s", enumValues_OrderByTargetType, input)
 	}
 
@@ -2664,7 +2298,7 @@ var enumValues_ComparisonOperatorDefinitionType = []ComparisonOperatorDefinition
 // ParseComparisonOperatorDefinitionType parses a type of a comparison operator definition
 func ParseComparisonOperatorDefinitionType(input string) (ComparisonOperatorDefinitionType, error) {
 	result := ComparisonOperatorDefinitionType(input)
-	if !slices.Contains(enumValues_ComparisonOperatorDefinitionType, result) {
+	if !result.IsValid() {
 		return ComparisonOperatorDefinitionType(""), fmt.Errorf("failed to parse ComparisonOperatorDefinitionType, expect one of %v, got %s", enumValues_ComparisonOperatorDefinitionType, input)
 	}
 
@@ -2916,7 +2550,7 @@ var enumValues_NestedFieldType = []NestedFieldType{
 // ParseNestedFieldType parses the type of nested field
 func ParseNestedFieldType(input string) (NestedFieldType, error) {
 	result := NestedFieldType(input)
-	if !slices.Contains(enumValues_NestedFieldType, result) {
+	if !result.IsValid() {
 		return NestedFieldType(""), fmt.Errorf("failed to parse NestedFieldType, expect one of %v, got %s", enumValues_NestedFieldType, input)
 	}
 

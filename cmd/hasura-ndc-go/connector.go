@@ -9,15 +9,13 @@ import (
 	"io"
 	"os"
 	"path"
-	"regexp"
 	"runtime/trace"
+	"slices"
 	"sort"
 	"strings"
 
 	"github.com/hasura/ndc-sdk-go/schema"
 )
-
-var fieldNameRegex = regexp.MustCompile(`[^\w]`)
 
 type connectorTypeBuilder struct {
 	packageName string
@@ -596,52 +594,143 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 		panic(fmt.Errorf("unsupported type: %s", typeName))
 	}
 
+	fullTypeName := strings.Join(ty.TypeFragments, "")
 	switch typeName {
 	case "bool":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetBool(input, "%s")`, fieldName, key))
+		funcName := "GetBoolean"
+		if fullTypeName == "[]bool" {
+			funcName = "GetBooleanSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
 	case "*bool":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableBool(input, "%s")`, fieldName, key))
+		funcName := "GetNullableBoolean"
+		if fullTypeName == "[]*bool" {
+			funcName = "GetBooleanPtrSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+	case "*[]*bool":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableBooleanPtrSlice(input, "%s")`, fieldName, key))
 	case "string":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetString(input, "%s")`, fieldName, key))
+		funcName := "GetString"
+		if fullTypeName == "[]string" {
+			funcName = "GetStringSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
 	case "*string":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableString(input, "%s")`, fieldName, key))
+		funcName := "GetNullableString"
+		if fullTypeName == "[]*string" {
+			funcName = "GetStringPtrSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+	case "*[]*string":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableStringPtrSlice(input, "%s")`, fieldName, key))
 	case "int", "int8", "int16", "int32", "int64", "rune", "byte":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetInt[%s](input, "%s")`, fieldName, typeName, key))
+		funcName := "GetInt"
+		if slices.Contains([]string{"[]int", "[]int8", "[]int16", "[]int32", "[]int64", "[]rune", "[]byte"}, fullTypeName) {
+			funcName = "GetIntSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s[%s](input, "%s")`, fieldName, funcName, typeName, key))
 	case "uint", "uint8", "uint16", "uint32", "uint64":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUint[%s](input, "%s")`, fieldName, typeName, key))
+		funcName := "GetUint"
+		if slices.Contains([]string{"[]uint", "[]uint8", "[]uint16", "[]uint32", "[]uint64"}, fullTypeName) {
+			funcName = "GetUintSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s[%s](input, "%s")`, fieldName, funcName, typeName, key))
 	case "*int", "*int8", "*int16", "*int32", "*int64", "*rune", "*byte":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableInt[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
+		funcName := "GetNullableInt"
+		if slices.Contains([]string{"[]*int", "[]*int8", "[]*int16", "[]*int32", "[]*int64", "[]*rune", "[]*byte"}, fullTypeName) {
+			funcName = "GetIntPtrSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s[%s](input, "%s")`, fieldName, funcName, strings.TrimPrefix(typeName, "*"), key))
 	case "*uint", "*uint8", "*uint16", "*uint32", "*uint64":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUint[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
+		funcName := "GetNullableUint"
+		if slices.Contains([]string{"[]*uint", "[]*uint8", "[]*uint16", "[]*uint32", "[]*uint64"}, fullTypeName) {
+			funcName = "GetUintPtrSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s[%s](input, "%s")`, fieldName, funcName, strings.TrimPrefix(typeName, "*"), key))
+	case "*[]*int", "*[]*int8", "*[]*int16", "*[]*int32", "*[]*int64", "*[]*rune", "*[]*byte":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableIntPtrSlice[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*[]*"), key))
+	case "*[]*uint", "*[]*uint8", "*[]*uint16", "*[]*uint32", "*[]*uint64":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUintPtrSlice[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*[]*"), key))
 	case "float32", "float64":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetFloat[%s](input, "%s")`, fieldName, typeName, key))
+		funcName := "GetFloat"
+		if slices.Contains([]string{"[]float32", "[]float64"}, fullTypeName) {
+			funcName = "GetFloatSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s[%s](input, "%s")`, fieldName, funcName, typeName, key))
 	case "*float32", "*float64":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableFloat[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*"), key))
+		funcName := "GetNullableFloat"
+		if slices.Contains([]string{"[]*float32", "[]*float64"}, fullTypeName) {
+			funcName = "GetFloatPtrSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s[%s](input, "%s")`, fieldName, funcName, strings.TrimPrefix(typeName, "*"), key))
+	case "*[]*float32", "*[]*float64":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableFloatPtrSlice[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*[]*"), key))
 	case "time.Time":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTime(input, "%s")`, fieldName, key))
+		funcName := "GetDateTime"
+		if fullTypeName == "[]Time" {
+			funcName = "GetDateTimeSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
 	case "*time.Time":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableDateTime(input, "%s")`, fieldName, key))
+		funcName := "GetNullableDateTime"
+		if fullTypeName == "[]*Time" {
+			funcName = "GetDateTimePtrSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+	case "*[]*time.Time":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableDateTimePtrSlice(input, "%s")`, fieldName, key))
 	case "github.com/google/uuid.UUID":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetObjectUUID(input, "%s")`, fieldName, key))
+		funcName := "GetUUID"
+		if fullTypeName == "[]UUID" {
+			funcName = "GetUUIDSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
 	case "*github.com/google/uuid.UUID":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableObjectUUID(input, "%s")`, fieldName, key))
+		funcName := "GetNullableUUID"
+		if fullTypeName == "[]*UUID" {
+			funcName = "GetUUIDPtrSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+	case "*[]*github.com/google/uuid.UUID":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUUIDPtrSlice(input, "%s")`, fieldName, key))
 	case "encoding/json.RawMessage":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetObjectRawJSON(input, "%s")`, fieldName, key))
+		funcName := "GetRawJSON"
+		if fullTypeName == "[]RawMessage" {
+			funcName = "GetRawJSONSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+
 	case "*encoding/json.RawMessage":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableObjectRawJSON(input, "%s")`, fieldName, key))
+		funcName := "GetNullableRawJSON"
+		if fullTypeName == "[]*RawMessage" {
+			funcName = "GetRawJSONPtrSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+	case "*[]*encoding/json.RawMessage":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableRawJSONPtrSlice(input, "%s")`, fieldName, key))
 	case "any", "interface{}":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetArbitraryJSON(input, "%s")`, fieldName, key))
+		funcName := "GetArbitraryJSON"
+		if slices.Contains([]string{"[]any", "[]interface{}"}, fullTypeName) {
+			funcName = "GetArbitraryJSONSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+
 	case "*any", "*interface{}":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableArbitraryJSON(input, "%s")`, fieldName, key))
+		funcName := "GetNullableArbitraryJSON"
+		if slices.Contains([]string{"[]*any", "[]*interface{}"}, fullTypeName) {
+			funcName = "GetArbitraryJSONPtrSlice"
+		}
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+
+	case "*[]*any", "*[]*interface{}":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableArbitraryJSONPtrSlice(input, "%s")`, fieldName, key))
+
 	default:
 		if ty.IsNullable() {
-			var pkgName, tyName string
 			typeName := strings.TrimLeft(typeName, "*")
-			scalarPackagePattern := fmt.Sprintf("%s.", sdkScalarPackageName)
-			if strings.HasPrefix(typeName, scalarPackagePattern) {
-				pkgName = sdkScalarPackageName
-				tyName = fmt.Sprintf("scalar.%s", strings.TrimLeft(typeName, scalarPackagePattern))
-			} else {
+			pkgName, tyName, ok := findAndReplaceNativeScalarPackage(typeName)
+			if !ok {
 				pkgName, tyName = buildTypeNameFromFragments(ty.TypeFragments[1:], sb.packagePath)
 			}
 			if pkgName != "" {
