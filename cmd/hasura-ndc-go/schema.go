@@ -620,6 +620,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			if scalarName != "" {
 				typeInfo.IsScalar = true
 				typeInfo.Schema = schema.NewNamedType(string(scalarName))
+				typeInfo.TypeAST = ty
 				rawSchema.ScalarSchemas[string(scalarName)] = *scalarSchema
 				return typeInfo, nil
 			}

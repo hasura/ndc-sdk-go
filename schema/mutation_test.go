@@ -85,7 +85,6 @@ func assertNoError(t *testing.T, err error, msgs ...string) {
 
 func assertDeepEqual(t *testing.T, expected any, reality any, msgs ...string) {
 	if !internal.DeepEqual(expected, reality) {
-		t.Errorf("%s not equal, expected: %+v got: %+v", strings.Join(msgs, " "), expected, reality)
-		t.FailNow()
+		t.Fatalf("%s not equal\nexpected: %+v \ngot     : %+v", strings.Join(msgs, " "), expected, reality)
 	}
 }
