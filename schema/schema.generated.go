@@ -852,8 +852,19 @@ type QueryCapabilities struct {
 	// Does the connector support explaining queries
 	Explain interface{} `json:"explain,omitempty" yaml:"explain,omitempty" mapstructure:"explain,omitempty"`
 
+	// Does the connector support nested fields
+	NestedFields NestedFieldCapabilities `json:"nested_fields" yaml:"nested_fields" mapstructure:"nested_fields"`
+
 	// Does the connector support queries which use variables
 	Variables interface{} `json:"variables,omitempty" yaml:"variables,omitempty" mapstructure:"variables,omitempty"`
+}
+
+type NestedFieldCapabilities struct {
+	// Does the connector support filtering by values of nested fields
+	FilterBy interface{} `json:"filter_by,omitempty" yaml:"filter_by,omitempty" mapstructure:"filter_by,omitempty"`
+
+	// Does the connector support ordering by values of nested fields
+	OrderBy interface{} `json:"order_by,omitempty" yaml:"order_by,omitempty" mapstructure:"order_by,omitempty"`
 }
 
 // Fields of the query
