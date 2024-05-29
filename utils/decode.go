@@ -12,6 +12,9 @@ import (
 	"github.com/google/uuid"
 )
 
+var trueValue = reflect.ValueOf(true)
+var falseValue = reflect.ValueOf(false)
+
 type convertFunc[T any] func(value any) (*T, error)
 type convertFuncReflection[T any] func(value reflect.Value) (*T, error)
 
@@ -31,7 +34,7 @@ func IsNil(value any) bool {
 		return true
 	}
 	v := reflect.ValueOf(value)
-	return v.Kind() == reflect.Ptr && v.IsNil()
+	return v.Kind() == reflect.Pointer && v.IsNil()
 }
 
 // Decoder is a wrapper of mapstructure decoder
@@ -549,6 +552,8 @@ func decodeNullableIntRefection[T int | int8 | int16 | int32 | int64 | uint | ui
 			result = T(inferredValue.Int())
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 			result = T(inferredValue.Uint())
+		case reflect.Float32, reflect.Float64:
+			result = T(inferredValue.Float())
 		case reflect.Interface, reflect.String:
 			newVal, parseErr := convertFn(inferredValue.Interface())
 			if parseErr != nil {
@@ -774,12 +779,17 @@ func decodeNullableBooleanReflection(value reflect.Value) (*bool, error) {
 		result := inferredValue.Bool()
 		return &result, nil
 	case reflect.Interface:
-		v := fmt.Sprint(inferredValue.Interface())
-		b, err := strconv.ParseBool(v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert Boolean, got: %s", v)
+		var result bool
+		if inferredValue.Equal(trueValue) {
+			result = true
+			return &result, nil
 		}
-		return &b, nil
+		if inferredValue.Equal(falseValue) {
+			result = false
+			return &result, nil
+		}
+
+		return nil, fmt.Errorf("failed to convert Boolean, got: %s", kind)
 	default:
 		return nil, fmt.Errorf("failed to convert Boolean, got: %v", kind)
 	}

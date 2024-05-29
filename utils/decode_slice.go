@@ -270,6 +270,9 @@ func GetFloatPtrSlice[T float32 | float64](object map[string]any, key string) ([
 
 // decodeNullableNumberSlice tries to convert an unknown value to a number slice
 func decodeNullableNumberSlice[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](value any, convertFn convertFuncReflection[T]) (*[]T, error) {
+	if value == nil {
+		return nil, nil
+	}
 	reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
 	if !ok {
 		return nil, nil
@@ -297,6 +300,9 @@ func decodeNullableNumberSlice[T int | int8 | int16 | int32 | int64 | uint | uin
 
 // decodeNullableNumberPtrSlice tries to convert an unknown value to a number slice
 func decodeNullableNumberPtrSlice[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](value any, convertFn convertFunc[T]) (*[]*T, error) {
+	if value == nil {
+		return nil, nil
+	}
 	reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
 	if !ok {
 		return nil, nil
@@ -321,6 +327,9 @@ func decodeNullableNumberPtrSlice[T int | int8 | int16 | int32 | int64 | uint | 
 
 // DecodeNullableStringSlice decodes a nullable string slice from an unknown value
 func DecodeNullableStringSlice(value any) (*[]string, error) {
+	if value == nil {
+		return nil, nil
+	}
 	reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
 	if !ok {
 		return nil, nil
@@ -352,13 +361,16 @@ func DecodeStringSlice(value any) ([]string, error) {
 		return nil, err
 	}
 	if results == nil {
-		return nil, errors.New("the string slice must not be null")
+		return nil, errors.New("string slice must not be null")
 	}
 	return *results, nil
 }
 
 // DecodeNullableStringSlice decodes a nullable string slice from an unknown value
 func DecodeNullableStringPtrSlice(value any) (*[]*string, error) {
+	if value == nil {
+		return nil, nil
+	}
 	reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
 	if !ok {
 		return nil, nil
@@ -446,6 +458,9 @@ func GetNullableStringPtrSlice(object map[string]any, key string) (*[]*string, e
 
 // DecodeNullableBooleanSlice decodes a nullable boolean slice from an unknown value
 func DecodeNullableBooleanSlice(value any) (*[]bool, error) {
+	if value == nil {
+		return nil, nil
+	}
 	reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
 	if !ok {
 		return nil, nil
@@ -477,13 +492,16 @@ func DecodeBooleanSlice(value any) ([]bool, error) {
 		return nil, err
 	}
 	if results == nil {
-		return nil, errors.New("the boolean slice must not be null")
+		return nil, errors.New("boolean slice must not be null")
 	}
 	return *results, nil
 }
 
 // DecodeNullableBooleanPtrSlice decodes a boolean pointer slice from an unknown value
 func DecodeNullableBooleanPtrSlice(value any) (*[]*bool, error) {
+	if value == nil {
+		return nil, nil
+	}
 	reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
 	if !ok {
 		return nil, nil
@@ -584,6 +602,9 @@ func DecodeUUIDSlice(value any) ([]uuid.UUID, error) {
 
 // DecodeNullableUUIDSlice decodes a nullable UUID slice from array string
 func DecodeNullableUUIDSlice(value any) (*[]uuid.UUID, error) {
+	if value == nil {
+		return nil, nil
+	}
 	strSlice, err := DecodeNullableStringPtrSlice(value)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse uuid slice, got: %+v", value)
@@ -619,6 +640,9 @@ func DecodeUUIDPtrSlice(value any) ([]*uuid.UUID, error) {
 
 // DecodeNullableUUIDPtrSlice decodes UUID pointer slice from array string
 func DecodeNullableUUIDPtrSlice(value any) (*[]*uuid.UUID, error) {
+	if value == nil {
+		return nil, nil
+	}
 	strSlice, err := DecodeNullableStringPtrSlice(value)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse uuid slice, got: %+v", value)
@@ -694,6 +718,9 @@ func GetNullableUUIDPtrSlice(object map[string]any, key string) (*[]*uuid.UUID, 
 
 // DecodeNullableDateTimePtrSlice tries to convert an unknown value to a nullable time.Time pointer slice
 func DecodeNullableDateTimePtrSlice(value any) (*[]*time.Time, error) {
+	if value == nil {
+		return nil, nil
+	}
 	reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
 	if !ok {
 		return nil, nil
@@ -732,6 +759,9 @@ func DecodeDateTimePtrSlice(value any) ([]*time.Time, error) {
 
 // DecodeNullableDateTimeSlice tries to convert an unknown value to a nullable time.Time slice
 func DecodeNullableDateTimeSlice(value any) (*[]time.Time, error) {
+	if value == nil {
+		return nil, nil
+	}
 	reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
 	if !ok {
 		return nil, nil
@@ -822,6 +852,9 @@ func GetDateTimePtrSlice(object map[string]any, key string) ([]*time.Time, error
 
 // DecodeNullableArbitraryJSONPtrSlice decodes a nullable arbitrary json pointer slice from object by key
 func DecodeNullableArbitraryJSONPtrSlice(value any) (*[]*any, error) {
+	if value == nil {
+		return nil, nil
+	}
 	reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
 	if !ok {
 		return nil, nil
@@ -859,6 +892,9 @@ func DecodeArbitraryJSONPtrSlice(value any) ([]*any, error) {
 
 // DecodeNullableArbitraryJSONSlice decodes a nullable arbitrary json slice from object by key
 func DecodeNullableArbitraryJSONSlice(value any) (*[]any, error) {
+	if value == nil {
+		return nil, nil
+	}
 	reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
 	if !ok {
 		return nil, nil
@@ -930,6 +966,9 @@ func GetArbitraryJSONSlice(object map[string]any, key string) ([]any, error) {
 
 // DecodeNullableRawJSONSlice decodes a nullable json.RawMessage slice from object by key
 func DecodeNullableRawJSONSlice(value any) (*[]json.RawMessage, error) {
+	if value == nil {
+		return nil, nil
+	}
 	reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
 	if !ok {
 		return nil, nil
@@ -968,6 +1007,9 @@ func DecodeRawJSONSlice(value any) ([]json.RawMessage, error) {
 
 // DecodeNullableRawJSONPtrSlice decodes a nullable json.RawMessage pointer slice from object by key
 func DecodeNullableRawJSONPtrSlice(value any) (*[]*json.RawMessage, error) {
+	if value == nil {
+		return nil, nil
+	}
 	reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
 	if !ok {
 		return nil, nil
