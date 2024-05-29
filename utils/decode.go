@@ -12,9 +12,6 @@ import (
 	"github.com/google/uuid"
 )
 
-var trueValue = reflect.ValueOf(true)
-var falseValue = reflect.ValueOf(false)
-
 type convertFunc[T any] func(value any) (*T, error)
 type convertFuncReflection[T any] func(value reflect.Value) (*T, error)
 
@@ -779,17 +776,12 @@ func decodeNullableBooleanReflection(value reflect.Value) (*bool, error) {
 		result := inferredValue.Bool()
 		return &result, nil
 	case reflect.Interface:
-		var result bool
-		if inferredValue.Equal(trueValue) {
-			result = true
-			return &result, nil
+		v := fmt.Sprint(inferredValue.Interface())
+		b, err := strconv.ParseBool(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert Boolean, got: %s", v)
 		}
-		if inferredValue.Equal(falseValue) {
-			result = false
-			return &result, nil
-		}
-
-		return nil, fmt.Errorf("failed to convert Boolean, got: %s", kind)
+		return &b, nil
 	default:
 		return nil, fmt.Errorf("failed to convert Boolean, got: %v", kind)
 	}
