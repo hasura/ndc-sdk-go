@@ -3,11 +3,11 @@ module github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go
 go 1.19
 
 require (
-	github.com/alecthomas/kong v0.8.1
+	github.com/alecthomas/kong v0.9.0
 	github.com/fatih/structtag v1.2.0
 	github.com/google/uuid v1.6.0
-	github.com/hasura/ndc-sdk-go v0.5.3-0.20240504173252-357bd007db58
-	github.com/rs/zerolog v1.32.0
+	github.com/hasura/ndc-sdk-go v0.5.5-0.20240529173431-f84b38f2f7dc
+	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/mod v0.17.0
 	golang.org/x/tools v0.21.0
