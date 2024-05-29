@@ -557,9 +557,10 @@ func (j *ComparisonTargetType) UnmarshalJSON(b []byte) error {
 
 // ComparisonTarget represents a comparison target object
 type ComparisonTarget struct {
-	Type ComparisonTargetType `json:"type" yaml:"type" mapstructure:"type"`
-	Name string               `json:"name" yaml:"name" mapstructure:"name"`
-	Path []PathElement        `json:"path,omitempty" yaml:"path,omitempty" mapstructure:"path"`
+	Type      ComparisonTargetType `json:"type" yaml:"type" mapstructure:"type"`
+	Name      string               `json:"name" yaml:"name" mapstructure:"name"`
+	Path      []PathElement        `json:"path,omitempty" yaml:"path,omitempty" mapstructure:"path"`
+	FieldPath []string             `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
 }
 
 // ExpressionType represents the filtering expression enums
@@ -2005,6 +2006,15 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 		}
 		result["name"] = name
 
+		rawFieldPath, ok := raw["field_path"]
+		var fieldPath []string
+		if ok {
+			if err := json.Unmarshal(rawFieldPath, &fieldPath); err != nil {
+				return fmt.Errorf("field field_path in OrderByTarget: %s", err)
+			}
+			result["field_path"] = fieldPath
+		}
+
 		rawPath, ok := raw["path"]
 		if !ok {
 			return errors.New("field path in OrderByTarget is required for column type")
@@ -2101,10 +2111,19 @@ func (j OrderByTarget) AsColumn() (*OrderByColumn, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid OrderByColumn.path type; expected: []PathElement, got: %+v", rawPath)
 	}
+	var fieldPath []string
+	rawFieldPath, ok := j["field_path"]
+	if ok {
+		fieldPath, ok = rawFieldPath.([]string)
+		if !ok {
+			return nil, fmt.Errorf("invalid OrderByColumn.field_path type; expected: []string, got: %+v", rawPath)
+		}
+	}
 	return &OrderByColumn{
-		Type: t,
-		Name: name,
-		Path: p,
+		Type:      t,
+		Name:      name,
+		Path:      p,
+		FieldPath: fieldPath,
 	}, nil
 }
 
@@ -2204,14 +2223,17 @@ type OrderByColumn struct {
 	Name string `json:"name" yaml:"name" mapstructure:"name"`
 	// Any relationships to traverse to reach this column
 	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
+	// Any field path to a nested field within the column
+	FieldPath []string `json:"field_path" yaml:"field_path" mapstructure:"field_path"`
 }
 
 // Encode converts the instance to raw OrderByTarget
 func (ob OrderByColumn) Encode() OrderByTarget {
 	return OrderByTarget{
-		"type": ob.Type,
-		"name": ob.Name,
-		"path": ob.Path,
+		"type":       ob.Type,
+		"name":       ob.Name,
+		"path":       ob.Path,
+		"field_path": ob.FieldPath,
 	}
 }
 
