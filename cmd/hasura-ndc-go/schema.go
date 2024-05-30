@@ -709,6 +709,9 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 				TypeAST:    ty,
 			}
 		}
+		if _, ok := rawSchema.ScalarSchemas[string(scalarName)]; !ok {
+			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
+		}
 		rootType.TypeFragments = append(rootType.TypeFragments, inferredType.String())
 		rootType.Schema = schema.NewNamedType(string(scalarName))
 		rootType.IsScalar = true
