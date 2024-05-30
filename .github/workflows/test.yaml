@@ -47,9 +47,14 @@ jobs:
           go test -v -coverpkg=./... -race -timeout 3m -coverprofile=coverage.out ./...
       - name: Run Go unit tests for the generation example
         run: |
+          make build-codegen
           pushd example/codegen
+          ../../_output/hasura-ndc-go generate
           go test -v -race -timeout 3m ./...
           popd
+      - name: Run ndc-test
+        run: |
+          ./example/codegen/test.sh
       - name: Go coverage format
         if: ${{ github.event_name == 'pull_request' }}
         run: |
