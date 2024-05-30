@@ -3154,6 +3154,13 @@
         "type": "int8"
       }
     },
+    "JSON": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "json"
+      }
+    },
     "RawJSON": {
       "aggregate_functions": {},
       "comparison_operators": {},
