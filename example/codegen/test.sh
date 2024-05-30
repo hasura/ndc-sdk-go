@@ -35,4 +35,4 @@ serverPID=$!
 
 http_wait http://localhost:8080/health
 
-ndc-test test --endpoint http://localhost:8080
+./dist/ndc-test test --endpoint http://localhost:8080
