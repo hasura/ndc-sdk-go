@@ -57,6 +57,7 @@ sed -i 's/Representation interface{}/Representation TypeRepresentation/g' ../sch
 sed -i '/type NestedFieldCapabilities struct {/,/}/s/OrderBy \*OrderBy/OrderBy interface{}/g' ../schema/schema.generated.go
 sed -i '/type Query struct {/,/}/s/OrderBy \interface{}/OrderBy *OrderBy/g' ../schema/schema.generated.go
 sed -i 's/NestedFields interface{}/NestedFields NestedFieldCapabilities/g' ../schema/schema.generated.go
+sed -i 's/plain.NestedFields = map\[string\]interface{}{}/plain.NestedFields = NestedFieldCapabilities{}/g' ../schema/schema.generated.go
 
 # format codes
 gofmt -w -s ../
