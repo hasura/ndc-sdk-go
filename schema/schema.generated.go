@@ -417,13 +417,13 @@ func (j *QueryCapabilities) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-	if v, ok := raw["nested_fields"]; !ok || v == nil {
-		return fmt.Errorf("field nested_fields in QueryCapabilities: required")
-	}
 	type Plain QueryCapabilities
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
+	}
+	if v, ok := raw["nested_fields"]; !ok || v == nil {
+		plain.NestedFields = NestedFieldCapabilities{}
 	}
 	*j = QueryCapabilities(plain)
 	return nil
@@ -458,7 +458,7 @@ type QueryCapabilities struct {
 	Explain interface{} `json:"explain,omitempty" yaml:"explain,omitempty" mapstructure:"explain,omitempty"`
 
 	// Does the connector support nested fields
-	NestedFields NestedFieldCapabilities `json:"nested_fields" yaml:"nested_fields" mapstructure:"nested_fields"`
+	NestedFields NestedFieldCapabilities `json:"nested_fields,omitempty" yaml:"nested_fields,omitempty" mapstructure:"nested_fields,omitempty"`
 
 	// Does the connector support queries which use variables
 	Variables interface{} `json:"variables,omitempty" yaml:"variables,omitempty" mapstructure:"variables,omitempty"`
@@ -519,6 +519,9 @@ func (j *AggregateFunctionDefinition) UnmarshalJSON(b []byte) error {
 }
 
 type NestedFieldCapabilities struct {
+	// Does the connector support aggregating values within nested fields
+	Aggregates interface{} `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
+
 	// Does the connector support filtering by values of nested fields
 	FilterBy interface{} `json:"filter_by,omitempty" yaml:"filter_by,omitempty" mapstructure:"filter_by,omitempty"`
 

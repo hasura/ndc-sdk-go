@@ -112,7 +112,7 @@ func (mc *Connector) HealthCheck(ctx context.Context, configuration *Configurati
 
 func (mc *Connector) GetCapabilities(configuration *Configuration) schema.CapabilitiesResponseMarshaler {
 	return &schema.CapabilitiesResponse{
-		Version: "0.1.3",
+		Version: "0.1.4",
 		Capabilities: schema.Capabilities{
 			Query: schema.QueryCapabilities{
 				Aggregates: schema.LeafCapability{},
