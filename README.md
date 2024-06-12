@@ -6,7 +6,7 @@ All functions of the Connector interface are analogous to their Rust counterpart
 
 ## Features
 
-The SDK fully supports [NDC Specification v0.1.3](https://hasura.github.io/ndc-spec/specification/changelog.html#013) and [Connector Deployment spec](https://github.com/hasura/ndc-hub/blob/main/rfcs/0000-deployment.md) with following features:
+The SDK fully supports [NDC Specification v0.1.4](https://hasura.github.io/ndc-spec/specification/changelog.html#014) and [Connector Deployment spec](https://github.com/hasura/ndc-hub/blob/main/rfcs/0000-deployment.md) with following features:
 
 - Connector HTTP server
 - Authentication
