@@ -20,14 +20,19 @@ func initBuildVersion() {
 	if BuildVersion != "" {
 		return
 	}
+
+	BuildVersion = DevVersion
 	bi, ok := debug.ReadBuildInfo()
 	if !ok {
-		BuildVersion = DevVersion
+		return
+	}
+	if bi.Main.Version != "" {
+		BuildVersion = bi.Main.Version
 		return
 	}
 
 	for _, s := range bi.Settings {
-		if s.Key == "vcs.revision" {
+		if s.Key == "vcs.revision" && s.Value != "" {
 			BuildVersion = s.Value
 			return
 		}
