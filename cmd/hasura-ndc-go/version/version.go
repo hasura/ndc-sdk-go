@@ -26,6 +26,10 @@ func initBuildVersion() {
 	if !ok {
 		return
 	}
+	if bi.Main.Version != "" {
+		BuildVersion = bi.Main.Version
+		return
+	}
 
 	for _, s := range bi.Settings {
 		if s.Key == "vcs.revision" && s.Value != "" {
