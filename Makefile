@@ -34,6 +34,7 @@ go-tidy:
 	cd $(ROOT_DIR)/cmd/hasura-ndc-go && go mod tidy
 	cd $(ROOT_DIR)/cmd/hasura-ndc-go/testdata/basic/source && go mod tidy
 	cd $(ROOT_DIR)/cmd/hasura-ndc-go/testdata/empty/source && go mod tidy
+	cd $(ROOT_DIR)/cmd/hasura-ndc-go/testdata/subdir/source && go mod tidy
 	cd $(ROOT_DIR)/example/codegen && go mod tidy
 	
 # Install golangci-lint tool to run lint locally
@@ -42,10 +43,14 @@ go-tidy:
 lint:
 	golangci-lint run
 
-# clean the output directory
+# clean the output directory and generated tests snapshots
 .PHONY: clean
 clean:
 	rm -rf "$(OUTPUT_DIR)"
+	rm -f cmd/hasura-ndc-go/testdata/*/source/**/connector.generated.go
+	rm -f cmd/hasura-ndc-go/testdata/*/source/**/schema.generated.json
+	rm -f cmd/hasura-ndc-go/testdata/*/source/**/types.generated.go
+	rm -rf cmd/hasura-ndc-go/testdata/*/source/**/testdata
 
 .PHONY: build-codegen
 build-codegen:
