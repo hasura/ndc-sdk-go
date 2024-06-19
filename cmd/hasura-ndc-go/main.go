@@ -15,6 +15,7 @@ import (
 type GenerateArguments struct {
 	Path         string   `help:"The path of the root directory where the go.mod file is present" short:"p" default:"."`
 	ConnectorDir string   `help:"The directory where the connector.go file is placed" default:"."`
+	PackageTypes string   `help:"The name of types package where the State struct is in"`
 	Directories  []string `help:"Folders contain NDC operation functions" short:"d" default:"functions,types"`
 	Trace        string   `help:"Enable tracing and write to target file path."`
 }
@@ -63,6 +64,8 @@ func main() {
 	case "generate":
 		log.Info().
 			Str("path", cli.Generate.Path).
+			Str("connector_dir", cli.Generate.ConnectorDir).
+			Str("package_types", cli.Generate.PackageTypes).
 			Interface("directories", cli.Generate.Directories).
 			Msg("generating connector schema...")
 
