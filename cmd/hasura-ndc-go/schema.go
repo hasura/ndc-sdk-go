@@ -9,6 +9,7 @@ import (
 	"go/token"
 	"go/types"
 	"path"
+	"path/filepath"
 	"regexp"
 	"runtime/trace"
 	"strings"
@@ -337,8 +338,14 @@ type SchemaParser struct {
 	pkg        *packages.Package
 }
 
-func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, filePath string, folders []string) (*RawConnectorSchema, error) {
+func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, filePath string, connectorDir string, folders []string) (*RawConnectorSchema, error) {
 	rawSchema := NewRawConnectorSchema()
+	pkgTypes, err := evalPackageTypesLocation(moduleName, filePath, connectorDir)
+	if err != nil {
+		return nil, err
+	}
+	rawSchema.Imports[pkgTypes] = true
+
 	fset := token.NewFileSet()
 	for _, folder := range folders {
 		_, parseCodeTask := trace.NewTask(ctx, fmt.Sprintf("parse_%s_code", folder))
@@ -372,6 +379,21 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 	}
 
 	return rawSchema, nil
+}
+
+func evalPackageTypesLocation(moduleName string, filePath string, connectorDir string) (string, error) {
+	matches, err := filepath.Glob(path.Join(filePath, "types", "*.go"))
+	if err == nil && len(matches) > 0 {
+		return fmt.Sprintf("%s/types", moduleName), nil
+	}
+
+	if connectorDir != "" && !strings.HasPrefix(".", connectorDir) {
+		matches, err = filepath.Glob(path.Join(filePath, connectorDir, "types", "*.go"))
+		if err == nil && len(matches) > 0 {
+			return fmt.Sprintf("%s/%s/types", moduleName, connectorDir), nil
+		}
+	}
+	return "", fmt.Errorf("the `types` package where the State struct is in must be placed in root or connector directory, %s", err)
 }
 
 // parse raw connector schema from Go code

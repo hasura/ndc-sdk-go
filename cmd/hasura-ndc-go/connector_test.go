@@ -31,6 +31,7 @@ func TestConnectorGeneration(t *testing.T) {
 		ConnectorDir string
 		Directories  []string
 		ModuleName   string
+		errorMsg     string
 	}{
 		{
 			Name:        "basic",
@@ -51,6 +52,13 @@ func TestConnectorGeneration(t *testing.T) {
 			ModuleName:   "github.com/hasura/ndc-codegen-subdir-test",
 			Directories:  []string{"connector/functions"},
 		},
+		{
+			Name:        "invalid_types_package",
+			BasePath:    "./testdata/subdir",
+			ModuleName:  "github.com/hasura/ndc-codegen-subdir-test",
+			Directories: []string{"connector/functions"},
+			errorMsg:    "the `types` package where the State struct is in must be placed in root or connector directory",
+		},
 	}
 
 	rootDir, err := os.Getwd()
@@ -67,12 +75,17 @@ func TestConnectorGeneration(t *testing.T) {
 			srcDir := path.Join(tc.BasePath, "source")
 			assert.NoError(t, os.Chdir(srcDir))
 
-			assert.NoError(t, parseAndGenerateConnector(&GenerateArguments{
+			err = parseAndGenerateConnector(&GenerateArguments{
 				Path:         srcDir,
 				ConnectorDir: tc.ConnectorDir,
 				Directories:  tc.Directories,
-			}, tc.ModuleName))
+			}, tc.ModuleName)
+			if tc.errorMsg != "" {
+				assert.ErrorContains(t, err, tc.errorMsg)
+				return
+			}
 
+			assert.NoError(t, err)
 			var expectedSchema schema.SchemaResponse
 			assert.NoError(t, json.Unmarshal(expectedSchemaBytes, &expectedSchema))
 
