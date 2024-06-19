@@ -9,6 +9,7 @@ import (
 	"go/token"
 	"go/types"
 	"path"
+	"path/filepath"
 	"regexp"
 	"runtime/trace"
 	"strings"
@@ -337,10 +338,17 @@ type SchemaParser struct {
 	pkg        *packages.Package
 }
 
-func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, filePath string, folders []string) (*RawConnectorSchema, error) {
+func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, filePath string, args *GenerateArguments) (*RawConnectorSchema, error) {
 	rawSchema := NewRawConnectorSchema()
+
+	pkgTypes, err := evalPackageTypesLocation(args.PackageTypes, moduleName, filePath, args.ConnectorDir)
+	if err != nil {
+		return nil, err
+	}
+	rawSchema.Imports[pkgTypes] = true
+
 	fset := token.NewFileSet()
-	for _, folder := range folders {
+	for _, folder := range args.Directories {
 		_, parseCodeTask := trace.NewTask(ctx, fmt.Sprintf("parse_%s_code", folder))
 		folderPath := path.Join(filePath, folder)
 
@@ -372,6 +380,29 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 	}
 
 	return rawSchema, nil
+}
+
+func evalPackageTypesLocation(name string, moduleName string, filePath string, connectorDir string) (string, error) {
+	if name != "" {
+		// assume that the absolute package name should have domain, e.g. github.com/...
+		if strings.Contains(name, ".") {
+			return name, nil
+		}
+		return fmt.Sprintf("%s/%s", moduleName, name), nil
+	}
+
+	matches, err := filepath.Glob(path.Join(filePath, "types", "*.go"))
+	if err == nil && len(matches) > 0 {
+		return fmt.Sprintf("%s/types", moduleName), nil
+	}
+
+	if connectorDir != "" && !strings.HasPrefix(".", connectorDir) {
+		matches, err = filepath.Glob(path.Join(filePath, connectorDir, "types", "*.go"))
+		if err == nil && len(matches) > 0 {
+			return fmt.Sprintf("%s/%s/types", moduleName, connectorDir), nil
+		}
+	}
+	return "", fmt.Errorf("the `types` package where the State struct is in must be placed in root or connector directory, %s", err)
 }
 
 // parse raw connector schema from Go code
