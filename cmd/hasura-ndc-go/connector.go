@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/rs/zerolog/log"
 )
 
 type connectorTypeBuilder struct {
@@ -58,14 +59,16 @@ func (ctb connectorTypeBuilder) String() string {
 
 type connectorGenerator struct {
 	basePath     string
+	connectorDir string
 	moduleName   string
 	rawSchema    *RawConnectorSchema
 	typeBuilders map[string]*connectorTypeBuilder
 }
 
-func NewConnectorGenerator(basePath string, moduleName string, rawSchema *RawConnectorSchema) *connectorGenerator {
+func NewConnectorGenerator(basePath string, connectorDir string, moduleName string, rawSchema *RawConnectorSchema) *connectorGenerator {
 	return &connectorGenerator{
 		basePath:     basePath,
+		connectorDir: connectorDir,
 		moduleName:   moduleName,
 		rawSchema:    rawSchema,
 		typeBuilders: make(map[string]*connectorTypeBuilder),
@@ -97,7 +100,7 @@ func parseAndGenerateConnector(args *GenerateArguments, moduleName string) error
 
 	_, genTask := trace.NewTask(context.TODO(), "generate_code")
 	defer genTask.End()
-	connectorGen := NewConnectorGenerator(".", moduleName, sm)
+	connectorGen := NewConnectorGenerator(".", args.ConnectorDir, moduleName, sm)
 	return connectorGen.generateConnector()
 }
 
@@ -108,12 +111,12 @@ func (cg *connectorGenerator) generateConnector() error {
 		return err
 	}
 
-	schemaPath := path.Join(cg.basePath, schemaOutputFile)
+	schemaPath := path.Join(cg.basePath, cg.connectorDir, schemaOutputFile)
 	if err := os.WriteFile(schemaPath, schemaBytes, 0644); err != nil {
 		return err
 	}
 
-	targetPath := path.Join(cg.basePath, connectorOutputFile)
+	targetPath := path.Join(cg.basePath, cg.connectorDir, connectorOutputFile)
 	f, err := os.Create(targetPath)
 	if err != nil {
 		return err
@@ -334,6 +337,7 @@ func (cg *connectorGenerator) genConnectorProcedures(rawSchema *RawConnectorSche
 	return sb.String()
 }
 
+// generate encoding and decoding methods for schema types
 func (cg *connectorGenerator) genTypeMethods() error {
 	if err := cg.genFunctionArgumentConstructors(); err != nil {
 		return err
@@ -344,8 +348,15 @@ func (cg *connectorGenerator) genTypeMethods() error {
 	if err := cg.genCustomScalarMethods(); err != nil {
 		return err
 	}
-	for folderPath, builder := range cg.typeBuilders {
-		schemaPath := path.Join(cg.basePath, folderPath, typeMethodsOutputFile)
+
+	log.Debug().Msg("generating types...")
+	for packagePath, builder := range cg.typeBuilders {
+		relativePath := strings.TrimPrefix(packagePath, cg.moduleName)
+		schemaPath := path.Join(cg.basePath, relativePath, typeMethodsOutputFile)
+		log.Debug().
+			Str("package_name", builder.packageName).
+			Str("package_path", builder.packagePath).
+			Msgf(schemaPath)
 		if err := os.WriteFile(schemaPath, []byte(builder.String()), 0644); err != nil {
 			return err
 		}
@@ -366,7 +377,7 @@ func (cg *connectorGenerator) genObjectMethods() error {
 		if object.IsAnonymous {
 			continue
 		}
-		sb := cg.getOrCreateTypeBuilder(object.PackageName, object.PackageName, object.PackagePath)
+		sb := cg.getOrCreateTypeBuilder(object.PackagePath)
 		sb.builder.WriteString(fmt.Sprintf(`
 // ToMap encodes the struct to a value map
 func (j %s) ToMap() map[string]any {
@@ -449,7 +460,7 @@ func (cg *connectorGenerator) genCustomScalarMethods() error {
 
 	for _, scalarKey := range scalarKeys {
 		scalar := cg.rawSchema.CustomScalars[scalarKey]
-		sb := cg.getOrCreateTypeBuilder(scalar.PackageName, scalar.PackageName, scalar.PackagePath)
+		sb := cg.getOrCreateTypeBuilder(scalar.PackagePath)
 		sb.builder.WriteString(fmt.Sprintf(`
 // ScalarName get the schema name of the scalar
 func (j %s) ScalarName() string {
@@ -546,7 +557,7 @@ func (cg *connectorGenerator) genFunctionArgumentConstructors() error {
 		if len(fn.Arguments) == 0 {
 			continue
 		}
-		sb := cg.getOrCreateTypeBuilder(fn.PackageName, fn.PackageName, fn.PackagePath)
+		sb := cg.getOrCreateTypeBuilder(fn.PackagePath)
 		sb.builder.WriteString(fmt.Sprintf(`
 // FromValue decodes values from map
 func (j *%s) FromValue(input map[string]any) error {
@@ -565,18 +576,20 @@ func (j *%s) FromValue(input map[string]any) error {
 	return nil
 }
 
-func (cg *connectorGenerator) getOrCreateTypeBuilder(fileName string, packageName string, packagePath string) *connectorTypeBuilder {
-	bs, ok := cg.typeBuilders[fileName]
+func (cg *connectorGenerator) getOrCreateTypeBuilder(packagePath string) *connectorTypeBuilder {
+	pkgParts := strings.Split(packagePath, "/")
+	pkgName := pkgParts[len(pkgParts)-1]
+	bs, ok := cg.typeBuilders[packagePath]
 	if !ok {
 		bs = &connectorTypeBuilder{
-			packageName: packageName,
+			packageName: pkgName,
 			packagePath: packagePath,
 			imports: map[string]string{
 				"github.com/hasura/ndc-sdk-go/utils": "",
 			},
 			builder: &strings.Builder{},
 		}
-		cg.typeBuilders[fileName] = bs
+		cg.typeBuilders[packagePath] = bs
 	}
 	return bs
 }
