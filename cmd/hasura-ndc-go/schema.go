@@ -668,7 +668,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			scalarName = ScalarString
 			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
 		default:
-			return nil, fmt.Errorf("unsupported scalar type: %s", inferredType.String())
+			return nil, fmt.Errorf("%s: unsupported scalar type <%s>", strings.Join(fieldPaths, "."), inferredType.String())
 		}
 		if rootType == nil {
 			rootType = &TypeInfo{
