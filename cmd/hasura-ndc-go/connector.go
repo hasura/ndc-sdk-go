@@ -91,7 +91,7 @@ func parseAndGenerateConnector(args *GenerateArguments, moduleName string) error
 	}
 
 	parseCtx, parseTask := trace.NewTask(context.TODO(), "parse")
-	sm, err := parseRawConnectorSchemaFromGoCode(parseCtx, moduleName, ".", args.ConnectorDir, args.Directories)
+	sm, err := parseRawConnectorSchemaFromGoCode(parseCtx, moduleName, ".", args)
 	if err != nil {
 		parseTask.End()
 		return err

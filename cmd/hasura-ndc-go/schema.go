@@ -338,16 +338,17 @@ type SchemaParser struct {
 	pkg        *packages.Package
 }
 
-func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, filePath string, connectorDir string, folders []string) (*RawConnectorSchema, error) {
+func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, filePath string, args *GenerateArguments) (*RawConnectorSchema, error) {
 	rawSchema := NewRawConnectorSchema()
-	pkgTypes, err := evalPackageTypesLocation(moduleName, filePath, connectorDir)
+
+	pkgTypes, err := evalPackageTypesLocation(args.PackageTypes, moduleName, filePath, args.ConnectorDir)
 	if err != nil {
 		return nil, err
 	}
 	rawSchema.Imports[pkgTypes] = true
 
 	fset := token.NewFileSet()
-	for _, folder := range folders {
+	for _, folder := range args.Directories {
 		_, parseCodeTask := trace.NewTask(ctx, fmt.Sprintf("parse_%s_code", folder))
 		folderPath := path.Join(filePath, folder)
 
@@ -381,7 +382,15 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 	return rawSchema, nil
 }
 
-func evalPackageTypesLocation(moduleName string, filePath string, connectorDir string) (string, error) {
+func evalPackageTypesLocation(name string, moduleName string, filePath string, connectorDir string) (string, error) {
+	if name != "" {
+		// assume that the absolute package name should have domain, e.g. github.com/...
+		if strings.Contains(name, ".") {
+			return name, nil
+		}
+		return fmt.Sprintf("%s/%s", moduleName, name), nil
+	}
+
 	matches, err := filepath.Glob(path.Join(filePath, "types", "*.go"))
 	if err == nil && len(matches) > 0 {
 		return fmt.Sprintf("%s/types", moduleName), nil

@@ -31,6 +31,7 @@ func TestConnectorGeneration(t *testing.T) {
 		ConnectorDir string
 		Directories  []string
 		ModuleName   string
+		PackageTypes string
 		errorMsg     string
 	}{
 		{
@@ -50,6 +51,22 @@ func TestConnectorGeneration(t *testing.T) {
 			BasePath:     "./testdata/subdir",
 			ConnectorDir: "connector",
 			ModuleName:   "github.com/hasura/ndc-codegen-subdir-test",
+			Directories:  []string{"connector/functions"},
+		},
+		{
+			Name:         "subdir_package_types",
+			BasePath:     "./testdata/subdir",
+			ConnectorDir: "connector",
+			ModuleName:   "github.com/hasura/ndc-codegen-subdir-test",
+			PackageTypes: "connector/types",
+			Directories:  []string{"connector/functions"},
+		},
+		{
+			Name:         "subdir_package_types_absolute",
+			BasePath:     "./testdata/subdir",
+			ConnectorDir: "connector",
+			ModuleName:   "github.com/hasura/ndc-codegen-subdir-test",
+			PackageTypes: "github.com/hasura/ndc-codegen-subdir-test/connector/types",
 			Directories:  []string{"connector/functions"},
 		},
 		{
@@ -78,6 +95,7 @@ func TestConnectorGeneration(t *testing.T) {
 			err = parseAndGenerateConnector(&GenerateArguments{
 				Path:         srcDir,
 				ConnectorDir: tc.ConnectorDir,
+				PackageTypes: tc.PackageTypes,
 				Directories:  tc.Directories,
 			}, tc.ModuleName)
 			if tc.errorMsg != "" {
