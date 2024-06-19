@@ -26,19 +26,30 @@ func formatTextContent(input string) string {
 func TestConnectorGeneration(t *testing.T) {
 
 	testCases := []struct {
-		Name       string
-		BasePath   string
-		ModuleName string
+		Name         string
+		BasePath     string
+		ConnectorDir string
+		Directories  []string
+		ModuleName   string
 	}{
 		{
-			Name:       "basic",
-			BasePath:   "testdata/basic",
-			ModuleName: "github.com/hasura/ndc-codegen-test",
+			Name:        "basic",
+			BasePath:    "./testdata/basic",
+			ModuleName:  "github.com/hasura/ndc-codegen-test",
+			Directories: []string{"functions"},
 		},
 		{
-			Name:       "empty",
-			BasePath:   "./testdata/empty",
-			ModuleName: "github.com/hasura/ndc-codegen-empty-test",
+			Name:        "empty",
+			BasePath:    "./testdata/empty",
+			ModuleName:  "github.com/hasura/ndc-codegen-empty-test",
+			Directories: []string{"functions"},
+		},
+		{
+			Name:         "subdir",
+			BasePath:     "./testdata/subdir",
+			ConnectorDir: "connector",
+			ModuleName:   "github.com/hasura/ndc-codegen-subdir-test",
+			Directories:  []string{"connector/functions"},
 		},
 	}
 
@@ -57,14 +68,15 @@ func TestConnectorGeneration(t *testing.T) {
 			assert.NoError(t, os.Chdir(srcDir))
 
 			assert.NoError(t, parseAndGenerateConnector(&GenerateArguments{
-				Path:        srcDir,
-				Directories: []string{"functions"},
+				Path:         srcDir,
+				ConnectorDir: tc.ConnectorDir,
+				Directories:  tc.Directories,
 			}, tc.ModuleName))
 
 			var expectedSchema schema.SchemaResponse
 			assert.NoError(t, json.Unmarshal(expectedSchemaBytes, &expectedSchema))
 
-			schemaBytes, err := os.ReadFile("schema.generated.json")
+			schemaBytes, err := os.ReadFile(path.Join(tc.ConnectorDir, "schema.generated.json"))
 			assert.NoError(t, err)
 			var schemaOutput schema.SchemaResponse
 			assert.NoError(t, json.Unmarshal(schemaBytes, &schemaOutput))
@@ -75,23 +87,25 @@ func TestConnectorGeneration(t *testing.T) {
 			assert.Equal(t, expectedSchema.ScalarTypes, schemaOutput.ScalarTypes)
 			assert.Equal(t, expectedSchema.ObjectTypes, schemaOutput.ObjectTypes)
 
-			connectorBytes, err := os.ReadFile("connector.generated.go")
+			connectorBytes, err := os.ReadFile(path.Join(tc.ConnectorDir, "connector.generated.go"))
 			assert.NoError(t, err)
 			assert.Equal(t, formatTextContent(string(connectorContentBytes)), formatTextContent(string(connectorBytes)))
 
-			expectedFunctionTypesBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/functions.go.tmpl"))
-			if err == nil {
-				functionTypesBytes, err := os.ReadFile("functions/types.generated.go")
-				assert.NoError(t, err)
-				assert.Equal(t, formatTextContent(string(expectedFunctionTypesBytes)), formatTextContent(string(functionTypesBytes)))
-			} else if !os.IsNotExist(err) {
-				assert.NoError(t, err)
+			for _, td := range tc.Directories {
+				expectedFunctionTypesBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/functions.go.tmpl"))
+				if err == nil {
+					functionTypesBytes, err := os.ReadFile(path.Join(td, "types.generated.go"))
+					assert.NoError(t, err)
+					assert.Equal(t, formatTextContent(string(expectedFunctionTypesBytes)), formatTextContent(string(functionTypesBytes)))
+				} else if !os.IsNotExist(err) {
+					assert.NoError(t, err)
+				}
 			}
 
 			// generate test cases
 			assert.NoError(t, command.GenTestSnapshots(&command.GenTestSnapshotArguments{
 				Dir:    "testdata",
-				Schema: "schema.generated.json",
+				Schema: path.Join(tc.ConnectorDir, "schema.generated.json"),
 			}))
 		})
 	}

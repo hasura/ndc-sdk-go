@@ -13,9 +13,10 @@ import (
 )
 
 type GenerateArguments struct {
-	Path        string   `help:"The base path of the connector's source code" short:"p" default:"."`
-	Directories []string `help:"Folders contain NDC operation functions" short:"d" default:"functions"`
-	Trace       string   `help:"Enable tracing and write to target file path."`
+	Path         string   `help:"The path of the root directory where the go.mod file is present" short:"p" default:"."`
+	ConnectorDir string   `help:"The directory where the connector.go file is placed" default:"."`
+	Directories  []string `help:"Folders contain NDC operation functions" short:"d" default:"functions,types"`
+	Trace        string   `help:"Enable tracing and write to target file path."`
 }
 
 type NewArguments struct {

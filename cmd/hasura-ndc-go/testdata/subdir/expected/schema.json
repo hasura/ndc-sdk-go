@@ -1,0 +1,53 @@
+{
+  "collections": [],
+  "functions": [
+    {
+      "arguments": {
+        "Limit": {
+          "type": {
+            "name": "Float64",
+            "type": "named"
+          }
+        }
+      },
+      "description": "GetArticles",
+      "name": "getArticles",
+      "result_type": {
+        "element_type": {
+          "name": "GetArticlesResult",
+          "type": "named"
+        },
+        "type": "array"
+      }
+    }
+  ],
+  "object_types": {
+    "GetArticlesResult": {
+      "fields": {
+        "id": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    }
+  },
+  "procedures": [],
+  "scalar_types": {
+    "Float64": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "float64"
+      }
+    },
+    "String": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "string"
+      }
+    }
+  }
+}

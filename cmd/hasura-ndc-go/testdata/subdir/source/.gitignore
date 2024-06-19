@@ -1,0 +1,4 @@
+dist/
+testdata/
+*.generated.go
+schema.generated.json
