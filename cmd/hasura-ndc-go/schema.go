@@ -8,6 +8,7 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"os"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -242,7 +243,7 @@ type OperationInfo struct {
 	PackageName   string
 	PackagePath   string
 	Description   *string
-	ArgumentsType string
+	ArgumentsType *TypeInfo
 	Arguments     map[string]ArgumentInfo
 	ResultType    *TypeInfo
 }
@@ -333,9 +334,25 @@ func (rcs RawConnectorSchema) IsCustomType(name string) bool {
 }
 
 type SchemaParser struct {
-	context    context.Context
-	moduleName string
-	pkg        *packages.Package
+	context      context.Context
+	moduleName   string
+	packages     []*packages.Package
+	packageIndex int
+}
+
+// GetCurrentPackage gets the current evaluating package
+func (sp SchemaParser) GetCurrentPackage() *packages.Package {
+	return sp.packages[sp.packageIndex]
+}
+
+// FindPackageByPath finds the package by package path
+func (sp SchemaParser) FindPackageByPath(input string) *packages.Package {
+	for _, p := range sp.packages {
+		if p.ID == input {
+			return p
+		}
+	}
+	return nil
 }
 
 func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, filePath string, args *GenerateArguments) (*RawConnectorSchema, error) {
@@ -347,8 +364,41 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 	}
 	rawSchema.Imports[pkgTypes] = true
 
+	directories := args.Directories
+	if len(args.Directories) == 0 {
+		// recursively walk directories if the user don't explicitly specify target folders
+		entries, err := os.ReadDir(filePath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read subdirectories of %s: %s", filePath, err)
+		}
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				continue
+			}
+
+			for _, globPath := range []string{path.Join(filePath, entry.Name(), "*.go"), path.Join(filePath, entry.Name(), "**", "*.go")} {
+				goFiles, err := filepath.Glob(globPath)
+				if err != nil {
+					return nil, fmt.Errorf("failed to read subdirectories of %s/%s: %s", filePath, entry.Name(), err)
+				}
+
+				if len(goFiles) > 0 {
+					directories = append(directories, entry.Name())
+					break
+				}
+			}
+		}
+	}
+	if len(directories) == 0 {
+		log.Info().Msgf("no subdirectory in %s", filePath)
+		return rawSchema, nil
+	}
+
+	log.Info().Interface("directories", directories).Msgf("parsing connector schema...")
+
+	var packageList []*packages.Package
 	fset := token.NewFileSet()
-	for _, folder := range args.Directories {
+	for _, folder := range directories {
 		_, parseCodeTask := trace.NewTask(ctx, fmt.Sprintf("parse_%s_code", folder))
 		folderPath := path.Join(filePath, folder)
 
@@ -362,20 +412,22 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 		if err != nil {
 			return nil, err
 		}
+		packageList = append(packageList, pkgList...)
+	}
 
-		for i, pkg := range pkgList {
-			parseSchemaCtx, parseSchemaTask := trace.NewTask(ctx, fmt.Sprintf("parse_%s_schema_%d_%s", folder, i, pkg.Name))
-			sp := &SchemaParser{
-				context:    parseSchemaCtx,
-				moduleName: moduleName,
-				pkg:        pkg,
-			}
+	for i := range packageList {
+		parseSchemaCtx, parseSchemaTask := trace.NewTask(ctx, fmt.Sprintf("parse_schema_%s", packageList[i].ID))
+		sp := &SchemaParser{
+			context:      parseSchemaCtx,
+			moduleName:   moduleName,
+			packages:     packageList,
+			packageIndex: i,
+		}
 
-			err = sp.parseRawConnectorSchema(rawSchema, pkg.Types)
-			parseSchemaTask.End()
-			if err != nil {
-				return nil, err
-			}
+		err = sp.parseRawConnectorSchema(rawSchema, packageList[i].Types)
+		parseSchemaTask.End()
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -409,7 +461,7 @@ func evalPackageTypesLocation(name string, moduleName string, filePath string, c
 func (sp *SchemaParser) parseRawConnectorSchema(rawSchema *RawConnectorSchema, pkg *types.Package) error {
 
 	for _, name := range pkg.Scope().Names() {
-		_, task := trace.NewTask(sp.context, fmt.Sprintf("parse_%s_schema_%s", sp.pkg.Name, name))
+		_, task := trace.NewTask(sp.context, fmt.Sprintf("parse_%s_schema_%s", sp.GetCurrentPackage().Name, name))
 		err := sp.parsePackageScope(rawSchema, pkg, name)
 		task.End()
 		if err != nil {
@@ -455,11 +507,11 @@ func (sp *SchemaParser) parsePackageScope(rawSchema *RawConnectorSchema, pkg *ty
 		// ignore 2 first parameters (context and state)
 		if params.Len() == 3 {
 			arg := params.At(2)
-			arguments, argumentTypeName, err := sp.parseArgumentTypes(rawSchema, arg.Type(), []string{})
+			arguments, argumentType, err := sp.parseArgumentTypes(rawSchema, arg.Type(), []string{})
 			if err != nil {
 				return err
 			}
-			opInfo.ArgumentsType = argumentTypeName
+			opInfo.ArgumentsType = argumentType
 			opInfo.Arguments = arguments
 		}
 
@@ -479,7 +531,7 @@ func (sp *SchemaParser) parsePackageScope(rawSchema *RawConnectorSchema, pkg *ty
 	return nil
 }
 
-func (sp *SchemaParser) parseArgumentTypes(rawSchema *RawConnectorSchema, ty types.Type, fieldPaths []string) (map[string]ArgumentInfo, string, error) {
+func (sp *SchemaParser) parseArgumentTypes(rawSchema *RawConnectorSchema, ty types.Type, fieldPaths []string) (map[string]ArgumentInfo, *TypeInfo, error) {
 
 	switch inferredType := ty.(type) {
 	case *types.Pointer:
@@ -499,7 +551,7 @@ func (sp *SchemaParser) parseArgumentTypes(rawSchema *RawConnectorSchema, ty typ
 			}
 			fieldType, err := sp.parseType(rawSchema, typeInfo, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false)
 			if err != nil {
-				return nil, "", err
+				return nil, nil, err
 			}
 			fieldName := getFieldNameOrTag(fieldVar.Name(), fieldTag)
 			if fieldType.TypeAST == nil {
@@ -510,15 +562,26 @@ func (sp *SchemaParser) parseArgumentTypes(rawSchema *RawConnectorSchema, ty typ
 				Type:      fieldType,
 			}
 		}
-		return result, "", nil
+		return result, nil, nil
 	case *types.Named:
 		arguments, _, err := sp.parseArgumentTypes(rawSchema, inferredType.Obj().Type().Underlying(), append(fieldPaths, inferredType.Obj().Name()))
 		if err != nil {
-			return nil, "", err
+			return nil, nil, err
 		}
-		return arguments, inferredType.Obj().Name(), nil
+
+		typeObj := inferredType.Obj()
+		typeInfo := &TypeInfo{
+			Name:       typeObj.Name(),
+			SchemaName: typeObj.Name(),
+		}
+		pkg := typeObj.Pkg()
+		if pkg != nil {
+			typeInfo.PackagePath = pkg.Path()
+			typeInfo.PackageName = pkg.Name()
+		}
+		return arguments, typeInfo, nil
 	default:
-		return nil, "", fmt.Errorf("expected struct type, got %s", ty.String())
+		return nil, nil, fmt.Errorf("expected struct type, got %s", ty.String())
 	}
 }
 
@@ -603,16 +666,21 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		if innerType == nil {
 			return nil, fmt.Errorf("failed to parse named type: %s", inferredType.String())
 		}
-		typeInfo, err := sp.parseTypeInfoFromComments(innerType.Name(), innerType.Parent())
+
+		innerPkg := innerType.Pkg()
+		var packagePath string
+		if innerPkg != nil {
+			packagePath = innerPkg.Path()
+		}
+
+		typeInfo, err := sp.parseTypeInfoFromComments(innerType.Name(), packagePath, innerType.Parent())
 		if err != nil {
 			return nil, err
 		}
-		innerPkg := innerType.Pkg()
-
 		if innerPkg != nil {
 			var scalarName ScalarName
 			typeInfo.PackageName = innerPkg.Name()
-			typeInfo.PackagePath = innerPkg.Path()
+			typeInfo.PackagePath = packagePath
 			scalarSchema := schema.NewScalarType()
 
 			switch innerPkg.Path() {
@@ -739,7 +807,10 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 				SchemaName: string(scalarName),
 				TypeAST:    ty,
 			}
+		} else {
+			rootType.PackagePath = ""
 		}
+
 		if _, ok := rawSchema.ScalarSchemas[string(scalarName)]; !ok {
 			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
 		}
@@ -753,7 +824,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 	}
 }
 
-func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, scope *types.Scope) (*TypeInfo, error) {
+func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, packagePath string, scope *types.Scope) (*TypeInfo, error) {
 	typeInfo := &TypeInfo{
 		Name:          typeName,
 		SchemaName:    typeName,
@@ -762,8 +833,7 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, scope *types.
 		Schema:        schema.NewNamedType(typeName),
 	}
 	comments := make([]string, 0)
-	commentGroup := findCommentsFromPos(sp.pkg, scope, typeName)
-
+	commentGroup := findCommentsFromPos(sp.FindPackageByPath(packagePath), scope, typeName)
 	if commentGroup != nil {
 		for i, line := range commentGroup.List {
 			text := strings.TrimSpace(strings.TrimLeft(line.Text, "/"))
@@ -860,7 +930,7 @@ func (sp *SchemaParser) parseOperationInfo(fn *types.Func) *OperationInfo {
 	}
 
 	var descriptions []string
-	commentGroup := findCommentsFromPos(sp.pkg, fn.Scope(), functionName)
+	commentGroup := findCommentsFromPos(sp.GetCurrentPackage(), fn.Scope(), functionName)
 	if commentGroup != nil {
 		for i, comment := range commentGroup.List {
 			text := strings.TrimSpace(strings.TrimLeft(comment.Text, "/"))
@@ -913,6 +983,10 @@ func (sp *SchemaParser) parseOperationInfo(fn *types.Func) *OperationInfo {
 }
 
 func findCommentsFromPos(pkg *packages.Package, scope *types.Scope, name string) *ast.CommentGroup {
+	if pkg == nil {
+		return nil
+	}
+
 	for _, f := range pkg.Syntax {
 		for _, cg := range f.Comments {
 			if len(cg.List) == 0 {

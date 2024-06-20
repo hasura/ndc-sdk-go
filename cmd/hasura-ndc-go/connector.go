@@ -196,7 +196,13 @@ func (cg *connectorGenerator) genConnectorFunctions(rawSchema *RawConnectorSchem
     }`)
 		}
 
-		if fn.ArgumentsType != "" {
+		if fn.ArgumentsType != nil {
+			argName := fn.ArgumentsType.Name
+			if fn.ArgumentsType.PackagePath != "" {
+				cg.rawSchema.Imports[fn.ArgumentsType.PackagePath] = true
+				argName = fmt.Sprintf("%s.%s", fn.ArgumentsType.PackageName, fn.ArgumentsType.Name)
+			}
+
 			argumentStr := fmt.Sprintf(`
     rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
     if err != nil {
@@ -209,7 +215,7 @@ func (cg *connectorGenerator) genConnectorFunctions(rawSchema *RawConnectorSchem
 			"raw_arguments": rawArgs,
 		})
 		
-    var args %s.%s
+    var args %s
     if err = args.FromValue(rawArgs); err != nil {
       return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
         "cause": err.Error(),
@@ -218,7 +224,7 @@ func (cg *connectorGenerator) genConnectorFunctions(rawSchema *RawConnectorSchem
 		
 		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
 			"arguments": args,
-		})`, fn.PackageName, fn.ArgumentsType)
+		})`, argName)
 			sb.WriteString(argumentStr)
 			argumentParamStr = ", &args"
 		}
@@ -300,14 +306,20 @@ func (cg *connectorGenerator) genConnectorProcedures(rawSchema *RawConnectorSche
       })
     }`)
 		}
-		if fn.ArgumentsType != "" {
+		if fn.ArgumentsType != nil {
+			argName := fn.ArgumentsType.Name
+			if fn.ArgumentsType.PackagePath != "" {
+				cg.rawSchema.Imports[fn.ArgumentsType.PackagePath] = true
+				argName = fmt.Sprintf("%s.%s", fn.ArgumentsType.PackageName, fn.ArgumentsType.Name)
+			}
+
 			argumentStr := fmt.Sprintf(`
-    var args %s.%s
+    var args %s
     if err := json.Unmarshal(operation.Arguments, &args); err != nil {
       return nil, schema.UnprocessableContentError("failed to decode arguments", map[string]any{
         "cause": err.Error(),
       })
-    }`, fn.PackageName, fn.ArgumentsType)
+    }`, argName)
 			sb.WriteString(argumentStr)
 			argumentParamStr = ", &args"
 		}
@@ -350,7 +362,7 @@ func (cg *connectorGenerator) genTypeMethods() error {
 		return err
 	}
 
-	log.Debug().Msg("generating types...")
+	log.Debug().Msg("Generating types...")
 	for packagePath, builder := range cg.typeBuilders {
 		relativePath := strings.TrimPrefix(packagePath, cg.moduleName)
 		schemaPath := path.Join(cg.basePath, relativePath, typeMethodsOutputFile)
@@ -436,7 +448,7 @@ func (cg *connectorGenerator) genToMapProperty(sb *connectorTypeBuilder, field *
 	}
 	innerObject, ok := cg.rawSchema.Objects[ty.Name]
 	if !ok {
-		_, tyName := buildTypeNameFromFragments(ty.TypeFragments, sb.packagePath)
+		tyName := buildTypeNameFromFragments(ty.TypeFragments, ty.PackagePath, sb.packagePath)
 		innerObject, ok = cg.rawSchema.Objects[tyName]
 		if !ok {
 			return selector
@@ -555,15 +567,15 @@ func (cg *connectorGenerator) genFunctionArgumentConstructors() error {
 	}
 
 	for _, fn := range cg.rawSchema.Functions {
-		if len(fn.Arguments) == 0 {
+		if len(fn.Arguments) == 0 || fn.ArgumentsType == nil {
 			continue
 		}
-		sb := cg.getOrCreateTypeBuilder(fn.PackagePath)
+		sb := cg.getOrCreateTypeBuilder(fn.ArgumentsType.PackagePath)
 		sb.builder.WriteString(fmt.Sprintf(`
 // FromValue decodes values from map
 func (j *%s) FromValue(input map[string]any) error {
   var err error
-`, fn.ArgumentsType))
+`, fn.ArgumentsType.Name))
 
 		argumentKeys := getSortedKeys(fn.Arguments)
 		for _, key := range argumentKeys {
@@ -744,9 +756,10 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 			typeName := strings.TrimLeft(typeName, "*")
 			pkgName, tyName, ok := findAndReplaceNativeScalarPackage(typeName)
 			if !ok {
-				pkgName, tyName = buildTypeNameFromFragments(ty.TypeFragments[1:], sb.packagePath)
+				pkgName = ty.PackagePath
+				tyName = buildTypeNameFromFragments(ty.TypeFragments[1:], ty.PackagePath, sb.packagePath)
 			}
-			if pkgName != "" {
+			if pkgName != "" && pkgName != sb.packagePath {
 				sb.imports[pkgName] = ""
 			}
 			sb.builder.WriteString(fmt.Sprintf(`  j.%s = new(%s)
@@ -758,39 +771,29 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 	sb.builder.WriteString(textBlockErrorCheck)
 }
 
-func buildTypeNameFromFragments(items []string, packagePath string) (string, string) {
+func buildTypeNameFromFragments(items []string, typePackagePath string, currentPackagePath string) string {
 	results := make([]string, len(items))
-	importModule := ""
 	for i, item := range items {
 		if item == "*" || item == "[]" {
 			results[i] = item
 			continue
 		}
-		importModule, results[i] = extractPackageAndTypeName(item, packagePath)
+		results[i] = buildTypeWithAlias(item, typePackagePath, currentPackagePath)
 	}
 
-	return importModule, strings.Join(results, "")
+	return strings.Join(results, "")
 }
 
-func extractPackageAndTypeName(name string, packagePath string) (string, string) {
-	if packagePath != "" {
-		packagePath = fmt.Sprintf("%s.", packagePath)
+func buildTypeWithAlias(name string, typePackagePath string, currentPackagePath string) string {
+	if typePackagePath == "" || typePackagePath == currentPackagePath ||
+		// do not add alias to anonymous struct
+		strings.HasPrefix(name, "struct{") {
+		return name
 	}
 
-	if packagePath != "" && strings.HasPrefix(name, packagePath) {
-		return "", strings.ReplaceAll(name, packagePath, "")
-	}
-	parts := strings.Split(name, "/")
-	typeName := parts[len(parts)-1]
-	typeNameParts := strings.Split(typeName, ".")
-	if len(typeNameParts) < 2 {
-		return "", typeName
-	}
-	if len(parts) == 1 {
-		return typeNameParts[0], typeName
-	}
-
-	return strings.Join(append(parts[:len(parts)-1], typeNameParts[0]), "/"), typeName
+	parts := strings.Split(typePackagePath, "/")
+	alias := parts[len(parts)-1]
+	return fmt.Sprintf("%s.%s", alias, name)
 }
 
 func getSortedKeys[V any](input map[string]V) []string {
