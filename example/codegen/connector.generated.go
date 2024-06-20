@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"github.com/hasura/ndc-codegen-example/functions"
 	"github.com/hasura/ndc-codegen-example/types"
+	"github.com/hasura/ndc-codegen-example/types/arguments"
 	"github.com/hasura/ndc-sdk-go/connector"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
@@ -152,7 +153,7 @@ func execQuery(ctx context.Context, state *types.State, request *schema.QueryReq
 			"raw_arguments": rawArgs,
 		})
 
-		var args functions.GetTypesArguments
+		var args arguments.GetTypesArguments
 		if err = args.FromValue(rawArgs); err != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
 				"cause": err.Error(),

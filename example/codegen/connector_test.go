@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hasura/ndc-codegen-example/functions"
 	"github.com/hasura/ndc-codegen-example/types"
+	"github.com/hasura/ndc-codegen-example/types/arguments"
 	"github.com/hasura/ndc-sdk-go/connector"
 	"github.com/hasura/ndc-sdk-go/scalar"
 	"github.com/hasura/ndc-sdk-go/utils"
@@ -31,16 +31,16 @@ func createTestServer(t *testing.T) *connector.Server[types.Configuration, types
 }
 
 func TestQueryGetTypes(t *testing.T) {
-	commentText := functions.CommentText{}
+	commentText := types.CommentText{}
 	assert.NoError(t, commentText.FromValue("a comment"))
-	commentTextPtr := functions.CommentText{}
+	commentTextPtr := types.CommentText{}
 	assert.NoError(t, commentTextPtr.FromValue("a comment pointer"))
 
 	testCases := []struct {
 		name     string
 		body     string
 		status   int
-		response functions.GetTypesArguments
+		response arguments.GetTypesArguments
 		errorMsg string
 	}{
 		{
@@ -1299,7 +1299,7 @@ func TestQueryGetTypes(t *testing.T) {
 				},
 				"collection_relationships": {}
 			}`,
-			response: functions.GetTypesArguments{
+			response: arguments.GetTypesArguments{
 				UUID:            uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5a"),
 				Bool:            true,
 				String:          "hello",
@@ -1318,7 +1318,7 @@ func TestQueryGetTypes(t *testing.T) {
 				Time:            time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC),
 				Text:            "text",
 				CustomScalar:    commentText,
-				Enum:            functions.SomeEnumFoo,
+				Enum:            types.SomeEnumFoo,
 				BigInt:          10000,
 				Date:            *scalar.NewDate(2024, 04, 02),
 				UUIDPtr:         utils.ToPtr(uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5b")),
@@ -1337,9 +1337,9 @@ func TestQueryGetTypes(t *testing.T) {
 				Float32Ptr:      utils.ToPtr(float32(3.3)),
 				Float64Ptr:      utils.ToPtr(float64(4.4)),
 				TimePtr:         utils.ToPtr(time.Date(2024, 3, 5, 7, 0, 0, 0, time.UTC)),
-				TextPtr:         utils.ToPtr(functions.Text("text pointer")),
+				TextPtr:         utils.ToPtr(types.Text("text pointer")),
 				CustomScalarPtr: &commentTextPtr,
-				EnumPtr:         utils.ToPtr(functions.SomeEnumBar),
+				EnumPtr:         utils.ToPtr(types.SomeEnumBar),
 				BigIntPtr:       utils.ToPtr(scalar.BigInt(20000)),
 				DatePtr:         scalar.NewDate(2024, 04, 03),
 				Object: struct {
@@ -1370,21 +1370,21 @@ func TestQueryGetTypes(t *testing.T) {
 						Content: "a content pointer",
 					},
 				},
-				NamedObject: functions.Author{
+				NamedObject: types.Author{
 					ID:        "1",
 					CreatedAt: time.Date(2024, 3, 5, 5, 0, 0, 0, time.UTC),
 				},
-				NamedObjectPtr: &functions.Author{
+				NamedObjectPtr: &types.Author{
 					ID:        "2",
 					CreatedAt: time.Date(2024, 3, 5, 4, 0, 0, 0, time.UTC),
 				},
-				NamedArray: []functions.Author{
+				NamedArray: []types.Author{
 					{
 						ID:        "3",
 						CreatedAt: time.Date(2024, 3, 5, 3, 0, 0, 0, time.UTC),
 					},
 				},
-				NamedArrayPtr: &[]functions.Author{
+				NamedArrayPtr: &[]types.Author{
 					{
 						ID:        "bPgG5cs38N",
 						CreatedAt: time.Date(2024, 3, 5, 2, 0, 0, 0, time.UTC),
@@ -1509,7 +1509,7 @@ func TestQueryGetTypes(t *testing.T) {
 				log.Print("response: ", string(respBody))
 				var results []struct {
 					Rows []struct {
-						Value functions.GetTypesArguments `json:"__value"`
+						Value arguments.GetTypesArguments `json:"__value"`
 					} `json:"rows,omitempty" mapstructure:"rows,omitempty"`
 				}
 				assert.NoError(t, json.Unmarshal(respBody, &results), "failed to decode response")
