@@ -2,43 +2,11 @@ package functions
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-codegen-example/types"
-	"github.com/hasura/ndc-sdk-go/utils"
 )
-
-// CommentText
-// @scalar CommentString string
-type CommentText struct {
-	comment string
-}
-
-func (c CommentText) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.comment)
-}
-
-func (c *CommentText) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
-		return err
-	}
-
-	c.comment = s
-
-	return nil
-}
-
-func (ct *CommentText) FromValue(value any) (err error) {
-	ct.comment, err = utils.DecodeString(value)
-	return
-}
-
-// SomeEnum
-// @enum foo, bar
-type SomeEnum string
 
 type GetArticlesArguments struct {
 	Limit float64
@@ -46,7 +14,7 @@ type GetArticlesArguments struct {
 
 type GetArticlesResult struct {
 	ID   string `json:"id"`
-	Name Text
+	Name types.Text
 }
 
 // GetArticles
@@ -67,15 +35,9 @@ type CreateArticleArguments struct {
 	} `json:"author"`
 }
 
-type Author struct {
-	ID        string    `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	Tags      []string  `json:"tags"`
-}
-
 type CreateArticleResult struct {
-	ID      uint     `json:"id"`
-	Authors []Author `json:"authors"`
+	ID      uint           `json:"id"`
+	Authors []types.Author `json:"authors"`
 }
 
 // CreateArticle
@@ -83,7 +45,7 @@ type CreateArticleResult struct {
 func CreateArticle(ctx context.Context, state *types.State, arguments *CreateArticleArguments) (*CreateArticleResult, error) {
 	return &CreateArticleResult{
 		ID:      1,
-		Authors: []Author{},
+		Authors: []types.Author{},
 	}, nil
 }
 
