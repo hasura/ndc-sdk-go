@@ -364,7 +364,7 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 	}
 	rawSchema.Imports[pkgTypes] = true
 
-	directories := args.Directories
+	tempDirs := args.Directories
 	if len(args.Directories) == 0 {
 		// recursively walk directories if the user don't explicitly specify target folders
 		entries, err := os.ReadDir(filePath)
@@ -375,20 +375,34 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 			if !entry.IsDir() {
 				continue
 			}
-
-			for _, globPath := range []string{path.Join(filePath, entry.Name(), "*.go"), path.Join(filePath, entry.Name(), "**", "*.go")} {
-				goFiles, err := filepath.Glob(globPath)
-				if err != nil {
-					return nil, fmt.Errorf("failed to read subdirectories of %s/%s: %s", filePath, entry.Name(), err)
+			tempDirs = append(tempDirs, entry.Name())
+		}
+	}
+	var directories []string
+	for _, dir := range tempDirs {
+		for _, globPath := range []string{path.Join(filePath, dir, "*.go"), path.Join(filePath, dir, "**", "*.go")} {
+			goFiles, err := filepath.Glob(globPath)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read subdirectories of %s/%s: %s", filePath, dir, err)
+			}
+			// cleanup types.generated.go files
+			fileCount := 0
+			for _, fp := range goFiles {
+				if !strings.HasSuffix(fp, typeMethodsOutputFile) {
+					fileCount++
+					continue
 				}
-
-				if len(goFiles) > 0 {
-					directories = append(directories, entry.Name())
-					break
+				if err := os.Remove(fp); err != nil {
+					return nil, fmt.Errorf("failed to delete %s: %s", fp, err)
 				}
+			}
+			if fileCount > 0 {
+				directories = append(directories, dir)
+				break
 			}
 		}
 	}
+
 	if len(directories) == 0 {
 		log.Info().Msgf("no subdirectory in %s", filePath)
 		return rawSchema, nil

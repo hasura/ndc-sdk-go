@@ -15,30 +15,28 @@ type MapEncoder interface {
 }
 
 // EncodeMap encodes an object to a map[string]any, using json tag to convert object keys
-func EncodeMap[T MapEncoder](input T) map[string]any {
-	if IsNil(input) {
-		return nil
-	}
-	return input.ToMap()
+func EncodeMap(input any) map[string]any {
+	result, _ := EncodeObject(input)
+	return result
 }
 
 // EncodeMaps encode objects to a slice of map[string]any, using json tag to convert object keys
-func EncodeMaps[T MapEncoder](inputs []T) []map[string]any {
+func EncodeMaps[T any](inputs []T) []map[string]any {
 	var results []map[string]any
 	for _, item := range inputs {
-		results = append(results, item.ToMap())
+		results = append(results, EncodeMap(item))
 	}
 	return results
 }
 
 // EncodeNullableMaps encode objects to a slice of map[string]any, using json tag to convert object keys
-func EncodeNullableMaps[T MapEncoder](inputs *[]T) []map[string]any {
+func EncodeNullableMaps[T any](inputs *[]T) []map[string]any {
 	if inputs == nil {
 		return nil
 	}
 	var results []map[string]any
 	for _, item := range *inputs {
-		results = append(results, item.ToMap())
+		results = append(results, EncodeMap(item))
 	}
 	return results
 }
