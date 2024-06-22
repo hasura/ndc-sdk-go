@@ -11,13 +11,13 @@ import (
 var types_Decoder = utils.NewDecoder()
 
 // ToMap encodes the struct to a value map
-func (j Author) ToMap() map[string]any {
+func (j Author) ToMap() (map[string]any, error) {
 	r := make(map[string]any)
 	r["created_at"] = j.CreatedAt
 	r["id"] = j.ID
 	r["tags"] = j.Tags
 
-	return r
+	return r, nil
 }
 
 // ScalarName get the schema name of the scalar
