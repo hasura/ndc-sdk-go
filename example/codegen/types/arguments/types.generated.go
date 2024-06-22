@@ -3,6 +3,7 @@ package arguments
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-codegen-example/types"
 	"github.com/hasura/ndc-sdk-go/scalar"
@@ -600,7 +601,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 }
 
 // ToMap encodes the struct to a value map
-func (j GetTypesArguments) ToMap() map[string]any {
+func (j GetTypesArguments) ToMap() (map[string]any, error) {
 	r := make(map[string]any)
 	r["ArrayBigInt"] = j.ArrayBigInt
 	r["ArrayBigIntPtr"] = j.ArrayBigIntPtr
@@ -690,19 +691,35 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["MapPtr"] = j.MapPtr
 	j_NamedArray := make([]map[string]any, len(j.NamedArray))
 	for i, j_NamedArray_v := range j.NamedArray {
-		j_NamedArray[i] = utils.EncodeMap(j_NamedArray_v)
+		itemResult, err := utils.EncodeObject(j_NamedArray_v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to encode NamedArray: %s", err)
+		}
+		j_NamedArray[i] = itemResult
 	}
 	r["NamedArray"] = j_NamedArray
 	if j.NamedArrayPtr != nil {
 		j_NamedArrayPtr := make([]map[string]any, len((*j.NamedArrayPtr)))
 		for i, j_NamedArrayPtr_v := range *j.NamedArrayPtr {
-			j_NamedArrayPtr[i] = utils.EncodeMap(j_NamedArrayPtr_v)
+			itemResult, err := utils.EncodeObject(j_NamedArrayPtr_v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to encode NamedArrayPtr: %s", err)
+			}
+			j_NamedArrayPtr[i] = itemResult
 		}
 		r["NamedArrayPtr"] = j_NamedArrayPtr
 	}
-	r["NamedObject"] = utils.EncodeMap(j.NamedObject)
+	itemResult, err := utils.EncodeObject(j.NamedObject)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode NamedObject: %s", err)
+	}
+	r["NamedObject"] = itemResult
 	if j.NamedObjectPtr != nil {
-		r["NamedObjectPtr"] = utils.EncodeMap((*j.NamedObjectPtr))
+		itemResult, err := utils.EncodeObject((*j.NamedObjectPtr))
+		if err != nil {
+			return nil, fmt.Errorf("failed to encode NamedObjectPtr: %s", err)
+		}
+		r["NamedObjectPtr"] = itemResult
 	}
 	j_Object_obj := make(map[string]any)
 	j_Object_obj["created_at"] = j.Object.CreatedAt
@@ -773,5 +790,5 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["Uint8Ptr"] = j.Uint8Ptr
 	r["UintPtr"] = j.UintPtr
 
-	return r
+	return r, nil
 }
