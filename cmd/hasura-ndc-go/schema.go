@@ -336,6 +336,7 @@ func (rcs RawConnectorSchema) IsCustomType(name string) bool {
 type SchemaParser struct {
 	context      context.Context
 	moduleName   string
+	rawSchema    *RawConnectorSchema
 	packages     []*packages.Package
 	packageIndex int
 }
@@ -436,9 +437,10 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 			moduleName:   moduleName,
 			packages:     packageList,
 			packageIndex: i,
+			rawSchema:    rawSchema,
 		}
 
-		err = sp.parseRawConnectorSchema(rawSchema, packageList[i].Types)
+		err = sp.parseRawConnectorSchema(packageList[i].Types)
 		parseSchemaTask.End()
 		if err != nil {
 			return nil, err
@@ -472,11 +474,11 @@ func evalPackageTypesLocation(name string, moduleName string, filePath string, c
 }
 
 // parse raw connector schema from Go code
-func (sp *SchemaParser) parseRawConnectorSchema(rawSchema *RawConnectorSchema, pkg *types.Package) error {
+func (sp *SchemaParser) parseRawConnectorSchema(pkg *types.Package) error {
 
 	for _, name := range pkg.Scope().Names() {
 		_, task := trace.NewTask(sp.context, fmt.Sprintf("parse_%s_schema_%s", sp.GetCurrentPackage().Name, name))
-		err := sp.parsePackageScope(rawSchema, pkg, name)
+		err := sp.parsePackageScope(pkg, name)
 		task.End()
 		if err != nil {
 			return err
@@ -486,7 +488,7 @@ func (sp *SchemaParser) parseRawConnectorSchema(rawSchema *RawConnectorSchema, p
 	return nil
 }
 
-func (sp *SchemaParser) parsePackageScope(rawSchema *RawConnectorSchema, pkg *types.Package, name string) error {
+func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error {
 	switch obj := pkg.Scope().Lookup(name).(type) {
 	case *types.Func:
 		// only parse public functions
@@ -521,7 +523,7 @@ func (sp *SchemaParser) parsePackageScope(rawSchema *RawConnectorSchema, pkg *ty
 		// ignore 2 first parameters (context and state)
 		if params.Len() == 3 {
 			arg := params.At(2)
-			arguments, argumentType, err := sp.parseArgumentTypes(rawSchema, arg.Type(), []string{})
+			arguments, argumentType, err := sp.parseArgumentTypes(arg.Type(), []string{})
 			if err != nil {
 				return err
 			}
@@ -529,7 +531,7 @@ func (sp *SchemaParser) parsePackageScope(rawSchema *RawConnectorSchema, pkg *ty
 			opInfo.Arguments = arguments
 		}
 
-		resultType, err := sp.parseType(rawSchema, nil, resultTuple.At(0).Type(), []string{}, false)
+		resultType, err := sp.parseType(nil, resultTuple.At(0).Type(), []string{}, false)
 		if err != nil {
 			return err
 		}
@@ -537,19 +539,19 @@ func (sp *SchemaParser) parsePackageScope(rawSchema *RawConnectorSchema, pkg *ty
 
 		switch opInfo.Kind {
 		case OperationProcedure:
-			rawSchema.Procedures = append(rawSchema.Procedures, ProcedureInfo(*opInfo))
+			sp.rawSchema.Procedures = append(sp.rawSchema.Procedures, ProcedureInfo(*opInfo))
 		case OperationFunction:
-			rawSchema.Functions = append(rawSchema.Functions, FunctionInfo(*opInfo))
+			sp.rawSchema.Functions = append(sp.rawSchema.Functions, FunctionInfo(*opInfo))
 		}
 	}
 	return nil
 }
 
-func (sp *SchemaParser) parseArgumentTypes(rawSchema *RawConnectorSchema, ty types.Type, fieldPaths []string) (map[string]ArgumentInfo, *TypeInfo, error) {
+func (sp *SchemaParser) parseArgumentTypes(ty types.Type, fieldPaths []string) (map[string]ArgumentInfo, *TypeInfo, error) {
 
 	switch inferredType := ty.(type) {
 	case *types.Pointer:
-		return sp.parseArgumentTypes(rawSchema, inferredType.Elem(), fieldPaths)
+		return sp.parseArgumentTypes(inferredType.Elem(), fieldPaths)
 	case *types.Struct:
 		result := make(map[string]ArgumentInfo)
 		for i := 0; i < inferredType.NumFields(); i++ {
@@ -563,7 +565,7 @@ func (sp *SchemaParser) parseArgumentTypes(rawSchema *RawConnectorSchema, ty typ
 					PackagePath: fieldPackage.Path(),
 				}
 			}
-			fieldType, err := sp.parseType(rawSchema, typeInfo, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false)
+			fieldType, err := sp.parseType(typeInfo, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -578,7 +580,7 @@ func (sp *SchemaParser) parseArgumentTypes(rawSchema *RawConnectorSchema, ty typ
 		}
 		return result, nil, nil
 	case *types.Named:
-		arguments, _, err := sp.parseArgumentTypes(rawSchema, inferredType.Obj().Type().Underlying(), append(fieldPaths, inferredType.Obj().Name()))
+		arguments, _, err := sp.parseArgumentTypes(inferredType.Obj().Type().Underlying(), append(fieldPaths, inferredType.Obj().Name()))
 		if err != nil {
 			return nil, nil, err
 		}
@@ -599,14 +601,14 @@ func (sp *SchemaParser) parseArgumentTypes(rawSchema *RawConnectorSchema, ty typ
 	}
 }
 
-func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeInfo, ty types.Type, fieldPaths []string, skipNullable bool) (*TypeInfo, error) {
+func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths []string, skipNullable bool) (*TypeInfo, error) {
 
 	switch inferredType := ty.(type) {
 	case *types.Pointer:
 		if skipNullable {
-			return sp.parseType(rawSchema, rootType, inferredType.Elem(), fieldPaths, false)
+			return sp.parseType(rootType, inferredType.Elem(), fieldPaths, false)
 		}
-		innerType, err := sp.parseType(rawSchema, rootType, inferredType.Elem(), fieldPaths, false)
+		innerType, err := sp.parseType(rootType, inferredType.Elem(), fieldPaths, false)
 		if err != nil {
 			return nil, err
 		}
@@ -653,10 +655,14 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			IsAnonymous: isAnonymous,
 			Fields:      map[string]*ObjectField{},
 		}
+		// temporarily add the object type to raw schema to avoid infinite loop
+		sp.rawSchema.ObjectSchemas[rootType.Name] = objType
+		sp.rawSchema.Objects[rootType.Name] = objFields
+
 		for i := 0; i < inferredType.NumFields(); i++ {
 			fieldVar := inferredType.Field(i)
 			fieldTag := inferredType.Tag(i)
-			fieldType, err := sp.parseType(rawSchema, nil, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false)
+			fieldType, err := sp.parseType(nil, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false)
 			if err != nil {
 				return nil, err
 			}
@@ -670,8 +676,8 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 				Type: fieldType,
 			}
 		}
-		rawSchema.ObjectSchemas[rootType.Name] = objType
-		rawSchema.Objects[rootType.Name] = objFields
+		sp.rawSchema.ObjectSchemas[rootType.Name] = objType
+		sp.rawSchema.Objects[rootType.Name] = objFields
 
 		return rootType, nil
 	case *types.Named:
@@ -682,19 +688,27 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		}
 
 		innerPkg := innerType.Pkg()
-		var packagePath string
-		if innerPkg != nil {
-			packagePath = innerPkg.Path()
+		if _, ok := sp.rawSchema.Objects[innerType.Name()]; ok {
+			ty := &TypeInfo{
+				Name:          innerType.Name(),
+				SchemaName:    innerType.Name(),
+				PackageName:   innerPkg.Name(),
+				PackagePath:   innerPkg.Path(),
+				TypeAST:       innerType.Type(),
+				Schema:        schema.NewNamedType(innerType.Name()),
+				TypeFragments: []string{innerType.Name()},
+			}
+			return ty, nil
 		}
 
-		typeInfo, err := sp.parseTypeInfoFromComments(innerType.Name(), packagePath, innerType.Parent())
+		typeInfo, err := sp.parseTypeInfoFromComments(innerType.Name(), innerPkg.Path(), innerType.Parent())
 		if err != nil {
 			return nil, err
 		}
 		if innerPkg != nil {
 			var scalarName ScalarName
 			typeInfo.PackageName = innerPkg.Name()
-			typeInfo.PackagePath = packagePath
+			typeInfo.PackagePath = innerPkg.Path()
 			scalarSchema := schema.NewScalarType()
 
 			switch innerPkg.Path() {
@@ -734,13 +748,13 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 				typeInfo.IsScalar = true
 				typeInfo.Schema = schema.NewNamedType(string(scalarName))
 				typeInfo.TypeAST = ty
-				rawSchema.ScalarSchemas[string(scalarName)] = *scalarSchema
+				sp.rawSchema.ScalarSchemas[string(scalarName)] = *scalarSchema
 				return typeInfo, nil
 			}
 		}
 
 		if typeInfo.IsScalar {
-			rawSchema.CustomScalars[typeInfo.Name] = typeInfo
+			sp.rawSchema.CustomScalars[typeInfo.Name] = typeInfo
 			scalarSchema := schema.NewScalarType()
 			if typeInfo.ScalarRepresentation != nil {
 				scalarSchema.Representation = typeInfo.ScalarRepresentation
@@ -748,38 +762,38 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 				// requires representation since NDC spec v0.1.2
 				scalarSchema.Representation = schema.NewTypeRepresentationJSON().Encode()
 			}
-			rawSchema.ScalarSchemas[typeInfo.SchemaName] = *scalarSchema
+			sp.rawSchema.ScalarSchemas[typeInfo.SchemaName] = *scalarSchema
 			return typeInfo, nil
 		}
 
-		return sp.parseType(rawSchema, typeInfo, innerType.Type().Underlying(), append(fieldPaths, innerType.Name()), false)
+		return sp.parseType(typeInfo, innerType.Type().Underlying(), append(fieldPaths, innerType.Name()), false)
 	case *types.Basic:
 		var scalarName ScalarName
 		switch inferredType.Kind() {
 		case types.Bool:
 			scalarName = ScalarBoolean
-			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
+			sp.rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
 		case types.Int8, types.Uint8:
 			scalarName = ScalarInt8
-			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
+			sp.rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
 		case types.Int16, types.Uint16:
 			scalarName = ScalarInt16
-			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
+			sp.rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
 		case types.Int, types.Int32, types.Uint, types.Uint32:
 			scalarName = ScalarInt32
-			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
+			sp.rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
 		case types.Int64, types.Uint64:
 			scalarName = ScalarInt64
-			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
+			sp.rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
 		case types.Float32:
 			scalarName = ScalarFloat32
-			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
+			sp.rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
 		case types.Float64:
 			scalarName = ScalarFloat64
-			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
+			sp.rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
 		case types.String:
 			scalarName = ScalarString
-			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
+			sp.rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
 		default:
 			return nil, fmt.Errorf("%s: unsupported scalar type <%s>", strings.Join(fieldPaths, "."), inferredType.String())
 		}
@@ -797,7 +811,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 
 		return rootType, nil
 	case *types.Array:
-		innerType, err := sp.parseType(rawSchema, nil, inferredType.Elem(), fieldPaths, false)
+		innerType, err := sp.parseType(nil, inferredType.Elem(), fieldPaths, false)
 		if err != nil {
 			return nil, err
 		}
@@ -805,7 +819,7 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 		innerType.Schema = schema.NewArrayType(innerType.Schema)
 		return innerType, nil
 	case *types.Slice:
-		innerType, err := sp.parseType(rawSchema, nil, inferredType.Elem(), fieldPaths, false)
+		innerType, err := sp.parseType(nil, inferredType.Elem(), fieldPaths, false)
 		if err != nil {
 			return nil, err
 		}
@@ -825,8 +839,8 @@ func (sp *SchemaParser) parseType(rawSchema *RawConnectorSchema, rootType *TypeI
 			rootType.PackagePath = ""
 		}
 
-		if _, ok := rawSchema.ScalarSchemas[string(scalarName)]; !ok {
-			rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
+		if _, ok := sp.rawSchema.ScalarSchemas[string(scalarName)]; !ok {
+			sp.rawSchema.ScalarSchemas[string(scalarName)] = defaultScalarTypes[scalarName]
 		}
 		rootType.TypeFragments = append(rootType.TypeFragments, inferredType.String())
 		rootType.Schema = schema.NewNamedType(string(scalarName))

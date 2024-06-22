@@ -107,11 +107,7 @@ func (d Decoder) decodeValue(target any, value any) error {
 		case map[string]any:
 			return t.FromValue(v)
 		case MapEncoder:
-			object, err := v.ToMap()
-			if err != nil {
-				return err
-			}
-			return t.FromValue(object)
+			return t.FromValue(v.ToMap())
 		default:
 			return errors.New("the value must be an object-liked")
 		}
@@ -1298,11 +1294,7 @@ func decodeValueHookFunc() mapstructure.DecodeHookFunc {
 			case map[string]any:
 				err = objDecoder.FromValue(v)
 			case MapEncoder:
-				object, toMapErr := v.ToMap()
-				if toMapErr != nil {
-					return nil, toMapErr
-				}
-				mapValue := object
+				mapValue := v.ToMap()
 				err = objDecoder.FromValue(mapValue)
 			}
 			if err != nil {
