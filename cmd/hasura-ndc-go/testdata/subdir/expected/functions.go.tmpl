@@ -8,6 +8,10 @@ var functions_Decoder = utils.NewDecoder()
 // FromValue decodes values from map
 func (j *GetArticlesArguments) FromValue(input map[string]any) error {
   var err error
+  err = functions_Decoder.DecodeObjectValue(&j.Author, input, "Author")
+    if err != nil {
+		  return err
+    }
   j.Limit, err = utils.GetFloat[float64](input, "Limit")
     if err != nil {
 		  return err
@@ -15,9 +19,10 @@ func (j *GetArticlesArguments) FromValue(input map[string]any) error {
   return nil
 }
 // ToMap encodes the struct to a value map
-func (j GetArticlesResult) ToMap() (map[string]any, error) {
+func (j GetArticlesResult) ToMap() map[string]any {
   r := make(map[string]any)
-  r["id"] = j.ID
+  r["Author"] = j.Author
+		  r["id"] = j.ID
 
-	return r, nil
+	return r
 }

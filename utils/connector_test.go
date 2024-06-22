@@ -88,6 +88,42 @@ func TestEvalNestedFields(t *testing.T) {
 				},
 			},
 		},
+		{
+			Name: "rename_fields",
+			Input: struct {
+				ID       string `json:"id"`
+				Name     string `json:"name"`
+				Articles []struct {
+					Name string
+				} `json:"articles"`
+			}{
+				ID:   "1",
+				Name: "John",
+				Articles: []struct {
+					Name string
+				}{
+					{
+						Name: "Article 1",
+					},
+				},
+			},
+			Selection: schema.NewNestedObject(map[string]schema.FieldEncoder{
+				"id":   schema.NewColumnField("id", nil),
+				"Name": schema.NewColumnField("name", nil),
+				"articles": schema.NewColumnField("articles", schema.NewNestedArray(schema.NewNestedObject(map[string]schema.FieldEncoder{
+					"name": schema.NewColumnField("Name", nil),
+				}))),
+			}).Encode(),
+			Expected: map[string]any{
+				"id":   "1",
+				"Name": "John",
+				"articles": []map[string]any{
+					{
+						"name": "Article 1",
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {

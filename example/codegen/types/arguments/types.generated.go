@@ -3,7 +3,6 @@ package arguments
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-codegen-example/types"
 	"github.com/hasura/ndc-sdk-go/scalar"
@@ -601,7 +600,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 }
 
 // ToMap encodes the struct to a value map
-func (j GetTypesArguments) ToMap() (map[string]any, error) {
+func (j GetTypesArguments) ToMap() map[string]any {
 	r := make(map[string]any)
 	r["ArrayBigInt"] = j.ArrayBigInt
 	r["ArrayBigIntPtr"] = j.ArrayBigIntPtr
@@ -625,7 +624,7 @@ func (j GetTypesArguments) ToMap() (map[string]any, error) {
 	r["ArrayJSONPtr"] = j.ArrayJSONPtr
 	r["ArrayMap"] = j.ArrayMap
 	r["ArrayMapPtr"] = j.ArrayMapPtr
-	j_ArrayObject := make([]map[string]any, len(j.ArrayObject))
+	j_ArrayObject := make([]any, len(j.ArrayObject))
 	for i, j_ArrayObject_v := range j.ArrayObject {
 		j_ArrayObject_v_obj := make(map[string]any)
 		j_ArrayObject_v_obj["content"] = j_ArrayObject_v.Content
@@ -633,7 +632,7 @@ func (j GetTypesArguments) ToMap() (map[string]any, error) {
 	}
 	r["ArrayObject"] = j_ArrayObject
 	if j.ArrayObjectPtr != nil {
-		j_ArrayObjectPtr := make([]map[string]any, len((*j.ArrayObjectPtr)))
+		j_ArrayObjectPtr := make([]any, len((*j.ArrayObjectPtr)))
 		for i, j_ArrayObjectPtr_v := range *j.ArrayObjectPtr {
 			j_ArrayObjectPtr_v_obj := make(map[string]any)
 			j_ArrayObjectPtr_v_obj["content"] = j_ArrayObjectPtr_v.Content
@@ -689,37 +688,21 @@ func (j GetTypesArguments) ToMap() (map[string]any, error) {
 	r["JSONPtr"] = j.JSONPtr
 	r["Map"] = j.Map
 	r["MapPtr"] = j.MapPtr
-	j_NamedArray := make([]map[string]any, len(j.NamedArray))
+	j_NamedArray := make([]any, len(j.NamedArray))
 	for i, j_NamedArray_v := range j.NamedArray {
-		itemResult, err := utils.EncodeObject(j_NamedArray_v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to encode NamedArray: %s", err)
-		}
-		j_NamedArray[i] = itemResult
+		j_NamedArray[i] = j_NamedArray_v
 	}
 	r["NamedArray"] = j_NamedArray
 	if j.NamedArrayPtr != nil {
-		j_NamedArrayPtr := make([]map[string]any, len((*j.NamedArrayPtr)))
+		j_NamedArrayPtr := make([]any, len((*j.NamedArrayPtr)))
 		for i, j_NamedArrayPtr_v := range *j.NamedArrayPtr {
-			itemResult, err := utils.EncodeObject(j_NamedArrayPtr_v)
-			if err != nil {
-				return nil, fmt.Errorf("failed to encode NamedArrayPtr: %s", err)
-			}
-			j_NamedArrayPtr[i] = itemResult
+			j_NamedArrayPtr[i] = j_NamedArrayPtr_v
 		}
 		r["NamedArrayPtr"] = j_NamedArrayPtr
 	}
-	itemResult, err := utils.EncodeObject(j.NamedObject)
-	if err != nil {
-		return nil, fmt.Errorf("failed to encode NamedObject: %s", err)
-	}
-	r["NamedObject"] = itemResult
+	r["NamedObject"] = j.NamedObject
 	if j.NamedObjectPtr != nil {
-		itemResult, err := utils.EncodeObject((*j.NamedObjectPtr))
-		if err != nil {
-			return nil, fmt.Errorf("failed to encode NamedObjectPtr: %s", err)
-		}
-		r["NamedObjectPtr"] = itemResult
+		r["NamedObjectPtr"] = (*j.NamedObjectPtr)
 	}
 	j_Object_obj := make(map[string]any)
 	j_Object_obj["created_at"] = j.Object.CreatedAt
@@ -790,5 +773,5 @@ func (j GetTypesArguments) ToMap() (map[string]any, error) {
 	r["Uint8Ptr"] = j.Uint8Ptr
 	r["UintPtr"] = j.UintPtr
 
-	return r, nil
+	return r
 }

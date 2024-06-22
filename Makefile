@@ -52,7 +52,7 @@ clean:
 	rm -f cmd/hasura-ndc-go/testdata/*/source/schema.generated.json
 	rm -f cmd/hasura-ndc-go/testdata/*/source/**/schema.generated.json
 	rm -f cmd/hasura-ndc-go/testdata/*/source/**/types.generated.go
-	rm -rf cmd/hasura-ndc-go/testdata/*/source/testdata
+	rm -rf cmd/hasura-ndc-go/testdata/**/testdata
 
 .PHONY: build-codegen
 build-codegen:

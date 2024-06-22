@@ -165,12 +165,12 @@ func evalObjectWithColumnSelection(fields map[string]schema.Field, data map[stri
 					if err != nil {
 						return nil, err
 					}
-					output[fi.Column] = nestedValue
+					output[key] = nestedValue
 				} else {
-					output[fi.Column] = col
+					output[key] = col
 				}
 			} else {
-				output[fi.Column] = nil
+				output[key] = nil
 			}
 		case *schema.RelationshipField:
 			return nil, &schema.ErrorResponse{
