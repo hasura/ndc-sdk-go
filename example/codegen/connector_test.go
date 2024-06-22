@@ -16,6 +16,7 @@ import (
 	"github.com/hasura/ndc-sdk-go/connector"
 	"github.com/hasura/ndc-sdk-go/scalar"
 	"github.com/hasura/ndc-sdk-go/utils"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +24,7 @@ func createTestServer(t *testing.T) *connector.Server[types.Configuration, types
 	server, err := connector.NewServer[types.Configuration, types.State](&Connector{}, &connector.ServerOptions{
 		Configuration: "{}",
 		InlineConfig:  true,
-	}, connector.WithoutRecovery())
+	}, connector.WithoutRecovery(), connector.WithLogger(zerolog.Nop()))
 
 	assert.NoError(t, err)
 
