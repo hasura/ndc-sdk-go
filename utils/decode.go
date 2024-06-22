@@ -107,7 +107,10 @@ func (d Decoder) decodeValue(target any, value any) error {
 		case map[string]any:
 			return t.FromValue(v)
 		case MapEncoder:
-			object := v.ToMap()
+			object, err := v.ToMap()
+			if err != nil {
+				return err
+			}
 			return t.FromValue(object)
 		default:
 			return errors.New("the value must be an object-liked")
@@ -1051,13 +1054,6 @@ func GetNullableBoolean(object map[string]any, key string) (*bool, error) {
 	return result, nil
 }
 
-// GetNullableBool get a bool pointer from object by key
-//
-// Deprecated: use GetNullableBoolean instead
-func GetNullableBool(object map[string]any, key string) (*bool, error) {
-	return GetNullableBoolean(object, key)
-}
-
 // GetBoolean get a bool value from object by key
 func GetBoolean(object map[string]any, key string) (bool, error) {
 	value, ok := GetAny(object, key)
@@ -1069,13 +1065,6 @@ func GetBoolean(object map[string]any, key string) (bool, error) {
 		return result, fmt.Errorf("%s: %s", key, err)
 	}
 	return result, nil
-}
-
-// GetBool get a bool pointer from object by key
-//
-// Deprecated: use GetBoolean instead
-func GetBool(object map[string]any, key string) (bool, error) {
-	return GetBoolean(object, key)
 }
 
 // GetNullableDateTime get a time.Time pointer from object by key
@@ -1194,13 +1183,6 @@ func GetUUID(object map[string]any, key string) (uuid.UUID, error) {
 	return result, nil
 }
 
-// GetObjectUUID get an UUID value from object by key
-//
-// Deprecated: use GetUUID instead
-func GetObjectUUID(object map[string]any, key string) (uuid.UUID, error) {
-	return GetUUID(object, key)
-}
-
 // GetNullableUUID get an UUID pointer from object by key
 func GetNullableUUID(object map[string]any, key string) (*uuid.UUID, error) {
 	value, ok := GetAny(object, key)
@@ -1214,13 +1196,6 @@ func GetNullableUUID(object map[string]any, key string) (*uuid.UUID, error) {
 	return result, nil
 }
 
-// GetNullableObjectUUID get an UUID pointer from object by key
-//
-// Deprecated: use GetNullableUUID instead
-func GetNullableObjectUUID(object map[string]any, key string) (*uuid.UUID, error) {
-	return GetNullableUUID(object, key)
-}
-
 // GetRawJSON get a raw json.RawMessage value from object by key
 func GetRawJSON(object map[string]any, key string) (json.RawMessage, error) {
 	value, ok := GetAny(object, key)
@@ -1232,13 +1207,6 @@ func GetRawJSON(object map[string]any, key string) (json.RawMessage, error) {
 		return nil, err
 	}
 	return *result, nil
-}
-
-// GetObjectRawJSON get a raw json.RawMessage value from object by key
-//
-// Deprecated: use GetRawJSON instead
-func GetObjectRawJSON(object map[string]any, key string) (json.RawMessage, error) {
-	return GetRawJSON(object, key)
 }
 
 // DecodeNullableRawJSON decodes a raw json.RawMessage pointer from object by key
@@ -1270,13 +1238,6 @@ func GetNullableRawJSON(object map[string]any, key string) (*json.RawMessage, er
 		return nil, nil
 	}
 	return DecodeNullableRawJSON(value)
-}
-
-// GetNullableObjectRawJSON get a raw json.RawMessage pointer from object by key
-//
-// Deprecated: use GetNullableRawJSON instead
-func GetNullableObjectRawJSON(object map[string]any, key string) (*json.RawMessage, error) {
-	return GetNullableRawJSON(object, key)
 }
 
 func decodeAnyValue(target any, value any, decodeHook mapstructure.DecodeHookFunc) error {
@@ -1337,7 +1298,11 @@ func decodeValueHookFunc() mapstructure.DecodeHookFunc {
 			case map[string]any:
 				err = objDecoder.FromValue(v)
 			case MapEncoder:
-				mapValue := v.ToMap()
+				object, toMapErr := v.ToMap()
+				if toMapErr != nil {
+					return nil, toMapErr
+				}
+				mapValue := object
 				err = objDecoder.FromValue(mapValue)
 			}
 			if err != nil {

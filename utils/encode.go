@@ -11,36 +11,7 @@ import (
 
 // MapEncoder abstracts a type with the ToMap method to encode type to map
 type MapEncoder interface {
-	ToMap() map[string]any
-}
-
-// EncodeMap encodes an object to a map[string]any, using json tag to convert object keys
-func EncodeMap[T MapEncoder](input T) map[string]any {
-	if IsNil(input) {
-		return nil
-	}
-	return input.ToMap()
-}
-
-// EncodeMaps encode objects to a slice of map[string]any, using json tag to convert object keys
-func EncodeMaps[T MapEncoder](inputs []T) []map[string]any {
-	var results []map[string]any
-	for _, item := range inputs {
-		results = append(results, item.ToMap())
-	}
-	return results
-}
-
-// EncodeNullableMaps encode objects to a slice of map[string]any, using json tag to convert object keys
-func EncodeNullableMaps[T MapEncoder](inputs *[]T) []map[string]any {
-	if inputs == nil {
-		return nil
-	}
-	var results []map[string]any
-	for _, item := range *inputs {
-		results = append(results, item.ToMap())
-	}
-	return results
+	ToMap() (map[string]any, error)
 }
 
 // EncodeObject encodes an unknown type to a map[string]any, using json tag to convert object keys
@@ -51,9 +22,17 @@ func EncodeObject(input any) (map[string]any, error) {
 	return encodeObject(input, "")
 }
 
-// EncodeObjectSlice encodes array of unknown type to map[string]any slice, using json tag to convert object keys
+// EncodeObjectSlice encodes an array of unknown type to map[string]any slice, using json tag to convert object keys
 func EncodeObjectSlice[T any](input []T) ([]map[string]any, error) {
 	return encodeObjectSlice(input, "")
+}
+
+// EncodeNullableObjectSlice encodes the pointer array of unknown type to map[string]any slice, using json tag to convert object keys
+func EncodeNullableObjectSlice[T any](inputs *[]T) ([]map[string]any, error) {
+	if inputs == nil {
+		return nil, nil
+	}
+	return encodeObjectSlice(*inputs, "")
 }
 
 func encodeObjectSlice[T any](input []T, fieldPath string) ([]map[string]any, error) {
@@ -74,7 +53,7 @@ func encodeObject(input any, fieldPath string) (map[string]any, error) {
 	case map[string]any:
 		return value, nil
 	case MapEncoder:
-		return value.ToMap(), nil
+		return value.ToMap()
 	case Scalar:
 		return nil, &schema.ErrorResponse{
 			Message: "cannot encode scalar to object",

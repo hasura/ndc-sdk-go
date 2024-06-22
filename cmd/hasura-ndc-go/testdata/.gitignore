@@ -1,4 +1,4 @@
-dist/
-testdata/
+**/testdata
+**/dist/
 *.generated.go
 schema.generated.json

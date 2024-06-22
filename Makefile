@@ -47,10 +47,12 @@ lint:
 .PHONY: clean
 clean:
 	rm -rf "$(OUTPUT_DIR)"
+	rm -f cmd/hasura-ndc-go/testdata/*/source/connector.generated.go
 	rm -f cmd/hasura-ndc-go/testdata/*/source/**/connector.generated.go
+	rm -f cmd/hasura-ndc-go/testdata/*/source/schema.generated.json
 	rm -f cmd/hasura-ndc-go/testdata/*/source/**/schema.generated.json
 	rm -f cmd/hasura-ndc-go/testdata/*/source/**/types.generated.go
-	rm -rf cmd/hasura-ndc-go/testdata/*/source/**/testdata
+	rm -rf cmd/hasura-ndc-go/testdata/*/source/testdata
 
 .PHONY: build-codegen
 build-codegen:

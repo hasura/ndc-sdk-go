@@ -393,12 +393,12 @@ func (cg *connectorGenerator) genObjectMethods() error {
 		sb := cg.getOrCreateTypeBuilder(object.PackagePath)
 		sb.builder.WriteString(fmt.Sprintf(`
 // ToMap encodes the struct to a value map
-func (j %s) ToMap() map[string]any {
+func (j %s) ToMap() (map[string]any, error) {
   r := make(map[string]any)
 `, objectName))
 		cg.genObjectToMap(sb, object, "j", "r")
 		sb.builder.WriteString(`
-	return r
+	return r, nil
 }`)
 	}
 
@@ -443,7 +443,13 @@ func (cg *connectorGenerator) genToMapProperty(sb *connectorTypeBuilder, field *
 
 	isAnonymous := strings.HasPrefix(strings.Join(fragments, ""), "struct{")
 	if !isAnonymous {
-		sb.builder.WriteString(fmt.Sprintf("  %s = utils.EncodeMap(%s)\n", assigner, selector))
+		sb.SetImport("fmt", "")
+		sb.builder.WriteString(fmt.Sprintf(`  itemResult, err := utils.EncodeObject(%s)
+  if err != nil {
+    return nil, fmt.Errorf("failed to encode %s: %%s", err)
+	}
+  %s = itemResult
+		`, selector, field.Name, assigner))
 		return selector
 	}
 	innerObject, ok := cg.rawSchema.Objects[ty.Name]
