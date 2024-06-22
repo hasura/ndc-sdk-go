@@ -3,15 +3,18 @@ package functions
 import (
 	"context"
 
+	example "github.com/hasura/ndc-codegen-example/types"
 	"github.com/hasura/ndc-codegen-subdir-test/types"
 )
 
 type GetArticlesArguments struct {
 	Limit float64
+	example.Author
 }
 
 type GetArticlesResult struct {
 	ID string `json:"id"`
+	example.Author
 }
 
 // GetArticles

@@ -386,18 +386,18 @@ func (cg *connectorGenerator) genObjectMethods() error {
 
 	for _, objectName := range objectKeys {
 		object := cg.rawSchema.Objects[objectName]
-		if object.IsAnonymous {
+		if object.IsAnonymous || !strings.HasPrefix(object.PackagePath, cg.moduleName) {
 			continue
 		}
 		sb := cg.getOrCreateTypeBuilder(object.PackagePath)
 		sb.builder.WriteString(fmt.Sprintf(`
 // ToMap encodes the struct to a value map
-func (j %s) ToMap() (map[string]any, error) {
+func (j %s) ToMap() map[string]any {
   r := make(map[string]any)
 `, objectName))
 		cg.genObjectToMap(sb, object, "j", "r")
 		sb.builder.WriteString(`
-	return r, nil
+	return r
 }`)
 	}
 
@@ -432,7 +432,7 @@ func (cg *connectorGenerator) genToMapProperty(sb *connectorTypeBuilder, field *
 	if isArrayFragments(fragments) {
 		varName := formatLocalFieldName(selector)
 		valueName := fmt.Sprintf("%s_v", varName)
-		sb.builder.WriteString(fmt.Sprintf("  %s := make([]map[string]any, len(%s))\n", varName, selector))
+		sb.builder.WriteString(fmt.Sprintf("  %s := make([]any, len(%s))\n", varName, selector))
 		sb.builder.WriteString(fmt.Sprintf("  for i, %s := range %s {\n", valueName, selector))
 		cg.genToMapProperty(sb, field, valueName, fmt.Sprintf("%s[i]", varName), ty, fragments[1:])
 		sb.builder.WriteString("  }\n")
@@ -442,13 +442,8 @@ func (cg *connectorGenerator) genToMapProperty(sb *connectorTypeBuilder, field *
 
 	isAnonymous := strings.HasPrefix(strings.Join(fragments, ""), "struct{")
 	if !isAnonymous {
-		sb.SetImport("fmt", "")
-		sb.builder.WriteString(fmt.Sprintf(`  itemResult, err := utils.EncodeObject(%s)
-  if err != nil {
-    return nil, fmt.Errorf("failed to encode %s: %%s", err)
-	}
-  %s = itemResult
-		`, selector, field.Name, assigner))
+		sb.builder.WriteString(fmt.Sprintf(`  %s = %s
+		`, assigner, selector))
 		return selector
 	}
 	innerObject, ok := cg.rawSchema.Objects[ty.Name]

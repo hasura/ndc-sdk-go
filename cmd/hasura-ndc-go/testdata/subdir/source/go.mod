@@ -3,10 +3,11 @@ module github.com/hasura/ndc-codegen-subdir-test
 go 1.19
 
 require (
-	github.com/hasura/ndc-sdk-go v0.6.0
+	github.com/hasura/ndc-sdk-go v0.6.2
 	github.com/rs/zerolog v1.33.0
 	go.opentelemetry.io/otel v1.17.0
 	go.opentelemetry.io/otel/trace v1.17.0
+	github.com/hasura/ndc-codegen-example v0.6.2
 )
 
 require (
@@ -50,3 +51,5 @@ require (
 )
 
 replace github.com/hasura/ndc-sdk-go => ../../../../../
+
+replace github.com/hasura/ndc-codegen-example => ../../../../../example/codegen

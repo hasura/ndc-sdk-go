@@ -2,7 +2,6 @@
 package functions
 
 import (
-	"fmt"
 	"github.com/hasura/ndc-sdk-go/utils"
 )
 
@@ -19,50 +18,46 @@ func (j *GetArticlesArguments) FromValue(input map[string]any) error {
 }
 
 // ToMap encodes the struct to a value map
-func (j CreateArticleResult) ToMap() (map[string]any, error) {
+func (j CreateArticleResult) ToMap() map[string]any {
 	r := make(map[string]any)
-	j_Authors := make([]map[string]any, len(j.Authors))
+	j_Authors := make([]any, len(j.Authors))
 	for i, j_Authors_v := range j.Authors {
-		itemResult, err := utils.EncodeObject(j_Authors_v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to encode Authors: %s", err)
-		}
-		j_Authors[i] = itemResult
+		j_Authors[i] = j_Authors_v
 	}
 	r["authors"] = j_Authors
 	r["id"] = j.ID
 
-	return r, nil
+	return r
 }
 
 // ToMap encodes the struct to a value map
-func (j CreateAuthorResult) ToMap() (map[string]any, error) {
+func (j CreateAuthorResult) ToMap() map[string]any {
 	r := make(map[string]any)
 	r["created_at"] = j.CreatedAt
 	r["id"] = j.ID
 	r["name"] = j.Name
 
-	return r, nil
+	return r
 }
 
 // ToMap encodes the struct to a value map
-func (j GetArticlesResult) ToMap() (map[string]any, error) {
+func (j GetArticlesResult) ToMap() map[string]any {
 	r := make(map[string]any)
 	r["id"] = j.ID
 	r["Name"] = j.Name
 
-	return r, nil
+	return r
 }
 
 // ToMap encodes the struct to a value map
-func (j HelloResult) ToMap() (map[string]any, error) {
+func (j HelloResult) ToMap() map[string]any {
 	r := make(map[string]any)
 	r["foo"] = j.Foo
 	r["id"] = j.ID
 	r["num"] = j.Num
 	r["text"] = j.Text
 
-	return r, nil
+	return r
 }
 
 // ScalarName get the schema name of the scalar

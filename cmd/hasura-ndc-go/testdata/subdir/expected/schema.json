@@ -3,6 +3,12 @@
   "functions": [
     {
       "arguments": {
+        "Author": {
+          "type": {
+            "name": "Author",
+            "type": "named"
+          }
+        },
         "Limit": {
           "type": {
             "name": "Float64",
@@ -22,8 +28,48 @@
     }
   ],
   "object_types": {
+    "Author": {
+      "fields": {
+        "author": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Author",
+              "type": "named"
+            }
+          }
+        },
+        "created_at": {
+          "type": {
+            "name": "TimestampTZ",
+            "type": "named"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "tags": {
+          "type": {
+            "element_type": {
+              "name": "String",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        }
+      }
+    },
     "GetArticlesResult": {
       "fields": {
+        "Author": {
+          "type": {
+            "name": "Author",
+            "type": "named"
+          }
+        },
         "id": {
           "type": {
             "name": "String",
@@ -47,6 +93,13 @@
       "comparison_operators": {},
       "representation": {
         "type": "string"
+      }
+    },
+    "TimestampTZ": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "timestamptz"
       }
     }
   }

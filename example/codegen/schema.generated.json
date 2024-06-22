@@ -1437,6 +1437,15 @@
   "object_types": {
     "Author": {
       "fields": {
+        "author": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Author",
+              "type": "named"
+            }
+          }
+        },
         "created_at": {
           "type": {
             "name": "TimestampTZ",

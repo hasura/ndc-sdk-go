@@ -11,7 +11,42 @@ import (
 
 // MapEncoder abstracts a type with the ToMap method to encode type to map
 type MapEncoder interface {
-	ToMap() (map[string]any, error)
+	ToMap() map[string]any
+}
+
+// EncodeMap encodes an object to a map[string]any, using json tag to convert object keys
+//
+// Deprecated: use EncodeObject instead
+func EncodeMap[T MapEncoder](input T) map[string]any {
+	if IsNil(input) {
+		return nil
+	}
+	return input.ToMap()
+}
+
+// EncodeMaps encode objects to a slice of map[string]any, using json tag to convert object keys
+//
+// Deprecated: use EncodeObjectSlice instead
+func EncodeMaps[T MapEncoder](inputs []T) []map[string]any {
+	var results []map[string]any
+	for _, item := range inputs {
+		results = append(results, item.ToMap())
+	}
+	return results
+}
+
+// EncodeNullableMaps encode objects to a slice of map[string]any, using json tag to convert object keys
+//
+// Deprecated: use EncodeNullableObjectSlice instead
+func EncodeNullableMaps[T MapEncoder](inputs *[]T) []map[string]any {
+	if inputs == nil {
+		return nil
+	}
+	var results []map[string]any
+	for _, item := range *inputs {
+		results = append(results, item.ToMap())
+	}
+	return results
 }
 
 // EncodeObject encodes an unknown type to a map[string]any, using json tag to convert object keys
@@ -53,7 +88,7 @@ func encodeObject(input any, fieldPath string) (map[string]any, error) {
 	case map[string]any:
 		return value, nil
 	case MapEncoder:
-		return value.ToMap()
+		return value.ToMap(), nil
 	case Scalar:
 		return nil, &schema.ErrorResponse{
 			Message: "cannot encode scalar to object",
@@ -75,7 +110,11 @@ func encodeObject(input any, fieldPath string) (map[string]any, error) {
 		kind := inputValue.Kind()
 		switch kind {
 		case reflect.Pointer:
-			return encodeObject(inputValue.Elem().Interface(), fieldPath)
+			v, ok := UnwrapPointerFromReflectValue(inputValue)
+			if !ok {
+				return nil, nil
+			}
+			return encodeObject(v.Interface(), fieldPath)
 		case reflect.Struct:
 			return encodeStruct(inputValue), nil
 		default:
@@ -171,10 +210,10 @@ func EncodeObjects(input any) ([]map[string]any, error) {
 }
 
 func encodeObjects(input any, fieldPath string) ([]map[string]any, error) {
-	if IsNil(input) {
+	inputValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(input))
+	if !ok {
 		return nil, nil
 	}
-	inputValue := reflect.ValueOf(input)
 	inputKind := inputValue.Kind()
 	if inputKind != reflect.Array && inputKind != reflect.Slice {
 		return nil, &schema.ErrorResponse{
