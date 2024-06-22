@@ -15,9 +15,9 @@ func (j *GetArticlesArguments) FromValue(input map[string]any) error {
   return nil
 }
 // ToMap encodes the struct to a value map
-func (j GetArticlesResult) ToMap() map[string]any {
+func (j GetArticlesResult) ToMap() (map[string]any, error) {
   r := make(map[string]any)
   r["id"] = j.ID
 
-	return r
+	return r, nil
 }

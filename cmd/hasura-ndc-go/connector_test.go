@@ -93,7 +93,6 @@ func TestConnectorGeneration(t *testing.T) {
 			assert.NoError(t, os.Chdir(srcDir))
 
 			err = parseAndGenerateConnector(&GenerateArguments{
-				Path:         srcDir,
 				ConnectorDir: tc.ConnectorDir,
 				PackageTypes: tc.PackageTypes,
 				Directories:  tc.Directories,
@@ -102,8 +101,8 @@ func TestConnectorGeneration(t *testing.T) {
 				assert.ErrorContains(t, err, tc.errorMsg)
 				return
 			}
-
 			assert.NoError(t, err)
+
 			var expectedSchema schema.SchemaResponse
 			assert.NoError(t, json.Unmarshal(expectedSchemaBytes, &expectedSchema))
 
@@ -122,10 +121,13 @@ func TestConnectorGeneration(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, formatTextContent(string(connectorContentBytes)), formatTextContent(string(connectorBytes)))
 
+			// go to the base test directory
+			assert.NoError(t, os.Chdir(".."))
+
 			for _, td := range tc.Directories {
-				expectedFunctionTypesBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/functions.go.tmpl"))
+				expectedFunctionTypesBytes, err := os.ReadFile(path.Join("expected", "functions.go.tmpl"))
 				if err == nil {
-					functionTypesBytes, err := os.ReadFile(path.Join(td, "types.generated.go"))
+					functionTypesBytes, err := os.ReadFile(path.Join("source", td, "types.generated.go"))
 					assert.NoError(t, err)
 					assert.Equal(t, formatTextContent(string(expectedFunctionTypesBytes)), formatTextContent(string(functionTypesBytes)))
 				} else if !os.IsNotExist(err) {
@@ -136,7 +138,7 @@ func TestConnectorGeneration(t *testing.T) {
 			// generate test cases
 			assert.NoError(t, command.GenTestSnapshots(&command.GenTestSnapshotArguments{
 				Dir:    "testdata",
-				Schema: path.Join(tc.ConnectorDir, "schema.generated.json"),
+				Schema: path.Join("source", tc.ConnectorDir, "schema.generated.json"),
 			}))
 		})
 	}
