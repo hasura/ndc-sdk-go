@@ -92,7 +92,7 @@ func TestConnectorGeneration(t *testing.T) {
 			srcDir := path.Join(tc.BasePath, "source")
 			assert.NoError(t, os.Chdir(srcDir))
 
-			err = parseAndGenerateConnector(&GenerateArguments{
+			err = parseAndGenerateConnector(&UpdateArguments{
 				ConnectorDir: tc.ConnectorDir,
 				PackageTypes: tc.PackageTypes,
 				Directories:  tc.Directories,

@@ -64,7 +64,7 @@ func generateNewProject(args *NewArguments, silent bool) error {
 	}
 
 	log.Info().Msg("generating connector functions...")
-	if err := parseAndGenerateConnector(&GenerateArguments{
+	if err := parseAndGenerateConnector(&UpdateArguments{
 		Path:        ".",
 		Directories: []string{"functions", "types"},
 	}, args.Module); err != nil {

@@ -1,20 +1,4 @@
 .DEFAULT_GOAL := help
-ROOT = $(shell pwd)
-
-.PHONY: start
-start: ## Start the server with go run
-	cd .hasura-connector/scripts && \
-  HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH=$(ROOT) $(SHELL) ./start.sh
-
-.PHONY: update
-update: ## Update schema and code generation
-	cd .hasura-connector/scripts && \
-  HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH=$(ROOT) $(SHELL) ./update.sh
-
-.PHONY: watch
-watch: ## Watch code changes and live reload
-	cd .hasura-connector/scripts && \
-  HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH=$(ROOT) $(SHELL) ./watch.sh
 
 .PHONY: format
 format: ## Format go files

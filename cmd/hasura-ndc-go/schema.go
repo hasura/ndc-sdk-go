@@ -356,7 +356,7 @@ func (sp SchemaParser) FindPackageByPath(input string) *packages.Package {
 	return nil
 }
 
-func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, filePath string, args *GenerateArguments) (*RawConnectorSchema, error) {
+func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, filePath string, args *UpdateArguments) (*RawConnectorSchema, error) {
 	rawSchema := NewRawConnectorSchema()
 
 	pkgTypes, err := evalPackageTypesLocation(args.PackageTypes, moduleName, filePath, args.ConnectorDir)
