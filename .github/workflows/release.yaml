@@ -29,11 +29,13 @@ jobs:
         with:
           path: release/manifest.yaml
           if-no-files-found: error
+          name: plugin-manifest
 
       - uses: actions/upload-artifact@v4
         with:
           path: release/hasura-ndc-go-*
           if-no-files-found: error
+          name: artifact
 
   release:
     name: release to GitHub
