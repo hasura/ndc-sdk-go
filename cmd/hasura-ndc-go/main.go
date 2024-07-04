@@ -14,7 +14,7 @@ import (
 
 // UpdateArguments represent input arguments of the `update` command
 type UpdateArguments struct {
-	Path         string   `help:"The path of the root directory where the go.mod file is present" short:"p" default:"."`
+	Path         string   `help:"The path of the root directory where the go.mod file is present" short:"p" env:"HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH" default:"."`
 	ConnectorDir string   `help:"The directory where the connector.go file is placed" default:"."`
 	PackageTypes string   `help:"The name of types package where the State struct is in"`
 	Directories  []string `help:"Folders contain NDC operation functions" short:"d"`
@@ -29,7 +29,7 @@ type NewArguments struct {
 }
 
 var cli struct {
-	LogLevel string          `help:"Log level." enum:"debug,info,warn,error" default:"info"`
+	LogLevel string          `help:"Log level." enum:"debug,info,warn,error" env:"HASURA_PLUGIN_LOG_LEVEL" default:"info"`
 	New      NewArguments    `cmd:"" help:"Initialize an NDC connector boilerplate. For example:\n hasura-ndc-go new -n example -m github.com/foo/example"`
 	Update   UpdateArguments `cmd:"" help:"Generate schema and implementation for the connector from functions."`
 	Generate UpdateArguments `cmd:"" help:"(deprecated) The alias of the 'update' command."`
