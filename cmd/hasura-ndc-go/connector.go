@@ -76,7 +76,7 @@ func NewConnectorGenerator(basePath string, connectorDir string, moduleName stri
 	}
 }
 
-func parseAndGenerateConnector(args *GenerateArguments, moduleName string) error {
+func parseAndGenerateConnector(args *UpdateArguments, moduleName string) error {
 	if cli.Generate.Trace != "" {
 		w, err := os.Create(cli.Generate.Trace)
 		if err != nil {

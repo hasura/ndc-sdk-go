@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-set -eu -o pipefail
-
-. ./requirements.sh
-
-cd $HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH
-hasura-ndc-go generate
