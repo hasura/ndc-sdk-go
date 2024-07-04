@@ -2,58 +2,35 @@
 
 ## Get started
 
-### DDN CLI
-
-The boilerplate follows [Native Connector Packaging](https://github.com/hasura/ndc-hub/blob/main/rfcs/0004-native-packaging.md) with convenience shell scripts at [the connector definition folder](.hasura-connector/scripts). DDN CLI can automatically invoke those scripts when developing with DDN projects.
-
-### Convenience scripts (Linux & MacOS)
-
-You can run the convenience script with `make`. Those commands reuse native scripts at [the connector definition folder](.hasura-connector/scripts).
-
-```sh
-Usage:
-  start   Start the server with go run
-  update  Update schema and code generation
-  watch   Watch code changes and live reload
-```
-
-### Manual installation
-
-Install following tools for development:
-
-- [hasura-ndc-go](https://github.com/hasura/ndc-sdk-go/tree/main/cmd/hasura-ndc-go)
-- [air](https://github.com/cosmtrek/air) (optional, install if you want live reload)
-
-```sh
-go install github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go@latest
-# downgrade lower version if you don't use the latest Go
-go install github.com/cosmtrek/air@latest
-```
-
-#### Live reload
-
-**Linux & MacOS**
-
-```sh
-air -c air -c .air.toml
-```
-
-**Windows**
-
-```sh
-air -c air -c .air.windows.toml
-```
-
-#### Manual
-
-Whenever modifying NDC types and functions in the `functions` folder, you need to generate NDC schema and codes.
-
-```sh
-hasura-ndc-go generate
-```
-
 Start the connector server at http://localhost:8080
 
 ```go
 go run . serve
+```
+
+## Development
+
+### DDN CLI
+
+The boilerplate follows [Native Connector Packaging](https://github.com/hasura/ndc-hub/blob/main/rfcs/0004-native-packaging.md) with convenience shell scripts at [the connector definition folder](.hasura-connector/scripts). 
+DDN CLI can automatically invoke those scripts when developing with DDN projects.
+
+### Manual 
+
+#### Installation
+
+Install following tools for development:
+
+- [hasura-ndc-go](https://github.com/hasura/ndc-sdk-go/tree/main/cmd/hasura-ndc-go)
+
+```sh
+go install github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go@latest
+```
+
+#### Code generation
+
+Whenever modifying NDC types and functions in the `functions` folder, you need to generate NDC schema and codes.
+
+```sh
+hasura-ndc-go update
 ```
