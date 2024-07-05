@@ -49,7 +49,7 @@ jobs:
         run: |
           make build-codegen
           pushd example/codegen
-          ../../_output/hasura-ndc-go generate
+          ../../_output/hasura-ndc-go update
           go test -v -race -timeout 3m ./...
           popd
       - name: Run ndc-test

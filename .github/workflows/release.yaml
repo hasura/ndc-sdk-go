@@ -22,12 +22,20 @@ jobs:
         run: |
           VERSION="$GITHUB_REF_NAME" make ci-build-codegen
           mkdir release
+          .github/scripts/plugin-manifest.sh
           mv _output/* release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          path: release/manifest.yaml
+          if-no-files-found: error
+          name: plugin-manifest
 
       - uses: actions/upload-artifact@v4
         with:
           path: release/hasura-ndc-go-*
           if-no-files-found: error
+          name: artifact
 
   release:
     name: release to GitHub

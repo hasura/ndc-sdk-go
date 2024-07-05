@@ -2,19 +2,10 @@ packagingDefinition:
   type: ManagedDockerBuild
 supportedEnvironmentVariables: []
 commands:
-  commands:
-    start:
-      type: ShellScript
-      bash: ./start.sh
-      powershell: ./start.ps1
-    update:
-      type: ShellScript
-      bash: ./update.sh
-      powershell: ./update.ps1
-    watch:
-      type: ShellScript
-      bash: ./watch.sh
-      powershell: ./watch.ps1
+  update: hasura-ndc-go update
+cliPlugin:
+  name: ndc-go
+  version: {{.Version}}
 dockerComposeWatch: 
   # Rebuild the container if root files or dependencies are changed
   - path: go.mod
