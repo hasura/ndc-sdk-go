@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/alecthomas/kong"
@@ -29,7 +30,7 @@ type NewArguments struct {
 }
 
 var cli struct {
-	LogLevel string          `help:"Log level." enum:"debug,info,warn,error" env:"HASURA_PLUGIN_LOG_LEVEL" default:"info"`
+	LogLevel string          `help:"Log level." enum:"debug,info,warn,error,DEBUG,INFO,WARN,ERROR" env:"HASURA_PLUGIN_LOG_LEVEL" default:"info"`
 	New      NewArguments    `cmd:"" help:"Initialize an NDC connector boilerplate. For example:\n hasura-ndc-go new -n example -m github.com/foo/example"`
 	Update   UpdateArguments `cmd:"" help:"Generate schema and implementation for the connector from functions."`
 	Generate UpdateArguments `cmd:"" help:"(deprecated) The alias of the 'update' command."`
@@ -111,7 +112,7 @@ func execUpdate(args *UpdateArguments, start time.Time) {
 }
 
 func setupGlobalLogger(level string) {
-	logLevel, err := zerolog.ParseLevel(level)
+	logLevel, err := zerolog.ParseLevel(strings.ToLower(level))
 	if err != nil {
 		log.Fatal().Err(err).Msgf("failed to parse log level: %s", level)
 	}
