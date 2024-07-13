@@ -29,6 +29,11 @@ func ParseBytes(value string) (*Bytes, error) {
 	return &Bytes{data: bs}, nil
 }
 
+// ScalarName get the schema name of the scalar
+func (bs Bytes) ScalarName() string {
+	return "Bytes"
+}
+
 // Bytes get the inner bytes value.
 func (bs Bytes) Bytes() []byte {
 	return bs.data

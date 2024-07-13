@@ -18,6 +18,11 @@ func NewBigInt(value int64) BigInt {
 	return BigInt(value)
 }
 
+// ScalarName get the schema name of the scalar
+func (bi BigInt) ScalarName() string {
+	return "BigInt"
+}
+
 // Stringer implements fmt.Stringer interface.
 func (bi BigInt) String() string {
 	return strconv.FormatInt(int64(bi), 10)

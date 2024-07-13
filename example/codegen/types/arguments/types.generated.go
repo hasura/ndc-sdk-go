@@ -548,6 +548,10 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	err = arguments_Decoder.DecodeObjectValue(&j.URL, input, "URL")
+	if err != nil {
+		return err
+	}
 	j.UUID, err = utils.GetUUID(input, "UUID")
 	if err != nil {
 		return err
@@ -760,6 +764,7 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["TextPtr"] = j.TextPtr
 	r["Time"] = j.Time
 	r["TimePtr"] = j.TimePtr
+	r["URL"] = j.URL
 	r["UUID"] = j.UUID
 	r["UUIDPtr"] = j.UUIDPtr
 	r["Uint"] = j.Uint

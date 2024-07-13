@@ -103,6 +103,7 @@ type GetTypesArguments struct {
 	CustomScalar CommentText
 	Enum         SomeEnum
 	BigInt       scalar.BigInt
+	URL          scalar.URL
 
 	UUIDPtr         *uuid.UUID
 	BoolPtr         *bool
