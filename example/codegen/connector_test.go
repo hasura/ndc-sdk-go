@@ -137,6 +137,10 @@ func TestQueryGetTypes(t *testing.T) {
 						"type": "literal",
 						"value": "2024-04-02"
 					},
+					"URL": {
+						"type": "literal",
+						"value": "https://example.com"
+					},
 					"UUIDPtr": {
 						"type": "literal",
 						"value": "b085b0b9-007c-440e-9661-0d8f2de98a5b"
@@ -773,6 +777,10 @@ func TestQueryGetTypes(t *testing.T) {
 										"column": "DatePtr",
 										"type": "column"
 									},
+									"URL": {
+										"column": "URL",
+										"type": "column"
+									},
 									"NamedArray": {
 										"column": "NamedArray",
 										"fields": {
@@ -1300,27 +1308,32 @@ func TestQueryGetTypes(t *testing.T) {
 				"collection_relationships": {}
 			}`,
 			response: arguments.GetTypesArguments{
-				UUID:            uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5a"),
-				Bool:            true,
-				String:          "hello",
-				Int:             1,
-				Int8:            2,
-				Int16:           3,
-				Int32:           4,
-				Int64:           5,
-				Uint:            6,
-				Uint8:           7,
-				Uint16:          8,
-				Uint32:          9,
-				Uint64:          10,
-				Float32:         1.1,
-				Float64:         2.2,
-				Time:            time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC),
-				Text:            "text",
-				CustomScalar:    commentText,
-				Enum:            types.SomeEnumFoo,
-				BigInt:          10000,
-				Date:            *scalar.NewDate(2024, 04, 02),
+				UUID:         uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5a"),
+				Bool:         true,
+				String:       "hello",
+				Int:          1,
+				Int8:         2,
+				Int16:        3,
+				Int32:        4,
+				Int64:        5,
+				Uint:         6,
+				Uint8:        7,
+				Uint16:       8,
+				Uint32:       9,
+				Uint64:       10,
+				Float32:      1.1,
+				Float64:      2.2,
+				Time:         time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC),
+				Text:         "text",
+				CustomScalar: commentText,
+				Enum:         types.SomeEnumFoo,
+				BigInt:       10000,
+				Date:         *scalar.NewDate(2024, 04, 02),
+				URL: func() scalar.URL {
+					r, _ := scalar.NewURL("https://example.com")
+					return *r
+				}(),
+
 				UUIDPtr:         utils.ToPtr(uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5b")),
 				BoolPtr:         utils.ToPtr(true),
 				StringPtr:       utils.ToPtr("world"),

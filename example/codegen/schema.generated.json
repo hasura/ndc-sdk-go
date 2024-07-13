@@ -1302,6 +1302,12 @@
             }
           }
         },
+        "URL": {
+          "type": {
+            "name": "URL",
+            "type": "named"
+          }
+        },
         "UUID": {
           "type": {
             "name": "UUID",
@@ -2834,6 +2840,12 @@
             }
           }
         },
+        "URL": {
+          "type": {
+            "name": "URL",
+            "type": "named"
+          }
+        },
         "UUID": {
           "type": {
             "name": "UUID",
@@ -3200,6 +3212,13 @@
       "comparison_operators": {},
       "representation": {
         "type": "timestamptz"
+      }
+    },
+    "URL": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "string"
       }
     },
     "UUID": {

@@ -741,6 +741,8 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 					scalarSchema.Representation = schema.NewTypeRepresentationBigInteger().Encode()
 				case "Bytes":
 					scalarSchema.Representation = schema.NewTypeRepresentationBytes().Encode()
+				case "URL":
+					scalarSchema.Representation = schema.NewTypeRepresentationString().Encode()
 				}
 			}
 

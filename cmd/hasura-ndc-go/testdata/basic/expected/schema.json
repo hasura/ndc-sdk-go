@@ -1287,6 +1287,12 @@
             }
           }
         },
+        "URL": {
+          "type": {
+            "name": "URL",
+            "type": "named"
+          }
+        },
         "UUID": {
           "type": {
             "name": "UUID",
@@ -2795,6 +2801,12 @@
             }
           }
         },
+        "URL": {
+          "type": {
+            "name": "URL",
+            "type": "named"
+          }
+        },
         "UUID": {
           "type": {
             "name": "UUID",
@@ -3144,7 +3156,10 @@
       "aggregate_functions": {},
       "comparison_operators": {},
       "representation": {
-        "one_of": ["foo", "bar"],
+        "one_of": [
+          "foo",
+          "bar"
+        ],
         "type": "enum"
       }
     },
@@ -3160,6 +3175,13 @@
       "comparison_operators": {},
       "representation": {
         "type": "timestamptz"
+      }
+    },
+    "URL": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "string"
       }
     },
     "UUID": {

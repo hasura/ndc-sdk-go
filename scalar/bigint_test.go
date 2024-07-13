@@ -9,8 +9,10 @@ import (
 func TestBigInt(t *testing.T) {
 	expected := "9999"
 	value := NewBigInt(0)
+	scalarName := value.ScalarName()
+
 	if err := json.Unmarshal([]byte(expected), &value); err != nil {
-		t.Errorf("failed to parse bigint: %s", err)
+		t.Errorf("failed to parse %s: %s", scalarName, err)
 		t.FailNow()
 	}
 	if expected != value.String() {
@@ -19,7 +21,7 @@ func TestBigInt(t *testing.T) {
 	}
 	rawValue, err := json.Marshal(value)
 	if err != nil {
-		t.Errorf("failed to encode bigint: %s", err)
+		t.Errorf("failed to encode %s: %s", scalarName, err)
 		t.FailNow()
 	}
 
@@ -30,7 +32,7 @@ func TestBigInt(t *testing.T) {
 
 	var value1 BigInt
 	if err := value1.FromValue(expected); err != nil {
-		t.Errorf("failed to decode bigint: %s", err)
+		t.Errorf("failed to decode %s: %s", scalarName, err)
 		t.FailNow()
 	}
 
