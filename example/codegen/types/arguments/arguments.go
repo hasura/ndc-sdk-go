@@ -31,6 +31,7 @@ type GetTypesArguments struct {
 	Enum         types.SomeEnum
 	BigInt       scalar.BigInt
 	Date         scalar.Date
+	URL          scalar.URL
 
 	UUIDPtr         *uuid.UUID
 	BoolPtr         *bool

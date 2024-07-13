@@ -34,6 +34,11 @@ func ParseDate(value string) (*Date, error) {
 	return &Date{Time: t}, nil
 }
 
+// ScalarName get the schema name of the scalar
+func (d Date) ScalarName() string {
+	return "Date"
+}
+
 // Stringer implements fmt.Stringer interface.
 func (d Date) String() string {
 	return d.Format(dateFormat)

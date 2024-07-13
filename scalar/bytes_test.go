@@ -15,8 +15,9 @@ func TestBytes(t *testing.T) {
 
 	rawJSON := fmt.Sprintf(`"%s"`, expectedB64)
 	var value Bytes
+	scalarName := value.ScalarName()
 	if err := json.Unmarshal([]byte(rawJSON), &value); err != nil {
-		t.Errorf("failed to parse Bytes: %s", err)
+		t.Errorf("failed to parse %s: %s", scalarName, err)
 		t.FailNow()
 	}
 	if plain != value.String() {
@@ -25,7 +26,7 @@ func TestBytes(t *testing.T) {
 	}
 	rawValue, err := json.Marshal(value)
 	if err != nil {
-		t.Errorf("failed to encode Bytes: %s", err)
+		t.Errorf("failed to encode %s: %s", scalarName, err)
 		t.FailNow()
 	}
 
