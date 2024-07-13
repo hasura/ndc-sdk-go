@@ -462,78 +462,10 @@ func DecodeUint[T uint | uint8 | uint16 | uint32 | uint64](value any) (T, error)
 }
 
 func decodeNullableInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](value any, convertFn convertFunc[T]) (*T, error) {
-	if IsNil(value) {
+	if value == nil {
 		return nil, nil
 	}
-	var result T
-	switch v := value.(type) {
-	case int:
-		result = T(v)
-	case int8:
-		result = T(v)
-	case int16:
-		result = T(v)
-	case int32:
-		result = T(v)
-	case int64:
-		result = T(v)
-	case uint:
-		result = T(v)
-	case uint8:
-		result = T(v)
-	case uint16:
-		result = T(v)
-	case uint32:
-		result = T(v)
-	case uint64:
-		result = T(v)
-	case float32:
-		result = T(v)
-	case float64:
-		result = T(v)
-	case string:
-		newVal, err := convertFn(v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert integer, got: %s", v)
-		}
-		return newVal, err
-	case *int:
-		result = T(*v)
-	case *int8:
-		result = T(*v)
-	case *int16:
-		result = T(*v)
-	case *int32:
-		result = T(*v)
-	case *int64:
-		result = T(*v)
-	case *uint:
-		result = T(*v)
-	case *uint8:
-		result = T(*v)
-	case *uint16:
-		result = T(*v)
-	case *uint32:
-		result = T(*v)
-	case *uint64:
-		result = T(*v)
-	case *float32:
-		result = T(*v)
-	case *float64:
-		result = T(*v)
-	case *string:
-		newVal, err := convertFn(*v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert integer, got: %s", *v)
-		}
-		return newVal, err
-	case bool, complex64, complex128, time.Time, time.Duration, time.Ticker, *bool, *complex64, *complex128, *time.Time, *time.Duration, *time.Ticker, []bool, []string, []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64, []float32, []float64, []complex64, []complex128, []time.Time, []time.Duration, []time.Ticker:
-		return nil, fmt.Errorf("failed to convert integer, got: %+v", value)
-	default:
-		return decodeNullableIntRefection(convertFn)(reflect.ValueOf(value))
-	}
-
-	return &result, nil
+	return decodeNullableIntRefection(convertFn)(reflect.ValueOf(value))
 }
 
 func decodeNullableIntRefection[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](convertFn convertFunc[T]) convertFuncReflection[T] {
@@ -584,20 +516,10 @@ func convertNullableUint[T uint | uint8 | uint16 | uint32 | uint64](v any) (*T, 
 
 // DecodeNullableString tries to convert an unknown value to a string pointer
 func DecodeNullableString(value any) (*string, error) {
-	if IsNil(value) {
+	if value == nil {
 		return nil, nil
 	}
-	var result string
-	switch v := value.(type) {
-	case string:
-		result = v
-	case *string:
-		result = *v
-	default:
-		return decodeNullableStringReflection(reflect.ValueOf(value))
-	}
-
-	return &result, nil
+	return decodeNullableStringReflection(reflect.ValueOf(value))
 }
 
 func decodeNullableStringReflection(value reflect.Value) (*string, error) {
@@ -632,66 +554,10 @@ func DecodeString(value any) (string, error) {
 
 // DecodeNullableFloat tries to convert an unknown value to a float pointer
 func DecodeNullableFloat[T float32 | float64](value any) (*T, error) {
-	if IsNil(value) {
+	if value == nil {
 		return nil, nil
 	}
-	var result T
-	switch v := value.(type) {
-	case int:
-		result = T(v)
-	case int8:
-		result = T(v)
-	case int16:
-		result = T(v)
-	case int32:
-		result = T(v)
-	case int64:
-		result = T(v)
-	case uint:
-		result = T(v)
-	case uint8:
-		result = T(v)
-	case uint16:
-		result = T(v)
-	case uint32:
-		result = T(v)
-	case uint64:
-		result = T(v)
-	case *int:
-		result = T(*v)
-	case *int8:
-		result = T(*v)
-	case *int16:
-		result = T(*v)
-	case *int32:
-		result = T(*v)
-	case *int64:
-		result = T(*v)
-	case *uint:
-		result = T(*v)
-	case *uint8:
-		result = T(*v)
-	case *uint16:
-		result = T(*v)
-	case *uint32:
-		result = T(*v)
-	case *uint64:
-		result = T(*v)
-	case float32:
-		result = T(v)
-	case float64:
-		result = T(v)
-	case *float32:
-		result = T(*v)
-	case *float64:
-		result = T(*v)
-	case bool, string, complex64, complex128, time.Time, time.Duration, time.Ticker, *bool, *string, *complex64, *complex128, *time.Time, *time.Duration, *time.Ticker, []bool, []string, []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64, []float32, []float64, []complex64, []complex128, []time.Time, []time.Duration, []time.Ticker:
-		return nil, fmt.Errorf("failed to convert Float, got: %+v", value)
-	default:
-		return decodeNullableFloatReflection[T](reflect.ValueOf(value))
-	}
-
-	return &result, nil
+	return decodeNullableFloatReflection[T](reflect.ValueOf(value))
 }
 
 func decodeNullableFloatReflection[T float32 | float64](value reflect.Value) (*T, error) {

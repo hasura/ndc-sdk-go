@@ -11,8 +11,10 @@ func TestDate(t *testing.T) {
 	expected := NewDate(2014, 04, 1).String()
 	rawJSON := fmt.Sprintf(`"%s"`, expected)
 	var value Date
+	scalarName := value.ScalarName()
+
 	if err := json.Unmarshal([]byte(rawJSON), &value); err != nil {
-		t.Errorf("failed to parse Date: %s", err)
+		t.Errorf("failed to parse %s: %s", scalarName, err)
 		t.FailNow()
 	}
 	if expected != value.String() {
@@ -21,7 +23,7 @@ func TestDate(t *testing.T) {
 	}
 	rawValue, err := json.Marshal(value)
 	if err != nil {
-		t.Errorf("failed to encode Date: %s", err)
+		t.Errorf("failed to encode %s: %s", scalarName, err)
 		t.FailNow()
 	}
 
@@ -32,7 +34,7 @@ func TestDate(t *testing.T) {
 
 	var value1 Date
 	if err := value1.FromValue(expected); err != nil {
-		t.Errorf("failed to decode Date: %s", err)
+		t.Errorf("failed to decode %s: %s", scalarName, err)
 		t.FailNow()
 	}
 
