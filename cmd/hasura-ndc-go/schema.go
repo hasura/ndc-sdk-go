@@ -531,7 +531,7 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 			opInfo.Arguments = arguments
 		}
 
-		resultType, err := sp.parseType(nil, resultTuple.At(0).Type(), []string{}, false)
+		resultType, err := sp.parseType(nil, resultTuple.At(0).Type(), []string{}, false, false)
 		if err != nil {
 			return err
 		}
@@ -565,7 +565,7 @@ func (sp *SchemaParser) parseArgumentTypes(ty types.Type, fieldPaths []string) (
 					PackagePath: fieldPackage.Path(),
 				}
 			}
-			fieldType, err := sp.parseType(typeInfo, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false)
+			fieldType, err := sp.parseType(typeInfo, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false, true)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -601,14 +601,14 @@ func (sp *SchemaParser) parseArgumentTypes(ty types.Type, fieldPaths []string) (
 	}
 }
 
-func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths []string, skipNullable bool) (*TypeInfo, error) {
+func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths []string, skipNullable bool, isArgument bool) (*TypeInfo, error) {
 
 	switch inferredType := ty.(type) {
 	case *types.Pointer:
 		if skipNullable {
-			return sp.parseType(rootType, inferredType.Elem(), fieldPaths, false)
+			return sp.parseType(rootType, inferredType.Elem(), fieldPaths, false, isArgument)
 		}
-		innerType, err := sp.parseType(rootType, inferredType.Elem(), fieldPaths, false)
+		innerType, err := sp.parseType(rootType, inferredType.Elem(), fieldPaths, false, isArgument)
 		if err != nil {
 			return nil, err
 		}
@@ -662,7 +662,7 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 		for i := 0; i < inferredType.NumFields(); i++ {
 			fieldVar := inferredType.Field(i)
 			fieldTag := inferredType.Tag(i)
-			fieldType, err := sp.parseType(nil, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false)
+			fieldType, err := sp.parseType(nil, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false, isArgument)
 			if err != nil {
 				return nil, err
 			}
@@ -688,24 +688,26 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 		}
 
 		innerPkg := innerType.Pkg()
-		if _, ok := sp.rawSchema.Objects[innerType.Name()]; ok {
-			ty := &TypeInfo{
-				Name:          innerType.Name(),
-				SchemaName:    innerType.Name(),
-				PackageName:   innerPkg.Name(),
-				PackagePath:   innerPkg.Path(),
-				TypeAST:       innerType.Type(),
-				Schema:        schema.NewNamedType(innerType.Name()),
-				TypeFragments: []string{innerType.Name()},
-			}
-			return ty, nil
-		}
-
-		typeInfo, err := sp.parseTypeInfoFromComments(innerType.Name(), innerPkg.Path(), innerType.Parent())
-		if err != nil {
-			return nil, err
-		}
+		var typeInfo *TypeInfo
 		if innerPkg != nil {
+			if _, ok := sp.rawSchema.Objects[innerType.Name()]; ok {
+				ty := &TypeInfo{
+					Name:          innerType.Name(),
+					SchemaName:    innerType.Name(),
+					PackageName:   innerPkg.Name(),
+					PackagePath:   innerPkg.Path(),
+					TypeAST:       innerType.Type(),
+					Schema:        schema.NewNamedType(innerType.Name()),
+					TypeFragments: []string{innerType.Name()},
+				}
+				return ty, nil
+			}
+
+			var err error
+			typeInfo, err = sp.parseTypeInfoFromComments(innerType.Name(), innerPkg.Path(), innerType.Parent())
+			if err != nil {
+				return nil, err
+			}
 			var scalarName ScalarName
 			typeInfo.PackageName = innerPkg.Name()
 			typeInfo.PackagePath = innerPkg.Path()
@@ -753,6 +755,24 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 				sp.rawSchema.ScalarSchemas[string(scalarName)] = *scalarSchema
 				return typeInfo, nil
 			}
+		} else if innerType.Name() == "error" {
+			if isArgument {
+				return nil, fmt.Errorf("%s: native `error` interface isn't allowed in input arguments", strings.Join(fieldPaths, "."))
+			}
+			typeInfo = &TypeInfo{
+				Name:                 innerType.Name(),
+				SchemaName:           string(ScalarJSON),
+				TypeAST:              innerType.Type(),
+				Schema:               schema.NewNullableType(schema.NewNamedType(string(ScalarJSON))),
+				IsScalar:             true,
+				ScalarRepresentation: schema.NewTypeRepresentationJSON().Encode(),
+			}
+			if _, ok := sp.rawSchema.ScalarSchemas[typeInfo.SchemaName]; !ok {
+				sp.rawSchema.ScalarSchemas[typeInfo.SchemaName] = defaultScalarTypes[ScalarJSON]
+			}
+			return typeInfo, nil
+		} else {
+			return nil, fmt.Errorf("%s: unsupported type <%s>", strings.Join(fieldPaths, "."), innerType.Name())
 		}
 
 		if typeInfo.IsScalar {
@@ -768,7 +788,7 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 			return typeInfo, nil
 		}
 
-		return sp.parseType(typeInfo, innerType.Type().Underlying(), append(fieldPaths, innerType.Name()), false)
+		return sp.parseType(typeInfo, innerType.Type().Underlying(), append(fieldPaths, innerType.Name()), false, isArgument)
 	case *types.Basic:
 		var scalarName ScalarName
 		switch inferredType.Kind() {
@@ -813,7 +833,7 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 
 		return rootType, nil
 	case *types.Array:
-		innerType, err := sp.parseType(nil, inferredType.Elem(), fieldPaths, false)
+		innerType, err := sp.parseType(nil, inferredType.Elem(), fieldPaths, false, isArgument)
 		if err != nil {
 			return nil, err
 		}
@@ -821,7 +841,7 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 		innerType.Schema = schema.NewArrayType(innerType.Schema)
 		return innerType, nil
 	case *types.Slice:
-		innerType, err := sp.parseType(nil, inferredType.Elem(), fieldPaths, false)
+		innerType, err := sp.parseType(nil, inferredType.Elem(), fieldPaths, false, isArgument)
 		if err != nil {
 			return nil, err
 		}

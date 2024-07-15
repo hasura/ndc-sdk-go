@@ -28,7 +28,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	traceapi "go.opentelemetry.io/otel/trace"
 )
 
@@ -81,10 +81,16 @@ type OTLPConfig struct {
 	PrometheusPort  *uint  `help:"Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty" env:"OTEL_EXPORTER_PROMETHEUS_PORT"`
 }
 
+// TelemetryState contains OpenTelemetry exporters and basic connector metrics
 type TelemetryState struct {
-	Tracer                          *Tracer
-	Meter                           metricapi.Meter
-	Shutdown                        func(context.Context) error
+	*connectorMetrics
+
+	Tracer   *Tracer
+	Meter    metricapi.Meter
+	Shutdown func(context.Context) error
+}
+
+type connectorMetrics struct {
 	queryCounter                    metricapi.Int64Counter
 	mutationCounter                 metricapi.Int64Counter
 	queryExplainCounter             metricapi.Int64Counter
@@ -98,6 +104,16 @@ type TelemetryState struct {
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.
 // If it does not return an error, make sure to call shutdown for proper cleanup.
 func setupOTelSDK(ctx context.Context, config *OTLPConfig, serviceVersion, metricsPrefix string, logger *slog.Logger) (*TelemetryState, error) {
+	state, err := SetupOTelExporters(ctx, config, serviceVersion, metricsPrefix, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	return state, setupConnectorMetrics(state, metricsPrefix)
+}
+
+// SetupOTelExporters set up OpenTelemetry exporters from configuration
+func SetupOTelExporters(ctx context.Context, config *OTLPConfig, serviceVersion, metricsPrefix string, logger *slog.Logger) (*TelemetryState, error) {
 
 	otel.SetLogger(logr.FromSlogHandler(logger.Handler()))
 	tracesEndpoint := utils.GetDefault(config.OtlpTracesEndpoint, config.OtlpEndpoint)
@@ -259,8 +275,6 @@ func setupOTelSDK(ctx context.Context, config *OTLPConfig, serviceVersion, metri
 		Shutdown: shutdownFunc,
 	}
 
-	err = setupMetrics(state, metricsPrefix)
-
 	return state, err
 }
 
@@ -279,13 +293,15 @@ func newPropagator() propagation.TextMapPropagator {
 	)
 }
 
-func setupMetrics(telemetry *TelemetryState, metricsPrefix string) error {
+func setupConnectorMetrics(telemetry *TelemetryState, metricsPrefix string) error {
 	if metricsPrefix != "" {
 		metricsPrefix = metricsPrefix + "."
 	}
 
 	var err error
 	meter := telemetry.Meter
+	telemetry.connectorMetrics = &connectorMetrics{}
+
 	telemetry.queryCounter, err = meter.Int64Counter(
 		fmt.Sprintf("%squery.total", metricsPrefix),
 		metricapi.WithDescription("Total number of query requests"),

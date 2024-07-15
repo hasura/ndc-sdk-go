@@ -2962,6 +2962,15 @@
     },
     "HelloResult": {
       "fields": {
+        "error": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
         "foo": {
           "type": {
             "name": "Foo",
