@@ -27,10 +27,11 @@ func (s *ScalarFoo) FromValue(value any) error {
 
 // A hello result
 type HelloResult struct {
-	ID   uuid.UUID `json:"id"`
-	Num  int       `json:"num"`
-	Text Text      `json:"text"`
-	Foo  ScalarFoo `json:"foo"`
+	ID    uuid.UUID `json:"id"`
+	Num   int       `json:"num"`
+	Text  Text      `json:"text"`
+	Foo   ScalarFoo `json:"foo"`
+	Error error     `json:"error"`
 }
 
 // FunctionHello sends a hello message

@@ -816,6 +816,7 @@ func (j GetTypesArguments) ToMap() map[string]any {
 // ToMap encodes the struct to a value map
 func (j HelloResult) ToMap() map[string]any {
   r := make(map[string]any)
+  r["error"] = j.Error
   r["foo"] = j.Foo
   r["id"] = j.ID
   r["num"] = j.Num

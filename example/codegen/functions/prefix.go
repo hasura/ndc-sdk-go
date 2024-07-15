@@ -29,18 +29,20 @@ func (s *ScalarFoo) FromValue(value any) error {
 
 // A hello result
 type HelloResult struct {
-	ID   uuid.UUID  `json:"id"`
-	Num  int        `json:"num"`
-	Text types.Text `json:"text"`
-	Foo  ScalarFoo  `json:"foo"`
+	ID    uuid.UUID  `json:"id"`
+	Num   int        `json:"num"`
+	Text  types.Text `json:"text"`
+	Foo   ScalarFoo  `json:"foo"`
+	Error error      `json:"error"`
 }
 
 // FunctionHello sends a hello message
 func FunctionHello(ctx context.Context, state *types.State) (*HelloResult, error) {
 	return &HelloResult{
-		ID:   uuid.MustParse("c67407a0-a825-49e3-9d4a-8265df1490a7"),
-		Num:  1,
-		Text: "world",
+		ID:    uuid.MustParse("c67407a0-a825-49e3-9d4a-8265df1490a7"),
+		Num:   1,
+		Text:  "world",
+		Error: fmt.Errorf("unknown error"),
 	}, nil
 }
 

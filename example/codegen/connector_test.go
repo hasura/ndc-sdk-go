@@ -1556,7 +1556,8 @@ func TestQueries(t *testing.T) {
 								"type": "object",
 								"fields": {
 									"num": { "type": "column", "column": "num", "fields": null },
-									"text": { "type": "column", "column": "text", "fields": null }
+									"text": { "type": "column", "column": "text", "fields": null },
+									"error": { "type": "column", "column": "error", "fields": null }
 								}
 							}
 						}
@@ -1567,7 +1568,8 @@ func TestQueries(t *testing.T) {
 			}`,
 			response: `{
 				"num": 1,
-				"text": "world"
+				"text": "world",
+				"error": {}
 			}`,
 		},
 		{
