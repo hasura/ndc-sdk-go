@@ -182,6 +182,30 @@ type RelationshipArgument struct {
 	Value any                      `json:"value" yaml:"value" mapstructure:"value"`
 }
 
+// NewRelationshipArgumentLiteral creates a RelationshipArgumentLiteral instance
+func NewRelationshipArgumentLiteral(value any) *RelationshipArgument {
+	return &RelationshipArgument{
+		Type:  RelationshipArgumentTypeLiteral,
+		Value: value,
+	}
+}
+
+// NewRelationshipArgumentColumn creates a RelationshipArgumentColumn instance
+func NewRelationshipArgumentColumn(name string) *RelationshipArgument {
+	return &RelationshipArgument{
+		Type: RelationshipArgumentTypeLiteral,
+		Name: name,
+	}
+}
+
+// NewRelationshipArgumentVariable creates a RelationshipArgumentVariable instance
+func NewRelationshipArgumentVariable(name string) *RelationshipArgument {
+	return &RelationshipArgument{
+		Type: RelationshipArgumentTypeVariable,
+		Name: name,
+	}
+}
+
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *RelationshipArgument) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
@@ -970,13 +994,15 @@ func (cv ComparisonValueVariable) Encode() ComparisonValue {
 type ExistsInCollectionType string
 
 const (
-	ExistsInCollectionTypeRelated   ExistsInCollectionType = "related"
-	ExistsInCollectionTypeUnrelated ExistsInCollectionType = "unrelated"
+	ExistsInCollectionTypeRelated          ExistsInCollectionType = "related"
+	ExistsInCollectionTypeUnrelated        ExistsInCollectionType = "unrelated"
+	ExistsInCollectionTypeNestedCollection ExistsInCollectionType = "nested_collection"
 )
 
 var enumValues_ExistsInCollectionType = []ExistsInCollectionType{
 	ExistsInCollectionTypeRelated,
 	ExistsInCollectionTypeUnrelated,
+	ExistsInCollectionTypeNestedCollection,
 }
 
 // ParseExistsInCollectionType parses a comparison value type from string
@@ -1033,6 +1059,18 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 	result := map[string]any{
 		"type": ty,
 	}
+
+	rawArguments, ok := raw["arguments"]
+	if ok {
+		var arguments map[string]RelationshipArgument
+		if err := json.Unmarshal(rawArguments, &arguments); err != nil {
+			return fmt.Errorf("field arguments in ExistsInCollection: %s", err)
+		}
+		result["arguments"] = arguments
+	} else if ty != ExistsInCollectionTypeNestedCollection {
+		return fmt.Errorf("field arguments in ExistsInCollection is required for %s type", ty)
+	}
+
 	switch ty {
 	case ExistsInCollectionTypeRelated:
 		rawRelationship, ok := raw["relationship"]
@@ -1044,16 +1082,6 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 			return fmt.Errorf("field name in ExistsInCollection: %s", err)
 		}
 		result["relationship"] = relationship
-
-		rawArguments, ok := raw["arguments"]
-		if !ok {
-			return errors.New("field arguments in ExistsInCollection is required for related type")
-		}
-		var arguments map[string]RelationshipArgument
-		if err := json.Unmarshal(rawArguments, &arguments); err != nil {
-			return fmt.Errorf("field arguments in ExistsInCollection: %s", err)
-		}
-		result["arguments"] = arguments
 	case ExistsInCollectionTypeUnrelated:
 		rawCollection, ok := raw["collection"]
 		if !ok {
@@ -1064,16 +1092,26 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 			return fmt.Errorf("field collection in ExistsInCollection: %s", err)
 		}
 		result["collection"] = collection
+	case ExistsInCollectionTypeNestedCollection:
 
-		rawArguments, ok := raw["arguments"]
+		rawColumnName, ok := raw["column_name"]
 		if !ok {
-			return errors.New("field arguments in ExistsInCollection is required for unrelated type")
+			return errors.New("field column_name in ExistsInCollection is required for nested_collection type")
 		}
-		var arguments map[string]RelationshipArgument
-		if err := json.Unmarshal(rawArguments, &arguments); err != nil {
-			return fmt.Errorf("field arguments in ExistsInCollection: %s", err)
+		var columnName string
+		if err := json.Unmarshal(rawColumnName, &columnName); err != nil {
+			return fmt.Errorf("field column_name in ExistsInCollection: %s", err)
 		}
-		result["arguments"] = arguments
+		result["column_name"] = columnName
+
+		rawFieldPath, ok := raw["field_path"]
+		if ok {
+			var fieldPath []string
+			if err := json.Unmarshal(rawFieldPath, &fieldPath); err != nil {
+				return fmt.Errorf("field field_path in ExistsInCollection: %s", err)
+			}
+			result["field_path"] = fieldPath
+		}
 	}
 	*j = result
 	return nil
@@ -1159,6 +1197,45 @@ func (j ExistsInCollection) AsUnrelated() (*ExistsInCollectionUnrelated, error) 
 	}, nil
 }
 
+// AsNestedCollection tries to convert the instance to nested_collection type
+func (j ExistsInCollection) AsNestedCollection() (*ExistsInCollectionNestedCollection, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != ExistsInCollectionTypeNestedCollection {
+		return nil, fmt.Errorf("invalid ExistsInCollection type; expected: %s, got: %s", ExistsInCollectionTypeNestedCollection, t)
+	}
+
+	columnName := getStringValueByKey(j, "column_name")
+	if columnName == "" {
+		return nil, errors.New("ExistsInCollectionNestedCollection.column_name is required")
+	}
+	var args map[string]RelationshipArgument
+	rawArgs, ok := j["arguments"]
+	if ok && rawArgs != nil {
+		args, ok = rawArgs.(map[string]RelationshipArgument)
+		if !ok {
+			return nil, fmt.Errorf("invalid ExistsInCollectionNestedCollection.arguments type; expected: map[string]RelationshipArgument, got: %+v", rawArgs)
+		}
+	}
+	result := &ExistsInCollectionNestedCollection{
+		Type:       t,
+		ColumnName: columnName,
+		Arguments:  args,
+	}
+	rawFieldPath, ok := j["field_path"]
+	if ok && rawFieldPath != nil {
+		fieldPath, ok := rawFieldPath.([]string)
+		if !ok {
+			return nil, fmt.Errorf("invalid ExistsInCollectionNestedCollection.fieldPath type; expected: []string, got: %+v", rawArgs)
+		}
+		result.FieldPath = fieldPath
+	}
+
+	return result, nil
+}
+
 // Interface tries to convert the instance to the ExistsInCollectionEncoder interface
 func (j ExistsInCollection) Interface() ExistsInCollectionEncoder {
 	result, _ := j.InterfaceT()
@@ -1177,6 +1254,8 @@ func (j ExistsInCollection) InterfaceT() (ExistsInCollectionEncoder, error) {
 		return j.AsRelated()
 	case ExistsInCollectionTypeUnrelated:
 		return j.AsUnrelated()
+	case ExistsInCollectionTypeNestedCollection:
+		return j.AsNestedCollection()
 	default:
 		return nil, fmt.Errorf("invalid ExistsInCollection type: %s", t)
 	}
@@ -1195,6 +1274,15 @@ type ExistsInCollectionRelated struct {
 	Relationship string                 `json:"relationship" yaml:"relationship" mapstructure:"relationship"`
 	// Values to be provided to any collection arguments
 	Arguments map[string]RelationshipArgument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
+}
+
+// NewExistsInCollectionRelated creates an ExistsInCollectionRelated instance
+func NewExistsInCollectionRelated(relationship string, arguments map[string]RelationshipArgument) *ExistsInCollectionRelated {
+	return &ExistsInCollectionRelated{
+		Type:         ExistsInCollectionTypeRelated,
+		Relationship: relationship,
+		Arguments:    arguments,
+	}
 }
 
 // Encode converts the instance to its raw type
@@ -1217,6 +1305,15 @@ type ExistsInCollectionUnrelated struct {
 	Arguments map[string]RelationshipArgument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 }
 
+// NewExistsInCollectionUnrelated creates an ExistsInCollectionUnrelated instance
+func NewExistsInCollectionUnrelated(collection string, arguments map[string]RelationshipArgument) *ExistsInCollectionUnrelated {
+	return &ExistsInCollectionUnrelated{
+		Type:       ExistsInCollectionTypeUnrelated,
+		Collection: collection,
+		Arguments:  arguments,
+	}
+}
+
 // Encode converts the instance to its raw type
 func (ei ExistsInCollectionUnrelated) Encode() ExistsInCollection {
 	return ExistsInCollection{
@@ -1224,6 +1321,44 @@ func (ei ExistsInCollectionUnrelated) Encode() ExistsInCollection {
 		"collection": ei.Collection,
 		"arguments":  ei.Arguments,
 	}
+}
+
+// ExistsInCollectionNestedCollection represents [nested collections] expression.
+//
+// [nested collections]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=exists#nested-collections
+type ExistsInCollectionNestedCollection struct {
+	Type ExistsInCollectionType `json:"type" yaml:"type" mapstructure:"type"`
+	// The name of column
+	ColumnName string `json:"column_name" yaml:"column_name" mapstructure:"column_name"`
+	// Values to be provided to any collection arguments
+	Arguments map[string]RelationshipArgument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"arguments"`
+	// Path to a nested collection via object columns
+	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
+}
+
+// NewExistsInCollectionNestedCollection creates an ExistsInCollectionNestedCollection instance
+func NewExistsInCollectionNestedCollection(columnName string, arguments map[string]RelationshipArgument, fieldPath []string) *ExistsInCollectionNestedCollection {
+	return &ExistsInCollectionNestedCollection{
+		Type:       ExistsInCollectionTypeNestedCollection,
+		ColumnName: columnName,
+		Arguments:  arguments,
+		FieldPath:  fieldPath,
+	}
+}
+
+// Encode converts the instance to its raw type
+func (ei ExistsInCollectionNestedCollection) Encode() ExistsInCollection {
+	result := ExistsInCollection{
+		"type":        ei.Type,
+		"column_name": ei.ColumnName,
+	}
+	if len(ei.Arguments) > 0 {
+		result["arguments"] = ei.Arguments
+	}
+	if len(ei.FieldPath) > 0 {
+		result["field_path"] = ei.FieldPath
+	}
+	return result
 }
 
 // Expression represents the query expression object

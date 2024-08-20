@@ -2,7 +2,7 @@
 set -e -o pipefail
 
 if [ ! -f ./go-jsonschema ]; then
-  wget -qO- https://github.com/omissis/go-jsonschema/releases/download/v0.14.1/go-jsonschema_Linux_x86_64.tar.gz | tar xvz
+  wget -qO- https://github.com/omissis/go-jsonschema/releases/download/v0.16.0/go-jsonschema_Linux_x86_64.tar.gz | tar xvz
   chmod +x go-jsonschema
 fi
 
@@ -58,6 +58,8 @@ sed -i '/type NestedFieldCapabilities struct {/,/}/s/OrderBy \*OrderBy/OrderBy i
 sed -i '/type Query struct {/,/}/s/OrderBy \interface{}/OrderBy *OrderBy/g' ../schema/schema.generated.go
 sed -i 's/NestedFields interface{}/NestedFields NestedFieldCapabilities/g' ../schema/schema.generated.go
 sed -i 's/plain.NestedFields = map\[string\]interface{}{}/plain.NestedFields = NestedFieldCapabilities{}/g' ../schema/schema.generated.go
+sed -i 's/Exists interface{}/Exists ExistsCapabilities/g' ../schema/schema.generated.go
+sed -i 's/plain.Exists = map\[string\]interface{}{}/plain.Exists = ExistsCapabilities{}/g' ../schema/schema.generated.go
 
 # format codes
 gofmt -w -s ../

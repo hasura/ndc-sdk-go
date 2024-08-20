@@ -479,6 +479,88 @@ func TestQueryRequest(t *testing.T) {
 				},
 			},
 		},
+
+		{
+			"predicate_with_exists_in_nested_collection",
+			[]byte(`{
+				"collection": "institutions",
+				"arguments": {},
+				"query": {
+						"fields": {
+								"id": {
+										"type": "column",
+										"column": "id"
+								},
+								"name": {
+										"type": "column",
+										"column": "name"
+								},
+								"staff": {
+										"type": "column",
+										"column": "staff",
+										"arguments": {
+												"limit": {
+														"type": "literal",
+														"value": null
+												}
+										}
+								}
+						},
+						"predicate": {
+								"type": "exists",
+								"in_collection": {
+										"type": "nested_collection",
+										"arguments": {
+												"limit": {
+														"type": "literal",
+														"value": null
+												}
+										},
+										"column_name": "staff"
+								},
+								"predicate": {
+										"type": "binary_comparison_operator",
+										"column": {
+												"type": "column",
+												"name": "last_name",
+												"path": []
+										},
+										"operator": "like",
+										"value": {
+												"type": "scalar",
+												"value": "s"
+										}
+								}
+						}
+				},
+				"collection_relationships": {
+				}
+		}`),
+			QueryRequest{
+				Collection: "institutions",
+				Arguments:  QueryRequestArguments{},
+				Query: Query{
+					Fields: QueryFields{
+						"id":   NewColumnField("id", nil).Encode(),
+						"name": NewColumnField("name", nil).Encode(),
+						"staff": NewColumnFieldWithArguments("staff", nil, map[string]Argument{
+							"limit": *NewLiteralArgument(nil),
+						}).Encode(),
+					},
+					Predicate: NewExpressionExists(
+						NewExpressionBinaryComparisonOperator(
+							*NewComparisonTargetColumn("last_name", nil, nil),
+							"like",
+							NewComparisonValueScalar("s"),
+						),
+						NewExistsInCollectionNestedCollection("staff", map[string]RelationshipArgument{
+							"limit": *NewRelationshipArgumentLiteral(nil),
+						}, nil),
+					).Encode(),
+				},
+				CollectionRelationships: QueryRequestCollectionRelationships{},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
