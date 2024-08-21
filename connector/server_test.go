@@ -456,7 +456,7 @@ func TestServerConnector(t *testing.T) {
 	})
 
 	t.Run("POST /query/explain - json decode failure", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/query/explain", httpServer.URL), schema.QueryRequest{})
+		res, err := httpPostJSON(fmt.Sprintf("%s/query/explain", httpServer.URL), map[string]any{})
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
@@ -484,7 +484,7 @@ func TestServerConnector(t *testing.T) {
 	})
 
 	t.Run("POST /mutation/explain - json decode failure", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/mutation/explain", httpServer.URL), schema.MutationRequest{})
+		res, err := httpPostJSON(fmt.Sprintf("%s/mutation/explain", httpServer.URL), map[string]any{})
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
