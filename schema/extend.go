@@ -60,20 +60,9 @@ type Argument struct {
 	Value any          `json:"value" yaml:"value" mapstructure:"value"`
 }
 
-// NewLiteralArgument creates an argument with a literal value
-func NewLiteralArgument(value any) *Argument {
-	return &Argument{
-		Type:  ArgumentTypeLiteral,
-		Value: value,
-	}
-}
-
-// NewVariableArgument creates an argument with a variable name
-func NewVariableArgument(name string) *Argument {
-	return &Argument{
-		Type: ArgumentTypeVariable,
-		Name: name,
-	}
+// ArgumentEncoder abstracts the interface for Argument
+type ArgumentEncoder interface {
+	Encode() Argument
 }
 
 // MarshalJSON implements json.Marshaler.
@@ -130,6 +119,90 @@ func (j *Argument) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// AsLiteral converts the instance to ArgumentLiteral
+func (j Argument) AsLiteral() (*ArgumentLiteral, error) {
+	if j.Type != ArgumentTypeLiteral {
+		return nil, fmt.Errorf("invalid ArgumentLiteral type; expected: %s, got: %s", ArgumentTypeLiteral, j.Type)
+	}
+	return &ArgumentLiteral{
+		Type:  j.Type,
+		Value: j.Value,
+	}, nil
+}
+
+// AsVariable converts the instance to ArgumentVariable
+func (j Argument) AsVariable() (*ArgumentVariable, error) {
+	if j.Type != ArgumentTypeVariable {
+		return nil, fmt.Errorf("invalid ArgumentVariable type; expected: %s, got: %s", ArgumentTypeVariable, j.Type)
+	}
+	return &ArgumentVariable{
+		Type: j.Type,
+		Name: j.Name,
+	}, nil
+}
+
+// Interface converts the comparison value to its generic interface
+func (j Argument) Interface() ArgumentEncoder {
+	result, _ := j.InterfaceT()
+	return result
+}
+
+// InterfaceT converts the comparison value to its generic interface safely with explicit error
+func (j Argument) InterfaceT() (ArgumentEncoder, error) {
+	switch j.Type {
+	case ArgumentTypeLiteral:
+		return j.AsLiteral()
+	case ArgumentTypeVariable:
+		return j.AsVariable()
+	default:
+		return nil, fmt.Errorf("invalid Argument type: %s", j.Type)
+	}
+}
+
+// ArgumentLiteral represents the literal argument
+type ArgumentLiteral struct {
+	Type  ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	Value any          `json:"value" yaml:"value" mapstructure:"value"`
+}
+
+// NewLiteralArgument creates an argument with a literal value
+func NewLiteralArgument(value any) *ArgumentLiteral {
+	return &ArgumentLiteral{
+		Type:  ArgumentTypeLiteral,
+		Value: value,
+	}
+}
+
+// Encode converts the instance to raw Field
+func (j ArgumentLiteral) Encode() Argument {
+	return Argument{
+		Type:  j.Type,
+		Value: j.Value,
+	}
+}
+
+// ArgumentVariable represents the variable argument
+type ArgumentVariable struct {
+	Type ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	Name string       `json:"name" yaml:"name" mapstructure:"name"`
+}
+
+// NewVariableArgument creates an argument with a variable name
+func NewVariableArgument(name string) *ArgumentVariable {
+	return &ArgumentVariable{
+		Type: ArgumentTypeVariable,
+		Name: name,
+	}
+}
+
+// Encode converts the instance to raw Field
+func (j ArgumentVariable) Encode() Argument {
+	return Argument{
+		Type: j.Type,
+		Name: j.Name,
+	}
+}
+
 // RelationshipArgumentType represents a relationship argument type enum
 type RelationshipArgumentType string
 
@@ -182,28 +255,9 @@ type RelationshipArgument struct {
 	Value any                      `json:"value" yaml:"value" mapstructure:"value"`
 }
 
-// NewRelationshipArgumentLiteral creates a RelationshipArgumentLiteral instance
-func NewRelationshipArgumentLiteral(value any) *RelationshipArgument {
-	return &RelationshipArgument{
-		Type:  RelationshipArgumentTypeLiteral,
-		Value: value,
-	}
-}
-
-// NewRelationshipArgumentColumn creates a RelationshipArgumentColumn instance
-func NewRelationshipArgumentColumn(name string) *RelationshipArgument {
-	return &RelationshipArgument{
-		Type: RelationshipArgumentTypeLiteral,
-		Name: name,
-	}
-}
-
-// NewRelationshipArgumentVariable creates a RelationshipArgumentVariable instance
-func NewRelationshipArgumentVariable(name string) *RelationshipArgument {
-	return &RelationshipArgument{
-		Type: RelationshipArgumentTypeVariable,
-		Name: name,
-	}
+// RelationshipArgumentEncoder abstracts the interface for RelationshipArgument
+type RelationshipArgumentEncoder interface {
+	Encode() RelationshipArgument
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -244,6 +298,125 @@ func (j *RelationshipArgument) UnmarshalJSON(b []byte) error {
 
 	*j = arg
 	return nil
+}
+
+// AsLiteral converts the instance to RelationshipArgumentLiteral
+func (j RelationshipArgument) AsLiteral() (*RelationshipArgumentLiteral, error) {
+	if j.Type != RelationshipArgumentTypeLiteral {
+		return nil, fmt.Errorf("invalid RelationshipArgumentLiteral type; expected: %s, got: %s", RelationshipArgumentTypeLiteral, j.Type)
+	}
+	return &RelationshipArgumentLiteral{
+		Type:  j.Type,
+		Value: j.Value,
+	}, nil
+}
+
+// AsVariable converts the instance to RelationshipArgumentVariable
+func (j RelationshipArgument) AsVariable() (*RelationshipArgumentVariable, error) {
+	if j.Type != RelationshipArgumentTypeVariable {
+		return nil, fmt.Errorf("invalid RelationshipArgumentVariable type; expected: %s, got: %s", RelationshipArgumentTypeVariable, j.Type)
+	}
+	return &RelationshipArgumentVariable{
+		Type: j.Type,
+		Name: j.Name,
+	}, nil
+}
+
+// AsColumn converts the instance to RelationshipArgumentColumn
+func (j RelationshipArgument) AsColumn() (*RelationshipArgumentColumn, error) {
+	if j.Type != RelationshipArgumentTypeColumn {
+		return nil, fmt.Errorf("invalid RelationshipArgumentTypeColumn type; expected: %s, got: %s", RelationshipArgumentTypeColumn, j.Type)
+	}
+	return &RelationshipArgumentColumn{
+		Type: j.Type,
+		Name: j.Name,
+	}, nil
+}
+
+// Interface converts the comparison value to its generic interface
+func (j RelationshipArgument) Interface() RelationshipArgumentEncoder {
+	result, _ := j.InterfaceT()
+	return result
+}
+
+// InterfaceT converts the comparison value to its generic interface safely with explicit error
+func (j RelationshipArgument) InterfaceT() (RelationshipArgumentEncoder, error) {
+	switch j.Type {
+	case RelationshipArgumentTypeLiteral:
+		return j.AsLiteral()
+	case RelationshipArgumentTypeVariable:
+		return j.AsVariable()
+	case RelationshipArgumentTypeColumn:
+		return j.AsColumn()
+	default:
+		return nil, fmt.Errorf("invalid RelationshipArgument type: %s", j.Type)
+	}
+}
+
+// RelationshipArgumentLiteral represents the literal relationship argument
+type RelationshipArgumentLiteral struct {
+	Type  RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	Value any                      `json:"value" yaml:"value" mapstructure:"value"`
+}
+
+// NewRelationshipArgumentLiteral creates a RelationshipArgumentLiteral instance
+func NewRelationshipArgumentLiteral(value any) *RelationshipArgumentLiteral {
+	return &RelationshipArgumentLiteral{
+		Type:  RelationshipArgumentTypeLiteral,
+		Value: value,
+	}
+}
+
+// Encode converts the instance to raw Field
+func (j RelationshipArgumentLiteral) Encode() RelationshipArgument {
+	return RelationshipArgument{
+		Type:  j.Type,
+		Value: j.Value,
+	}
+}
+
+// RelationshipArgumentColumn represents the column relationship argument
+type RelationshipArgumentColumn struct {
+	Type RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	Name string                   `json:"name" yaml:"name" mapstructure:"name"`
+}
+
+// NewRelationshipArgumentColumn creates a RelationshipArgumentColumn instance
+func NewRelationshipArgumentColumn(name string) *RelationshipArgument {
+	return &RelationshipArgument{
+		Type: RelationshipArgumentTypeLiteral,
+		Name: name,
+	}
+}
+
+// Encode converts the instance to raw Field
+func (j RelationshipArgumentColumn) Encode() RelationshipArgument {
+	return RelationshipArgument{
+		Type: j.Type,
+		Name: j.Name,
+	}
+}
+
+// RelationshipArgumentVariable represents the variable relationship argument
+type RelationshipArgumentVariable struct {
+	Type RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	Name string                   `json:"name" yaml:"name" mapstructure:"name"`
+}
+
+// NewRelationshipArgumentVariable creates a RelationshipArgumentVariable instance
+func NewRelationshipArgumentVariable(name string) *RelationshipArgument {
+	return &RelationshipArgument{
+		Type: RelationshipArgumentTypeVariable,
+		Name: name,
+	}
+}
+
+// Encode converts the instance to raw Field
+func (j RelationshipArgumentVariable) Encode() RelationshipArgument {
+	return RelationshipArgument{
+		Type: j.Type,
+		Name: j.Name,
+	}
 }
 
 // FieldType represents a field type
