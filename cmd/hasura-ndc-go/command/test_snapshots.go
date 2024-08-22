@@ -154,10 +154,7 @@ func (cmd *genTestSnapshotsCommand) genQueryArguments(arguments schema.FunctionI
 		if err != nil {
 			return nil, err
 		}
-		result[key] = schema.Argument{
-			Type:  schema.ArgumentTypeLiteral,
-			Value: value,
-		}
+		result[key] = schema.NewArgumentLiteral(value).Encode()
 	}
 	return result, nil
 }
