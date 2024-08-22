@@ -179,7 +179,7 @@ func TestQueryRequest(t *testing.T) {
 						"location": NewColumnField("location", NewNestedObject(map[string]FieldEncoder{
 							"city": NewColumnField("city", nil),
 							"campuses": NewColumnFieldWithArguments("campuses", nil, map[string]Argument{
-								"limit": NewLiteralArgument(nil).Encode(),
+								"limit": NewArgumentLiteral(nil).Encode(),
 							}),
 						})).Encode(),
 					},
@@ -544,7 +544,7 @@ func TestQueryRequest(t *testing.T) {
 						"id":   NewColumnField("id", nil).Encode(),
 						"name": NewColumnField("name", nil).Encode(),
 						"staff": NewColumnFieldWithArguments("staff", nil, map[string]Argument{
-							"limit": NewLiteralArgument(nil).Encode(),
+							"limit": NewArgumentLiteral(nil).Encode(),
 						}).Encode(),
 					},
 					Predicate: NewExpressionExists(

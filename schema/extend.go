@@ -55,9 +55,12 @@ func (j *ArgumentType) UnmarshalJSON(b []byte) error {
 
 // Argument is provided by reference to a variable or as a literal value
 type Argument struct {
-	Type  ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
-	Name  string       `json:"name" yaml:"name" mapstructure:"name"`
-	Value any          `json:"value" yaml:"value" mapstructure:"value"`
+	// Deprecated: may change Argument to a generic map in the future
+	Type ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	// Deprecated: may change Argument to a generic map in the future
+	Name string `json:"name" yaml:"name" mapstructure:"name"`
+	// Deprecated: may change Argument to a generic map in the future
+	Value any `json:"value" yaml:"value" mapstructure:"value"`
 }
 
 // ArgumentEncoder abstracts the interface for Argument
@@ -119,6 +122,30 @@ func (j *Argument) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// NewLiteralArgument creates an argument with a literal value
+//
+// Deprecated: use [NewArgumentLiteral] instead
+//
+// [NewArgumentLiteral]: https://pkg.go.dev/github.com/hasura/ndc-sdk-go/schema#NewArgumentLiteral
+func NewLiteralArgument(value any) *Argument {
+	return &Argument{
+		Type:  ArgumentTypeLiteral,
+		Value: value,
+	}
+}
+
+// NewVariableArgument creates an argument with a variable name
+//
+// Deprecated: use [NewArgumentVariable] instead
+//
+// [NewArgumentVariable]: https://pkg.go.dev/github.com/hasura/ndc-sdk-go/schema#NewArgumentVariable
+func NewVariableArgument(name string) *Argument {
+	return &Argument{
+		Type: ArgumentTypeVariable,
+		Name: name,
+	}
+}
+
 // AsLiteral converts the instance to ArgumentLiteral
 func (j Argument) AsLiteral() (*ArgumentLiteral, error) {
 	if j.Type != ArgumentTypeLiteral {
@@ -165,8 +192,8 @@ type ArgumentLiteral struct {
 	Value any          `json:"value" yaml:"value" mapstructure:"value"`
 }
 
-// NewLiteralArgument creates an argument with a literal value
-func NewLiteralArgument(value any) *ArgumentLiteral {
+// NewArgumentLiteral creates an argument with a literal value
+func NewArgumentLiteral(value any) *ArgumentLiteral {
 	return &ArgumentLiteral{
 		Type:  ArgumentTypeLiteral,
 		Value: value,
@@ -187,8 +214,8 @@ type ArgumentVariable struct {
 	Name string       `json:"name" yaml:"name" mapstructure:"name"`
 }
 
-// NewVariableArgument creates an argument with a variable name
-func NewVariableArgument(name string) *ArgumentVariable {
+// NewArgumentVariable creates an argument with a variable name
+func NewArgumentVariable(name string) *ArgumentVariable {
 	return &ArgumentVariable{
 		Type: ArgumentTypeVariable,
 		Name: name,
@@ -250,9 +277,12 @@ func (j *RelationshipArgumentType) UnmarshalJSON(b []byte) error {
 
 // RelationshipArgument is provided by reference to a variable or as a literal value
 type RelationshipArgument struct {
-	Type  RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
-	Name  string                   `json:"name" yaml:"name" mapstructure:"name"`
-	Value any                      `json:"value" yaml:"value" mapstructure:"value"`
+	// Deprecated: may change RelationshipArgument to a generic map in the future
+	Type RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	// Deprecated: may change RelationshipArgument to a generic map in the future
+	Name string `json:"name" yaml:"name" mapstructure:"name"`
+	// Deprecated: may change RelationshipArgument to a generic map in the future
+	Value any `json:"value" yaml:"value" mapstructure:"value"`
 }
 
 // RelationshipArgumentEncoder abstracts the interface for RelationshipArgument
@@ -382,8 +412,8 @@ type RelationshipArgumentColumn struct {
 }
 
 // NewRelationshipArgumentColumn creates a RelationshipArgumentColumn instance
-func NewRelationshipArgumentColumn(name string) *RelationshipArgument {
-	return &RelationshipArgument{
+func NewRelationshipArgumentColumn(name string) *RelationshipArgumentColumn {
+	return &RelationshipArgumentColumn{
 		Type: RelationshipArgumentTypeLiteral,
 		Name: name,
 	}
@@ -404,8 +434,8 @@ type RelationshipArgumentVariable struct {
 }
 
 // NewRelationshipArgumentVariable creates a RelationshipArgumentVariable instance
-func NewRelationshipArgumentVariable(name string) *RelationshipArgument {
-	return &RelationshipArgument{
+func NewRelationshipArgumentVariable(name string) *RelationshipArgumentVariable {
+	return &RelationshipArgumentVariable{
 		Type: RelationshipArgumentTypeVariable,
 		Name: name,
 	}
