@@ -15,7 +15,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-const test_SpecVersion = "v0.1.5"
+const test_SpecVersion = "v0.1.6"
 
 func createTestServer(t *testing.T) *connector.Server[Configuration, State] {
 	server, err := connector.NewServer[Configuration, State](&Connector{}, &connector.ServerOptions{
