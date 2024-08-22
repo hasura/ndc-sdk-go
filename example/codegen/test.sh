@@ -8,7 +8,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 mkdir -p ./dist
 
 if [ ! -f ./dist/ndc-test ]; then
-  curl -L https://github.com/hasura/ndc-spec/releases/download/v0.1.5/ndc-test-x86_64-unknown-linux-gnu -o ./dist/ndc-test
+  curl -L https://github.com/hasura/ndc-spec/releases/download/v0.1.6/ndc-test-x86_64-unknown-linux-gnu -o ./dist/ndc-test
   chmod +x ./dist/ndc-test
 fi
 

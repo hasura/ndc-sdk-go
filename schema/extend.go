@@ -55,26 +55,17 @@ func (j *ArgumentType) UnmarshalJSON(b []byte) error {
 }
 
 // Argument is provided by reference to a variable or as a literal value
+//
+// TODO: may change Argument to a generic map in the future
 type Argument struct {
 	Type  ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
 	Name  string       `json:"name" yaml:"name" mapstructure:"name"`
 	Value any          `json:"value" yaml:"value" mapstructure:"value"`
 }
 
-// NewLiteralArgument creates an argument with a literal value
-func NewLiteralArgument(value any) *Argument {
-	return &Argument{
-		Type:  ArgumentTypeLiteral,
-		Value: value,
-	}
-}
-
-// NewVariableArgument creates an argument with a variable name
-func NewVariableArgument(name string) *Argument {
-	return &Argument{
-		Type: ArgumentTypeVariable,
-		Name: name,
-	}
+// ArgumentEncoder abstracts the interface for Argument
+type ArgumentEncoder interface {
+	Encode() Argument
 }
 
 // MarshalJSON implements json.Marshaler.
@@ -131,6 +122,114 @@ func (j *Argument) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// NewLiteralArgument creates an argument with a literal value
+//
+// Deprecated: use [NewArgumentLiteral] instead
+//
+// [NewArgumentLiteral]: https://pkg.go.dev/github.com/hasura/ndc-sdk-go/schema#NewArgumentLiteral
+func NewLiteralArgument(value any) *Argument {
+	return &Argument{
+		Type:  ArgumentTypeLiteral,
+		Value: value,
+	}
+}
+
+// NewVariableArgument creates an argument with a variable name
+//
+// Deprecated: use [NewArgumentVariable] instead
+//
+// [NewArgumentVariable]: https://pkg.go.dev/github.com/hasura/ndc-sdk-go/schema#NewArgumentVariable
+func NewVariableArgument(name string) *Argument {
+	return &Argument{
+		Type: ArgumentTypeVariable,
+		Name: name,
+	}
+}
+
+// AsLiteral converts the instance to ArgumentLiteral
+func (j Argument) AsLiteral() (*ArgumentLiteral, error) {
+	if j.Type != ArgumentTypeLiteral {
+		return nil, fmt.Errorf("invalid ArgumentLiteral type; expected: %s, got: %s", ArgumentTypeLiteral, j.Type)
+	}
+	return &ArgumentLiteral{
+		Type:  j.Type,
+		Value: j.Value,
+	}, nil
+}
+
+// AsVariable converts the instance to ArgumentVariable
+func (j Argument) AsVariable() (*ArgumentVariable, error) {
+	if j.Type != ArgumentTypeVariable {
+		return nil, fmt.Errorf("invalid ArgumentVariable type; expected: %s, got: %s", ArgumentTypeVariable, j.Type)
+	}
+	return &ArgumentVariable{
+		Type: j.Type,
+		Name: j.Name,
+	}, nil
+}
+
+// Interface converts the comparison value to its generic interface
+func (j Argument) Interface() ArgumentEncoder {
+	result, _ := j.InterfaceT()
+	return result
+}
+
+// InterfaceT converts the comparison value to its generic interface safely with explicit error
+func (j Argument) InterfaceT() (ArgumentEncoder, error) {
+	switch j.Type {
+	case ArgumentTypeLiteral:
+		return j.AsLiteral()
+	case ArgumentTypeVariable:
+		return j.AsVariable()
+	default:
+		return nil, fmt.Errorf("invalid Argument type: %s", j.Type)
+	}
+}
+
+// ArgumentLiteral represents the literal argument
+type ArgumentLiteral struct {
+	Type  ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	Value any          `json:"value" yaml:"value" mapstructure:"value"`
+}
+
+// NewArgumentLiteral creates an argument with a literal value
+func NewArgumentLiteral(value any) *ArgumentLiteral {
+	return &ArgumentLiteral{
+		Type:  ArgumentTypeLiteral,
+		Value: value,
+	}
+}
+
+// Encode converts the instance to raw Field
+func (j ArgumentLiteral) Encode() Argument {
+	return Argument{
+		Type:  j.Type,
+		Value: j.Value,
+	}
+}
+
+// ArgumentVariable represents the variable argument
+type ArgumentVariable struct {
+	Type ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	Name string       `json:"name" yaml:"name" mapstructure:"name"`
+}
+
+// NewArgumentVariable creates an argument with a variable name
+func NewArgumentVariable(name string) *ArgumentVariable {
+	return &ArgumentVariable{
+		Type: ArgumentTypeVariable,
+		Name: name,
+	}
+}
+
+// Encode converts the instance to raw Field
+func (j ArgumentVariable) Encode() Argument {
+	return Argument{
+		Type: j.Type,
+		Name: j.Name,
+	}
+}
+
 // RelationshipArgumentType represents a relationship argument type enum
 type RelationshipArgumentType string
 
@@ -177,10 +276,17 @@ func (j *RelationshipArgumentType) UnmarshalJSON(b []byte) error {
 }
 
 // RelationshipArgument is provided by reference to a variable or as a literal value
+//
+// TODO: may change RelationshipArgument to a generic map in the future
 type RelationshipArgument struct {
 	Type  RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
 	Name  string                   `json:"name" yaml:"name" mapstructure:"name"`
 	Value any                      `json:"value" yaml:"value" mapstructure:"value"`
+}
+
+// RelationshipArgumentEncoder abstracts the interface for RelationshipArgument
+type RelationshipArgumentEncoder interface {
+	Encode() RelationshipArgument
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -221,6 +327,125 @@ func (j *RelationshipArgument) UnmarshalJSON(b []byte) error {
 
 	*j = arg
 	return nil
+}
+
+// AsLiteral converts the instance to RelationshipArgumentLiteral
+func (j RelationshipArgument) AsLiteral() (*RelationshipArgumentLiteral, error) {
+	if j.Type != RelationshipArgumentTypeLiteral {
+		return nil, fmt.Errorf("invalid RelationshipArgumentLiteral type; expected: %s, got: %s", RelationshipArgumentTypeLiteral, j.Type)
+	}
+	return &RelationshipArgumentLiteral{
+		Type:  j.Type,
+		Value: j.Value,
+	}, nil
+}
+
+// AsVariable converts the instance to RelationshipArgumentVariable
+func (j RelationshipArgument) AsVariable() (*RelationshipArgumentVariable, error) {
+	if j.Type != RelationshipArgumentTypeVariable {
+		return nil, fmt.Errorf("invalid RelationshipArgumentVariable type; expected: %s, got: %s", RelationshipArgumentTypeVariable, j.Type)
+	}
+	return &RelationshipArgumentVariable{
+		Type: j.Type,
+		Name: j.Name,
+	}, nil
+}
+
+// AsColumn converts the instance to RelationshipArgumentColumn
+func (j RelationshipArgument) AsColumn() (*RelationshipArgumentColumn, error) {
+	if j.Type != RelationshipArgumentTypeColumn {
+		return nil, fmt.Errorf("invalid RelationshipArgumentTypeColumn type; expected: %s, got: %s", RelationshipArgumentTypeColumn, j.Type)
+	}
+	return &RelationshipArgumentColumn{
+		Type: j.Type,
+		Name: j.Name,
+	}, nil
+}
+
+// Interface converts the comparison value to its generic interface
+func (j RelationshipArgument) Interface() RelationshipArgumentEncoder {
+	result, _ := j.InterfaceT()
+	return result
+}
+
+// InterfaceT converts the comparison value to its generic interface safely with explicit error
+func (j RelationshipArgument) InterfaceT() (RelationshipArgumentEncoder, error) {
+	switch j.Type {
+	case RelationshipArgumentTypeLiteral:
+		return j.AsLiteral()
+	case RelationshipArgumentTypeVariable:
+		return j.AsVariable()
+	case RelationshipArgumentTypeColumn:
+		return j.AsColumn()
+	default:
+		return nil, fmt.Errorf("invalid RelationshipArgument type: %s", j.Type)
+	}
+}
+
+// RelationshipArgumentLiteral represents the literal relationship argument
+type RelationshipArgumentLiteral struct {
+	Type  RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	Value any                      `json:"value" yaml:"value" mapstructure:"value"`
+}
+
+// NewRelationshipArgumentLiteral creates a RelationshipArgumentLiteral instance
+func NewRelationshipArgumentLiteral(value any) *RelationshipArgumentLiteral {
+	return &RelationshipArgumentLiteral{
+		Type:  RelationshipArgumentTypeLiteral,
+		Value: value,
+	}
+}
+
+// Encode converts the instance to raw Field
+func (j RelationshipArgumentLiteral) Encode() RelationshipArgument {
+	return RelationshipArgument{
+		Type:  j.Type,
+		Value: j.Value,
+	}
+}
+
+// RelationshipArgumentColumn represents the column relationship argument
+type RelationshipArgumentColumn struct {
+	Type RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	Name string                   `json:"name" yaml:"name" mapstructure:"name"`
+}
+
+// NewRelationshipArgumentColumn creates a RelationshipArgumentColumn instance
+func NewRelationshipArgumentColumn(name string) *RelationshipArgumentColumn {
+	return &RelationshipArgumentColumn{
+		Type: RelationshipArgumentTypeLiteral,
+		Name: name,
+	}
+}
+
+// Encode converts the instance to raw Field
+func (j RelationshipArgumentColumn) Encode() RelationshipArgument {
+	return RelationshipArgument{
+		Type: j.Type,
+		Name: j.Name,
+	}
+}
+
+// RelationshipArgumentVariable represents the variable relationship argument
+type RelationshipArgumentVariable struct {
+	Type RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	Name string                   `json:"name" yaml:"name" mapstructure:"name"`
+}
+
+// NewRelationshipArgumentVariable creates a RelationshipArgumentVariable instance
+func NewRelationshipArgumentVariable(name string) *RelationshipArgumentVariable {
+	return &RelationshipArgumentVariable{
+		Type: RelationshipArgumentTypeVariable,
+		Name: name,
+	}
+}
+
+// Encode converts the instance to raw Field
+func (j RelationshipArgumentVariable) Encode() RelationshipArgument {
+	return RelationshipArgument{
+		Type: j.Type,
+		Name: j.Name,
+	}
 }
 
 // FieldType represents a field type
@@ -971,13 +1196,15 @@ func (cv ComparisonValueVariable) Encode() ComparisonValue {
 type ExistsInCollectionType string
 
 const (
-	ExistsInCollectionTypeRelated   ExistsInCollectionType = "related"
-	ExistsInCollectionTypeUnrelated ExistsInCollectionType = "unrelated"
+	ExistsInCollectionTypeRelated          ExistsInCollectionType = "related"
+	ExistsInCollectionTypeUnrelated        ExistsInCollectionType = "unrelated"
+	ExistsInCollectionTypeNestedCollection ExistsInCollectionType = "nested_collection"
 )
 
 var enumValues_ExistsInCollectionType = []ExistsInCollectionType{
 	ExistsInCollectionTypeRelated,
 	ExistsInCollectionTypeUnrelated,
+	ExistsInCollectionTypeNestedCollection,
 }
 
 // ParseExistsInCollectionType parses a comparison value type from string
@@ -1034,6 +1261,18 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 	result := map[string]any{
 		"type": ty,
 	}
+
+	rawArguments, ok := raw["arguments"]
+	if ok {
+		var arguments map[string]RelationshipArgument
+		if err := json.Unmarshal(rawArguments, &arguments); err != nil {
+			return fmt.Errorf("field arguments in ExistsInCollection: %s", err)
+		}
+		result["arguments"] = arguments
+	} else if ty != ExistsInCollectionTypeNestedCollection {
+		return fmt.Errorf("field arguments in ExistsInCollection is required for %s type", ty)
+	}
+
 	switch ty {
 	case ExistsInCollectionTypeRelated:
 		rawRelationship, ok := raw["relationship"]
@@ -1045,16 +1284,6 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 			return fmt.Errorf("field name in ExistsInCollection: %s", err)
 		}
 		result["relationship"] = relationship
-
-		rawArguments, ok := raw["arguments"]
-		if !ok {
-			return errors.New("field arguments in ExistsInCollection is required for related type")
-		}
-		var arguments map[string]RelationshipArgument
-		if err := json.Unmarshal(rawArguments, &arguments); err != nil {
-			return fmt.Errorf("field arguments in ExistsInCollection: %s", err)
-		}
-		result["arguments"] = arguments
 	case ExistsInCollectionTypeUnrelated:
 		rawCollection, ok := raw["collection"]
 		if !ok {
@@ -1065,16 +1294,26 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 			return fmt.Errorf("field collection in ExistsInCollection: %s", err)
 		}
 		result["collection"] = collection
+	case ExistsInCollectionTypeNestedCollection:
 
-		rawArguments, ok := raw["arguments"]
+		rawColumnName, ok := raw["column_name"]
 		if !ok {
-			return errors.New("field arguments in ExistsInCollection is required for unrelated type")
+			return errors.New("field column_name in ExistsInCollection is required for nested_collection type")
 		}
-		var arguments map[string]RelationshipArgument
-		if err := json.Unmarshal(rawArguments, &arguments); err != nil {
-			return fmt.Errorf("field arguments in ExistsInCollection: %s", err)
+		var columnName string
+		if err := json.Unmarshal(rawColumnName, &columnName); err != nil {
+			return fmt.Errorf("field column_name in ExistsInCollection: %s", err)
 		}
-		result["arguments"] = arguments
+		result["column_name"] = columnName
+
+		rawFieldPath, ok := raw["field_path"]
+		if ok {
+			var fieldPath []string
+			if err := json.Unmarshal(rawFieldPath, &fieldPath); err != nil {
+				return fmt.Errorf("field field_path in ExistsInCollection: %s", err)
+			}
+			result["field_path"] = fieldPath
+		}
 	}
 	*j = result
 	return nil
@@ -1160,6 +1399,45 @@ func (j ExistsInCollection) AsUnrelated() (*ExistsInCollectionUnrelated, error) 
 	}, nil
 }
 
+// AsNestedCollection tries to convert the instance to nested_collection type
+func (j ExistsInCollection) AsNestedCollection() (*ExistsInCollectionNestedCollection, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != ExistsInCollectionTypeNestedCollection {
+		return nil, fmt.Errorf("invalid ExistsInCollection type; expected: %s, got: %s", ExistsInCollectionTypeNestedCollection, t)
+	}
+
+	columnName := getStringValueByKey(j, "column_name")
+	if columnName == "" {
+		return nil, errors.New("ExistsInCollectionNestedCollection.column_name is required")
+	}
+	var args map[string]RelationshipArgument
+	rawArgs, ok := j["arguments"]
+	if ok && rawArgs != nil {
+		args, ok = rawArgs.(map[string]RelationshipArgument)
+		if !ok {
+			return nil, fmt.Errorf("invalid ExistsInCollectionNestedCollection.arguments type; expected: map[string]RelationshipArgument, got: %+v", rawArgs)
+		}
+	}
+	result := &ExistsInCollectionNestedCollection{
+		Type:       t,
+		ColumnName: columnName,
+		Arguments:  args,
+	}
+	rawFieldPath, ok := j["field_path"]
+	if ok && rawFieldPath != nil {
+		fieldPath, ok := rawFieldPath.([]string)
+		if !ok {
+			return nil, fmt.Errorf("invalid ExistsInCollectionNestedCollection.fieldPath type; expected: []string, got: %+v", rawArgs)
+		}
+		result.FieldPath = fieldPath
+	}
+
+	return result, nil
+}
+
 // Interface tries to convert the instance to the ExistsInCollectionEncoder interface
 func (j ExistsInCollection) Interface() ExistsInCollectionEncoder {
 	result, _ := j.InterfaceT()
@@ -1178,6 +1456,8 @@ func (j ExistsInCollection) InterfaceT() (ExistsInCollectionEncoder, error) {
 		return j.AsRelated()
 	case ExistsInCollectionTypeUnrelated:
 		return j.AsUnrelated()
+	case ExistsInCollectionTypeNestedCollection:
+		return j.AsNestedCollection()
 	default:
 		return nil, fmt.Errorf("invalid ExistsInCollection type: %s", t)
 	}
@@ -1196,6 +1476,15 @@ type ExistsInCollectionRelated struct {
 	Relationship string                 `json:"relationship" yaml:"relationship" mapstructure:"relationship"`
 	// Values to be provided to any collection arguments
 	Arguments map[string]RelationshipArgument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
+}
+
+// NewExistsInCollectionRelated creates an ExistsInCollectionRelated instance
+func NewExistsInCollectionRelated(relationship string, arguments map[string]RelationshipArgument) *ExistsInCollectionRelated {
+	return &ExistsInCollectionRelated{
+		Type:         ExistsInCollectionTypeRelated,
+		Relationship: relationship,
+		Arguments:    arguments,
+	}
 }
 
 // Encode converts the instance to its raw type
@@ -1218,6 +1507,15 @@ type ExistsInCollectionUnrelated struct {
 	Arguments map[string]RelationshipArgument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 }
 
+// NewExistsInCollectionUnrelated creates an ExistsInCollectionUnrelated instance
+func NewExistsInCollectionUnrelated(collection string, arguments map[string]RelationshipArgument) *ExistsInCollectionUnrelated {
+	return &ExistsInCollectionUnrelated{
+		Type:       ExistsInCollectionTypeUnrelated,
+		Collection: collection,
+		Arguments:  arguments,
+	}
+}
+
 // Encode converts the instance to its raw type
 func (ei ExistsInCollectionUnrelated) Encode() ExistsInCollection {
 	return ExistsInCollection{
@@ -1225,6 +1523,44 @@ func (ei ExistsInCollectionUnrelated) Encode() ExistsInCollection {
 		"collection": ei.Collection,
 		"arguments":  ei.Arguments,
 	}
+}
+
+// ExistsInCollectionNestedCollection represents [nested collections] expression.
+//
+// [nested collections]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=exists#nested-collections
+type ExistsInCollectionNestedCollection struct {
+	Type ExistsInCollectionType `json:"type" yaml:"type" mapstructure:"type"`
+	// The name of column
+	ColumnName string `json:"column_name" yaml:"column_name" mapstructure:"column_name"`
+	// Values to be provided to any collection arguments
+	Arguments map[string]RelationshipArgument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"arguments"`
+	// Path to a nested collection via object columns
+	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
+}
+
+// NewExistsInCollectionNestedCollection creates an ExistsInCollectionNestedCollection instance
+func NewExistsInCollectionNestedCollection(columnName string, arguments map[string]RelationshipArgument, fieldPath []string) *ExistsInCollectionNestedCollection {
+	return &ExistsInCollectionNestedCollection{
+		Type:       ExistsInCollectionTypeNestedCollection,
+		ColumnName: columnName,
+		Arguments:  arguments,
+		FieldPath:  fieldPath,
+	}
+}
+
+// Encode converts the instance to its raw type
+func (ei ExistsInCollectionNestedCollection) Encode() ExistsInCollection {
+	result := ExistsInCollection{
+		"type":        ei.Type,
+		"column_name": ei.ColumnName,
+	}
+	if len(ei.Arguments) > 0 {
+		result["arguments"] = ei.Arguments
+	}
+	if len(ei.FieldPath) > 0 {
+		result["field_path"] = ei.FieldPath
+	}
+	return result
 }
 
 // Expression represents the query expression object

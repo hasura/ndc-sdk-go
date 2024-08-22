@@ -197,11 +197,12 @@ func evalObjectWithColumnSelection(fields map[string]schema.Field, data map[stri
 // ResolveArgumentVariables resolve variables in arguments if exist
 func ResolveArgumentVariables(arguments map[string]schema.Argument, variables map[string]any) (map[string]any, error) {
 	results := make(map[string]any)
-	for key, arg := range arguments {
-		switch arg.Type {
-		case schema.ArgumentTypeLiteral:
+	for key, argument := range arguments {
+		argT, err := argument.InterfaceT()
+		switch arg := argT.(type) {
+		case *schema.ArgumentLiteral:
 			results[key] = arg.Value
-		case schema.ArgumentTypeVariable:
+		case *schema.ArgumentVariable:
 			value, ok := variables[arg.Name]
 			if !ok {
 				return nil, &schema.ErrorResponse{
@@ -217,7 +218,7 @@ func ResolveArgumentVariables(arguments map[string]schema.Argument, variables ma
 			return nil, &schema.ErrorResponse{
 				Message: "failed to resolve argument",
 				Details: map[string]any{
-					"reason": fmt.Errorf("unsupported argument type: %s", arg.Type),
+					"reason": err.Error(),
 					"path":   fmt.Sprintf(".%s", key),
 				},
 			}
