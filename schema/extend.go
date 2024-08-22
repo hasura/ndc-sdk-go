@@ -54,13 +54,12 @@ func (j *ArgumentType) UnmarshalJSON(b []byte) error {
 }
 
 // Argument is provided by reference to a variable or as a literal value
+//
+// TODO: may change Argument to a generic map in the future
 type Argument struct {
-	// Deprecated: may change Argument to a generic map in the future
-	Type ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
-	// Deprecated: may change Argument to a generic map in the future
-	Name string `json:"name" yaml:"name" mapstructure:"name"`
-	// Deprecated: may change Argument to a generic map in the future
-	Value any `json:"value" yaml:"value" mapstructure:"value"`
+	Type  ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	Name  string       `json:"name" yaml:"name" mapstructure:"name"`
+	Value any          `json:"value" yaml:"value" mapstructure:"value"`
 }
 
 // ArgumentEncoder abstracts the interface for Argument
@@ -276,13 +275,12 @@ func (j *RelationshipArgumentType) UnmarshalJSON(b []byte) error {
 }
 
 // RelationshipArgument is provided by reference to a variable or as a literal value
+//
+// TODO: may change RelationshipArgument to a generic map in the future
 type RelationshipArgument struct {
-	// Deprecated: may change RelationshipArgument to a generic map in the future
-	Type RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
-	// Deprecated: may change RelationshipArgument to a generic map in the future
-	Name string `json:"name" yaml:"name" mapstructure:"name"`
-	// Deprecated: may change RelationshipArgument to a generic map in the future
-	Value any `json:"value" yaml:"value" mapstructure:"value"`
+	Type  RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
+	Name  string                   `json:"name" yaml:"name" mapstructure:"name"`
+	Value any                      `json:"value" yaml:"value" mapstructure:"value"`
 }
 
 // RelationshipArgumentEncoder abstracts the interface for RelationshipArgument
