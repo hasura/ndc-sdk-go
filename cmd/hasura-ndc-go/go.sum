@@ -12,8 +12,8 @@ github.com/fatih/structtag v1.2.0/go.mod h1:mBJUNpUnHmRKrKlQQlmCrh5PuhftFbNv8Ys4
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
-github.com/hasura/ndc-sdk-go v1.2.0 h1:7OrELJbn6Vaj1bsG7pgHkn3rhivD5e2gxjWS/4fR21Q=
-github.com/hasura/ndc-sdk-go v1.2.0/go.mod h1:2P+xMUuLE4xgFh1bOYGK04+KwLEFH2i+bCy9a8cWnlM=
+github.com/hasura/ndc-sdk-go v1.2.6-0.20240822043914-74f287fa5d7f h1:XGlkw8XMyj17wpf/dYw1z1g2VtssN/D9YGf4Jk1jHKI=
+github.com/hasura/ndc-sdk-go v1.2.6-0.20240822043914-74f287fa5d7f/go.mod h1:/HF5Bv2t3p3d9R8rZwYPGK93yAyttJ9xvZGuCVks9UQ=
 github.com/hexops/gotextdiff v1.0.3 h1:gitA9+qJrrTCsiCl7+kh75nPqQt1cx4ZkudSTLoUqJM=
 github.com/hexops/gotextdiff v1.0.3/go.mod h1:pSWU5MAI3yDq+fZBTazCSJysOMbxWL1BSow5/V2vxeg=
 github.com/mattn/go-colorable v0.1.13 h1:fFA4WZxdEF4tXPZVKMLwD8oUnCTTo08duU7wxecdEvA=
