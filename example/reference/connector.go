@@ -514,17 +514,9 @@ func executeQueryWithVariables(
 	variables map[string]any,
 	state *State,
 ) (*schema.RowSet, error) {
-	argumentValues := make(map[string]schema.Argument)
-
-	for argumentName, argument := range arguments {
-		argumentValue, err := evalArgument(variables, &argument)
-		if err != nil {
-			return nil, err
-		}
-		argumentValues[argumentName] = schema.Argument{
-			Type:  schema.ArgumentTypeLiteral,
-			Value: argumentValue,
-		}
+	argumentValues, err := utils.ResolveArgumentVariables(arguments, variables)
+	if err != nil {
+		return nil, err
 	}
 
 	coll, err := getCollectionByName(collection, argumentValues, state)
@@ -924,16 +916,13 @@ func evalInCollection(
 		source := []map[string]any{item}
 		return evalPathElement(collectionRelationships, variables, state, &relationship, inCol.Arguments, source, nil)
 	case *schema.ExistsInCollectionUnrelated:
-		arguments := make(map[string]schema.Argument)
+		arguments := make(map[string]any)
 		for key, relArg := range inCol.Arguments {
 			argValue, err := evalRelationshipArgument(variables, item, &relArg)
 			if err != nil {
 				return nil, err
 			}
-			arguments[key] = schema.Argument{
-				Type:  schema.ArgumentTypeLiteral,
-				Value: argValue,
-			}
+			arguments[key] = argValue
 		}
 		return getCollectionByName(inCol.Collection, arguments, state)
 	default:
@@ -1046,7 +1035,7 @@ func evalPathElement(
 	source []map[string]any,
 	predicate schema.Expression,
 ) ([]map[string]any, error) {
-	allArguments := make(map[string]schema.Argument)
+	allArguments := make(map[string]any)
 	var matchingRows []map[string]any
 
 	// Note: Join strategy
@@ -1072,10 +1061,7 @@ func evalPathElement(
 			if err != nil {
 				return nil, err
 			}
-			allArguments[argName] = schema.Argument{
-				Type:  schema.ArgumentTypeLiteral,
-				Value: relValue,
-			}
+			allArguments[argName] = relValue
 		}
 		for argName, arg := range arguments {
 			if _, ok := allArguments[argName]; ok {
@@ -1085,10 +1071,7 @@ func evalPathElement(
 			if err != nil {
 				return nil, err
 			}
-			allArguments[argName] = schema.Argument{
-				Type:  schema.ArgumentTypeLiteral,
-				Value: relValue,
-			}
+			allArguments[argName] = relValue
 		}
 
 		targetRows, err := getCollectionByName(relationship.TargetCollection, allArguments, state)
@@ -1122,27 +1105,28 @@ func evalPathElement(
 }
 
 func evalRelationshipArgument(variables map[string]any, row map[string]any, argument *schema.RelationshipArgument) (any, error) {
-	switch argument.Type {
-	case schema.RelationshipArgumentTypeColumn:
-		value, ok := row[argument.Name]
+	argT, err := argument.InterfaceT()
+	switch arg := argT.(type) {
+	case *schema.RelationshipArgumentColumn:
+		value, ok := row[arg.Name]
 		if !ok {
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid column name: %s", argument.Name), nil)
+			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid column name: %s", arg.Name), nil)
 		}
 		return value, nil
-	case schema.RelationshipArgumentTypeLiteral:
-		return argument.Value, nil
-	case schema.RelationshipArgumentTypeVariable:
-		variable, ok := variables[argument.Name]
+	case *schema.RelationshipArgumentLiteral:
+		return arg.Value, nil
+	case *schema.RelationshipArgumentVariable:
+		variable, ok := variables[arg.Name]
 		if !ok {
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid variable name: %s", argument.Name), nil)
+			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid variable name: %s", arg.Name), nil)
 		}
 		return variable, nil
 	default:
-		return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid argument type: %s", argument.Type), nil)
+		return nil, schema.UnprocessableContentError(err.Error(), nil)
 	}
 }
 
-func getCollectionByName(collectionName string, arguments schema.QueryRequestArguments, state *State) ([]map[string]any, error) {
+func getCollectionByName(collectionName string, arguments map[string]any, state *State) ([]map[string]any, error) {
 	var rows []map[string]any
 	switch collectionName {
 	// function
@@ -1189,21 +1173,18 @@ func getCollectionByName(collectionName string, arguments schema.QueryRequestArg
 			rows = append(rows, row)
 		}
 	case "articles_by_author":
-		authorIdArg, ok := arguments["author_id"]
+		authorId, ok := arguments["author_id"]
 		if !ok {
 			return nil, schema.UnprocessableContentError("missing argument author_id", nil)
 		}
 
 		for _, row := range state.Articles {
-			switch authorIdArg.Type {
-			case schema.ArgumentTypeLiteral:
-				if fmt.Sprint(row.AuthorID) == fmt.Sprint(authorIdArg.Value) {
-					r, err := utils.EncodeObject(row)
-					if err != nil {
-						return nil, err
-					}
-					rows = append(rows, r)
+			if fmt.Sprint(row.AuthorID) == fmt.Sprint(authorId) {
+				r, err := utils.EncodeObject(row)
+				if err != nil {
+					return nil, err
 				}
+				rows = append(rows, r)
 			}
 		}
 	default:
@@ -1451,21 +1432,6 @@ func evalExpression(
 		return false, schema.UnprocessableContentError("invalid expression", map[string]any{
 			"value": expr,
 		})
-	}
-}
-
-func evalArgument(variables map[string]any, argument *schema.Argument) (any, error) {
-	switch argument.Type {
-	case schema.ArgumentTypeVariable:
-		value, ok := variables[argument.Name]
-		if !ok {
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid variable name: %s", argument.Name), nil)
-		}
-		return value, nil
-	case schema.ArgumentTypeLiteral:
-		return argument.Value, nil
-	default:
-		return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid argument type: %s", argument.Type), nil)
 	}
 }
 
