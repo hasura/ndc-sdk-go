@@ -370,19 +370,21 @@ func setupConnectorMetrics(telemetry *TelemetryState, metricsPrefix string) erro
 
 // Tracer is the wrapper of traceapi.Tracer with user visibility on Hasura Console
 type Tracer struct {
-	tracer traceapi.Tracer
+	traceapi.Tracer
 }
+
+var _ traceapi.Tracer = &Tracer{}
 
 // Start creates a span and a context.Context containing the newly-created span
 // with `internal.visibility: "user"` so that it shows up in the Hasura Console.
 func (t *Tracer) Start(ctx context.Context, spanName string, opts ...traceapi.SpanStartOption) (context.Context, traceapi.Span) {
-	return t.tracer.Start(ctx, spanName, append(opts, userVisibilityAttribute)...)
+	return t.Tracer.Start(ctx, spanName, append(opts, userVisibilityAttribute)...)
 }
 
 // StartInternal creates a span and a context.Context containing the newly-created span.
 // It won't show up in the Hasura Console
 func (t *Tracer) StartInternal(ctx context.Context, spanName string, opts ...traceapi.SpanStartOption) (context.Context, traceapi.Span) {
-	return t.tracer.Start(ctx, spanName, opts...)
+	return t.Tracer.Start(ctx, spanName, opts...)
 }
 
 func httpStatusAttribute(code int) attribute.KeyValue {
