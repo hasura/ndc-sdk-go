@@ -568,14 +568,22 @@ func decodeNullableFloatReflection[T float32 | float64](value reflect.Value) (*T
 	if !ok {
 		return nil, nil
 	}
+	kind := inferredValue.Kind()
 	var result T
-	switch inferredValue.Kind() {
+	switch kind {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		result = T(inferredValue.Int())
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		result = T(inferredValue.Uint())
 	case reflect.Float32, reflect.Float64:
 		result = T(inferredValue.Float())
+	case reflect.String:
+		v := inferredValue.String()
+		newVal, parseErr := strconv.ParseFloat(v, 64)
+		if parseErr != nil {
+			return nil, fmt.Errorf("failed to convert Float, got: %s", v)
+		}
+		result = T(newVal)
 	case reflect.Interface:
 		v := fmt.Sprint(inferredValue.Interface())
 		newVal, parseErr := strconv.ParseFloat(v, 64)
@@ -584,7 +592,7 @@ func decodeNullableFloatReflection[T float32 | float64](value reflect.Value) (*T
 		}
 		result = T(newVal)
 	default:
-		return nil, fmt.Errorf("failed to convert Float, got: %+v", inferredValue.Interface())
+		return nil, fmt.Errorf("failed to convert Float, got: %+v <%s>", inferredValue.Interface(), kind)
 	}
 	return &result, nil
 }

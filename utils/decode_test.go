@@ -644,6 +644,22 @@ func TestDecodeFloat(t *testing.T) {
 		})
 	}
 
+	t.Run("decode_string", func(t *testing.T) {
+
+		expected := "0"
+		value, err := DecodeFloat[float64](expected)
+		assertNoError(t, err)
+		assertEqual(t, "0", fmt.Sprintf("%.0f", value))
+
+		ptr, err := DecodeNullableFloat[float64](&expected)
+		assertNoError(t, err)
+		assertEqual(t, expected, fmt.Sprintf("%.0f", *ptr))
+
+		ptr2, err := DecodeNullableFloat[float64](ptr)
+		assertNoError(t, err)
+		assertEqual(t, fmt.Sprintf("%.1f", *ptr), fmt.Sprintf("%.1f", *ptr2))
+	})
+
 	t.Run("decode_pointers", func(t *testing.T) {
 
 		vInt := int(1)
