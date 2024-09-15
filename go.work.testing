@@ -6,4 +6,5 @@ use (
 	cmd/hasura-ndc-go/command/internal/testdata/empty/source
 	cmd/hasura-ndc-go/command/internal/testdata/basic/source
 	cmd/hasura-ndc-go/command/internal/testdata/subdir/source
+	cmd/hasura-ndc-go/command/internal/testdata/snake_case/source
 )

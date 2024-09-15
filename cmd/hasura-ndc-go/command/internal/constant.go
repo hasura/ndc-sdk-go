@@ -7,6 +7,7 @@ import (
 	"text/template"
 
 	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/iancoleman/strcase"
 )
 
 const (
@@ -25,6 +26,11 @@ func init() {
 	if err != nil {
 		panic(fmt.Errorf("failed to parse connector template: %s", err))
 	}
+
+	strcase.ConfigureAcronym("API", "Api")
+	strcase.ConfigureAcronym("REST", "Rest")
+	strcase.ConfigureAcronym("HTTP", "Http")
+	strcase.ConfigureAcronym("SQL", "sql")
 }
 
 type ScalarName string

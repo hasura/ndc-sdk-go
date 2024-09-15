@@ -17,6 +17,7 @@ import (
 
 	"github.com/fatih/structtag"
 	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/iancoleman/strcase"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/tools/go/packages"
 )
@@ -213,6 +214,7 @@ type SchemaParser struct {
 	rawSchema    *RawConnectorSchema
 	packages     []*packages.Package
 	packageIndex int
+	namingStyle  OperationNamingStyle
 }
 
 // GetCurrentPackage gets the current evaluating package
@@ -231,6 +233,14 @@ func (sp SchemaParser) FindPackageByPath(input string) *packages.Package {
 }
 
 func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, filePath string, args *ConnectorGenerationArguments) (*RawConnectorSchema, error) {
+	var err error
+	namingStyle := StyleCamelCase
+	if args.Style != "" {
+		namingStyle, err = ParseOperationNamingStyle(args.Style)
+		if err != nil {
+			return nil, err
+		}
+	}
 	rawSchema := NewRawConnectorSchema()
 
 	pkgTypes, err := evalPackageTypesLocation(args.PackageTypes, moduleName, filePath, args.ConnectorDir)
@@ -312,6 +322,7 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 			packages:     packageList,
 			packageIndex: i,
 			rawSchema:    rawSchema,
+			namingStyle:  namingStyle,
 		}
 
 		err = sp.parseRawConnectorSchema(packageList[i].Types)
@@ -846,6 +857,16 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, packagePath s
 	return typeInfo, nil
 }
 
+// format operation name with style
+func (sp SchemaParser) formatOperationName(name string) string {
+	switch sp.namingStyle {
+	case StyleSnakeCase:
+		return strcase.ToSnake(name)
+	default:
+		return strcase.ToLowerCamel(name)
+	}
+}
+
 func (sp *SchemaParser) parseOperationInfo(fn *types.Func) *OperationInfo {
 	functionName := fn.Name()
 	result := OperationInfo{
@@ -878,7 +899,7 @@ func (sp *SchemaParser) parseOperationInfo(fn *types.Func) *OperationInfo {
 				if matchesLen > 3 && strings.TrimSpace(matches[3]) != "" {
 					result.Name = strings.TrimSpace(matches[3])
 				} else {
-					result.Name = ToCamelCase(functionName)
+					result.Name = sp.formatOperationName(functionName)
 				}
 			} else {
 				descriptions = append(descriptions, text)
@@ -895,7 +916,7 @@ func (sp *SchemaParser) parseOperationInfo(fn *types.Func) *OperationInfo {
 			return nil
 		}
 		result.Kind = OperationKind(operationNameResults[1])
-		result.Name = ToCamelCase(operationNameResults[2])
+		result.Name = sp.formatOperationName(operationNameResults[2])
 	}
 
 	desc := strings.TrimSpace(strings.Join(descriptions, " "))

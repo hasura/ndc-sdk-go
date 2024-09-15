@@ -52,7 +52,7 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 		opts(defaultOptions)
 	}
 	if options.ServiceName == "" {
-		options.ServiceName = defaultOptions.serviceName
+		options.OTLPConfig.ServiceName = defaultOptions.serviceName
 	}
 	defaultOptions.logger.Debug(
 		"initialize OpenTelemetry",
