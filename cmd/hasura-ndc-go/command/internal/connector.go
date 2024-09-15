@@ -10,10 +10,10 @@ import (
 	"path"
 	"runtime/trace"
 	"slices"
-	"sort"
 	"strings"
 
 	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/utils"
 	"github.com/iancoleman/strcase"
 	"github.com/rs/zerolog/log"
 )
@@ -25,6 +25,7 @@ type ConnectorGenerationArguments struct {
 	PackageTypes string   `help:"The name of types package where the State struct is in"`
 	Directories  []string `help:"Folders contain NDC operation functions" short:"d"`
 	Trace        string   `help:"Enable tracing and write to target file path."`
+	SchemaFormat string   `help:"The output format for the connector schema. Accept: json, go" enum:"json,go" default:"json"`
 	Style        string   `help:"The naming style for functions and procedures. Accept: camel-case, snake-case" enum:"camel-case,snake-case" default:"camel-case"`
 }
 
@@ -51,7 +52,7 @@ func (ctb connectorTypeBuilder) String() string {
 	bs.WriteString(genFileHeader(ctb.packageName))
 	if len(ctb.imports) > 0 {
 		bs.WriteString("import (\n")
-		sortedImports := getSortedKeys(ctb.imports)
+		sortedImports := utils.GetSortedKeys(ctb.imports)
 		for _, pkg := range sortedImports {
 			alias := ctb.imports[pkg]
 			if alias != "" {
@@ -72,15 +73,17 @@ type connectorGenerator struct {
 	basePath     string
 	connectorDir string
 	moduleName   string
+	schemaFormat string
 	rawSchema    *RawConnectorSchema
 	typeBuilders map[string]*connectorTypeBuilder
 }
 
-func NewConnectorGenerator(basePath string, connectorDir string, moduleName string, rawSchema *RawConnectorSchema) *connectorGenerator {
+func NewConnectorGenerator(basePath string, connectorDir string, moduleName string, rawSchema *RawConnectorSchema, schemaFormat string) *connectorGenerator {
 	return &connectorGenerator{
 		basePath:     basePath,
 		connectorDir: connectorDir,
 		moduleName:   moduleName,
+		schemaFormat: schemaFormat,
 		rawSchema:    rawSchema,
 		typeBuilders: make(map[string]*connectorTypeBuilder),
 	}
@@ -112,15 +115,29 @@ func ParseAndGenerateConnector(args ConnectorGenerationArguments, moduleName str
 
 	_, genTask := trace.NewTask(context.TODO(), "generate_code")
 	defer genTask.End()
-	connectorGen := NewConnectorGenerator(".", args.ConnectorDir, moduleName, sm)
+	connectorGen := NewConnectorGenerator(".", args.ConnectorDir, moduleName, sm, args.SchemaFormat)
 	return connectorGen.generateConnector()
 }
 
 func (cg *connectorGenerator) generateConnector() error {
-	// generate schema.generated.json
-	schemaBytes, err := json.MarshalIndent(cg.rawSchema.Schema(), "", "  ")
-	if err != nil {
-		return err
+
+	var schemaBytes []byte
+	var err error
+
+	schemaOutputFile := schemaOutputJSONFile
+	if cg.schemaFormat == "go" {
+		schemaOutputFile = schemaOutputGoFile
+		output, err := cg.rawSchema.Render("main")
+		if err != nil {
+			return err
+		}
+		schemaBytes = []byte(output)
+	} else {
+		// generate schema.generated.json
+		schemaBytes, err = json.MarshalIndent(cg.rawSchema.Schema(), "", "  ")
+		if err != nil {
+			return err
+		}
 	}
 
 	schemaPath := path.Join(cg.basePath, cg.connectorDir, schemaOutputFile)
@@ -157,7 +174,7 @@ func (cg *connectorGenerator) genConnectorCodeFromTemplate(w io.Writer) error {
 	queries := cg.genConnectorFunctions(cg.rawSchema)
 	procedures := cg.genConnectorProcedures(cg.rawSchema)
 
-	sortedImports := getSortedKeys(cg.rawSchema.Imports)
+	sortedImports := utils.GetSortedKeys(cg.rawSchema.Imports)
 
 	importLines := []string{}
 	for _, importPath := range sortedImports {
@@ -165,10 +182,11 @@ func (cg *connectorGenerator) genConnectorCodeFromTemplate(w io.Writer) error {
 	}
 
 	return connectorTemplate.Execute(w, map[string]any{
-		"Imports":    strings.Join(importLines, "\n"),
-		"Module":     cg.moduleName,
-		"Queries":    queries,
-		"Procedures": procedures,
+		"Imports":      strings.Join(importLines, "\n"),
+		"Module":       cg.moduleName,
+		"Queries":      queries,
+		"Procedures":   procedures,
+		"SchemaFormat": cg.schemaFormat,
 	})
 }
 
@@ -394,7 +412,7 @@ func (cg *connectorGenerator) genObjectMethods() error {
 		return nil
 	}
 
-	objectKeys := getSortedKeys(cg.rawSchema.Objects)
+	objectKeys := utils.GetSortedKeys(cg.rawSchema.Objects)
 
 	for _, objectName := range objectKeys {
 		object := cg.rawSchema.Objects[objectName]
@@ -418,7 +436,7 @@ func (j %s) ToMap() map[string]any {
 
 func (cg *connectorGenerator) genObjectToMap(sb *connectorTypeBuilder, object *ObjectInfo, selector string, name string) {
 
-	fieldKeys := getSortedKeys(object.Fields)
+	fieldKeys := utils.GetSortedKeys(object.Fields)
 	for _, fieldKey := range fieldKeys {
 		field := object.Fields[fieldKey]
 		fieldSelector := fmt.Sprintf("%s.%s", selector, field.Name)
@@ -481,7 +499,7 @@ func (cg *connectorGenerator) genCustomScalarMethods() error {
 		return nil
 	}
 
-	scalarKeys := getSortedKeys(cg.rawSchema.CustomScalars)
+	scalarKeys := utils.GetSortedKeys(cg.rawSchema.CustomScalars)
 
 	for _, scalarKey := range scalarKeys {
 		scalar := cg.rawSchema.CustomScalars[scalarKey]
@@ -589,7 +607,7 @@ func (j *%s) FromValue(input map[string]any) error {
   var err error
 `, fn.ArgumentsType.Name))
 
-		argumentKeys := getSortedKeys(fn.Arguments)
+		argumentKeys := utils.GetSortedKeys(fn.Arguments)
 		for _, key := range argumentKeys {
 			arg := fn.Arguments[key]
 			cg.genGetTypeValueDecoder(sb, arg.Type, key, arg.FieldName)
@@ -620,7 +638,7 @@ func (cg *connectorGenerator) getOrCreateTypeBuilder(packagePath string) *connec
 }
 
 func genFileHeader(packageName string) string {
-	return fmt.Sprintf(`// Code generated by github.com/hasura/ndc-sdk-go/codegen, DO NOT EDIT.
+	return fmt.Sprintf(`// Code generated by github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go, DO NOT EDIT.
 package %s
 `, packageName)
 }
@@ -806,15 +824,6 @@ func buildTypeWithAlias(name string, typePackagePath string, currentPackagePath 
 	parts := strings.Split(typePackagePath, "/")
 	alias := parts[len(parts)-1]
 	return fmt.Sprintf("%s.%s", alias, name)
-}
-
-func getSortedKeys[V any](input map[string]V) []string {
-	var results []string
-	for key := range input {
-		results = append(results, key)
-	}
-	sort.Strings(results)
-	return results
 }
 
 func formatLocalFieldName(input string, others ...string) string {

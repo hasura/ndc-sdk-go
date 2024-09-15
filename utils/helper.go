@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"reflect"
+	"sort"
 )
 
 // GetDefault returns the value or default one if value is empty
@@ -32,6 +33,16 @@ func GetDefaultValuePtr[T comparable](value *T, defaultValue T) T {
 		return defaultValue
 	}
 	return *value
+}
+
+// GetSortedKeys gets keys of a map and sorts them
+func GetSortedKeys[V any](input map[string]V) []string {
+	var results []string
+	for key := range input {
+		results = append(results, key)
+	}
+	sort.Strings(results)
+	return results
 }
 
 // ToPtr converts a value to its pointer

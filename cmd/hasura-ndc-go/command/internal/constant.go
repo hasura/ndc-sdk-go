@@ -12,7 +12,8 @@ import (
 
 const (
 	connectorOutputFile   = "connector.generated.go"
-	schemaOutputFile      = "schema.generated.json"
+	schemaOutputJSONFile  = "schema.generated.json"
+	schemaOutputGoFile    = "schema.generated.go"
 	typeMethodsOutputFile = "types.generated.go"
 )
 
