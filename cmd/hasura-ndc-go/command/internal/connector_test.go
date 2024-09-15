@@ -133,12 +133,6 @@ func TestConnectorGeneration(t *testing.T) {
 					assert.NoError(t, err)
 				}
 			}
-
-			// generate test cases
-			// assert.NoError(t, command.GenTestSnapshots(&command.GenTestSnapshotArguments{
-			// 	Dir:    "testdata",
-			// 	Schema: path.Join("source", tc.ConnectorDir, "schema.generated.json"),
-			// }))
 		})
 	}
 }
