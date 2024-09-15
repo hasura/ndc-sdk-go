@@ -41,6 +41,7 @@ jobs:
           skip-cache: true
       - name: Run Go unit tests for the SDK
         run: |
+          cp go.work.testing go.work
           rm cmd/hasura-ndc-go/go.mod
           rm cmd/hasura-ndc-go/go.sum
           go mod tidy

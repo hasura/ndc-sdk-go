@@ -32,8 +32,8 @@ test: test-sdk test-hasura-ndc-go test-example-codegen
 go-tidy:
 	go mod tidy
 	cd $(ROOT_DIR)/cmd/hasura-ndc-go && go mod tidy
-	cd $(ROOT_DIR)/cmd/hasura-ndc-go/testdata/basic/source && go mod tidy
-	cd $(ROOT_DIR)/cmd/hasura-ndc-go/testdata/empty/source && go mod tidy
+	cd $(ROOT_DIR)/cmd/hasura-ndc-go/command/internal/testdata/basic/source && go mod tidy
+	cd $(ROOT_DIR)/cmd/hasura-ndc-go/command/internal/testdata/empty/source && go mod tidy
 	cd $(ROOT_DIR)/example/codegen && go mod tidy
 	
 # Install golangci-lint tool to run lint locally
@@ -46,11 +46,11 @@ lint:
 .PHONY: clean
 clean:
 	rm -rf "$(OUTPUT_DIR)"
-	rm -f cmd/hasura-ndc-go/testdata/*/source/connector.generated.go
-	rm -f cmd/hasura-ndc-go/testdata/*/source/**/connector.generated.go
-	rm -f cmd/hasura-ndc-go/testdata/*/source/schema.generated.json
-	rm -f cmd/hasura-ndc-go/testdata/*/source/**/schema.generated.json
-	rm -f cmd/hasura-ndc-go/testdata/*/source/**/types.generated.go
+	rm -f cmd/hasura-ndc-go/command/internal/testdata/*/source/connector.generated.go
+	rm -f cmd/hasura-ndc-go/command/internal/testdata/*/source/**/connector.generated.go
+	rm -f cmd/hasura-ndc-go/command/internal/testdata/*/source/schema.generated.json
+	rm -f cmd/hasura-ndc-go/command/internal/testdata/*/source/**/schema.generated.json
+	rm -f cmd/hasura-ndc-go/command/internal/testdata/*/source/**/types.generated.go
 	rm -rf cmd/hasura-ndc-go/testdata/**/testdata
 
 .PHONY: build-codegen

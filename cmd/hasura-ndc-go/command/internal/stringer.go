@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"regexp"
@@ -30,13 +30,4 @@ func ToPascalCase(input string) string {
 		parts[i] = strings.ToUpper(parts[i][:1]) + parts[i][1:]
 	}
 	return strings.Join(parts, "")
-}
-
-func findAndReplaceNativeScalarPackage(input string) (string, string, bool) {
-	for alias, pkg := range nativeScalarPackages {
-		if pkg.Pattern.MatchString(input) {
-			return pkg.PackageName, strings.ReplaceAll(input, pkg.PackageName, alias), true
-		}
-	}
-	return "", "", false
 }

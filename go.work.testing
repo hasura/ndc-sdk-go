@@ -1,0 +1,9 @@
+go 1.21
+
+use (
+	.
+	example/codegen
+	cmd/hasura-ndc-go/command/internal/testdata/empty/source
+	cmd/hasura-ndc-go/command/internal/testdata/basic/source
+	cmd/hasura-ndc-go/command/internal/testdata/subdir/source
+)

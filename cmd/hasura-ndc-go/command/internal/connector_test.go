@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"encoding/json"
@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/command"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/stretchr/testify/assert"
 )
@@ -91,8 +90,7 @@ func TestConnectorGeneration(t *testing.T) {
 
 			srcDir := path.Join(tc.BasePath, "source")
 			assert.NoError(t, os.Chdir(srcDir))
-
-			err = parseAndGenerateConnector(&UpdateArguments{
+			err = ParseAndGenerateConnector(ConnectorGenerationArguments{
 				ConnectorDir: tc.ConnectorDir,
 				PackageTypes: tc.PackageTypes,
 				Directories:  tc.Directories,
@@ -134,12 +132,6 @@ func TestConnectorGeneration(t *testing.T) {
 					assert.NoError(t, err)
 				}
 			}
-
-			// generate test cases
-			assert.NoError(t, command.GenTestSnapshots(&command.GenTestSnapshotArguments{
-				Dir:    "testdata",
-				Schema: path.Join("source", tc.ConnectorDir, "schema.generated.json"),
-			}))
 		})
 	}
 }
