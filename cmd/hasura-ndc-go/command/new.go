@@ -1,4 +1,4 @@
-package main
+package command
 
 import (
 	"bufio"
@@ -11,30 +11,28 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/command/internal"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/mod/modfile"
 )
 
-//go:embed all:* templates/new
+//go:embed all:* internal/templates/new
 var initTemplateFS embed.FS
 
-//go:embed templates/connector/connector.go.tmpl
-var connectorTemplateStr string
-var connectorTemplate *template.Template
-
 const (
-	templateNewPath = "templates/new"
+	templateNewPath = "internal/templates/new"
 )
 
-func init() {
-	var err error
-	connectorTemplate, err = template.New(connectorOutputFile).Parse(connectorTemplateStr)
-	if err != nil {
-		panic(fmt.Errorf("failed to parse connector template: %s", err))
-	}
+// NewArguments input arguments for the new command
+type NewArguments struct {
+	Name    string `help:"Name of the connector." short:"n" required:""`
+	Module  string `help:"Module name of the connector" short:"m" required:""`
+	Version string `help:"The version of ndc-sdk-go."`
+	Output  string `help:"The location where source codes will be generated" short:"o" default:""`
 }
 
-func generateNewProject(args *NewArguments, silent bool) error {
+// GenerateNewProject generates a new project boilerplate
+func GenerateNewProject(args *NewArguments, silent bool) error {
 	srcPath := args.Output
 	if srcPath == "" {
 		p, err := os.Getwd()
@@ -64,7 +62,7 @@ func generateNewProject(args *NewArguments, silent bool) error {
 	}
 
 	log.Info().Msg("generating connector functions...")
-	if err := parseAndGenerateConnector(&UpdateArguments{
+	if err := internal.ParseAndGenerateConnector(internal.ConnectorGenerationArguments{
 		Path:        ".",
 		Directories: []string{"functions", "types"},
 	}, args.Module); err != nil {

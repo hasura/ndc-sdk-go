@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"encoding/json"
@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/command"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/stretchr/testify/assert"
 )
@@ -36,26 +35,26 @@ func TestConnectorGeneration(t *testing.T) {
 	}{
 		{
 			Name:        "basic",
-			BasePath:    "./testdata/basic",
+			BasePath:    "../testdata/basic",
 			ModuleName:  "github.com/hasura/ndc-codegen-test",
 			Directories: []string{"functions"},
 		},
 		{
 			Name:        "empty",
-			BasePath:    "./testdata/empty",
+			BasePath:    "../testdata/empty",
 			ModuleName:  "github.com/hasura/ndc-codegen-empty-test",
 			Directories: []string{"functions"},
 		},
 		{
 			Name:         "subdir",
-			BasePath:     "./testdata/subdir",
+			BasePath:     "../testdata/subdir",
 			ConnectorDir: "connector",
 			ModuleName:   "github.com/hasura/ndc-codegen-subdir-test",
 			Directories:  []string{"connector/functions"},
 		},
 		{
 			Name:         "subdir_package_types",
-			BasePath:     "./testdata/subdir",
+			BasePath:     "../testdata/subdir",
 			ConnectorDir: "connector",
 			ModuleName:   "github.com/hasura/ndc-codegen-subdir-test",
 			PackageTypes: "connector/types",
@@ -63,7 +62,7 @@ func TestConnectorGeneration(t *testing.T) {
 		},
 		{
 			Name:         "subdir_package_types_absolute",
-			BasePath:     "./testdata/subdir",
+			BasePath:     "../testdata/subdir",
 			ConnectorDir: "connector",
 			ModuleName:   "github.com/hasura/ndc-codegen-subdir-test",
 			PackageTypes: "github.com/hasura/ndc-codegen-subdir-test/connector/types",
@@ -71,7 +70,7 @@ func TestConnectorGeneration(t *testing.T) {
 		},
 		{
 			Name:        "invalid_types_package",
-			BasePath:    "./testdata/subdir",
+			BasePath:    "../testdata/subdir",
 			ModuleName:  "github.com/hasura/ndc-codegen-subdir-test",
 			Directories: []string{"connector/functions"},
 			errorMsg:    "the `types` package where the State struct is in must be placed in root or connector directory",
@@ -92,7 +91,7 @@ func TestConnectorGeneration(t *testing.T) {
 			srcDir := path.Join(tc.BasePath, "source")
 			assert.NoError(t, os.Chdir(srcDir))
 
-			err = parseAndGenerateConnector(&UpdateArguments{
+			err = ParseAndGenerateConnector(ConnectorGenerationArguments{
 				ConnectorDir: tc.ConnectorDir,
 				PackageTypes: tc.PackageTypes,
 				Directories:  tc.Directories,
@@ -136,10 +135,10 @@ func TestConnectorGeneration(t *testing.T) {
 			}
 
 			// generate test cases
-			assert.NoError(t, command.GenTestSnapshots(&command.GenTestSnapshotArguments{
-				Dir:    "testdata",
-				Schema: path.Join("source", tc.ConnectorDir, "schema.generated.json"),
-			}))
+			// assert.NoError(t, command.GenTestSnapshots(&command.GenTestSnapshotArguments{
+			// 	Dir:    "testdata",
+			// 	Schema: path.Join("source", tc.ConnectorDir, "schema.generated.json"),
+			// }))
 		})
 	}
 }

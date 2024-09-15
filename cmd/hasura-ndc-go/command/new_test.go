@@ -1,4 +1,4 @@
-package main
+package command
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 
 func TestGenerateNewProject(t *testing.T) {
 	tempDir := t.TempDir()
-	assert.NoError(t, generateNewProject(&NewArguments{
+	assert.NoError(t, GenerateNewProject(&NewArguments{
 		Name:    "test",
 		Module:  "hasura.dev/connector",
 		Output:  tempDir,

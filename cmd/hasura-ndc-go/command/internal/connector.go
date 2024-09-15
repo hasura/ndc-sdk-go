@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"bufio"
@@ -17,6 +17,15 @@ import (
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/rs/zerolog/log"
 )
+
+// ConnectorGenerationArguments represent input arguments of the ConnectorGenerator
+type ConnectorGenerationArguments struct {
+	Path         string   `help:"The path of the root directory where the go.mod file is present" short:"p" env:"HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH" default:"."`
+	ConnectorDir string   `help:"The directory where the connector.go file is placed" default:"."`
+	PackageTypes string   `help:"The name of types package where the State struct is in"`
+	Directories  []string `help:"Folders contain NDC operation functions" short:"d"`
+	Trace        string   `help:"Enable tracing and write to target file path."`
+}
 
 type connectorTypeBuilder struct {
 	packageName string
@@ -76,11 +85,12 @@ func NewConnectorGenerator(basePath string, connectorDir string, moduleName stri
 	}
 }
 
-func parseAndGenerateConnector(args *UpdateArguments, moduleName string) error {
-	if cli.Generate.Trace != "" {
-		w, err := os.Create(cli.Generate.Trace)
+// ParseAndGenerateConnector parses and generate connector codes
+func ParseAndGenerateConnector(args ConnectorGenerationArguments, moduleName string) error {
+	if args.Trace != "" {
+		w, err := os.Create(args.Trace)
 		if err != nil {
-			return fmt.Errorf("failed to create trace file at %s", cli.Generate.Trace)
+			return fmt.Errorf("failed to create trace file at %s", args.Trace)
 		}
 		defer func() {
 			_ = w.Close()
@@ -92,7 +102,7 @@ func parseAndGenerateConnector(args *UpdateArguments, moduleName string) error {
 	}
 
 	parseCtx, parseTask := trace.NewTask(context.TODO(), "parse")
-	sm, err := parseRawConnectorSchemaFromGoCode(parseCtx, moduleName, ".", args)
+	sm, err := parseRawConnectorSchemaFromGoCode(parseCtx, moduleName, ".", &args)
 	if err != nil {
 		parseTask.End()
 		return err
