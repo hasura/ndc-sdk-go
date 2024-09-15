@@ -31,6 +31,7 @@ func TestConnectorGeneration(t *testing.T) {
 		Directories  []string
 		ModuleName   string
 		PackageTypes string
+		NamingStyle  string
 		errorMsg     string
 	}{
 		{
@@ -75,6 +76,13 @@ func TestConnectorGeneration(t *testing.T) {
 			Directories: []string{"connector/functions"},
 			errorMsg:    "the `types` package where the State struct is in must be placed in root or connector directory",
 		},
+		{
+			Name:        "snake_case",
+			BasePath:    "./testdata/snake_case",
+			ModuleName:  "github.com/hasura/ndc-codegen-test-snake-case",
+			Directories: []string{"functions"},
+			NamingStyle: string(StyleSnakeCase),
+		},
 	}
 
 	rootDir, err := os.Getwd()
@@ -94,6 +102,7 @@ func TestConnectorGeneration(t *testing.T) {
 				ConnectorDir: tc.ConnectorDir,
 				PackageTypes: tc.PackageTypes,
 				Directories:  tc.Directories,
+				Style:        tc.NamingStyle,
 			}, tc.ModuleName)
 			if tc.errorMsg != "" {
 				assert.ErrorContains(t, err, tc.errorMsg)

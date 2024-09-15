@@ -7,6 +7,7 @@ require (
 	github.com/fatih/structtag v1.2.0
 	github.com/google/uuid v1.6.0
 	github.com/hasura/ndc-sdk-go v1.3.0
+	github.com/iancoleman/strcase v0.3.0
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/mod v0.20.0

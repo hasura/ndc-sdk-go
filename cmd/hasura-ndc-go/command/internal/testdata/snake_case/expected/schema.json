@@ -1,0 +1,3201 @@
+{
+  "collections": [],
+  "functions": [
+    {
+      "arguments": {},
+      "description": "return an scalar boolean",
+      "name": "get_bool",
+      "result_type": {
+        "name": "Boolean",
+        "type": "named"
+      }
+    },
+    {
+      "arguments": {
+        "ArrayBigInt": {
+          "type": {
+            "element_type": {
+              "name": "BigInt",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayBigIntPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "BigInt",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayBool": {
+          "type": {
+            "element_type": {
+              "name": "Boolean",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayBoolPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Boolean",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayFloat32": {
+          "type": {
+            "element_type": {
+              "name": "Float32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayFloat32Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Float32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayFloat64": {
+          "type": {
+            "element_type": {
+              "name": "Float64",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayFloat64Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Float64",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt": {
+          "type": {
+            "element_type": {
+              "name": "Int32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt16": {
+          "type": {
+            "element_type": {
+              "name": "Int16",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt16Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int16",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt32": {
+          "type": {
+            "element_type": {
+              "name": "Int32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt32Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt64": {
+          "type": {
+            "element_type": {
+              "name": "Int64",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt64Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int64",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt8": {
+          "type": {
+            "element_type": {
+              "name": "Int8",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt8Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int8",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayIntPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayJSON": {
+          "type": {
+            "element_type": {
+              "name": "JSON",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayJSONPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "JSON",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayMap": {
+          "type": {
+            "element_type": {
+              "name": "JSON",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayMapPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "JSON",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "ArrayObject": {
+          "type": {
+            "element_type": {
+              "name": "GetTypesArgumentsArrayObject",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayObjectPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "GetTypesArgumentsArrayObjectPtr",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "ArrayRawJSON": {
+          "type": {
+            "element_type": {
+              "name": "RawJSON",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayRawJSONPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "RawJSON",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayString": {
+          "type": {
+            "element_type": {
+              "name": "String",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayStringPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "String",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayTime": {
+          "type": {
+            "element_type": {
+              "name": "TimestampTZ",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayTimePtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "TimestampTZ",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUUID": {
+          "type": {
+            "element_type": {
+              "name": "UUID",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUUIDPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "UUID",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint": {
+          "type": {
+            "element_type": {
+              "name": "Int32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint16": {
+          "type": {
+            "element_type": {
+              "name": "Int16",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint16Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int16",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint32": {
+          "type": {
+            "element_type": {
+              "name": "Int32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint32Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint64": {
+          "type": {
+            "element_type": {
+              "name": "Int64",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint64Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int64",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint8": {
+          "type": {
+            "element_type": {
+              "name": "Int8",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint8Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int8",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUintPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "BigInt": {
+          "type": {
+            "name": "BigInt",
+            "type": "named"
+          }
+        },
+        "BigIntPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "BigInt",
+              "type": "named"
+            }
+          }
+        },
+        "Bool": {
+          "type": {
+            "name": "Boolean",
+            "type": "named"
+          }
+        },
+        "BoolPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Boolean",
+              "type": "named"
+            }
+          }
+        },
+        "Bytes": {
+          "type": {
+            "name": "Bytes",
+            "type": "named"
+          }
+        },
+        "BytesPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Bytes",
+              "type": "named"
+            }
+          }
+        },
+        "CustomScalar": {
+          "type": {
+            "name": "CommentString",
+            "type": "named"
+          }
+        },
+        "CustomScalarPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "CommentString",
+              "type": "named"
+            }
+          }
+        },
+        "Enum": {
+          "type": {
+            "name": "SomeEnum",
+            "type": "named"
+          }
+        },
+        "EnumPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SomeEnum",
+              "type": "named"
+            }
+          }
+        },
+        "Float32": {
+          "type": {
+            "name": "Float32",
+            "type": "named"
+          }
+        },
+        "Float32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Float32",
+              "type": "named"
+            }
+          }
+        },
+        "Float64": {
+          "type": {
+            "name": "Float64",
+            "type": "named"
+          }
+        },
+        "Float64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Float64",
+              "type": "named"
+            }
+          }
+        },
+        "Int": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "Int16": {
+          "type": {
+            "name": "Int16",
+            "type": "named"
+          }
+        },
+        "Int16Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int16",
+              "type": "named"
+            }
+          }
+        },
+        "Int32": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "Int32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int32",
+              "type": "named"
+            }
+          }
+        },
+        "Int64": {
+          "type": {
+            "name": "Int64",
+            "type": "named"
+          }
+        },
+        "Int64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int64",
+              "type": "named"
+            }
+          }
+        },
+        "Int8": {
+          "type": {
+            "name": "Int8",
+            "type": "named"
+          }
+        },
+        "Int8Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int8",
+              "type": "named"
+            }
+          }
+        },
+        "IntPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int32",
+              "type": "named"
+            }
+          }
+        },
+        "JSON": {
+          "type": {
+            "name": "JSON",
+            "type": "named"
+          }
+        },
+        "JSONPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "Map": {
+          "type": {
+            "name": "JSON",
+            "type": "named"
+          }
+        },
+        "MapPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "NamedArray": {
+          "type": {
+            "element_type": {
+              "name": "Author",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "NamedArrayPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Author",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "NamedObject": {
+          "type": {
+            "name": "Author",
+            "type": "named"
+          }
+        },
+        "NamedObjectPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Author",
+              "type": "named"
+            }
+          }
+        },
+        "Object": {
+          "type": {
+            "name": "GetTypesArgumentsObject",
+            "type": "named"
+          }
+        },
+        "ObjectPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "GetTypesArgumentsObjectPtr",
+              "type": "named"
+            }
+          }
+        },
+        "PtrArrayBigInt": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "BigInt",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayBigIntPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "BigInt",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayBool": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Boolean",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayBoolPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Boolean",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayFloat32": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Float32",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayFloat32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Float32",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayFloat64": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Float64",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayFloat64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Float64",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int32",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt16": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int16",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt16Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int16",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt32": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int32",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int32",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt64": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int64",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int64",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt8": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int8",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt8Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int8",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayIntPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int32",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayJSON": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "JSON",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayJSONPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "JSON",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayRawJSON": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "RawJSON",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayRawJSONPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "RawJSON",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayString": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "String",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayStringPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "String",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayTime": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "TimestampTZ",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayTimePtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "TimestampTZ",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUUID": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "UUID",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUUIDPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "UUID",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int32",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint16": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int16",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint16Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int16",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint32": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int32",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int32",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint64": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int64",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int64",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint8": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int8",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint8Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int8",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUintPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int32",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "RawJSON": {
+          "type": {
+            "name": "RawJSON",
+            "type": "named"
+          }
+        },
+        "RawJSONPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "RawJSON",
+              "type": "named"
+            }
+          }
+        },
+        "String": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "StringPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "Text": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "TextPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "Time": {
+          "type": {
+            "name": "TimestampTZ",
+            "type": "named"
+          }
+        },
+        "TimePtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "TimestampTZ",
+              "type": "named"
+            }
+          }
+        },
+        "URL": {
+          "type": {
+            "name": "URL",
+            "type": "named"
+          }
+        },
+        "UUID": {
+          "type": {
+            "name": "UUID",
+            "type": "named"
+          }
+        },
+        "UUIDArray": {
+          "type": {
+            "element_type": {
+              "name": "UUID",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "UUIDPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "UUID",
+              "type": "named"
+            }
+          }
+        },
+        "Uint": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "Uint16": {
+          "type": {
+            "name": "Int16",
+            "type": "named"
+          }
+        },
+        "Uint16Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int16",
+              "type": "named"
+            }
+          }
+        },
+        "Uint32": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "Uint32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int32",
+              "type": "named"
+            }
+          }
+        },
+        "Uint64": {
+          "type": {
+            "name": "Int64",
+            "type": "named"
+          }
+        },
+        "Uint64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int64",
+              "type": "named"
+            }
+          }
+        },
+        "Uint8": {
+          "type": {
+            "name": "Int8",
+            "type": "named"
+          }
+        },
+        "Uint8Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int8",
+              "type": "named"
+            }
+          }
+        },
+        "UintPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int32",
+              "type": "named"
+            }
+          }
+        }
+      },
+      "name": "get_types",
+      "result_type": {
+        "type": "nullable",
+        "underlying_type": {
+          "name": "GetTypesArguments",
+          "type": "named"
+        }
+      }
+    },
+    {
+      "arguments": {},
+      "description": "sends a hello message",
+      "name": "hello",
+      "result_type": {
+        "type": "nullable",
+        "underlying_type": {
+          "name": "HelloResult",
+          "type": "named"
+        }
+      }
+    },
+    {
+      "arguments": {
+        "Limit": {
+          "type": {
+            "name": "Float64",
+            "type": "named"
+          }
+        }
+      },
+      "description": "GetArticles",
+      "name": "get_articles",
+      "result_type": {
+        "element_type": {
+          "name": "GetArticlesResult",
+          "type": "named"
+        },
+        "type": "array"
+      }
+    }
+  ],
+  "object_types": {
+    "Author": {
+      "fields": {
+        "created_at": {
+          "type": {
+            "name": "TimestampTZ",
+            "type": "named"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "CreateArticleArgumentsAuthor": {
+      "fields": {
+        "created_at": {
+          "type": {
+            "name": "TimestampTZ",
+            "type": "named"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "UUID",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "CreateArticleResult": {
+      "fields": {
+        "authors": {
+          "type": {
+            "element_type": {
+              "name": "Author",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "CreateAuthorResult": {
+      "fields": {
+        "created_at": {
+          "type": {
+            "name": "TimestampTZ",
+            "type": "named"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "name": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "GetArticlesResult": {
+      "fields": {
+        "Name": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "GetTypesArguments": {
+      "fields": {
+        "ArrayBigInt": {
+          "type": {
+            "element_type": {
+              "name": "BigInt",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayBigIntPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "BigInt",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayBool": {
+          "type": {
+            "element_type": {
+              "name": "Boolean",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayBoolPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Boolean",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayFloat32": {
+          "type": {
+            "element_type": {
+              "name": "Float32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayFloat32Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Float32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayFloat64": {
+          "type": {
+            "element_type": {
+              "name": "Float64",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayFloat64Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Float64",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt": {
+          "type": {
+            "element_type": {
+              "name": "Int32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt16": {
+          "type": {
+            "element_type": {
+              "name": "Int16",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt16Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int16",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt32": {
+          "type": {
+            "element_type": {
+              "name": "Int32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt32Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt64": {
+          "type": {
+            "element_type": {
+              "name": "Int64",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt64Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int64",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt8": {
+          "type": {
+            "element_type": {
+              "name": "Int8",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayInt8Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int8",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayIntPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayJSON": {
+          "type": {
+            "element_type": {
+              "name": "JSON",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayJSONPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "JSON",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayMap": {
+          "type": {
+            "element_type": {
+              "name": "JSON",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayMapPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "JSON",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "ArrayObject": {
+          "type": {
+            "element_type": {
+              "name": "GetTypesArgumentsArrayObject",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayObjectPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "GetTypesArgumentsArrayObjectPtr",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "ArrayRawJSON": {
+          "type": {
+            "element_type": {
+              "name": "RawJSON",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayRawJSONPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "RawJSON",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayString": {
+          "type": {
+            "element_type": {
+              "name": "String",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayStringPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "String",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayTime": {
+          "type": {
+            "element_type": {
+              "name": "TimestampTZ",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayTimePtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "TimestampTZ",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUUID": {
+          "type": {
+            "element_type": {
+              "name": "UUID",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUUIDPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "UUID",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint": {
+          "type": {
+            "element_type": {
+              "name": "Int32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint16": {
+          "type": {
+            "element_type": {
+              "name": "Int16",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint16Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int16",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint32": {
+          "type": {
+            "element_type": {
+              "name": "Int32",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint32Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint64": {
+          "type": {
+            "element_type": {
+              "name": "Int64",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint64Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int64",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint8": {
+          "type": {
+            "element_type": {
+              "name": "Int8",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUint8Ptr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int8",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "ArrayUintPtr": {
+          "type": {
+            "element_type": {
+              "type": "nullable",
+              "underlying_type": {
+                "name": "Int32",
+                "type": "named"
+              }
+            },
+            "type": "array"
+          }
+        },
+        "BigInt": {
+          "type": {
+            "name": "BigInt",
+            "type": "named"
+          }
+        },
+        "BigIntPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "BigInt",
+              "type": "named"
+            }
+          }
+        },
+        "Bool": {
+          "type": {
+            "name": "Boolean",
+            "type": "named"
+          }
+        },
+        "BoolPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Boolean",
+              "type": "named"
+            }
+          }
+        },
+        "Bytes": {
+          "type": {
+            "name": "Bytes",
+            "type": "named"
+          }
+        },
+        "BytesPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Bytes",
+              "type": "named"
+            }
+          }
+        },
+        "CustomScalar": {
+          "type": {
+            "name": "CommentString",
+            "type": "named"
+          }
+        },
+        "CustomScalarPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "CommentString",
+              "type": "named"
+            }
+          }
+        },
+        "Enum": {
+          "type": {
+            "name": "SomeEnum",
+            "type": "named"
+          }
+        },
+        "EnumPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "SomeEnum",
+              "type": "named"
+            }
+          }
+        },
+        "Float32": {
+          "type": {
+            "name": "Float32",
+            "type": "named"
+          }
+        },
+        "Float32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Float32",
+              "type": "named"
+            }
+          }
+        },
+        "Float64": {
+          "type": {
+            "name": "Float64",
+            "type": "named"
+          }
+        },
+        "Float64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Float64",
+              "type": "named"
+            }
+          }
+        },
+        "Int": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "Int16": {
+          "type": {
+            "name": "Int16",
+            "type": "named"
+          }
+        },
+        "Int16Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int16",
+              "type": "named"
+            }
+          }
+        },
+        "Int32": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "Int32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int32",
+              "type": "named"
+            }
+          }
+        },
+        "Int64": {
+          "type": {
+            "name": "Int64",
+            "type": "named"
+          }
+        },
+        "Int64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int64",
+              "type": "named"
+            }
+          }
+        },
+        "Int8": {
+          "type": {
+            "name": "Int8",
+            "type": "named"
+          }
+        },
+        "Int8Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int8",
+              "type": "named"
+            }
+          }
+        },
+        "IntPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int32",
+              "type": "named"
+            }
+          }
+        },
+        "JSON": {
+          "type": {
+            "name": "JSON",
+            "type": "named"
+          }
+        },
+        "JSONPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "Map": {
+          "type": {
+            "name": "JSON",
+            "type": "named"
+          }
+        },
+        "MapPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "NamedArray": {
+          "type": {
+            "element_type": {
+              "name": "Author",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "NamedArrayPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Author",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "NamedObject": {
+          "type": {
+            "name": "Author",
+            "type": "named"
+          }
+        },
+        "NamedObjectPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Author",
+              "type": "named"
+            }
+          }
+        },
+        "Object": {
+          "type": {
+            "name": "GetTypesArgumentsObject",
+            "type": "named"
+          }
+        },
+        "ObjectPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "GetTypesArgumentsObjectPtr",
+              "type": "named"
+            }
+          }
+        },
+        "PtrArrayBigInt": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "BigInt",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayBigIntPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "BigInt",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayBool": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Boolean",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayBoolPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Boolean",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayFloat32": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Float32",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayFloat32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Float32",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayFloat64": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Float64",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayFloat64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Float64",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int32",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt16": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int16",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt16Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int16",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt32": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int32",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int32",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt64": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int64",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int64",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt8": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int8",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayInt8Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int8",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayIntPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int32",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayJSON": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "JSON",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayJSONPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "JSON",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayRawJSON": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "RawJSON",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayRawJSONPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "RawJSON",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayString": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "String",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayStringPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "String",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayTime": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "TimestampTZ",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayTimePtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "TimestampTZ",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUUID": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "UUID",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUUIDPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "UUID",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int32",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint16": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int16",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint16Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int16",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint32": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int32",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int32",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint64": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int64",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int64",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint8": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "name": "Int8",
+                "type": "named"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUint8Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int8",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "PtrArrayUintPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "element_type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "name": "Int32",
+                  "type": "named"
+                }
+              },
+              "type": "array"
+            }
+          }
+        },
+        "RawJSON": {
+          "type": {
+            "name": "RawJSON",
+            "type": "named"
+          }
+        },
+        "RawJSONPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "RawJSON",
+              "type": "named"
+            }
+          }
+        },
+        "String": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "StringPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "Text": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "TextPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "Time": {
+          "type": {
+            "name": "TimestampTZ",
+            "type": "named"
+          }
+        },
+        "TimePtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "TimestampTZ",
+              "type": "named"
+            }
+          }
+        },
+        "URL": {
+          "type": {
+            "name": "URL",
+            "type": "named"
+          }
+        },
+        "UUID": {
+          "type": {
+            "name": "UUID",
+            "type": "named"
+          }
+        },
+        "UUIDArray": {
+          "type": {
+            "element_type": {
+              "name": "UUID",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "UUIDPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "UUID",
+              "type": "named"
+            }
+          }
+        },
+        "Uint": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "Uint16": {
+          "type": {
+            "name": "Int16",
+            "type": "named"
+          }
+        },
+        "Uint16Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int16",
+              "type": "named"
+            }
+          }
+        },
+        "Uint32": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "Uint32Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int32",
+              "type": "named"
+            }
+          }
+        },
+        "Uint64": {
+          "type": {
+            "name": "Int64",
+            "type": "named"
+          }
+        },
+        "Uint64Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int64",
+              "type": "named"
+            }
+          }
+        },
+        "Uint8": {
+          "type": {
+            "name": "Int8",
+            "type": "named"
+          }
+        },
+        "Uint8Ptr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int8",
+              "type": "named"
+            }
+          }
+        },
+        "UintPtr": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Int32",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "GetTypesArgumentsArrayObject": {
+      "fields": {
+        "content": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "GetTypesArgumentsArrayObjectPtr": {
+      "fields": {
+        "content": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "GetTypesArgumentsObject": {
+      "fields": {
+        "created_at": {
+          "type": {
+            "name": "TimestampTZ",
+            "type": "named"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "UUID",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "GetTypesArgumentsObjectPtr": {
+      "fields": {
+        "Lat": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "Long": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "HelloResult": {
+      "fields": {
+        "error": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "JSON",
+              "type": "named"
+            }
+          }
+        },
+        "foo": {
+          "type": {
+            "name": "Foo",
+            "type": "named"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "UUID",
+            "type": "named"
+          }
+        },
+        "num": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        },
+        "text": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    }
+  },
+  "procedures": [
+    {
+      "arguments": {
+        "author": {
+          "type": {
+            "name": "CreateArticleArgumentsAuthor",
+            "type": "named"
+          }
+        }
+      },
+      "description": "CreateArticle",
+      "name": "create_article",
+      "result_type": {
+        "type": "nullable",
+        "underlying_type": {
+          "name": "CreateArticleResult",
+          "type": "named"
+        }
+      }
+    },
+    {
+      "arguments": {},
+      "description": "Increase",
+      "name": "increase",
+      "result_type": {
+        "name": "Int32",
+        "type": "named"
+      }
+    },
+    {
+      "arguments": {
+        "name": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      },
+      "description": "creates an author",
+      "name": "create_author",
+      "result_type": {
+        "type": "nullable",
+        "underlying_type": {
+          "name": "CreateAuthorResult",
+          "type": "named"
+        }
+      }
+    },
+    {
+      "arguments": {
+        "names": {
+          "type": {
+            "element_type": {
+              "name": "String",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        }
+      },
+      "description": "creates a list of authors",
+      "name": "create_authors",
+      "result_type": {
+        "element_type": {
+          "name": "CreateAuthorResult",
+          "type": "named"
+        },
+        "type": "array"
+      }
+    }
+  ],
+  "scalar_types": {
+    "BigInt": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "biginteger"
+      }
+    },
+    "Boolean": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "boolean"
+      }
+    },
+    "Bytes": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "bytes"
+      }
+    },
+    "CommentString": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "json"
+      }
+    },
+    "Float32": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "float32"
+      }
+    },
+    "Float64": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "float64"
+      }
+    },
+    "Foo": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "json"
+      }
+    },
+    "Int16": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "int16"
+      }
+    },
+    "Int32": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "int32"
+      }
+    },
+    "Int64": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "int64"
+      }
+    },
+    "Int8": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "int8"
+      }
+    },
+    "JSON": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "json"
+      }
+    },
+    "RawJSON": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "json"
+      }
+    },
+    "SomeEnum": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "one_of": ["foo", "bar"],
+        "type": "enum"
+      }
+    },
+    "String": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "string"
+      }
+    },
+    "TimestampTZ": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "timestamptz"
+      }
+    },
+    "URL": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "string"
+      }
+    },
+    "UUID": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "uuid"
+      }
+    }
+  }
+}

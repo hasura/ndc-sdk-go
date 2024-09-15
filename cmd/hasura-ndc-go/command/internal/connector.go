@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/iancoleman/strcase"
 	"github.com/rs/zerolog/log"
 )
 
@@ -24,6 +25,7 @@ type ConnectorGenerationArguments struct {
 	PackageTypes string   `help:"The name of types package where the State struct is in"`
 	Directories  []string `help:"Folders contain NDC operation functions" short:"d"`
 	Trace        string   `help:"Enable tracing and write to target file path."`
+	Style        string   `help:"The naming style for functions and procedures. Accept: camel-case, snake-case" enum:"camel-case,snake-case" default:"camel-case"`
 }
 
 type connectorTypeBuilder struct {
@@ -500,10 +502,10 @@ func (j %s) ScalarName() string {
 				sb.imports["slices"] = ""
 
 				sb.builder.WriteString("const (\n")
-				pascalName := ToPascalCase(scalar.Name)
+				pascalName := strcase.ToCamel(scalar.Name)
 				enumConstants := make([]string, len(scalarRep.OneOf))
 				for i, enum := range scalarRep.OneOf {
-					enumConst := fmt.Sprintf("%s%s", pascalName, ToPascalCase(enum))
+					enumConst := fmt.Sprintf("%s%s", pascalName, strcase.ToCamel(enum))
 					enumConstants[i] = enumConst
 					sb.builder.WriteString(fmt.Sprintf("  %s %s = \"%s\"\n", enumConst, scalar.Name, enum))
 				}
