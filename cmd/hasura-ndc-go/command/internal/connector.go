@@ -3,7 +3,6 @@ package internal
 import (
 	"bufio"
 	"context"
-	_ "embed"
 	"encoding/json"
 	"fmt"
 	"io"
