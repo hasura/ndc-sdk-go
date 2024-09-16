@@ -12,6 +12,8 @@ const (
 	errFunctionValueFieldRequired = "__value field is required in query function type"
 )
 
+var ErrHandlerNotfound = errors.New("connector handler not found")
+
 // Scalar abstracts a scalar interface to determine when evaluating
 type Scalar interface {
 	ScalarName() string
@@ -263,4 +265,53 @@ func EvalFunctionSelectionFieldValue(request *schema.QueryRequest) (schema.Neste
 		return nil, errors.New(errFunctionValueFieldRequired)
 	}
 	return valueColumn.Fields, nil
+}
+
+// MergeSchemas merge multiple connector schemas into one schema
+func MergeSchemas(schemas ...schema.SchemaResponse) (schema.SchemaResponse, []error) {
+	var errs []error
+	result := schema.SchemaResponse{}
+	collectionMap := map[string]bool{}
+	functionMap := map[string]bool{}
+	procedureMap := map[string]bool{}
+
+	for _, s := range schemas {
+		for _, col := range result.Collections {
+			if _, ok := collectionMap[col.Name]; ok {
+				errs = append(errs, fmt.Errorf("collection `%s` exists", col.Name))
+			} else {
+				result.Collections = append(result.Collections, col)
+			}
+		}
+
+		for _, fn := range result.Functions {
+			if _, ok := functionMap[fn.Name]; ok {
+				errs = append(errs, fmt.Errorf("function `%s` exists", fn.Name))
+			} else {
+				result.Functions = append(result.Functions, fn)
+			}
+		}
+
+		for _, fn := range result.Procedures {
+			if _, ok := procedureMap[fn.Name]; ok {
+				errs = append(errs, fmt.Errorf("procedure `%s` exists", fn.Name))
+			} else {
+				result.Procedures = append(result.Procedures, fn)
+			}
+		}
+
+		for k, sl := range s.ScalarTypes {
+			if _, ok := result.ScalarTypes[k]; ok {
+				errs = append(errs, fmt.Errorf("scalar type %s exists", k))
+			}
+			result.ScalarTypes[k] = sl
+		}
+		for k, obj := range s.ObjectTypes {
+			if _, ok := result.ObjectTypes[k]; ok {
+				errs = append(errs, fmt.Errorf("object type %s exists", k))
+			}
+			result.ObjectTypes[k] = obj
+		}
+	}
+	return result, errs
 }

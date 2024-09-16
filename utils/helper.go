@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 	"reflect"
 	"sort"
 )
@@ -35,12 +37,18 @@ func GetDefaultValuePtr[T comparable](value *T, defaultValue T) T {
 	return *value
 }
 
-// GetSortedKeys gets keys of a map and sorts them
-func GetSortedKeys[V any](input map[string]V) []string {
+// GetKeys gets keys of a map
+func GetKeys[V any](input map[string]V) []string {
 	var results []string
 	for key := range input {
 		results = append(results, key)
 	}
+	return results
+}
+
+// GetSortedKeys gets keys of a map and sorts them
+func GetSortedKeys[V any](input map[string]V) []string {
+	results := GetKeys(input)
 	sort.Strings(results)
 	return results
 }
@@ -93,4 +101,9 @@ func UnwrapPointerFromAny(value any) (any, bool) {
 		return nil, false
 	}
 	return reflectValue.Interface(), true
+}
+
+// IsDebug checks if the log level is debug
+func IsDebug(logger *slog.Logger) bool {
+	return logger.Enabled(context.TODO(), slog.LevelDebug)
 }

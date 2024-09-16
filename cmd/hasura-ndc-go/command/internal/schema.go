@@ -143,13 +143,14 @@ func (op ProcedureInfo) Schema() schema.ProcedureInfo {
 // RawConnectorSchema represents a readable Go schema object
 // which can encode to NDC schema
 type RawConnectorSchema struct {
-	Imports       map[string]bool
-	CustomScalars map[string]*TypeInfo
-	ScalarSchemas schema.SchemaResponseScalarTypes
-	Objects       map[string]*ObjectInfo
-	ObjectSchemas schema.SchemaResponseObjectTypes
-	Functions     []FunctionInfo
-	Procedures    []ProcedureInfo
+	TypesPackagePath string
+	Imports          map[string]bool
+	CustomScalars    map[string]*TypeInfo
+	ScalarSchemas    schema.SchemaResponseScalarTypes
+	Objects          map[string]*ObjectInfo
+	ObjectSchemas    schema.SchemaResponseObjectTypes
+	Functions        []FunctionInfo
+	Procedures       []ProcedureInfo
 }
 
 // NewRawConnectorSchema creates an empty RawConnectorSchema instance

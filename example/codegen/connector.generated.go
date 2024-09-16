@@ -10,8 +10,6 @@ import (
 	"encoding/json"
 	"github.com/hasura/ndc-codegen-example/functions"
 	"github.com/hasura/ndc-codegen-example/types"
-	"github.com/hasura/ndc-codegen-example/types/arguments"
-	"github.com/hasura/ndc-sdk-go/connector"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -20,6 +18,18 @@ import (
 )
 
 var schemaResponse *schema.RawSchemaResponse
+var connectorQueryHandlers = []ConnectorQueryHandler{functions.DataConnectorHandler{}}
+var connectorMutationHandlers = []ConnectorMutationHandler{functions.DataConnectorHandler{}}
+
+// ConnectorQueryHandler abstracts the connector query handler
+type ConnectorQueryHandler interface {
+	Query(ctx context.Context, state *types.State, request *schema.QueryRequest, arguments map[string]any) (*schema.RowSet, error)
+}
+
+// ConnectorMutationHandler abstracts the connector mutation handler
+type ConnectorMutationHandler interface {
+	Mutate(ctx context.Context, state *types.State, request *schema.MutationOperation) (schema.MutationOperationResults, error)
+}
 
 func init() {
 	rawSchema, err := json.Marshal(GetConnectorSchema())
@@ -39,9 +49,8 @@ func (c *Connector) GetSchema(ctx context.Context, configuration *types.Configur
 
 // Query executes a query.
 func (c *Connector) Query(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.QueryRequest) (schema.QueryResponse, error) {
-	valueField, err := utils.EvalFunctionSelectionFieldValue(request)
-	if err != nil {
-		return nil, schema.UnprocessableContentError(err.Error(), nil)
+	if len(connectorQueryHandlers) == 0 {
+		return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported query: %s", request.Collection), nil)
 	}
 
 	span := trace.SpanFromContext(ctx)
@@ -61,21 +70,15 @@ func (c *Connector) Query(ctx context.Context, configuration *types.Configuratio
 			defer childSpan.End()
 		}
 
-		result, err := execQuery(childContext, state, request, valueField, requestVar, childSpan)
+		result, err := c.execQuery(childContext, state, request, requestVar)
 		if err != nil {
 			if varsLength > 1 {
 				childSpan.SetStatus(codes.Error, err.Error())
 			}
 			return nil, err
 		}
-		rowSets[i] = schema.RowSet{
-			Aggregates: schema.RowSetAggregates{},
-			Rows: []map[string]any{
-				{
-					"__value": result,
-				},
-			},
-		}
+		rowSets[i] = *result
+
 		if varsLength > 1 {
 			childSpan.End()
 		}
@@ -84,8 +87,33 @@ func (c *Connector) Query(ctx context.Context, configuration *types.Configuratio
 	return rowSets, nil
 }
 
+func (c *Connector) execQuery(ctx context.Context, state *types.State, request *schema.QueryRequest, variables map[string]any) (*schema.RowSet, error) {
+	rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
+	if err != nil {
+		return nil, schema.UnprocessableContentError("failed to resolve argument variables", map[string]any{
+			"cause": err.Error(),
+		})
+	}
+
+	for _, handler := range connectorQueryHandlers {
+		result, err := handler.Query(ctx, state, request, rawArgs)
+		if err == nil {
+			return result, nil
+		}
+
+		if err != utils.ErrHandlerNotfound {
+			return nil, err
+		}
+	}
+	return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported query: %s", request.Collection), nil)
+}
+
 // Mutation executes a mutation.
 func (c *Connector) Mutation(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
+	if len(connectorMutationHandlers) == 0 {
+		return nil, schema.UnprocessableContentError("unsupported mutation", nil)
+	}
+
 	operationLen := len(request.Operations)
 	operationResults := make([]schema.MutationOperationResults, operationLen)
 	span := trace.SpanFromContext(ctx)
@@ -104,7 +132,7 @@ func (c *Connector) Mutation(ctx context.Context, configuration *types.Configura
 
 		switch operation.Type {
 		case schema.MutationOperationProcedure:
-			result, err := execProcedure(childContext, state, &operation, childSpan)
+			result, err := c.execProcedure(childContext, state, &operation)
 			if err != nil {
 				if operationLen > 1 {
 					childSpan.SetStatus(codes.Error, err.Error())
@@ -125,262 +153,22 @@ func (c *Connector) Mutation(ctx context.Context, configuration *types.Configura
 	}, nil
 }
 
-func execQuery(ctx context.Context, state *types.State, request *schema.QueryRequest, queryFields schema.NestedField, variables map[string]any, span trace.Span) (any, error) {
-	logger := connector.GetLogger(ctx)
-	connector_addSpanEvent(span, logger, "validate_request", map[string]any{
-		"variables": variables,
-	})
-	switch request.Collection {
-	case "getBool":
-		if len(queryFields) > 0 {
-			return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
+func (c *Connector) execProcedure(ctx context.Context, state *types.State, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
+	for _, handler := range connectorMutationHandlers {
+		result, err := handler.Mutate(ctx, state, operation)
+		if err == nil {
+			return result, nil
 		}
-		return functions.FunctionGetBool(ctx, state)
-	case "getTypes":
-		selection, err := queryFields.AsObject()
-		if err != nil {
-			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
-				"cause": err.Error(),
-			})
-		}
-		rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
-		if err != nil {
-			return nil, schema.UnprocessableContentError("failed to resolve argument variables", map[string]any{
-				"cause": err.Error(),
-			})
-		}
-
-		connector_addSpanEvent(span, logger, "resolve_arguments", map[string]any{
-			"raw_arguments": rawArgs,
-		})
-
-		var args arguments.GetTypesArguments
-		if err = args.FromValue(rawArgs); err != nil {
-			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
-				"cause": err.Error(),
-			})
-		}
-
-		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
-			"arguments": args,
-		})
-		rawResult, err := functions.FunctionGetTypes(ctx, state, &args)
-		if err != nil {
+		if err != utils.ErrHandlerNotfound {
 			return nil, err
 		}
-
-		if rawResult == nil {
-			return nil, nil
-		}
-
-		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
-			"raw_result": rawResult,
-		})
-		result, err := utils.EvalNestedColumnObject(selection, rawResult)
-		if err != nil {
-			return nil, err
-		}
-		return result, nil
-	case "hello":
-		selection, err := queryFields.AsObject()
-		if err != nil {
-			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
-				"cause": err.Error(),
-			})
-		}
-		rawResult, err := functions.FunctionHello(ctx, state)
-		if err != nil {
-			return nil, err
-		}
-
-		if rawResult == nil {
-			return nil, nil
-		}
-
-		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
-			"raw_result": rawResult,
-		})
-		result, err := utils.EvalNestedColumnObject(selection, rawResult)
-		if err != nil {
-			return nil, err
-		}
-		return result, nil
-	case "getArticles":
-		selection, err := queryFields.AsArray()
-		if err != nil {
-			return nil, schema.UnprocessableContentError("the selection field type must be array", map[string]any{
-				"cause": err.Error(),
-			})
-		}
-		rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
-		if err != nil {
-			return nil, schema.UnprocessableContentError("failed to resolve argument variables", map[string]any{
-				"cause": err.Error(),
-			})
-		}
-
-		connector_addSpanEvent(span, logger, "resolve_arguments", map[string]any{
-			"raw_arguments": rawArgs,
-		})
-
-		var args functions.GetArticlesArguments
-		if err = args.FromValue(rawArgs); err != nil {
-			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
-				"cause": err.Error(),
-			})
-		}
-
-		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
-			"arguments": args,
-		})
-		rawResult, err := functions.GetArticles(ctx, state, &args)
-		if err != nil {
-			return nil, err
-		}
-
-		if rawResult == nil {
-			return nil, schema.UnprocessableContentError("expected not null result", nil)
-		}
-
-		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
-			"raw_result": rawResult,
-		})
-		result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)
-		if err != nil {
-			return nil, err
-		}
-		return result, nil
-
-	default:
-		return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported query: %s", request.Collection), nil)
 	}
-}
 
-func execProcedure(ctx context.Context, state *types.State, operation *schema.MutationOperation, span trace.Span) (schema.MutationOperationResults, error) {
-	logger := connector.GetLogger(ctx)
-	connector_addSpanEvent(span, logger, "validate_request", map[string]any{
-		"operations_name": operation.Name,
-	})
-	switch operation.Name {
-	case "create_article":
-		selection, err := operation.Fields.AsObject()
-		if err != nil {
-			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
-				"cause": err.Error(),
-			})
-		}
-		var args functions.CreateArticleArguments
-		if err := json.Unmarshal(operation.Arguments, &args); err != nil {
-			return nil, schema.UnprocessableContentError("failed to decode arguments", map[string]any{
-				"cause": err.Error(),
-			})
-		}
-		span.AddEvent("execute_procedure")
-		rawResult, err := functions.CreateArticle(ctx, state, &args)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if rawResult == nil {
-			return nil, nil
-		}
-		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
-			"raw_result": rawResult,
-		})
-		result, err := utils.EvalNestedColumnObject(selection, rawResult)
-
-		if err != nil {
-			return nil, err
-		}
-		return schema.NewProcedureResult(result).Encode(), nil
-	case "increase":
-		if len(operation.Fields) > 0 {
-			return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
-		}
-		span.AddEvent("execute_procedure")
-		var err error
-		result, err := functions.Increase(ctx, state)
-		if err != nil {
-			return nil, err
-		}
-		return schema.NewProcedureResult(result).Encode(), nil
-	case "createAuthor":
-		selection, err := operation.Fields.AsObject()
-		if err != nil {
-			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
-				"cause": err.Error(),
-			})
-		}
-		var args functions.CreateAuthorArguments
-		if err := json.Unmarshal(operation.Arguments, &args); err != nil {
-			return nil, schema.UnprocessableContentError("failed to decode arguments", map[string]any{
-				"cause": err.Error(),
-			})
-		}
-		span.AddEvent("execute_procedure")
-		rawResult, err := functions.ProcedureCreateAuthor(ctx, state, &args)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if rawResult == nil {
-			return nil, nil
-		}
-		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
-			"raw_result": rawResult,
-		})
-		result, err := utils.EvalNestedColumnObject(selection, rawResult)
-
-		if err != nil {
-			return nil, err
-		}
-		return schema.NewProcedureResult(result).Encode(), nil
-	case "createAuthors":
-		selection, err := operation.Fields.AsArray()
-		if err != nil {
-			return nil, schema.UnprocessableContentError("the selection field type must be array", map[string]any{
-				"cause": err.Error(),
-			})
-		}
-		var args functions.CreateAuthorsArguments
-		if err := json.Unmarshal(operation.Arguments, &args); err != nil {
-			return nil, schema.UnprocessableContentError("failed to decode arguments", map[string]any{
-				"cause": err.Error(),
-			})
-		}
-		span.AddEvent("execute_procedure")
-		rawResult, err := functions.ProcedureCreateAuthors(ctx, state, &args)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if rawResult == nil {
-			return nil, schema.UnprocessableContentError("expected not null result", nil)
-		}
-		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
-			"raw_result": rawResult,
-		})
-		result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)
-
-		if err != nil {
-			return nil, err
-		}
-		return schema.NewProcedureResult(result).Encode(), nil
-
-	default:
-		return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported procedure operation: %s", operation.Name), nil)
-	}
+	return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported procedure operation: %s", operation.Name), nil)
 }
 
 func connector_addSpanEvent(span trace.Span, logger *slog.Logger, name string, data map[string]any, options ...trace.EventOption) {
 	logger.Debug(name, slog.Any("data", data))
-	attrs := utils.DebugJSONAttributes(data, connector_isDebug(logger))
+	attrs := utils.DebugJSONAttributes(data, utils.IsDebug(logger))
 	span.AddEvent(name, append(options, trace.WithAttributes(attrs...))...)
-}
-
-func connector_isDebug(logger *slog.Logger) bool {
-	return logger.Enabled(context.TODO(), slog.LevelDebug)
 }

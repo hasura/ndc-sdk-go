@@ -61,6 +61,7 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 	if err != nil {
 		return nil, err
 	}
+	rawSchema.TypesPackagePath = pkgTypes
 	rawSchema.Imports[pkgTypes] = true
 
 	tempDirs := args.Directories
