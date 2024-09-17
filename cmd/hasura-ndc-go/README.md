@@ -22,22 +22,26 @@ go install github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go@latest
 
 ```bash
 ❯ hasura-ndc-go -h
-Usage: hasura-ndc-go <command>
+Usage: hasura-ndc-go <command> [flags]
 
 Flags:
-  -h, --help    Show context-sensitive help.
+  -h, --help                Show context-sensitive help.
+      --log-level="info"    Log level ($HASURA_PLUGIN_LOG_LEVEL).
 
 Commands:
-  new --name=STRING --module=STRING
+  new --name=STRING --module=STRING [flags]
     Initialize an NDC connector boilerplate. For example:
 
         hasura-ndc-go new -n example -m github.com/foo/example
 
-  update
+  update [flags]
     Generate schema and implementation for the connector from functions.
 
-  test snapshots
+  generate snapshots [flags]
     Generate test snapshots.
+
+  version [flags]
+    Print the CLI version.
 ```
 
 ### Initialize connector project
