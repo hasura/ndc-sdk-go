@@ -101,6 +101,7 @@ func (dch DataConnectorHandler) Query(ctx context.Context, state *types.State, r
 		},
 	}, nil
 }
+
 func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.State, request *schema.QueryRequest, queryFields schema.NestedField, rawArgs map[string]any) (any, error) {
 	span := trace.SpanFromContext(ctx)
 	logger := connector.GetLogger(ctx)

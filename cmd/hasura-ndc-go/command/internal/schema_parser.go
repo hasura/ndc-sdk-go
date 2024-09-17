@@ -115,7 +115,6 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 	for _, folder := range directories {
 		_, parseCodeTask := trace.NewTask(ctx, fmt.Sprintf("parse_%s_code", folder))
 		folderPath := path.Join(filePath, folder)
-
 		cfg := &packages.Config{
 			Mode: packages.NeedSyntax | packages.NeedTypes,
 			Dir:  folderPath,
@@ -175,7 +174,6 @@ func evalPackageTypesLocation(name string, moduleName string, filePath string, c
 
 // parse raw connector schema from Go code
 func (sp *SchemaParser) parseRawConnectorSchema(pkg *types.Package) error {
-
 	for _, name := range pkg.Scope().Names() {
 		_, task := trace.NewTask(sp.context, fmt.Sprintf("parse_%s_schema_%s", sp.GetCurrentPackage().Name, name))
 		err := sp.parsePackageScope(pkg, name)

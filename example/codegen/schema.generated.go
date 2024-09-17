@@ -13,6 +13,9 @@ func GetConnectorSchema() schema.SchemaResponse {
 		ObjectTypes: schema.SchemaResponseObjectTypes{
 			"Author": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
+					"id": schema.ObjectField{
+						Type: schema.NewNamedType("String").Encode(),
+					},
 					"created_at": schema.ObjectField{
 						Type: schema.NewNamedType("TimestampTZ").Encode(),
 					},
@@ -21,9 +24,6 @@ func GetConnectorSchema() schema.SchemaResponse {
 					},
 					"author": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewNamedType("Author")).Encode(),
-					},
-					"id": schema.ObjectField{
-						Type: schema.NewNamedType("String").Encode(),
 					},
 				},
 			},
@@ -49,14 +49,14 @@ func GetConnectorSchema() schema.SchemaResponse {
 			},
 			"CreateAuthorResult": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
+					"created_at": schema.ObjectField{
+						Type: schema.NewNamedType("TimestampTZ").Encode(),
+					},
 					"id": schema.ObjectField{
 						Type: schema.NewNamedType("Int32").Encode(),
 					},
 					"name": schema.ObjectField{
 						Type: schema.NewNamedType("String").Encode(),
-					},
-					"created_at": schema.ObjectField{
-						Type: schema.NewNamedType("TimestampTZ").Encode(),
 					},
 				},
 			},
@@ -72,35 +72,143 @@ func GetConnectorSchema() schema.SchemaResponse {
 			},
 			"GetTypesArguments": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
-					"PtrArrayUint32Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
-					},
-					"Object": schema.ObjectField{
-						Type: schema.NewNamedType("GetTypesArgumentsObject").Encode(),
-					},
-					"NamedArrayPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Author"))).Encode(),
-					},
-					"ArrayJSON": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("JSON")).Encode(),
-					},
-					"Uint16Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("Int16")).Encode(),
-					},
-					"Uint32Ptr": schema.ObjectField{
+					"IntPtr": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
 					},
-					"ArrayBigIntPtr": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("BigInt"))).Encode(),
+					"Int16Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("Int16")).Encode(),
 					},
-					"PtrArrayInt16": schema.ObjectField{
+					"Bool": schema.ObjectField{
+						Type: schema.NewNamedType("Boolean").Encode(),
+					},
+					"ArrayUint64Ptr": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64"))).Encode(),
+					},
+					"MapPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
+					},
+					"PtrArrayBool": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Boolean"))).Encode(),
+					},
+					"PtrArrayInt64": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int64"))).Encode(),
+					},
+					"PtrArrayRawJSON": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("RawJSON"))).Encode(),
+					},
+					"Uint8Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("Int8")).Encode(),
+					},
+					"Float64Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("Float64")).Encode(),
+					},
+					"ArrayUint32": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("Int32")).Encode(),
+					},
+					"ArrayUint64": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("Int64")).Encode(),
+					},
+					"ArrayFloat64Ptr": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float64"))).Encode(),
+					},
+					"RawJSON": schema.ObjectField{
+						Type: schema.NewNamedType("RawJSON").Encode(),
+					},
+					"BigIntPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("BigInt")).Encode(),
+					},
+					"PtrArrayUint8Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8")))).Encode(),
+					},
+					"Int32": schema.ObjectField{
+						Type: schema.NewNamedType("Int32").Encode(),
+					},
+					"PtrArrayJSON": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("JSON"))).Encode(),
+					},
+					"ArrayIntPtr": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32"))).Encode(),
+					},
+					"PtrArrayStringPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("String")))).Encode(),
+					},
+					"Int": schema.ObjectField{
+						Type: schema.NewNamedType("Int32").Encode(),
+					},
+					"Uint64": schema.ObjectField{
+						Type: schema.NewNamedType("Int64").Encode(),
+					},
+					"Time": schema.ObjectField{
+						Type: schema.NewNamedType("TimestampTZ").Encode(),
+					},
+					"StringPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("String")).Encode(),
+					},
+					"EnumPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("SomeEnum")).Encode(),
+					},
+					"PtrArrayUint32": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+					},
+					"PtrArrayUint64": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int64"))).Encode(),
+					},
+					"String": schema.ObjectField{
+						Type: schema.NewNamedType("String").Encode(),
+					},
+					"Int64Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("Int64")).Encode(),
+					},
+					"ArrayTime": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("TimestampTZ")).Encode(),
+					},
+					"PtrArrayInt8": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int8"))).Encode(),
+					},
+					"PtrArrayUint16": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int16"))).Encode(),
 					},
-					"PtrArrayUint": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+					"ArrayInt8": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("Int8")).Encode(),
+					},
+					"PtrArrayFloat64": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Float64"))).Encode(),
+					},
+					"UintPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+					},
+					"DatePtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("Date")).Encode(),
 					},
 					"PtrArrayInt8Ptr": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8")))).Encode(),
+					},
+					"PtrArrayRawJSONPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("RawJSON")))).Encode(),
+					},
+					"PtrArrayBigInt": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("BigInt"))).Encode(),
+					},
+					"ArrayObject": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("GetTypesArgumentsArrayObject")).Encode(),
+					},
+					"PtrArrayJSONPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("JSON")))).Encode(),
+					},
+					"PtrArrayTime": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("TimestampTZ"))).Encode(),
+					},
+					"Float64": schema.ObjectField{
+						Type: schema.NewNamedType("Float64").Encode(),
+					},
+					"Uint64Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("Int64")).Encode(),
+					},
+					"ArrayString": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("String")).Encode(),
+					},
+					"ArrayInt64": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("Int64")).Encode(),
 					},
 					"PtrArrayUUIDPtr": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("UUID")))).Encode(),
@@ -108,380 +216,272 @@ func GetConnectorSchema() schema.SchemaResponse {
 					"Float32": schema.ObjectField{
 						Type: schema.NewNamedType("Float32").Encode(),
 					},
-					"BytesPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("Bytes")).Encode(),
+					"NamedArrayPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Author"))).Encode(),
 					},
-					"Int8Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("Int8")).Encode(),
+					"JSON": schema.ObjectField{
+						Type: schema.NewNamedType("JSON").Encode(),
 					},
-					"ArrayIntPtr": schema.ObjectField{
+					"Int64": schema.ObjectField{
+						Type: schema.NewNamedType("Int64").Encode(),
+					},
+					"ArrayUint32Ptr": schema.ObjectField{
 						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32"))).Encode(),
+					},
+					"ArrayJSONPtr": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("JSON"))).Encode(),
+					},
+					"ArrayRawJSON": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("RawJSON")).Encode(),
+					},
+					"PtrArrayBoolPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Boolean")))).Encode(),
+					},
+					"PtrArrayInt16Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16")))).Encode(),
+					},
+					"ArrayUint16": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("Int16")).Encode(),
+					},
+					"ArrayUUID": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("UUID")).Encode(),
+					},
+					"ArrayStringPtr": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("String"))).Encode(),
+					},
+					"ArrayInt32Ptr": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32"))).Encode(),
+					},
+					"ArrayJSON": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("JSON")).Encode(),
+					},
+					"UUIDPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("UUID")).Encode(),
+					},
+					"Int32Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+					},
+					"PtrArrayUint": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+					},
+					"PtrArrayFloat64Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float64")))).Encode(),
+					},
+					"Object": schema.ObjectField{
+						Type: schema.NewNamedType("GetTypesArgumentsObject").Encode(),
+					},
+					"RawJSONPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("RawJSON")).Encode(),
+					},
+					"ArrayBigInt": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("BigInt")).Encode(),
+					},
+					"ArrayTimePtr": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("TimestampTZ"))).Encode(),
+					},
+					"PtrArrayUUID": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("UUID"))).Encode(),
+					},
+					"PtrArrayInt64Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64")))).Encode(),
+					},
+					"PtrArrayUint64Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64")))).Encode(),
+					},
+					"ArrayInt32": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("Int32")).Encode(),
+					},
+					"ArrayInt16Ptr": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16"))).Encode(),
+					},
+					"ObjectPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("GetTypesArgumentsObjectPtr")).Encode(),
+					},
+					"Uint16": schema.ObjectField{
+						Type: schema.NewNamedType("Int16").Encode(),
+					},
+					"Date": schema.ObjectField{
+						Type: schema.NewNamedType("Date").Encode(),
+					},
+					"Uint16Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("Int16")).Encode(),
+					},
+					"Uint32Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+					},
+					"Float32Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("Float32")).Encode(),
+					},
+					"NamedArray": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("Author")).Encode(),
+					},
+					"BigInt": schema.ObjectField{
+						Type: schema.NewNamedType("BigInt").Encode(),
+					},
+					"PtrArrayFloat32Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float32")))).Encode(),
+					},
+					"Bytes": schema.ObjectField{
+						Type: schema.NewNamedType("Bytes").Encode(),
+					},
+					"TimePtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("TimestampTZ")).Encode(),
+					},
+					"ArrayUint8": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("Int8")).Encode(),
 					},
 					"ArrayUUIDPtr": schema.ObjectField{
 						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("UUID"))).Encode(),
 					},
-					"PtrArrayInt": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+					"ArrayObjectPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("GetTypesArgumentsArrayObjectPtr"))).Encode(),
+					},
+					"Map": schema.ObjectField{
+						Type: schema.NewNamedType("JSON").Encode(),
 					},
 					"PtrArrayInt32Ptr": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
 					},
-					"PtrArrayRawJSONPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("RawJSON")))).Encode(),
+					"Int8": schema.ObjectField{
+						Type: schema.NewNamedType("Int8").Encode(),
 					},
-					"Int": schema.ObjectField{
+					"Enum": schema.ObjectField{
+						Type: schema.NewNamedType("SomeEnum").Encode(),
+					},
+					"ArrayFloat64": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("Float64")).Encode(),
+					},
+					"PtrArrayInt16": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int16"))).Encode(),
+					},
+					"PtrArrayUint8": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int8"))).Encode(),
+					},
+					"ArrayUint": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("Int32")).Encode(),
+					},
+					"PtrArrayInt32": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+					},
+					"PtrArrayUintPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
+					},
+					"NamedObjectPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("Author")).Encode(),
+					},
+					"Uint": schema.ObjectField{
+						Type: schema.NewNamedType("Int32").Encode(),
+					},
+					"ArrayFloat32": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("Float32")).Encode(),
+					},
+					"ArrayBoolPtr": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Boolean"))).Encode(),
+					},
+					"ArrayUint8Ptr": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8"))).Encode(),
+					},
+					"PtrArrayUint32Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
+					},
+					"ArrayInt64Ptr": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64"))).Encode(),
+					},
+					"PtrArrayFloat32": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Float32"))).Encode(),
+					},
+					"PtrArrayUint16Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16")))).Encode(),
+					},
+					"JSONPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
+					},
+					"UUID": schema.ObjectField{
+						Type: schema.NewNamedType("UUID").Encode(),
+					},
+					"CustomScalarPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("CommentString")).Encode(),
+					},
+					"ArrayUint16Ptr": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16"))).Encode(),
+					},
+					"ArrayBigIntPtr": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("BigInt"))).Encode(),
+					},
+					"NamedObject": schema.ObjectField{
+						Type: schema.NewNamedType("Author").Encode(),
+					},
+					"Uint32": schema.ObjectField{
 						Type: schema.NewNamedType("Int32").Encode(),
 					},
 					"BoolPtr": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewNamedType("Boolean")).Encode(),
 					},
-					"ArrayUint8": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("Int8")).Encode(),
-					},
-					"ObjectPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("GetTypesArgumentsObjectPtr")).Encode(),
-					},
-					"UUID": schema.ObjectField{
-						Type: schema.NewNamedType("UUID").Encode(),
-					},
-					"ArrayBool": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("Boolean")).Encode(),
-					},
-					"ArrayFloat64Ptr": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float64"))).Encode(),
-					},
-					"PtrArrayUint8": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int8"))).Encode(),
-					},
-					"PtrArrayUUID": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("UUID"))).Encode(),
-					},
-					"PtrArrayUintPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
-					},
-					"PtrArrayJSON": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("JSON"))).Encode(),
-					},
-					"Text": schema.ObjectField{
-						Type: schema.NewNamedType("String").Encode(),
-					},
-					"NamedObjectPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("Author")).Encode(),
-					},
-					"ArrayBoolPtr": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Boolean"))).Encode(),
-					},
-					"NamedArray": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("Author")).Encode(),
-					},
-					"DatePtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("Date")).Encode(),
-					},
-					"ArrayUintPtr": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32"))).Encode(),
-					},
-					"ArrayRawJSONPtr": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("RawJSON"))).Encode(),
-					},
-					"Uint32": schema.ObjectField{
-						Type: schema.NewNamedType("Int32").Encode(),
-					},
-					"ArrayBigInt": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("BigInt")).Encode(),
-					},
-					"PtrArrayBool": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Boolean"))).Encode(),
-					},
-					"PtrArrayString": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("String"))).Encode(),
-					},
-					"MapPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
-					},
-					"ArrayInt": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("Int32")).Encode(),
-					},
-					"PtrArrayRawJSON": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("RawJSON"))).Encode(),
-					},
-					"NamedObject": schema.ObjectField{
-						Type: schema.NewNamedType("Author").Encode(),
-					},
-					"CustomScalar": schema.ObjectField{
-						Type: schema.NewNamedType("CommentString").Encode(),
-					},
-					"ArrayInt32Ptr": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32"))).Encode(),
-					},
-					"Uint": schema.ObjectField{
-						Type: schema.NewNamedType("Int32").Encode(),
-					},
-					"PtrArrayInt64Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64")))).Encode(),
-					},
-					"ArrayUint8Ptr": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8"))).Encode(),
-					},
-					"Int16Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("Int16")).Encode(),
-					},
-					"ArrayUint32Ptr": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32"))).Encode(),
-					},
-					"PtrArrayFloat64": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Float64"))).Encode(),
-					},
-					"PtrArrayStringPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("String")))).Encode(),
-					},
 					"ArrayInt8Ptr": schema.ObjectField{
 						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8"))).Encode(),
-					},
-					"UUIDPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("UUID")).Encode(),
-					},
-					"ArrayUUID": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("UUID")).Encode(),
-					},
-					"PtrArrayTime": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("TimestampTZ"))).Encode(),
-					},
-					"JSONPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
-					},
-					"Float64": schema.ObjectField{
-						Type: schema.NewNamedType("Float64").Encode(),
-					},
-					"Date": schema.ObjectField{
-						Type: schema.NewNamedType("Date").Encode(),
-					},
-					"IntPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
-					},
-					"Int32Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
-					},
-					"Int64Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("Int64")).Encode(),
-					},
-					"ArrayObject": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("GetTypesArgumentsArrayObject")).Encode(),
-					},
-					"Bytes": schema.ObjectField{
-						Type: schema.NewNamedType("Bytes").Encode(),
-					},
-					"Bool": schema.ObjectField{
-						Type: schema.NewNamedType("Boolean").Encode(),
-					},
-					"PtrArrayUint16": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int16"))).Encode(),
-					},
-					"Time": schema.ObjectField{
-						Type: schema.NewNamedType("TimestampTZ").Encode(),
-					},
-					"ArrayInt32": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("Int32")).Encode(),
-					},
-					"ArrayFloat32": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("Float32")).Encode(),
-					},
-					"ArrayTime": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("TimestampTZ")).Encode(),
-					},
-					"PtrArrayUint64": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int64"))).Encode(),
-					},
-					"PtrArrayUint8Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8")))).Encode(),
-					},
-					"PtrArrayFloat32Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float32")))).Encode(),
-					},
-					"JSON": schema.ObjectField{
-						Type: schema.NewNamedType("JSON").Encode(),
-					},
-					"TextPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("String")).Encode(),
-					},
-					"Uint64": schema.ObjectField{
-						Type: schema.NewNamedType("Int64").Encode(),
-					},
-					"Uint64Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("Int64")).Encode(),
-					},
-					"Float64Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("Float64")).Encode(),
-					},
-					"BigIntPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("BigInt")).Encode(),
-					},
-					"PtrArrayInt32": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
-					},
-					"String": schema.ObjectField{
-						Type: schema.NewNamedType("String").Encode(),
-					},
-					"StringPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("String")).Encode(),
-					},
-					"ArrayFloat32Ptr": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float32"))).Encode(),
-					},
-					"ArrayTimePtr": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("TimestampTZ"))).Encode(),
-					},
-					"ArrayObjectPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("GetTypesArgumentsArrayObjectPtr"))).Encode(),
-					},
-					"BigInt": schema.ObjectField{
-						Type: schema.NewNamedType("BigInt").Encode(),
-					},
-					"EnumPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("SomeEnum")).Encode(),
-					},
-					"PtrArrayInt16Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16")))).Encode(),
-					},
-					"PtrArrayUint16Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16")))).Encode(),
-					},
-					"RawJSONPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("RawJSON")).Encode(),
-					},
-					"Int32": schema.ObjectField{
-						Type: schema.NewNamedType("Int32").Encode(),
-					},
-					"PtrArrayInt64": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int64"))).Encode(),
-					},
-					"PtrArrayBigInt": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("BigInt"))).Encode(),
-					},
-					"ArrayString": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("String")).Encode(),
-					},
-					"URL": schema.ObjectField{
-						Type: schema.NewNamedType("URL").Encode(),
-					},
-					"ArrayUint16": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("Int16")).Encode(),
-					},
-					"PtrArrayJSONPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("JSON")))).Encode(),
-					},
-					"Enum": schema.ObjectField{
-						Type: schema.NewNamedType("SomeEnum").Encode(),
-					},
-					"ArrayStringPtr": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("String"))).Encode(),
 					},
 					"PtrArrayBigIntPtr": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("BigInt")))).Encode(),
 					},
-					"RawJSON": schema.ObjectField{
-						Type: schema.NewNamedType("RawJSON").Encode(),
+					"ArrayMap": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("JSON")).Encode(),
 					},
-					"Int64": schema.ObjectField{
-						Type: schema.NewNamedType("Int64").Encode(),
-					},
-					"Uint8Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("Int8")).Encode(),
-					},
-					"TimePtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("TimestampTZ")).Encode(),
-					},
-					"ArrayInt16Ptr": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16"))).Encode(),
-					},
-					"Uint16": schema.ObjectField{
+					"Int16": schema.ObjectField{
 						Type: schema.NewNamedType("Int16").Encode(),
 					},
-					"ArrayFloat64": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("Float64")).Encode(),
+					"URL": schema.ObjectField{
+						Type: schema.NewNamedType("URL").Encode(),
 					},
-					"PtrArrayFloat32": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Float32"))).Encode(),
+					"ArrayUintPtr": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32"))).Encode(),
 					},
 					"PtrArrayTimePtr": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("TimestampTZ")))).Encode(),
 					},
+					"ArrayMapPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("JSON"))).Encode(),
+					},
+					"PtrArrayString": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("String"))).Encode(),
+					},
+					"PtrArrayInt": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+					},
+					"BytesPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("Bytes")).Encode(),
+					},
 					"Uint8": schema.ObjectField{
 						Type: schema.NewNamedType("Int8").Encode(),
 					},
-					"ArrayInt64": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("Int64")).Encode(),
+					"Text": schema.ObjectField{
+						Type: schema.NewNamedType("String").Encode(),
 					},
-					"ArrayUint64": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("Int64")).Encode(),
-					},
-					"ArrayInt64Ptr": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64"))).Encode(),
-					},
-					"ArrayUint16Ptr": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16"))).Encode(),
-					},
-					"ArrayUint64Ptr": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64"))).Encode(),
-					},
-					"ArrayRawJSON": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("RawJSON")).Encode(),
-					},
-					"PtrArrayUint32": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
-					},
-					"UintPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
-					},
-					"PtrArrayFloat64Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float64")))).Encode(),
-					},
-					"ArrayUint": schema.ObjectField{
+					"ArrayInt": schema.ObjectField{
 						Type: schema.NewArrayType(schema.NewNamedType("Int32")).Encode(),
 					},
-					"ArrayJSONPtr": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("JSON"))).Encode(),
+					"ArrayFloat32Ptr": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float32"))).Encode(),
 					},
-					"PtrArrayInt8": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int8"))).Encode(),
+					"ArrayRawJSONPtr": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("RawJSON"))).Encode(),
 					},
-					"Map": schema.ObjectField{
-						Type: schema.NewNamedType("JSON").Encode(),
+					"TextPtr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("String")).Encode(),
 					},
-					"Float32Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("Float32")).Encode(),
+					"CustomScalar": schema.ObjectField{
+						Type: schema.NewNamedType("CommentString").Encode(),
 					},
-					"ArrayUint32": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("Int32")).Encode(),
+					"Int8Ptr": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("Int8")).Encode(),
 					},
-					"ArrayMapPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("JSON"))).Encode(),
+					"ArrayBool": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNamedType("Boolean")).Encode(),
 					},
 					"ArrayInt16": schema.ObjectField{
 						Type: schema.NewArrayType(schema.NewNamedType("Int16")).Encode(),
 					},
 					"PtrArrayIntPtr": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
-					},
-					"PtrArrayBoolPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Boolean")))).Encode(),
-					},
-					"Int16": schema.ObjectField{
-						Type: schema.NewNamedType("Int16").Encode(),
-					},
-					"CustomScalarPtr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("CommentString")).Encode(),
-					},
-					"ArrayInt8": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("Int8")).Encode(),
-					},
-					"PtrArrayUint64Ptr": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64")))).Encode(),
-					},
-					"ArrayMap": schema.ObjectField{
-						Type: schema.NewArrayType(schema.NewNamedType("JSON")).Encode(),
-					},
-					"Int8": schema.ObjectField{
-						Type: schema.NewNamedType("Int8").Encode(),
 					},
 				},
 			},
@@ -521,6 +521,9 @@ func GetConnectorSchema() schema.SchemaResponse {
 			},
 			"HelloResult": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
+					"text": schema.ObjectField{
+						Type: schema.NewNamedType("String").Encode(),
+					},
 					"foo": schema.ObjectField{
 						Type: schema.NewNamedType("Foo").Encode(),
 					},
@@ -532,9 +535,6 @@ func GetConnectorSchema() schema.SchemaResponse {
 					},
 					"num": schema.ObjectField{
 						Type: schema.NewNamedType("Int32").Encode(),
-					},
-					"text": schema.ObjectField{
-						Type: schema.NewNamedType("String").Encode(),
 					},
 				},
 			},
@@ -550,293 +550,59 @@ func GetConnectorSchema() schema.SchemaResponse {
 				Name:       "getTypes",
 				ResultType: schema.NewNullableType(schema.NewNamedType("GetTypesArguments")).Encode(),
 				Arguments: map[string]schema.ArgumentInfo{
-					"BigIntPtr": {
-						Type: schema.NewNullableType(schema.NewNamedType("BigInt")).Encode(),
-					},
-					"Uint16": {
-						Type: schema.NewNamedType("Int16").Encode(),
-					},
-					"PtrArrayUint8Ptr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8")))).Encode(),
-					},
-					"PtrArrayBoolPtr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Boolean")))).Encode(),
-					},
-					"PtrArrayInt16Ptr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16")))).Encode(),
-					},
-					"ArrayUint": {
-						Type: schema.NewArrayType(schema.NewNamedType("Int32")).Encode(),
-					},
-					"PtrArrayJSONPtr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("JSON")))).Encode(),
-					},
-					"ArrayFloat64Ptr": {
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float64"))).Encode(),
-					},
-					"ArrayString": {
-						Type: schema.NewArrayType(schema.NewNamedType("String")).Encode(),
-					},
-					"PtrArrayUUIDPtr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("UUID")))).Encode(),
-					},
-					"PtrArrayFloat32": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Float32"))).Encode(),
-					},
-					"Float32": {
-						Type: schema.NewNamedType("Float32").Encode(),
-					},
-					"ArrayBool": {
-						Type: schema.NewArrayType(schema.NewNamedType("Boolean")).Encode(),
-					},
-					"ArrayFloat32": {
-						Type: schema.NewArrayType(schema.NewNamedType("Float32")).Encode(),
-					},
-					"PtrArrayFloat32Ptr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float32")))).Encode(),
-					},
-					"ArrayUint64Ptr": {
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64"))).Encode(),
-					},
-					"PtrArrayFloat64Ptr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float64")))).Encode(),
-					},
-					"NamedObjectPtr": {
-						Type: schema.NewNullableType(schema.NewNamedType("Author")).Encode(),
-					},
-					"ArrayInt32": {
-						Type: schema.NewArrayType(schema.NewNamedType("Int32")).Encode(),
-					},
-					"EnumPtr": {
-						Type: schema.NewNullableType(schema.NewNamedType("SomeEnum")).Encode(),
-					},
-					"Int64": {
-						Type: schema.NewNamedType("Int64").Encode(),
-					},
-					"PtrArrayUint32": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
-					},
-					"PtrArrayStringPtr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("String")))).Encode(),
-					},
-					"ArrayMapPtr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("JSON"))).Encode(),
-					},
-					"PtrArrayUint16Ptr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16")))).Encode(),
-					},
-					"UUID": {
-						Type: schema.NewNamedType("UUID").Encode(),
-					},
-					"String": {
-						Type: schema.NewNamedType("String").Encode(),
-					},
-					"PtrArrayBigInt": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("BigInt"))).Encode(),
-					},
-					"PtrArrayBool": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Boolean"))).Encode(),
-					},
-					"ArrayInt64": {
-						Type: schema.NewArrayType(schema.NewNamedType("Int64")).Encode(),
-					},
-					"ArrayInt16Ptr": {
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16"))).Encode(),
-					},
-					"PtrArrayUint64": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int64"))).Encode(),
-					},
-					"ArrayObjectPtr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("GetTypesArgumentsArrayObjectPtr"))).Encode(),
-					},
-					"RawJSONPtr": {
-						Type: schema.NewNullableType(schema.NewNamedType("RawJSON")).Encode(),
-					},
-					"ArrayBigInt": {
-						Type: schema.NewArrayType(schema.NewNamedType("BigInt")).Encode(),
-					},
-					"UintPtr": {
-						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
-					},
-					"JSON": {
-						Type: schema.NewNamedType("JSON").Encode(),
-					},
-					"Float64Ptr": {
-						Type: schema.NewNullableType(schema.NewNamedType("Float64")).Encode(),
-					},
-					"ArrayFloat64": {
-						Type: schema.NewArrayType(schema.NewNamedType("Float64")).Encode(),
-					},
-					"ArrayUint8Ptr": {
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8"))).Encode(),
-					},
-					"Float64": {
-						Type: schema.NewNamedType("Float64").Encode(),
-					},
-					"UUIDPtr": {
-						Type: schema.NewNullableType(schema.NewNamedType("UUID")).Encode(),
-					},
-					"Uint8Ptr": {
-						Type: schema.NewNullableType(schema.NewNamedType("Int8")).Encode(),
-					},
-					"ArrayInt32Ptr": {
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32"))).Encode(),
-					},
-					"PtrArrayString": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("String"))).Encode(),
-					},
-					"Time": {
-						Type: schema.NewNamedType("TimestampTZ").Encode(),
-					},
-					"ArrayObject": {
-						Type: schema.NewArrayType(schema.NewNamedType("GetTypesArgumentsArrayObject")).Encode(),
+					"TextPtr": {
+						Type: schema.NewNullableType(schema.NewNamedType("String")).Encode(),
 					},
 					"ArrayInt8Ptr": {
 						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8"))).Encode(),
 					},
-					"ArrayTimePtr": {
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("TimestampTZ"))).Encode(),
-					},
-					"PtrArrayInt8": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int8"))).Encode(),
-					},
-					"Uint8": {
-						Type: schema.NewNamedType("Int8").Encode(),
-					},
-					"PtrArrayUintPtr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
-					},
-					"ArrayFloat32Ptr": {
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float32"))).Encode(),
-					},
-					"StringPtr": {
-						Type: schema.NewNullableType(schema.NewNamedType("String")).Encode(),
-					},
-					"Uint64Ptr": {
-						Type: schema.NewNullableType(schema.NewNamedType("Int64")).Encode(),
+					"PtrArrayUint16Ptr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16")))).Encode(),
 					},
 					"Int8": {
 						Type: schema.NewNamedType("Int8").Encode(),
 					},
-					"PtrArrayUUID": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("UUID"))).Encode(),
-					},
-					"PtrArrayInt32Ptr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
-					},
-					"Enum": {
-						Type: schema.NewNamedType("SomeEnum").Encode(),
-					},
-					"BytesPtr": {
-						Type: schema.NewNullableType(schema.NewNamedType("Bytes")).Encode(),
-					},
-					"NamedArrayPtr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Author"))).Encode(),
-					},
-					"PtrArrayJSON": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("JSON"))).Encode(),
-					},
-					"NamedArray": {
-						Type: schema.NewArrayType(schema.NewNamedType("Author")).Encode(),
-					},
-					"ArrayUint16": {
-						Type: schema.NewArrayType(schema.NewNamedType("Int16")).Encode(),
-					},
-					"MapPtr": {
-						Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
-					},
-					"ArrayIntPtr": {
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32"))).Encode(),
-					},
-					"ArrayBoolPtr": {
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Boolean"))).Encode(),
-					},
-					"Uint32": {
-						Type: schema.NewNamedType("Int32").Encode(),
-					},
-					"IntPtr": {
-						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
-					},
-					"ArrayTime": {
-						Type: schema.NewArrayType(schema.NewNamedType("TimestampTZ")).Encode(),
-					},
-					"Int16": {
+					"Uint16": {
 						Type: schema.NewNamedType("Int16").Encode(),
 					},
 					"PtrArrayBigIntPtr": {
 						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("BigInt")))).Encode(),
 					},
-					"PtrArrayTimePtr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("TimestampTZ")))).Encode(),
+					"PtrArrayInt16Ptr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16")))).Encode(),
 					},
-					"DatePtr": {
-						Type: schema.NewNullableType(schema.NewNamedType("Date")).Encode(),
+					"Int16": {
+						Type: schema.NewNamedType("Int16").Encode(),
 					},
-					"ArrayUint32Ptr": {
+					"PtrArrayUint": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+					},
+					"ArrayIntPtr": {
 						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32"))).Encode(),
 					},
-					"PtrArrayTime": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("TimestampTZ"))).Encode(),
-					},
-					"ArrayRawJSONPtr": {
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("RawJSON"))).Encode(),
-					},
-					"CustomScalarPtr": {
-						Type: schema.NewNullableType(schema.NewNamedType("CommentString")).Encode(),
-					},
-					"Int64Ptr": {
-						Type: schema.NewNullableType(schema.NewNamedType("Int64")).Encode(),
-					},
-					"Int8Ptr": {
-						Type: schema.NewNullableType(schema.NewNamedType("Int8")).Encode(),
+					"PtrArrayBigInt": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("BigInt"))).Encode(),
 					},
 					"ArrayInt8": {
 						Type: schema.NewArrayType(schema.NewNamedType("Int8")).Encode(),
 					},
-					"CustomScalar": {
-						Type: schema.NewNamedType("CommentString").Encode(),
+					"ArrayUintPtr": {
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32"))).Encode(),
 					},
-					"PtrArrayRawJSONPtr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("RawJSON")))).Encode(),
+					"UUID": {
+						Type: schema.NewNamedType("UUID").Encode(),
 					},
-					"ObjectPtr": {
-						Type: schema.NewNullableType(schema.NewNamedType("GetTypesArgumentsObjectPtr")).Encode(),
-					},
-					"Date": {
-						Type: schema.NewNamedType("Date").Encode(),
-					},
-					"Bool": {
-						Type: schema.NewNamedType("Boolean").Encode(),
+					"EnumPtr": {
+						Type: schema.NewNullableType(schema.NewNamedType("SomeEnum")).Encode(),
 					},
 					"NamedObject": {
 						Type: schema.NewNamedType("Author").Encode(),
 					},
-					"PtrArrayUint32Ptr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
+					"ArrayBoolPtr": {
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Boolean"))).Encode(),
 					},
-					"ArrayUUIDPtr": {
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("UUID"))).Encode(),
-					},
-					"RawJSON": {
-						Type: schema.NewNamedType("RawJSON").Encode(),
-					},
-					"PtrArrayUint64Ptr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64")))).Encode(),
-					},
-					"PtrArrayInt64": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int64"))).Encode(),
-					},
-					"Map": {
-						Type: schema.NewNamedType("JSON").Encode(),
-					},
-					"ArrayInt": {
-						Type: schema.NewArrayType(schema.NewNamedType("Int32")).Encode(),
-					},
-					"PtrArrayInt32": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
-					},
-					"Float32Ptr": {
-						Type: schema.NewNullableType(schema.NewNamedType("Float32")).Encode(),
+					"ArrayUint8Ptr": {
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8"))).Encode(),
 					},
 					"Uint": {
 						Type: schema.NewNamedType("Int32").Encode(),
@@ -844,122 +610,356 @@ func GetConnectorSchema() schema.SchemaResponse {
 					"PtrArrayInt": {
 						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
 					},
-					"ArrayUint8": {
-						Type: schema.NewArrayType(schema.NewNamedType("Int8")).Encode(),
+					"ArrayMapPtr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("JSON"))).Encode(),
 					},
-					"Int32Ptr": {
-						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
-					},
-					"ArrayRawJSON": {
-						Type: schema.NewArrayType(schema.NewNamedType("RawJSON")).Encode(),
-					},
-					"Int16Ptr": {
-						Type: schema.NewNullableType(schema.NewNamedType("Int16")).Encode(),
-					},
-					"ArrayMap": {
-						Type: schema.NewArrayType(schema.NewNamedType("JSON")).Encode(),
-					},
-					"Bytes": {
-						Type: schema.NewNamedType("Bytes").Encode(),
-					},
-					"ArrayJSONPtr": {
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("JSON"))).Encode(),
-					},
-					"ArrayBigIntPtr": {
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("BigInt"))).Encode(),
-					},
-					"ArrayUint16Ptr": {
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16"))).Encode(),
-					},
-					"PtrArrayUint16": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int16"))).Encode(),
-					},
-					"PtrArrayUint": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
-					},
-					"Int": {
-						Type: schema.NewNamedType("Int32").Encode(),
-					},
-					"PtrArrayRawJSON": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("RawJSON"))).Encode(),
-					},
-					"Object": {
-						Type: schema.NewNamedType("GetTypesArgumentsObject").Encode(),
-					},
-					"PtrArrayUint8": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int8"))).Encode(),
-					},
-					"BoolPtr": {
-						Type: schema.NewNullableType(schema.NewNamedType("Boolean")).Encode(),
-					},
-					"ArrayJSON": {
-						Type: schema.NewArrayType(schema.NewNamedType("JSON")).Encode(),
-					},
-					"Uint16Ptr": {
-						Type: schema.NewNullableType(schema.NewNamedType("Int16")).Encode(),
-					},
-					"PtrArrayInt64Ptr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64")))).Encode(),
-					},
-					"TimePtr": {
-						Type: schema.NewNullableType(schema.NewNamedType("TimestampTZ")).Encode(),
-					},
-					"Uint32Ptr": {
-						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+					"PtrArrayJSONPtr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("JSON")))).Encode(),
 					},
 					"JSONPtr": {
 						Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
 					},
-					"PtrArrayFloat64": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Float64"))).Encode(),
+					"ArrayUint16Ptr": {
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16"))).Encode(),
 					},
-					"ArrayInt16": {
-						Type: schema.NewArrayType(schema.NewNamedType("Int16")).Encode(),
+					"ArrayBigInt": {
+						Type: schema.NewArrayType(schema.NewNamedType("BigInt")).Encode(),
 					},
-					"PtrArrayInt16": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int16"))).Encode(),
+					"ObjectPtr": {
+						Type: schema.NewNullableType(schema.NewNamedType("GetTypesArgumentsObjectPtr")).Encode(),
 					},
-					"Uint64": {
-						Type: schema.NewNamedType("Int64").Encode(),
+					"ArrayFloat64": {
+						Type: schema.NewArrayType(schema.NewNamedType("Float64")).Encode(),
 					},
-					"Text": {
-						Type: schema.NewNamedType("String").Encode(),
+					"Float32Ptr": {
+						Type: schema.NewNullableType(schema.NewNamedType("Float32")).Encode(),
 					},
-					"URL": {
-						Type: schema.NewNamedType("URL").Encode(),
+					"Uint32": {
+						Type: schema.NewNamedType("Int32").Encode(),
 					},
-					"TextPtr": {
-						Type: schema.NewNullableType(schema.NewNamedType("String")).Encode(),
+					"PtrArrayInt8": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int8"))).Encode(),
 					},
-					"ArrayUint32": {
-						Type: schema.NewArrayType(schema.NewNamedType("Int32")).Encode(),
+					"RawJSON": {
+						Type: schema.NewNamedType("RawJSON").Encode(),
 					},
-					"PtrArrayInt8Ptr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8")))).Encode(),
+					"PtrArrayUUIDPtr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("UUID")))).Encode(),
+					},
+					"PtrArrayTime": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("TimestampTZ"))).Encode(),
+					},
+					"PtrArrayString": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("String"))).Encode(),
 					},
 					"ArrayUUID": {
 						Type: schema.NewArrayType(schema.NewNamedType("UUID")).Encode(),
 					},
-					"ArrayStringPtr": {
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("String"))).Encode(),
+					"Uint32Ptr": {
+						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
 					},
-					"ArrayUint64": {
-						Type: schema.NewArrayType(schema.NewNamedType("Int64")).Encode(),
+					"JSON": {
+						Type: schema.NewNamedType("JSON").Encode(),
+					},
+					"PtrArrayInt64": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int64"))).Encode(),
+					},
+					"PtrArrayUint16": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int16"))).Encode(),
+					},
+					"UUIDPtr": {
+						Type: schema.NewNullableType(schema.NewNamedType("UUID")).Encode(),
+					},
+					"Int8Ptr": {
+						Type: schema.NewNullableType(schema.NewNamedType("Int8")).Encode(),
+					},
+					"StringPtr": {
+						Type: schema.NewNullableType(schema.NewNamedType("String")).Encode(),
+					},
+					"Enum": {
+						Type: schema.NewNamedType("SomeEnum").Encode(),
+					},
+					"Object": {
+						Type: schema.NewNamedType("GetTypesArgumentsObject").Encode(),
+					},
+					"ArrayUint16": {
+						Type: schema.NewArrayType(schema.NewNamedType("Int16")).Encode(),
+					},
+					"Int": {
+						Type: schema.NewNamedType("Int32").Encode(),
+					},
+					"ArrayUint32": {
+						Type: schema.NewArrayType(schema.NewNamedType("Int32")).Encode(),
+					},
+					"ArrayTimePtr": {
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("TimestampTZ"))).Encode(),
 					},
 					"Int32": {
 						Type: schema.NewNamedType("Int32").Encode(),
 					},
-					"ArrayUintPtr": {
-						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32"))).Encode(),
+					"ArrayStringPtr": {
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("String"))).Encode(),
 					},
-					"PtrArrayIntPtr": {
-						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
+					"String": {
+						Type: schema.NewNamedType("String").Encode(),
+					},
+					"ArrayJSONPtr": {
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("JSON"))).Encode(),
 					},
 					"ArrayInt64Ptr": {
 						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64"))).Encode(),
 					},
+					"IntPtr": {
+						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+					},
+					"ArrayUint32Ptr": {
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32"))).Encode(),
+					},
+					"PtrArrayStringPtr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("String")))).Encode(),
+					},
+					"PtrArrayFloat32": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Float32"))).Encode(),
+					},
+					"ArrayJSON": {
+						Type: schema.NewArrayType(schema.NewNamedType("JSON")).Encode(),
+					},
+					"ArrayInt32": {
+						Type: schema.NewArrayType(schema.NewNamedType("Int32")).Encode(),
+					},
+					"Float64Ptr": {
+						Type: schema.NewNullableType(schema.NewNamedType("Float64")).Encode(),
+					},
+					"BytesPtr": {
+						Type: schema.NewNullableType(schema.NewNamedType("Bytes")).Encode(),
+					},
+					"ArrayBool": {
+						Type: schema.NewArrayType(schema.NewNamedType("Boolean")).Encode(),
+					},
+					"ArrayInt16": {
+						Type: schema.NewArrayType(schema.NewNamedType("Int16")).Encode(),
+					},
+					"ArrayObjectPtr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("GetTypesArgumentsArrayObjectPtr"))).Encode(),
+					},
+					"ArrayUUIDPtr": {
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("UUID"))).Encode(),
+					},
+					"Uint16Ptr": {
+						Type: schema.NewNullableType(schema.NewNamedType("Int16")).Encode(),
+					},
+					"NamedArray": {
+						Type: schema.NewArrayType(schema.NewNamedType("Author")).Encode(),
+					},
+					"Bytes": {
+						Type: schema.NewNamedType("Bytes").Encode(),
+					},
+					"ArrayRawJSONPtr": {
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("RawJSON"))).Encode(),
+					},
+					"CustomScalar": {
+						Type: schema.NewNamedType("CommentString").Encode(),
+					},
+					"ArrayUint": {
+						Type: schema.NewArrayType(schema.NewNamedType("Int32")).Encode(),
+					},
+					"PtrArrayUintPtr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
+					},
+					"RawJSONPtr": {
+						Type: schema.NewNullableType(schema.NewNamedType("RawJSON")).Encode(),
+					},
+					"Date": {
+						Type: schema.NewNamedType("Date").Encode(),
+					},
+					"ArrayUint64": {
+						Type: schema.NewArrayType(schema.NewNamedType("Int64")).Encode(),
+					},
+					"ArrayFloat32": {
+						Type: schema.NewArrayType(schema.NewNamedType("Float32")).Encode(),
+					},
+					"ArrayUint8": {
+						Type: schema.NewArrayType(schema.NewNamedType("Int8")).Encode(),
+					},
+					"CustomScalarPtr": {
+						Type: schema.NewNullableType(schema.NewNamedType("CommentString")).Encode(),
+					},
+					"Int32Ptr": {
+						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+					},
+					"PtrArrayIntPtr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
+					},
+					"PtrArrayRawJSONPtr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("RawJSON")))).Encode(),
+					},
+					"Int16Ptr": {
+						Type: schema.NewNullableType(schema.NewNamedType("Int16")).Encode(),
+					},
 					"BigInt": {
 						Type: schema.NewNamedType("BigInt").Encode(),
+					},
+					"PtrArrayUint8Ptr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8")))).Encode(),
+					},
+					"Int64": {
+						Type: schema.NewNamedType("Int64").Encode(),
+					},
+					"Float64": {
+						Type: schema.NewNamedType("Float64").Encode(),
+					},
+					"PtrArrayUint32": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+					},
+					"Map": {
+						Type: schema.NewNamedType("JSON").Encode(),
+					},
+					"UintPtr": {
+						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+					},
+					"URL": {
+						Type: schema.NewNamedType("URL").Encode(),
+					},
+					"PtrArrayInt8Ptr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8")))).Encode(),
+					},
+					"NamedObjectPtr": {
+						Type: schema.NewNullableType(schema.NewNamedType("Author")).Encode(),
+					},
+					"PtrArrayFloat64": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Float64"))).Encode(),
+					},
+					"Uint8": {
+						Type: schema.NewNamedType("Int8").Encode(),
+					},
+					"PtrArrayUint64": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int64"))).Encode(),
+					},
+					"PtrArrayUUID": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("UUID"))).Encode(),
+					},
+					"Float32": {
+						Type: schema.NewNamedType("Float32").Encode(),
+					},
+					"TimePtr": {
+						Type: schema.NewNullableType(schema.NewNamedType("TimestampTZ")).Encode(),
+					},
+					"ArrayBigIntPtr": {
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("BigInt"))).Encode(),
+					},
+					"ArrayTime": {
+						Type: schema.NewArrayType(schema.NewNamedType("TimestampTZ")).Encode(),
+					},
+					"PtrArrayTimePtr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("TimestampTZ")))).Encode(),
+					},
+					"ArrayInt32Ptr": {
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32"))).Encode(),
+					},
+					"ArrayInt": {
+						Type: schema.NewArrayType(schema.NewNamedType("Int32")).Encode(),
+					},
+					"ArrayFloat64Ptr": {
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float64"))).Encode(),
+					},
+					"PtrArrayJSON": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("JSON"))).Encode(),
+					},
+					"Time": {
+						Type: schema.NewNamedType("TimestampTZ").Encode(),
+					},
+					"PtrArrayRawJSON": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("RawJSON"))).Encode(),
+					},
+					"BigIntPtr": {
+						Type: schema.NewNullableType(schema.NewNamedType("BigInt")).Encode(),
+					},
+					"Uint64": {
+						Type: schema.NewNamedType("Int64").Encode(),
+					},
+					"PtrArrayInt32Ptr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
+					},
+					"PtrArrayUint8": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int8"))).Encode(),
+					},
+					"PtrArrayInt64Ptr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64")))).Encode(),
+					},
+					"PtrArrayFloat32Ptr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float32")))).Encode(),
+					},
+					"ArrayObject": {
+						Type: schema.NewArrayType(schema.NewNamedType("GetTypesArgumentsArrayObject")).Encode(),
+					},
+					"PtrArrayFloat64Ptr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float64")))).Encode(),
+					},
+					"ArrayInt64": {
+						Type: schema.NewArrayType(schema.NewNamedType("Int64")).Encode(),
+					},
+					"ArrayRawJSON": {
+						Type: schema.NewArrayType(schema.NewNamedType("RawJSON")).Encode(),
+					},
+					"ArrayMap": {
+						Type: schema.NewArrayType(schema.NewNamedType("JSON")).Encode(),
+					},
+					"ArrayInt16Ptr": {
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16"))).Encode(),
+					},
+					"PtrArrayUint32Ptr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
+					},
+					"BoolPtr": {
+						Type: schema.NewNullableType(schema.NewNamedType("Boolean")).Encode(),
+					},
+					"PtrArrayUint64Ptr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64")))).Encode(),
+					},
+					"Uint8Ptr": {
+						Type: schema.NewNullableType(schema.NewNamedType("Int8")).Encode(),
+					},
+					"ArrayUint64Ptr": {
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64"))).Encode(),
+					},
+					"PtrArrayInt16": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int16"))).Encode(),
+					},
+					"PtrArrayInt32": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+					},
+					"Text": {
+						Type: schema.NewNamedType("String").Encode(),
+					},
+					"MapPtr": {
+						Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
+					},
+					"PtrArrayBoolPtr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Boolean")))).Encode(),
+					},
+					"Bool": {
+						Type: schema.NewNamedType("Boolean").Encode(),
+					},
+					"Int64Ptr": {
+						Type: schema.NewNullableType(schema.NewNamedType("Int64")).Encode(),
+					},
+					"DatePtr": {
+						Type: schema.NewNullableType(schema.NewNamedType("Date")).Encode(),
+					},
+					"Uint64Ptr": {
+						Type: schema.NewNullableType(schema.NewNamedType("Int64")).Encode(),
+					},
+					"PtrArrayBool": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Boolean"))).Encode(),
+					},
+					"ArrayString": {
+						Type: schema.NewArrayType(schema.NewNamedType("String")).Encode(),
+					},
+					"NamedArrayPtr": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Author"))).Encode(),
+					},
+					"ArrayFloat32Ptr": {
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float32"))).Encode(),
 					},
 				},
 			},

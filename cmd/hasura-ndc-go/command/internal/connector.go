@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go/token"
 	"io"
 	"os"
 	"path"
@@ -16,6 +17,7 @@ import (
 	"github.com/hasura/ndc-sdk-go/utils"
 	"github.com/iancoleman/strcase"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/tools/go/packages"
 )
 
 // ConnectorGenerationArguments represent input arguments of the ConnectorGenerator
@@ -27,6 +29,7 @@ type ConnectorGenerationArguments struct {
 	Trace        string   `help:"Enable tracing and write to target file path."`
 	SchemaFormat string   `help:"The output format for the connector schema. Accept: json, go" enum:"json,go" default:"json"`
 	Style        string   `help:"The naming style for functions and procedures. Accept: camel-case, snake-case" enum:"camel-case,snake-case" default:"camel-case"`
+	TypeOnly     bool     `help:"Generate type only" default:"false"`
 }
 
 type connectorTypeBuilder struct {
@@ -78,19 +81,9 @@ type connectorGenerator struct {
 	schemaFormat      string
 	rawSchema         *RawConnectorSchema
 	typeBuilders      map[string]*connectorTypeBuilder
+	typeOnly          bool
 	functionHandlers  []string
 	procedureHandlers []string
-}
-
-func NewConnectorGenerator(basePath string, connectorDir string, moduleName string, rawSchema *RawConnectorSchema, schemaFormat string) *connectorGenerator {
-	return &connectorGenerator{
-		basePath:     basePath,
-		connectorDir: connectorDir,
-		moduleName:   moduleName,
-		schemaFormat: schemaFormat,
-		rawSchema:    rawSchema,
-		typeBuilders: make(map[string]*connectorTypeBuilder),
-	}
 }
 
 // ParseAndGenerateConnector parses and generate connector codes
@@ -119,11 +112,42 @@ func ParseAndGenerateConnector(args ConnectorGenerationArguments, moduleName str
 
 	_, genTask := trace.NewTask(context.TODO(), "generate_code")
 	defer genTask.End()
-	connectorGen := NewConnectorGenerator(".", args.ConnectorDir, moduleName, sm, args.SchemaFormat)
-	return connectorGen.generateConnector()
+
+	connectorGen := &connectorGenerator{
+		basePath:     ".",
+		connectorDir: args.ConnectorDir,
+		moduleName:   moduleName,
+		schemaFormat: args.SchemaFormat,
+		rawSchema:    sm,
+		typeBuilders: make(map[string]*connectorTypeBuilder),
+		typeOnly:     args.TypeOnly,
+	}
+	connectorPkgName, err := connectorGen.loadConnectorPackage()
+	if err != nil {
+		return err
+	}
+	return connectorGen.generateConnector(connectorPkgName)
 }
 
-func (cg *connectorGenerator) generateConnector() error {
+func (cg *connectorGenerator) loadConnectorPackage() (string, error) {
+	connectorPath := path.Join(cg.basePath, cg.connectorDir)
+	fset := token.NewFileSet()
+	cfg := &packages.Config{
+		Dir:  connectorPath,
+		Fset: fset,
+	}
+	pkgList, err := packages.Load(cfg)
+	if err != nil {
+		return "", fmt.Errorf("failed to load the package in connector directory: %s", err)
+	}
+
+	if len(pkgList) == 0 {
+		return "main", nil
+	}
+	return pkgList[0].Name, nil
+}
+
+func (cg *connectorGenerator) generateConnector(name string) error {
 
 	var schemaBytes []byte
 	var err error
@@ -132,7 +156,7 @@ func (cg *connectorGenerator) generateConnector() error {
 	if cg.schemaFormat == "go" {
 		schemaOutputFile = schemaOutputGoFile
 		cg.rawSchema.Imports["encoding/json"] = true
-		output, err := cg.rawSchema.Render("main")
+		output, err := cg.rawSchema.Render(name)
 		if err != nil {
 			return err
 		}
@@ -150,34 +174,35 @@ func (cg *connectorGenerator) generateConnector() error {
 		return err
 	}
 
-	targetPath := path.Join(cg.basePath, cg.connectorDir, connectorOutputFile)
-	f, err := os.Create(targetPath)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		_ = f.Close()
-	}()
-
-	w := bufio.NewWriter(f)
-	defer func() {
-		_ = w.Flush()
-	}()
-
 	if err := cg.genTypeMethods(); err != nil {
 		return err
 	}
-	if err := cg.genConnectorCodeFromTemplate(w); err != nil {
-		return err
+
+	if !cg.typeOnly {
+		targetPath := path.Join(cg.basePath, cg.connectorDir, connectorOutputFile)
+		f, err := os.Create(targetPath)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			_ = f.Close()
+		}()
+
+		w := bufio.NewWriter(f)
+		defer func() {
+			_ = w.Flush()
+		}()
+
+		if err := cg.genConnectorCodeFromTemplate(w, name); err != nil {
+			return err
+		}
+		_ = w.Flush()
 	}
 
 	return nil
 }
 
-func (cg *connectorGenerator) genConnectorCodeFromTemplate(w io.Writer) error {
-	// queries := cg.genConnectorFunctions(cg.rawSchema)
-	// procedures := cg.genConnectorProcedures(cg.rawSchema)
-
+func (cg *connectorGenerator) genConnectorCodeFromTemplate(w io.Writer, packageName string) error {
 	sortedImports := utils.GetSortedKeys(cg.rawSchema.Imports)
 
 	importLines := []string{}
@@ -186,12 +211,8 @@ func (cg *connectorGenerator) genConnectorCodeFromTemplate(w io.Writer) error {
 	}
 
 	return connectorTemplate.Execute(w, map[string]any{
-		"Imports": strings.Join(importLines, "\n"),
-		"Module":  cg.moduleName,
-		// "Queries":          queries,
-		// "Procedures":       procedures,
-		"Queries":          "",
-		"Procedures":       "",
+		"Imports":          strings.Join(importLines, "\n"),
+		"PackageName":      packageName,
 		"SchemaFormat":     cg.schemaFormat,
 		"QueryHandlers":    cg.renderOperationHandlers(cg.functionHandlers),
 		"MutationHandlers": cg.renderOperationHandlers(cg.procedureHandlers),
@@ -214,195 +235,6 @@ func (cg *connectorGenerator) renderOperationHandlers(values []string) string {
 	}
 
 	sb.WriteRune('}')
-	return sb.String()
-}
-
-func (cg *connectorGenerator) genConnectorFunctions(rawSchema *RawConnectorSchema) string {
-	if len(rawSchema.Functions) == 0 {
-		return ""
-	}
-
-	var sb strings.Builder
-	for _, fn := range rawSchema.Functions {
-		if _, ok := cg.rawSchema.Imports[fn.PackagePath]; !ok {
-			cg.rawSchema.Imports[fn.PackagePath] = true
-		}
-		var argumentParamStr string
-		sb.WriteString(fmt.Sprintf("  case \"%s\":", fn.Name))
-		if fn.ResultType.IsScalar {
-			sb.WriteString(`
-    if len(queryFields) > 0 {
-      return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
-    }`)
-		} else if fn.ResultType.IsArray() {
-			sb.WriteString(`
-    selection, err := queryFields.AsArray()
-    if err != nil {
-      return nil, schema.UnprocessableContentError("the selection field type must be array", map[string]any{
-        "cause": err.Error(),
-      })
-    }`)
-		} else {
-			sb.WriteString(`
-    selection, err := queryFields.AsObject()
-    if err != nil {
-      return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
-        "cause": err.Error(),
-      })
-    }`)
-		}
-
-		if fn.ArgumentsType != nil {
-			argName := fn.ArgumentsType.Name
-			if fn.ArgumentsType.PackagePath != "" {
-				cg.rawSchema.Imports[fn.ArgumentsType.PackagePath] = true
-				argName = fmt.Sprintf("%s.%s", fn.ArgumentsType.PackageName, fn.ArgumentsType.Name)
-			}
-
-			argumentStr := fmt.Sprintf(`
-    rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
-    if err != nil {
-      return nil, schema.UnprocessableContentError("failed to resolve argument variables", map[string]any{
-        "cause": err.Error(),
-      })
-    }
-    
-		connector_addSpanEvent(span, logger, "resolve_arguments", map[string]any{
-			"raw_arguments": rawArgs,
-		})
-		
-    var args %s
-    if err = args.FromValue(rawArgs); err != nil {
-      return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
-        "cause": err.Error(),
-      })
-    }
-		
-		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
-			"arguments": args,
-		})`, argName)
-			sb.WriteString(argumentStr)
-			argumentParamStr = ", &args"
-		}
-
-		if fn.ResultType.IsScalar {
-			sb.WriteString(fmt.Sprintf("\n    return %s.%s(ctx, state%s)\n", fn.PackageName, fn.OriginName, argumentParamStr))
-			continue
-		}
-
-		sb.WriteString(fmt.Sprintf("\n    rawResult, err := %s.%s(ctx, state%s)", fn.PackageName, fn.OriginName, argumentParamStr))
-		genGeneralOperationResult(&sb, fn.ResultType)
-
-		sb.WriteString(`
-		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
-			"raw_result": rawResult,
-		})`)
-		if fn.ResultType.IsArray() {
-			sb.WriteString("\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)")
-		} else {
-			sb.WriteString("\n    result, err := utils.EvalNestedColumnObject(selection, rawResult)")
-		}
-		sb.WriteString(textBlockErrorCheck2)
-		sb.WriteString("    return result, nil\n")
-	}
-
-	return sb.String()
-}
-
-func genGeneralOperationResult(sb *strings.Builder, resultType *TypeInfo) {
-	sb.WriteString(textBlockErrorCheck2)
-	if resultType.IsNullable() {
-		sb.WriteString(`
-    if rawResult == nil {
-      return nil, nil
-    }
-`)
-	} else {
-		sb.WriteString(`
-    if rawResult == nil {
-      return nil, schema.UnprocessableContentError("expected not null result", nil)
-    }
-`)
-	}
-}
-
-func (cg *connectorGenerator) genConnectorProcedures(rawSchema *RawConnectorSchema) string {
-	if len(rawSchema.Procedures) == 0 {
-		return ""
-	}
-
-	cg.rawSchema.Imports["encoding/json"] = true
-
-	var sb strings.Builder
-	for _, fn := range rawSchema.Procedures {
-		if _, ok := cg.rawSchema.Imports[fn.PackagePath]; !ok {
-			cg.rawSchema.Imports[fn.PackagePath] = true
-		}
-		var argumentParamStr string
-		sb.WriteString(fmt.Sprintf("  case \"%s\":", fn.Name))
-		if fn.ResultType.IsScalar {
-			sb.WriteString(`
-    if len(operation.Fields) > 0 {
-      return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
-    }`)
-		} else if fn.ResultType.IsArray() {
-			sb.WriteString(`
-    selection, err := operation.Fields.AsArray()
-    if err != nil {
-      return nil, schema.UnprocessableContentError("the selection field type must be array", map[string]any{
-        "cause": err.Error(),
-      })
-    }`)
-		} else {
-			sb.WriteString(`
-    selection, err := operation.Fields.AsObject()
-    if err != nil {
-      return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
-        "cause": err.Error(),
-      })
-    }`)
-		}
-		if fn.ArgumentsType != nil {
-			argName := fn.ArgumentsType.Name
-			if fn.ArgumentsType.PackagePath != "" {
-				cg.rawSchema.Imports[fn.ArgumentsType.PackagePath] = true
-				argName = fmt.Sprintf("%s.%s", fn.ArgumentsType.PackageName, fn.ArgumentsType.Name)
-			}
-
-			argumentStr := fmt.Sprintf(`
-    var args %s
-    if err := json.Unmarshal(operation.Arguments, &args); err != nil {
-      return nil, schema.UnprocessableContentError("failed to decode arguments", map[string]any{
-        "cause": err.Error(),
-      })
-    }`, argName)
-			sb.WriteString(argumentStr)
-			argumentParamStr = ", &args"
-		}
-
-		sb.WriteString("\n    span.AddEvent(\"execute_procedure\")")
-		if fn.ResultType.IsScalar {
-			sb.WriteString(fmt.Sprintf(`
-    var err error
-    result, err := %s.%s(ctx, state%s)`, fn.PackageName, fn.OriginName, argumentParamStr))
-		} else {
-			sb.WriteString(fmt.Sprintf("\n    rawResult, err := %s.%s(ctx, state%s)\n", fn.PackageName, fn.OriginName, argumentParamStr))
-			genGeneralOperationResult(&sb, fn.ResultType)
-
-			sb.WriteString(`    connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
-			"raw_result": rawResult,
-		})`)
-			if fn.ResultType.IsArray() {
-				sb.WriteString("\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)\n")
-			} else {
-				sb.WriteString("\n    result, err := utils.EvalNestedColumnObject(selection, rawResult)\n")
-			}
-		}
-
-		sb.WriteString(textBlockErrorCheck2)
-		sb.WriteString("    return schema.NewProcedureResult(result).Encode(), nil\n")
-	}
-
 	return sb.String()
 }
 
