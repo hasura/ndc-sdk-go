@@ -90,7 +90,6 @@ func TestConnectorGenerationJSON(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			assert.NoError(t, os.Chdir(rootDir))
-
 			expectedSchemaBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/schema.json"))
 			assert.NoError(t, err)
 			connectorContentBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/connector.go.tmpl"))
@@ -143,29 +142,8 @@ func TestConnectorGenerationJSON(t *testing.T) {
 			}
 		})
 	}
-}
 
-func TestConnectorGenerationGo(t *testing.T) {
-	testCases := []struct {
-		Name         string
-		BasePath     string
-		ConnectorDir string
-		Directories  []string
-		ModuleName   string
-		PackageTypes string
-		NamingStyle  string
-		errorMsg     string
-	}{
-		{
-			Name:        "basic",
-			BasePath:    "./testdata/basic",
-			ModuleName:  "github.com/hasura/ndc-codegen-test",
-			Directories: []string{"functions"},
-		},
-	}
-
-	rootDir, err := os.Getwd()
-	assert.NoError(t, err)
+	// go template
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			assert.NoError(t, os.Chdir(rootDir))
@@ -173,7 +151,12 @@ func TestConnectorGenerationGo(t *testing.T) {
 			// expectedSchemaBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/schema.go.tmpl"))
 			// assert.NoError(t, err)
 			connectorContentBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/connector-go.go.tmpl"))
-			assert.NoError(t, err)
+			if err != nil {
+				if os.IsNotExist(err) {
+					return
+				}
+				assert.NoError(t, err)
+			}
 
 			srcDir := path.Join(tc.BasePath, "source")
 			assert.NoError(t, os.Chdir(srcDir))
