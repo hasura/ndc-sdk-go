@@ -54,7 +54,7 @@ func (ctb connectorTypeBuilder) GetDecoderName() string {
 // String renders generated Go types and methods
 func (ctb connectorTypeBuilder) String() string {
 	var bs strings.Builder
-	bs.WriteString(genFileHeader(ctb.packageName))
+	renderFileHeader(&bs, ctb.packageName)
 	if len(ctb.imports) > 0 {
 		bs.WriteString("import (\n")
 		sortedImports := utils.GetSortedKeys(ctb.imports)

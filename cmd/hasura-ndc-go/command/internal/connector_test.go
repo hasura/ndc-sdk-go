@@ -148,8 +148,13 @@ func TestConnectorGenerationJSON(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			assert.NoError(t, os.Chdir(rootDir))
 
-			// expectedSchemaBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/schema.go.tmpl"))
-			// assert.NoError(t, err)
+			expectedSchemaBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/schema.go.tmpl"))
+			if err != nil {
+				if os.IsNotExist(err) {
+					return
+				}
+				assert.NoError(t, err)
+			}
 			connectorContentBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/connector-go.go.tmpl"))
 			if err != nil {
 				if os.IsNotExist(err) {
@@ -173,9 +178,9 @@ func TestConnectorGenerationJSON(t *testing.T) {
 			}
 			assert.NoError(t, err)
 
-			// schemaBytes, err := os.ReadFile(path.Join(tc.ConnectorDir, "schema.generated.go"))
-			// assert.NoError(t, err)
-			// assert.Equal(t, formatTextContent(string(expectedSchemaBytes)), formatTextContent(string(schemaBytes)))
+			schemaBytes, err := os.ReadFile(path.Join(tc.ConnectorDir, "schema.generated.go"))
+			assert.NoError(t, err)
+			assert.Equal(t, formatTextContent(string(expectedSchemaBytes)), formatTextContent(string(schemaBytes)))
 
 			connectorBytes, err := os.ReadFile(path.Join(tc.ConnectorDir, "connector.generated.go"))
 			assert.NoError(t, err)
