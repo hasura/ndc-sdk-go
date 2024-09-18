@@ -139,7 +139,6 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 	}
 
 	if rawSchema.StateType != nil {
-		log.Print(rawSchema.StateType)
 		rawSchema.Imports[rawSchema.StateType.PackagePath] = true
 	} else {
 		pkgPathTypes, err := evalPackageTypesLocation(moduleName, filePath, args.ConnectorDir)

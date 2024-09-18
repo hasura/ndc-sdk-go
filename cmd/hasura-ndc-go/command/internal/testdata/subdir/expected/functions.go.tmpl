@@ -36,8 +36,12 @@ func (j GetArticlesResult) ToMap() map[string]any {
 // DataConnectorHandler implements the data connector handler 
 type DataConnectorHandler struct{}
 
+// QueryExists check if the query name exists
+func (dch DataConnectorHandler) QueryExists(name string) bool {
+	return slices.Contains(enumValues_FunctionName, name)
+}
 func (dch DataConnectorHandler) Query(ctx context.Context, state *types.State, request *schema.QueryRequest, rawArgs map[string]any) (*schema.RowSet, error) {
-	if !slices.Contains(enumValues_FunctionName, request.Collection) {
+	if !dch.QueryExists(request.Collection) {
 		return nil, utils.ErrHandlerNotfound
 	}
 	queryFields, err := utils.EvalFunctionSelectionFieldValue(request)

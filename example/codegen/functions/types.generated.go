@@ -78,8 +78,12 @@ func (j ScalarFoo) ScalarName() string {
 // DataConnectorHandler implements the data connector handler
 type DataConnectorHandler struct{}
 
+// QueryExists check if the query name exists
+func (dch DataConnectorHandler) QueryExists(name string) bool {
+	return slices.Contains(enumValues_FunctionName, name)
+}
 func (dch DataConnectorHandler) Query(ctx context.Context, state *types.State, request *schema.QueryRequest, rawArgs map[string]any) (*schema.RowSet, error) {
-	if !slices.Contains(enumValues_FunctionName, request.Collection) {
+	if !dch.QueryExists(request.Collection) {
 		return nil, utils.ErrHandlerNotfound
 	}
 	queryFields, err := utils.EvalFunctionSelectionFieldValue(request)
@@ -218,7 +222,11 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 
 var enumValues_FunctionName = []string{"getBool", "getTypes", "hello", "getArticles"}
 
-func (dch DataConnectorHandler) Mutate(ctx context.Context, state *types.State, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
+// MutationExists check if the mutation name exists
+func (dch DataConnectorHandler) MutationExists(name string) bool {
+	return slices.Contains(enumValues_ProcedureName, name)
+}
+func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
 	span := trace.SpanFromContext(ctx)
 	logger := connector.GetLogger(ctx)
 	connector_addSpanEvent(span, logger, "validate_request", map[string]any{
@@ -266,7 +274,6 @@ func (dch DataConnectorHandler) Mutate(ctx context.Context, state *types.State, 
 			return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
 		}
 		span.AddEvent("execute_procedure")
-		var err error
 		result, err := Increase(ctx, state)
 		if err != nil {
 			return nil, err
@@ -345,6 +352,8 @@ func (dch DataConnectorHandler) Mutate(ctx context.Context, state *types.State, 
 		return nil, utils.ErrHandlerNotfound
 	}
 }
+
+var enumValues_ProcedureName = []string{"create_article", "increase", "createAuthor", "createAuthors"}
 
 func connector_addSpanEvent(span trace.Span, logger *slog.Logger, name string, data map[string]any, options ...trace.EventOption) {
 	logger.Debug(name, slog.Any("data", data))

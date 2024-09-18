@@ -28,7 +28,7 @@ type ConnectorQueryHandler interface {
 
 // ConnectorMutationHandler abstracts the connector mutation handler 
 type ConnectorMutationHandler interface {
-	Mutate(ctx context.Context, state *types.State, request *schema.MutationOperation) (schema.MutationOperationResults, error)
+	Mutation(ctx context.Context, state *types.State, request *schema.MutationOperation) (schema.MutationOperationResults, error)
 }
 
 
@@ -157,7 +157,7 @@ func (c *Connector) Mutation(ctx context.Context, configuration *types.Configura
 
 func (c *Connector) execProcedure(ctx context.Context, state *types.State, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
 	for _, handler := range connectorMutationHandlers {
-		result, err := handler.Mutate(ctx, state, operation)
+		result, err := handler.Mutation(ctx, state, operation)
 		if err == nil {
 			return result, nil
 		}

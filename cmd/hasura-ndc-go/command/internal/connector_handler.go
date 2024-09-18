@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	functionEnumsName = "enumValues_FunctionName"
+	functionEnumsName  = "enumValues_FunctionName"
+	procedureEnumsName = "enumValues_ProcedureName"
 )
 
 type connectorHandlerBuilder struct {
@@ -74,14 +75,19 @@ func (chb connectorHandlerBuilder) writeQuery(sb *strings.Builder) {
 		return
 	}
 	stateArgument := chb.writeStateArgumentName()
+	_, _ = sb.WriteString(`
+// QueryExists check if the query name exists
+func (dch DataConnectorHandler) QueryExists(name string) bool {
+	return slices.Contains(`)
+	_, _ = sb.WriteString(functionEnumsName)
+	_, _ = sb.WriteString(`, name)
+}`)
 
 	_, _ = sb.WriteString(`
 func (dch DataConnectorHandler) Query(ctx context.Context, state *`)
 	_, _ = sb.WriteString(stateArgument)
 	_, _ = sb.WriteString(`, request *schema.QueryRequest, rawArgs map[string]any) (*schema.RowSet, error) {
-	if !slices.Contains(`)
-	_, _ = sb.WriteString(functionEnumsName)
-	_, _ = sb.WriteString(`, request.Collection) {
+	if !dch.QueryExists(request.Collection) {
 		return nil, utils.ErrHandlerNotfound
 	}
 	queryFields, err := utils.EvalFunctionSelectionFieldValue(request)
@@ -107,7 +113,6 @@ func (dch DataConnectorHandler) Query(ctx context.Context, state *`)
 func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 	_, _ = sb.WriteString(stateArgument)
 	_, _ = sb.WriteString(`, request *schema.QueryRequest, queryFields schema.NestedField, rawArgs map[string]any) (any, error) {
-	var err error
 	span := trace.SpanFromContext(ctx)
 	logger := connector.GetLogger(ctx)
 	switch request.Collection {`)
@@ -203,7 +208,15 @@ func (chb connectorHandlerBuilder) writeMutation(sb *strings.Builder) {
 	chb.Builder.imports["encoding/json"] = ""
 
 	_, _ = sb.WriteString(`
-func (dch DataConnectorHandler) Mutate(ctx context.Context, state *`)
+// MutationExists check if the mutation name exists
+func (dch DataConnectorHandler) MutationExists(name string) bool {
+	return slices.Contains(`)
+	_, _ = sb.WriteString(procedureEnumsName)
+	_, _ = sb.WriteString(`, name)
+}`)
+
+	_, _ = sb.WriteString(`
+func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 	_, _ = sb.WriteString(stateArgument)
 	_, _ = sb.WriteString(`, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
 	span := trace.SpanFromContext(ctx)	
@@ -214,7 +227,9 @@ func (dch DataConnectorHandler) Mutate(ctx context.Context, state *`)
 	
 	switch operation.Name {`)
 
-	for _, fn := range chb.Procedures {
+	procedureKeys := make([]string, len(chb.Procedures))
+	for i, fn := range chb.Procedures {
+		procedureKeys[i] = fn.Name
 		_, _ = sb.WriteString("\n  case \"")
 		_, _ = sb.WriteString(fn.Name)
 		_, _ = sb.WriteString("\":\n")
@@ -264,7 +279,6 @@ func (dch DataConnectorHandler) Mutate(ctx context.Context, state *`)
 		sb.WriteString("\n    span.AddEvent(\"execute_procedure\")")
 		if fn.ResultType.IsScalar {
 			sb.WriteString(fmt.Sprintf(`
-    var err error
     result, err := %s(ctx, state%s)`, fn.OriginName, argumentParamStr))
 		} else {
 			sb.WriteString(fmt.Sprintf("\n    rawResult, err := %s(ctx, state%s)\n", fn.OriginName, argumentParamStr))
@@ -290,6 +304,7 @@ func (dch DataConnectorHandler) Mutate(ctx context.Context, state *`)
 	}
 }
 `)
+	chb.writeOperationNameEnums(sb, procedureEnumsName, procedureKeys)
 }
 
 func (chb connectorHandlerBuilder) genGeneralOperationResult(sb *strings.Builder, resultType *TypeInfo) {
