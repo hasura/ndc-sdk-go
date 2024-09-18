@@ -57,13 +57,6 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 	}
 	rawSchema := NewRawConnectorSchema()
 
-	pkgTypes, err := evalPackageTypesLocation(args.PackageTypes, moduleName, filePath, args.ConnectorDir)
-	if err != nil {
-		return nil, err
-	}
-	rawSchema.TypesPackagePath = pkgTypes
-	rawSchema.Imports[pkgTypes] = true
-
 	tempDirs := args.Directories
 	if len(args.Directories) == 0 {
 		// recursively walk directories if the user don't explicitly specify target folders
@@ -103,73 +96,64 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 		}
 	}
 
-	if len(directories) == 0 {
+	if len(directories) > 0 {
+		log.Info().Interface("directories", directories).Msgf("parsing connector schema...")
+
+		var packageList []*packages.Package
+		fset := token.NewFileSet()
+		for _, folder := range directories {
+			_, parseCodeTask := trace.NewTask(ctx, fmt.Sprintf("parse_%s_code", folder))
+			folderPath := path.Join(filePath, folder)
+			cfg := &packages.Config{
+				Mode: packages.NeedSyntax | packages.NeedTypes,
+				Dir:  folderPath,
+				Fset: fset,
+			}
+			pkgList, err := packages.Load(cfg, flag.Args()...)
+			parseCodeTask.End()
+			if err != nil {
+				return nil, err
+			}
+			packageList = append(packageList, pkgList...)
+		}
+
+		for i := range packageList {
+			parseSchemaCtx, parseSchemaTask := trace.NewTask(ctx, fmt.Sprintf("parse_schema_%s", packageList[i].ID))
+			sp := &SchemaParser{
+				context:      parseSchemaCtx,
+				moduleName:   moduleName,
+				packages:     packageList,
+				packageIndex: i,
+				rawSchema:    rawSchema,
+				namingStyle:  namingStyle,
+			}
+
+			err = sp.parseRawConnectorSchema(packageList[i].Types)
+			parseSchemaTask.End()
+			if err != nil {
+				return nil, err
+			}
+		}
+	} else {
 		log.Info().Msgf("no subdirectory in %s", filePath)
-		return rawSchema, nil
 	}
 
-	log.Info().Interface("directories", directories).Msgf("parsing connector schema...")
-
-	var packageList []*packages.Package
-	fset := token.NewFileSet()
-	for _, folder := range directories {
-		_, parseCodeTask := trace.NewTask(ctx, fmt.Sprintf("parse_%s_code", folder))
-		folderPath := path.Join(filePath, folder)
-		cfg := &packages.Config{
-			Mode: packages.NeedSyntax | packages.NeedTypes,
-			Dir:  folderPath,
-			Fset: fset,
-		}
-		pkgList, err := packages.Load(cfg, flag.Args()...)
-		parseCodeTask.End()
+	if rawSchema.StateType != nil {
+		log.Print(rawSchema.StateType)
+		rawSchema.Imports[rawSchema.StateType.PackagePath] = true
+	} else {
+		pkgPathTypes, err := evalPackageTypesLocation(moduleName, filePath, args.ConnectorDir)
 		if err != nil {
 			return nil, err
 		}
-		packageList = append(packageList, pkgList...)
-	}
-
-	for i := range packageList {
-		parseSchemaCtx, parseSchemaTask := trace.NewTask(ctx, fmt.Sprintf("parse_schema_%s", packageList[i].ID))
-		sp := &SchemaParser{
-			context:      parseSchemaCtx,
-			moduleName:   moduleName,
-			packages:     packageList,
-			packageIndex: i,
-			rawSchema:    rawSchema,
-			namingStyle:  namingStyle,
+		rawSchema.StateType = &TypeInfo{
+			Name:        "State",
+			PackagePath: pkgPathTypes,
+			PackageName: "types",
 		}
-
-		err = sp.parseRawConnectorSchema(packageList[i].Types)
-		parseSchemaTask.End()
-		if err != nil {
-			return nil, err
-		}
+		rawSchema.Imports[rawSchema.StateType.PackagePath] = true
 	}
-
 	return rawSchema, nil
-}
-
-func evalPackageTypesLocation(name string, moduleName string, filePath string, connectorDir string) (string, error) {
-	if name != "" {
-		// assume that the absolute package name should have domain, e.g. github.com/...
-		if strings.Contains(name, ".") {
-			return name, nil
-		}
-		return fmt.Sprintf("%s/%s", moduleName, name), nil
-	}
-
-	matches, err := filepath.Glob(path.Join(filePath, "types", "*.go"))
-	if err == nil && len(matches) > 0 {
-		return fmt.Sprintf("%s/types", moduleName), nil
-	}
-
-	if connectorDir != "" && !strings.HasPrefix(".", connectorDir) {
-		matches, err = filepath.Glob(path.Join(filePath, connectorDir, "types", "*.go"))
-		if err == nil && len(matches) > 0 {
-			return fmt.Sprintf("%s/%s/types", moduleName, connectorDir), nil
-		}
-	}
-	return "", fmt.Errorf("the `types` package where the State struct is in must be placed in root or connector directory, %s", err)
 }
 
 // parse raw connector schema from Go code
@@ -210,11 +194,28 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 		}
 
 		if params == nil || (params.Len() < 2 || params.Len() > 3) {
-			return fmt.Errorf("%s: expect 2 or 3 parameters only (ctx context.Context, state types.State, arguments *[ArgumentType]), got %s", opInfo.OriginName, params)
+			return fmt.Errorf("%s: expect 2 or 3 parameters only (ctx context.Context, state *types.State, arguments *[ArgumentType]), got %s", opInfo.OriginName, params)
 		}
 
 		if resultTuple == nil || resultTuple.Len() != 2 {
 			return fmt.Errorf("%s: expect result tuple ([type], error), got %s", opInfo.OriginName, resultTuple)
+		}
+
+		if sp.rawSchema.StateType == nil {
+			ty := sp.getNamedType(params.At(1).Type())
+			if ty != nil {
+				so := ty.Obj()
+				if so != nil {
+					objPkg := so.Pkg()
+					if objPkg != nil {
+						sp.rawSchema.StateType = &TypeInfo{
+							Name:        so.Name(),
+							PackageName: objPkg.Name(),
+							PackagePath: objPkg.Path(),
+						}
+					}
+				}
+			}
 		}
 
 		// parse arguments in the function if exists
@@ -243,6 +244,21 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 		}
 	}
 	return nil
+}
+
+func (sp *SchemaParser) getNamedType(ty types.Type) *types.Named {
+	switch t := ty.(type) {
+	case *types.Pointer:
+		return sp.getNamedType(t.Elem())
+	case *types.Named:
+		return t
+	case *types.Slice:
+		return sp.getNamedType(t.Elem())
+	case *types.Array:
+		return sp.getNamedType(t.Elem())
+	default:
+		return nil
+	}
 }
 
 func (sp *SchemaParser) parseArgumentTypes(ty types.Type, fieldPaths []string) (map[string]ArgumentInfo, *TypeInfo, error) {
@@ -790,4 +806,19 @@ func findAndReplaceNativeScalarPackage(input string) (string, string, bool) {
 		}
 	}
 	return "", "", false
+}
+
+func evalPackageTypesLocation(moduleName string, filePath string, connectorDir string) (string, error) {
+	matches, err := filepath.Glob(path.Join(filePath, "types", "*.go"))
+	if err == nil && len(matches) > 0 {
+		return fmt.Sprintf("%s/types", moduleName), nil
+	}
+
+	if connectorDir != "" && !strings.HasPrefix(".", connectorDir) {
+		matches, err = filepath.Glob(path.Join(filePath, connectorDir, "types", "*.go"))
+		if err == nil && len(matches) > 0 {
+			return fmt.Sprintf("%s/%s/types", moduleName, connectorDir), nil
+		}
+	}
+	return "", fmt.Errorf("the `types` package where the State struct is in must be placed in root or connector directory, %s", err)
 }

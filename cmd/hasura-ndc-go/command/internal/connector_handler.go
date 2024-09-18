@@ -28,14 +28,16 @@ func (chb connectorHandlerBuilder) Render() {
 	bs.imports["github.com/hasura/ndc-sdk-go/connector"] = ""
 	bs.imports["github.com/hasura/ndc-sdk-go/schema"] = ""
 	bs.imports["go.opentelemetry.io/otel/trace"] = ""
-	bs.imports[chb.RawSchema.TypesPackagePath] = ""
+	if chb.RawSchema.StateType != nil && bs.packagePath != chb.RawSchema.StateType.PackagePath {
+		bs.imports[chb.RawSchema.StateType.PackagePath] = ""
+	}
 
 	_, _ = bs.builder.WriteString(`
 // DataConnectorHandler implements the data connector handler 
 type DataConnectorHandler struct{}
 `)
-	chb.renderQuery(bs.builder)
-	chb.renderMutation(bs.builder)
+	chb.writeQuery(bs.builder)
+	chb.writeMutation(bs.builder)
 
 	bs.builder.WriteString(`		
 func connector_addSpanEvent(span trace.Span, logger *slog.Logger, name string, data map[string]any, options ...trace.EventOption) {
@@ -45,7 +47,7 @@ func connector_addSpanEvent(span trace.Span, logger *slog.Logger, name string, d
 }`)
 }
 
-func (chb connectorHandlerBuilder) renderOperationNameEnums(sb *strings.Builder, name string, values []string) {
+func (chb connectorHandlerBuilder) writeOperationNameEnums(sb *strings.Builder, name string, values []string) {
 	sb.WriteString("var ")
 	sb.WriteString(name)
 	sb.WriteString(" = []string{")
@@ -60,13 +62,23 @@ func (chb connectorHandlerBuilder) renderOperationNameEnums(sb *strings.Builder,
 	sb.WriteRune('}')
 }
 
-func (chb connectorHandlerBuilder) renderQuery(sb *strings.Builder) {
+func (chb connectorHandlerBuilder) writeStateArgumentName() string {
+	if chb.RawSchema.StateType == nil {
+		return "State"
+	}
+	return chb.RawSchema.StateType.GetArgumentName(chb.Builder.packagePath)
+}
+
+func (chb connectorHandlerBuilder) writeQuery(sb *strings.Builder) {
 	if len(chb.Functions) == 0 {
 		return
 	}
+	stateArgument := chb.writeStateArgumentName()
 
 	_, _ = sb.WriteString(`
-func (dch DataConnectorHandler) Query(ctx context.Context, state *types.State, request *schema.QueryRequest, rawArgs map[string]any) (*schema.RowSet, error) {
+func (dch DataConnectorHandler) Query(ctx context.Context, state *`)
+	_, _ = sb.WriteString(stateArgument)
+	_, _ = sb.WriteString(`, request *schema.QueryRequest, rawArgs map[string]any) (*schema.RowSet, error) {
 	if !slices.Contains(`)
 	_, _ = sb.WriteString(functionEnumsName)
 	_, _ = sb.WriteString(`, request.Collection) {
@@ -92,7 +104,10 @@ func (dch DataConnectorHandler) Query(ctx context.Context, state *types.State, r
 	}, nil
 }
 	
-func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.State, request *schema.QueryRequest, queryFields schema.NestedField, rawArgs map[string]any) (any, error) {
+func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
+	_, _ = sb.WriteString(stateArgument)
+	_, _ = sb.WriteString(`, request *schema.QueryRequest, queryFields schema.NestedField, rawArgs map[string]any) (any, error) {
+	var err error
 	span := trace.SpanFromContext(ctx)
 	logger := connector.GetLogger(ctx)
 	switch request.Collection {`)
@@ -177,17 +192,20 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 	}
 }
 `)
-	chb.renderOperationNameEnums(sb, functionEnumsName, functionKeys)
+	chb.writeOperationNameEnums(sb, functionEnumsName, functionKeys)
 }
 
-func (chb connectorHandlerBuilder) renderMutation(sb *strings.Builder) {
+func (chb connectorHandlerBuilder) writeMutation(sb *strings.Builder) {
 	if len(chb.Procedures) == 0 {
 		return
 	}
+	stateArgument := chb.writeStateArgumentName()
 	chb.Builder.imports["encoding/json"] = ""
 
 	_, _ = sb.WriteString(`
-func (dch DataConnectorHandler) Mutate(ctx context.Context, state *types.State, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
+func (dch DataConnectorHandler) Mutate(ctx context.Context, state *`)
+	_, _ = sb.WriteString(stateArgument)
+	_, _ = sb.WriteString(`, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
 	span := trace.SpanFromContext(ctx)	
 	logger := connector.GetLogger(ctx)
 	connector_addSpanEvent(span, logger, "validate_request", map[string]any{

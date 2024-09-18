@@ -21,12 +21,12 @@ var connectorMutationHandlers = []ConnectorMutationHandler{{.MutationHandlers}}
 
 // ConnectorQueryHandler abstracts the connector query handler 
 type ConnectorQueryHandler interface {
-	Query(ctx context.Context, state *types.State, request *schema.QueryRequest, arguments map[string]any) (*schema.RowSet, error)
+	Query(ctx context.Context, state *{{.StateArgument}}, request *schema.QueryRequest, arguments map[string]any) (*schema.RowSet, error)
 }
 
 // ConnectorMutationHandler abstracts the connector mutation handler 
 type ConnectorMutationHandler interface {
-	Mutate(ctx context.Context, state *types.State, request *schema.MutationOperation) (schema.MutationOperationResults, error)
+	Mutate(ctx context.Context, state *{{.StateArgument}}, request *schema.MutationOperation) (schema.MutationOperationResults, error)
 }
 
 {{ if (eq .SchemaFormat "go")}}
@@ -53,12 +53,12 @@ func init() {
 {{ end }}
 
 // GetSchema gets the connector's schema.
-func (c *Connector) GetSchema(ctx context.Context, configuration *types.Configuration, _ *types.State) (schema.SchemaResponseMarshaler, error) {
+func (c *Connector) GetSchema(ctx context.Context, configuration *types.Configuration, _ *{{.StateArgument}}) (schema.SchemaResponseMarshaler, error) {
 	return schemaResponse, nil
 }
 
 // Query executes a query.
-func (c *Connector) Query(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.QueryRequest) (schema.QueryResponse, error) {
+func (c *Connector) Query(ctx context.Context, configuration *types.Configuration, state *{{.StateArgument}}, request *schema.QueryRequest) (schema.QueryResponse, error) {
 	if len(connectorQueryHandlers) == 0 {
 		return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported query: %s", request.Collection), nil)
 	}
@@ -97,7 +97,7 @@ func (c *Connector) Query(ctx context.Context, configuration *types.Configuratio
 	return rowSets, nil
 }
 
-func (c *Connector) execQuery(ctx context.Context, state *types.State, request *schema.QueryRequest, variables map[string]any) (*schema.RowSet, error) {
+func (c *Connector) execQuery(ctx context.Context, state *{{.StateArgument}}, request *schema.QueryRequest, variables map[string]any) (*schema.RowSet, error) {
 	rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
 	if err != nil {
 		return nil, schema.UnprocessableContentError("failed to resolve argument variables", map[string]any{
@@ -119,7 +119,7 @@ func (c *Connector) execQuery(ctx context.Context, state *types.State, request *
 }
 
 // Mutation executes a mutation.
-func (c *Connector) Mutation(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
+func (c *Connector) Mutation(ctx context.Context, configuration *types.Configuration, state *{{.StateArgument}}, request *schema.MutationRequest) (*schema.MutationResponse, error) {
 	if len(connectorMutationHandlers) == 0 {
 		return nil, schema.UnprocessableContentError("unsupported mutation", nil)
 	}
@@ -163,7 +163,7 @@ func (c *Connector) Mutation(ctx context.Context, configuration *types.Configura
 	}, nil
 }
 
-func (c *Connector) execProcedure(ctx context.Context, state *types.State, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
+func (c *Connector) execProcedure(ctx context.Context, state *{{.StateArgument}}, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
 	for _, handler := range connectorMutationHandlers {
 		result, err := handler.Mutate(ctx, state, operation)
 		if err == nil {

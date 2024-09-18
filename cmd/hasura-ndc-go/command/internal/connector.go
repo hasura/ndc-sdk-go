@@ -24,7 +24,6 @@ import (
 type ConnectorGenerationArguments struct {
 	Path         string   `help:"The path of the root directory where the go.mod file is present" short:"p" env:"HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH" default:"."`
 	ConnectorDir string   `help:"The directory where the connector.go file is placed" default:"."`
-	PackageTypes string   `help:"The name of types package where the State struct is in"`
 	Directories  []string `help:"Folders contain NDC operation functions" short:"d"`
 	Trace        string   `help:"Enable tracing and write to target file path."`
 	SchemaFormat string   `help:"The output format for the connector schema. Accept: json, go" enum:"json,go" default:"json"`
@@ -213,6 +212,7 @@ func (cg *connectorGenerator) genConnectorCodeFromTemplate(w io.Writer, packageN
 	return connectorTemplate.Execute(w, map[string]any{
 		"Imports":          strings.Join(importLines, "\n"),
 		"PackageName":      packageName,
+		"StateArgument":    cg.rawSchema.StateType.GetArgumentName(""),
 		"SchemaFormat":     cg.schemaFormat,
 		"QueryHandlers":    cg.renderOperationHandlers(cg.functionHandlers),
 		"MutationHandlers": cg.renderOperationHandlers(cg.procedureHandlers),

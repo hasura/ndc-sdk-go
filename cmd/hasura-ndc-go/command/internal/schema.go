@@ -42,6 +42,15 @@ func (ti *TypeInfo) IsArray() bool {
 	return isArrayFragments(ti.TypeFragments)
 }
 
+// IsArray checks if the current type is an array
+func (ti *TypeInfo) GetArgumentName(packagePath string) string {
+	if packagePath == ti.PackagePath {
+		return ti.Name
+	}
+
+	return fmt.Sprintf("%s.%s", ti.PackageName, ti.Name)
+}
+
 func isNullableFragment(fragment string) bool {
 	return fragment == "*"
 }
@@ -143,14 +152,14 @@ func (op ProcedureInfo) Schema() schema.ProcedureInfo {
 // RawConnectorSchema represents a readable Go schema object
 // which can encode to NDC schema
 type RawConnectorSchema struct {
-	TypesPackagePath string
-	Imports          map[string]bool
-	CustomScalars    map[string]*TypeInfo
-	ScalarSchemas    schema.SchemaResponseScalarTypes
-	Objects          map[string]*ObjectInfo
-	ObjectSchemas    schema.SchemaResponseObjectTypes
-	Functions        []FunctionInfo
-	Procedures       []ProcedureInfo
+	StateType     *TypeInfo
+	Imports       map[string]bool
+	CustomScalars map[string]*TypeInfo
+	ScalarSchemas schema.SchemaResponseScalarTypes
+	Objects       map[string]*ObjectInfo
+	ObjectSchemas schema.SchemaResponseObjectTypes
+	Functions     []FunctionInfo
+	Procedures    []ProcedureInfo
 }
 
 // NewRawConnectorSchema creates an empty RawConnectorSchema instance

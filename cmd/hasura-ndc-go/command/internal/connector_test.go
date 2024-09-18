@@ -22,7 +22,7 @@ func formatTextContent(input string) string {
 	return strings.Trim(spacesRegexp.ReplaceAllString(tabRegexp.ReplaceAllString(newLinesRegexp.ReplaceAllString(input, "\n"), "  "), "\n"), "\n")
 }
 
-func TestConnectorGenerationJSON(t *testing.T) {
+func TestConnectorGeneration(t *testing.T) {
 
 	testCases := []struct {
 		Name         string
@@ -58,7 +58,6 @@ func TestConnectorGenerationJSON(t *testing.T) {
 			BasePath:     "./testdata/subdir",
 			ConnectorDir: "connector",
 			ModuleName:   "github.com/hasura/ndc-codegen-subdir-test",
-			PackageTypes: "connector/types",
 			Directories:  []string{"connector/functions"},
 		},
 		{
@@ -66,15 +65,7 @@ func TestConnectorGenerationJSON(t *testing.T) {
 			BasePath:     "./testdata/subdir",
 			ConnectorDir: "connector",
 			ModuleName:   "github.com/hasura/ndc-codegen-subdir-test",
-			PackageTypes: "github.com/hasura/ndc-codegen-subdir-test/connector/types",
 			Directories:  []string{"connector/functions"},
-		},
-		{
-			Name:        "invalid_types_package",
-			BasePath:    "./testdata/subdir",
-			ModuleName:  "github.com/hasura/ndc-codegen-subdir-test",
-			Directories: []string{"connector/functions"},
-			errorMsg:    "the `types` package where the State struct is in must be placed in root or connector directory",
 		},
 		{
 			Name:        "snake_case",
@@ -99,7 +90,6 @@ func TestConnectorGenerationJSON(t *testing.T) {
 			assert.NoError(t, os.Chdir(srcDir))
 			err = ParseAndGenerateConnector(ConnectorGenerationArguments{
 				ConnectorDir: tc.ConnectorDir,
-				PackageTypes: tc.PackageTypes,
 				Directories:  tc.Directories,
 				Style:        tc.NamingStyle,
 			}, tc.ModuleName)
@@ -167,7 +157,6 @@ func TestConnectorGenerationJSON(t *testing.T) {
 			assert.NoError(t, os.Chdir(srcDir))
 			err = ParseAndGenerateConnector(ConnectorGenerationArguments{
 				ConnectorDir: tc.ConnectorDir,
-				PackageTypes: tc.PackageTypes,
 				Directories:  tc.Directories,
 				Style:        tc.NamingStyle,
 				SchemaFormat: "go",
