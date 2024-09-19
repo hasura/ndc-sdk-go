@@ -268,14 +268,20 @@ func EvalFunctionSelectionFieldValue(request *schema.QueryRequest) (schema.Neste
 }
 
 // MergeSchemas merge multiple connector schemas into one schema
-func MergeSchemas(schemas ...schema.SchemaResponse) (schema.SchemaResponse, []error) {
+func MergeSchemas(schemas ...*schema.SchemaResponse) (schema.SchemaResponse, []error) {
 	var errs []error
-	result := schema.SchemaResponse{}
+	result := schema.SchemaResponse{
+		ObjectTypes: schema.SchemaResponseObjectTypes{},
+		ScalarTypes: schema.SchemaResponseScalarTypes{},
+	}
 	collectionMap := map[string]bool{}
 	functionMap := map[string]bool{}
 	procedureMap := map[string]bool{}
 
 	for _, s := range schemas {
+		if s == nil {
+			continue
+		}
 		for _, col := range result.Collections {
 			if _, ok := collectionMap[col.Name]; ok {
 				errs = append(errs, fmt.Errorf("collection `%s` exists", col.Name))

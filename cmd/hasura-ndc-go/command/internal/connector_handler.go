@@ -157,9 +157,9 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 
 			argumentStr := fmt.Sprintf(`
 		var args %s
-		if err = args.FromValue(rawArgs); err != nil {
+		if parseErr := args.FromValue(rawArgs); parseErr != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
-				"cause": err.Error(),
+				"cause": parseErr.Error(),
 			})
 		}
 		
