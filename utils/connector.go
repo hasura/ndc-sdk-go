@@ -282,26 +282,29 @@ func MergeSchemas(schemas ...*schema.SchemaResponse) (*schema.SchemaResponse, []
 		if s == nil {
 			continue
 		}
-		for _, col := range result.Collections {
+		for _, col := range s.Collections {
 			if _, ok := collectionMap[col.Name]; ok {
 				errs = append(errs, fmt.Errorf("collection `%s` exists", col.Name))
 			} else {
+				collectionMap[col.Name] = true
 				result.Collections = append(result.Collections, col)
 			}
 		}
 
-		for _, fn := range result.Functions {
+		for _, fn := range s.Functions {
 			if _, ok := functionMap[fn.Name]; ok {
 				errs = append(errs, fmt.Errorf("function `%s` exists", fn.Name))
 			} else {
+				functionMap[fn.Name] = true
 				result.Functions = append(result.Functions, fn)
 			}
 		}
 
-		for _, fn := range result.Procedures {
+		for _, fn := range s.Procedures {
 			if _, ok := procedureMap[fn.Name]; ok {
 				errs = append(errs, fmt.Errorf("procedure `%s` exists", fn.Name))
 			} else {
+				procedureMap[fn.Name] = true
 				result.Procedures = append(result.Procedures, fn)
 			}
 		}
@@ -309,14 +312,16 @@ func MergeSchemas(schemas ...*schema.SchemaResponse) (*schema.SchemaResponse, []
 		for k, sl := range s.ScalarTypes {
 			if _, ok := result.ScalarTypes[k]; ok {
 				errs = append(errs, fmt.Errorf("scalar type %s exists", k))
+			} else {
+				result.ScalarTypes[k] = sl
 			}
-			result.ScalarTypes[k] = sl
 		}
 		for k, obj := range s.ObjectTypes {
 			if _, ok := result.ObjectTypes[k]; ok {
 				errs = append(errs, fmt.Errorf("object type %s exists", k))
+			} else {
+				result.ObjectTypes[k] = obj
 			}
-			result.ObjectTypes[k] = obj
 		}
 	}
 	return &result, errs
