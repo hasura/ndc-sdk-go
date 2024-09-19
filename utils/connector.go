@@ -268,7 +268,7 @@ func EvalFunctionSelectionFieldValue(request *schema.QueryRequest) (schema.Neste
 }
 
 // MergeSchemas merge multiple connector schemas into one schema
-func MergeSchemas(schemas ...*schema.SchemaResponse) (schema.SchemaResponse, []error) {
+func MergeSchemas(schemas ...*schema.SchemaResponse) (*schema.SchemaResponse, []error) {
 	var errs []error
 	result := schema.SchemaResponse{
 		ObjectTypes: schema.SchemaResponseObjectTypes{},
@@ -319,5 +319,5 @@ func MergeSchemas(schemas ...*schema.SchemaResponse) (schema.SchemaResponse, []e
 			result.ObjectTypes[k] = obj
 		}
 	}
-	return result, errs
+	return &result, errs
 }

@@ -126,9 +126,9 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			})
 		}
 		var args arguments.GetTypesArguments
-		if err = args.FromValue(rawArgs); err != nil {
+		if parseErr := args.FromValue(rawArgs); parseErr != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
-				"cause": err.Error(),
+				"cause": parseErr.Error(),
 			})
 		}
 
@@ -188,9 +188,9 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			})
 		}
 		var args GetArticlesArguments
-		if err = args.FromValue(rawArgs); err != nil {
+		if parseErr := args.FromValue(rawArgs); parseErr != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
-				"cause": err.Error(),
+				"cause": parseErr.Error(),
 			})
 		}
 

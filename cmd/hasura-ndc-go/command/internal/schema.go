@@ -216,8 +216,8 @@ import (
 )
 
 // GetConnectorSchema gets the generated connector schema
-func GetConnectorSchema() schema.SchemaResponse {
-	return schema.SchemaResponse{
+func GetConnectorSchema() *schema.SchemaResponse {
+	return &schema.SchemaResponse{
 		Collections: []schema.CollectionInfo{},
 		ObjectTypes: schema.SchemaResponseObjectTypes{`)
 
