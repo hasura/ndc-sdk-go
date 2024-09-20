@@ -73,11 +73,11 @@ type OTLPConfig struct {
 	OtlpProtocol           string `help:"OpenTelemetry receiver protocol for all types." env:"OTEL_EXPORTER_OTLP_PROTOCOL"`
 	OtlpTracesProtocol     string `help:"OpenTelemetry receiver protocol for traces." env:"OTEL_EXPORTER_OTLP_TRACES_PROTOCOL"`
 	OtlpMetricsProtocol    string `help:"OpenTelemetry receiver protocol for metrics." env:"OTEL_EXPORTER_OTLP_METRICS_PROTOCOL"`
-	OtlpCompression        string `help:"Enable compression for OTLP exporters" enum:"none,gzip" env:"OTEL_EXPORTER_OTLP_COMPRESSION" default:"gzip"`
-	OtlpTraceCompression   string `help:"Enable compression for OTLP traces exporter" enum:"none,gzip" env:"OTEL_EXPORTER_OTLP_TRACES_COMPRESSION" default:"gzip"`
-	OtlpMetricsCompression string `help:"Enable compression for OTLP metrics exporter" enum:"none,gzip" env:"OTEL_EXPORTER_OTLP_METRICS_COMPRESSION" default:"gzip"`
+	OtlpCompression        string `help:"Enable compression for OTLP exporters. Accept: none, gzip" enum:"none,gzip" env:"OTEL_EXPORTER_OTLP_COMPRESSION" default:"gzip"`
+	OtlpTraceCompression   string `help:"Enable compression for OTLP traces exporter. Accept: none, gzip" enum:"none,gzip" env:"OTEL_EXPORTER_OTLP_TRACES_COMPRESSION" default:"gzip"`
+	OtlpMetricsCompression string `help:"Enable compression for OTLP metrics exporter. Accept: none, gzip" enum:"none,gzip" env:"OTEL_EXPORTER_OTLP_METRICS_COMPRESSION" default:"gzip"`
 
-	MetricsExporter  string `help:"Metrics export type" enum:"none,otlp,prometheus" env:"OTEL_METRICS_EXPORTER" default:"none"`
+	MetricsExporter  string `help:"Metrics export type. Accept: none, otlp, prometheus" enum:"none,otlp,prometheus" env:"OTEL_METRICS_EXPORTER" default:"none"`
 	PrometheusPort   *uint  `help:"Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty" env:"OTEL_EXPORTER_PROMETHEUS_PORT"`
 	DisableGoMetrics *bool  `help:"Disable internal Go and process metrics"`
 }
