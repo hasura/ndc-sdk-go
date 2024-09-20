@@ -191,7 +191,7 @@ func SetupOTelExporters(ctx context.Context, config *OTLPConfig, serviceVersion,
 
 	metricOptions := []metric.Option{metric.WithResource(res)}
 
-	if config.DisableGoMetrics != nil && *config.DisableGoMetrics == false {
+	if config.DisableGoMetrics != nil && !*config.DisableGoMetrics {
 		// disable default process and go collector metrics
 		prometheus.Unregister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
 		prometheus.Unregister(collectors.NewGoCollector())
