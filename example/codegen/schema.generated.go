@@ -47,6 +47,13 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 				},
 			},
+			"CreateAuthorArguments": schema.ObjectType{
+				Fields: schema.ObjectTypeFields{
+					"name": schema.ObjectField{
+						Type: schema.NewNamedType("String").Encode(),
+					},
+				},
+			},
 			"CreateAuthorResult": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
 					"created_at": schema.ObjectField{
@@ -67,6 +74,13 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 					"id": schema.ObjectField{
 						Type: schema.NewNamedType("String").Encode(),
+					},
+				},
+			},
+			"GetAuthorResult": schema.ObjectType{
+				Fields: schema.ObjectTypeFields{
+					"CreateAuthorResult": schema.ObjectField{
+						Type: schema.NewNamedType("CreateAuthorResult").Encode(),
 					},
 				},
 			},
@@ -541,6 +555,15 @@ func GetConnectorSchema() *schema.SchemaResponse {
 		},
 		Functions: []schema.FunctionInfo{
 			{
+				Name:       "getAuthor",
+				ResultType: schema.NewNullableType(schema.NewNamedType("GetAuthorResult")).Encode(),
+				Arguments: map[string]schema.ArgumentInfo{
+					"CreateAuthorArguments": {
+						Type: schema.NewNamedType("CreateAuthorArguments").Encode(),
+					},
+				},
+			},
+			{
 				Name:        "getBool",
 				Description: utils.ToPtr("return an scalar boolean"),
 				ResultType:  schema.NewNamedType("Boolean").Encode(),
@@ -1012,8 +1035,8 @@ func GetConnectorSchema() *schema.SchemaResponse {
 				Description: utils.ToPtr("creates a list of authors"),
 				ResultType:  schema.NewArrayType(schema.NewNamedType("CreateAuthorResult")).Encode(),
 				Arguments: map[string]schema.ArgumentInfo{
-					"names": {
-						Type: schema.NewArrayType(schema.NewNamedType("String")).Encode(),
+					"name": {
+						Type: schema.NewNamedType("String").Encode(),
 					},
 				},
 			},

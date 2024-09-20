@@ -17,6 +17,16 @@ import (
 var functions_Decoder = utils.NewDecoder()
 
 // FromValue decodes values from map
+func (j *GetAuthorArguments) FromValue(input map[string]any) error {
+	var err error
+	err = functions_Decoder.DecodeObjectValue(&j.CreateAuthorArguments, input, "CreateAuthorArguments")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// FromValue decodes values from map
 func (j *GetArticlesArguments) FromValue(input map[string]any) error {
 	var err error
 	j.Limit, err = utils.GetFloat[float64](input, "Limit")
@@ -40,6 +50,14 @@ func (j CreateArticleResult) ToMap() map[string]any {
 }
 
 // ToMap encodes the struct to a value map
+func (j CreateAuthorArguments) ToMap() map[string]any {
+	r := make(map[string]any)
+	r["name"] = j.Name
+
+	return r
+}
+
+// ToMap encodes the struct to a value map
 func (j CreateAuthorResult) ToMap() map[string]any {
 	r := make(map[string]any)
 	r["created_at"] = j.CreatedAt
@@ -54,6 +72,14 @@ func (j GetArticlesResult) ToMap() map[string]any {
 	r := make(map[string]any)
 	r["id"] = j.ID
 	r["Name"] = j.Name
+
+	return r
+}
+
+// ToMap encodes the struct to a value map
+func (j GetAuthorResult) ToMap() map[string]any {
+	r := make(map[string]any)
+	r["CreateAuthorResult"] = j.CreateAuthorResult
 
 	return r
 }
@@ -110,6 +136,42 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 	span := trace.SpanFromContext(ctx)
 	logger := connector.GetLogger(ctx)
 	switch request.Collection {
+	case "getAuthor":
+
+		selection, err := queryFields.AsObject()
+		if err != nil {
+			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
+				"cause": err.Error(),
+			})
+		}
+		var args GetAuthorArguments
+		if parseErr := args.FromValue(rawArgs); parseErr != nil {
+			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
+				"cause": parseErr.Error(),
+			})
+		}
+
+		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
+			"arguments": args,
+		})
+		rawResult, err := FunctionGetAuthor(ctx, state, &args)
+		if err != nil {
+			return nil, err
+		}
+
+		if rawResult == nil {
+			return nil, nil
+		}
+
+		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})
+		result, err := utils.EvalNestedColumnObject(selection, rawResult)
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
+
 	case "getBool":
 
 		if len(queryFields) > 0 {
@@ -220,7 +282,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 	}
 }
 
-var enumValues_FunctionName = []string{"getBool", "getTypes", "hello", "getArticles"}
+var enumValues_FunctionName = []string{"getAuthor", "getBool", "getTypes", "hello", "getArticles"}
 
 // MutationExists check if the mutation name exists
 func (dch DataConnectorHandler) MutationExists(name string) bool {
@@ -322,7 +384,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
 				"cause": err.Error(),
 			})
 		}
-		var args CreateAuthorsArguments
+		var args CreateAuthorArguments
 		if err := json.Unmarshal(operation.Arguments, &args); err != nil {
 			return nil, schema.UnprocessableContentError("failed to decode arguments", map[string]any{
 				"cause": err.Error(),

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -51,11 +50,6 @@ type CreateAuthorArguments struct {
 	Name string `json:"name"`
 }
 
-// A create authors argument
-type CreateAuthorsArguments struct {
-	Names []string `json:"names"`
-}
-
 // A create author result
 type CreateAuthorResult struct {
 	ID        int       `json:"id"`
@@ -72,11 +66,11 @@ func ProcedureCreateAuthor(ctx context.Context, state *types.State, arguments *C
 }
 
 // ProcedureCreateAuthors creates a list of authors
-func ProcedureCreateAuthors(ctx context.Context, state *types.State, arguments *CreateAuthorsArguments) ([]CreateAuthorResult, error) {
+func ProcedureCreateAuthors(ctx context.Context, state *types.State, arguments *CreateAuthorArguments) ([]CreateAuthorResult, error) {
 	return []CreateAuthorResult{
 		{
 			ID:   1,
-			Name: strings.Join(arguments.Names, ","),
+			Name: arguments.Name,
 		},
 	}, nil
 }
@@ -88,4 +82,21 @@ func FunctionGetBool(ctx context.Context, state *types.State) (bool, error) {
 
 func FunctionGetTypes(ctx context.Context, state *types.State, arguments *arguments.GetTypesArguments) (*arguments.GetTypesArguments, error) {
 	return arguments, nil
+}
+
+type GetAuthorArguments struct {
+	CreateAuthorArguments
+}
+
+type GetAuthorResult struct {
+	CreateAuthorResult
+}
+
+func FunctionGetAuthor(ctx context.Context, state *types.State, arguments *GetAuthorArguments) (*GetAuthorResult, error) {
+	return &GetAuthorResult{
+		CreateAuthorResult: CreateAuthorResult{
+			ID:   1,
+			Name: arguments.Name,
+		},
+	}, nil
 }

@@ -457,16 +457,24 @@ func (cg *connectorGenerator) genFunctionArgumentConstructors() error {
 		return nil
 	}
 
+	renderedArguments := map[string]bool{}
 	for _, fn := range cg.rawSchema.Functions {
 		if len(fn.Arguments) == 0 || fn.ArgumentsType == nil {
 			continue
 		}
+		argumentPackage := fmt.Sprintf("%s.%s", fn.ArgumentsType.PackagePath, fn.ArgumentsType.Name)
+		if _, ok := renderedArguments[argumentPackage]; ok {
+			continue
+		}
+		renderedArguments[argumentPackage] = true
 		sb := cg.getOrCreateTypeBuilder(fn.ArgumentsType.PackagePath)
-		sb.builder.WriteString(fmt.Sprintf(`
+		sb.builder.WriteString(`
 // FromValue decodes values from map
-func (j *%s) FromValue(input map[string]any) error {
+func (j *`)
+		sb.builder.WriteString(fn.ArgumentsType.Name)
+		sb.builder.WriteString(`) FromValue(input map[string]any) error {
   var err error
-`, fn.ArgumentsType.Name))
+`)
 
 		argumentKeys := utils.GetSortedKeys(fn.Arguments)
 		for _, key := range argumentKeys {

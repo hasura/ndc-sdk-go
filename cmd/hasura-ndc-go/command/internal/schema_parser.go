@@ -276,8 +276,10 @@ func (sp *SchemaParser) parseArgumentTypes(ty types.Type, fieldPaths []string) (
 				typeInfo = &TypeInfo{
 					PackageName: fieldPackage.Name(),
 					PackagePath: fieldPackage.Path(),
+					Embedded:    fieldVar.Embedded(),
 				}
 			}
+
 			fieldType, err := sp.parseType(typeInfo, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false, true)
 			if err != nil {
 				return nil, nil, err

@@ -273,6 +273,9 @@ func MergeSchemas(schemas ...*schema.SchemaResponse) (*schema.SchemaResponse, []
 	result := schema.SchemaResponse{
 		ObjectTypes: schema.SchemaResponseObjectTypes{},
 		ScalarTypes: schema.SchemaResponseScalarTypes{},
+		Collections: []schema.CollectionInfo{},
+		Functions:   []schema.FunctionInfo{},
+		Procedures:  []schema.ProcedureInfo{},
 	}
 	collectionMap := map[string]bool{}
 	functionMap := map[string]bool{}

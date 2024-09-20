@@ -25,6 +25,7 @@ type TypeInfo struct {
 	Description          *string
 	PackagePath          string
 	PackageName          string
+	Embedded             bool
 	IsScalar             bool
 	ScalarRepresentation schema.TypeRepresentation
 	TypeFragments        []string

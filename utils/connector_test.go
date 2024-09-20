@@ -152,6 +152,7 @@ func TestMergeSchemas(t *testing.T) {
 		{
 			Name: "simple",
 			Inputs: []*schema.SchemaResponse{
+				nil,
 				{
 					Collections: []schema.CollectionInfo{
 						{
