@@ -73,12 +73,13 @@ type OTLPConfig struct {
 	OtlpProtocol           string `help:"OpenTelemetry receiver protocol for all types." env:"OTEL_EXPORTER_OTLP_PROTOCOL"`
 	OtlpTracesProtocol     string `help:"OpenTelemetry receiver protocol for traces." env:"OTEL_EXPORTER_OTLP_TRACES_PROTOCOL"`
 	OtlpMetricsProtocol    string `help:"OpenTelemetry receiver protocol for metrics." env:"OTEL_EXPORTER_OTLP_METRICS_PROTOCOL"`
-	OtlpCompression        string `help:"Enable compression for OTLP exporters. Accept: none, gzip" env:"OTEL_EXPORTER_OTLP_COMPRESSION" default:"gzip"`
-	OtlpTraceCompression   string `help:"Enable compression for OTLP traces exporter. Accept: none, gzip" env:"OTEL_EXPORTER_OTLP_TRACES_COMPRESSION"`
-	OtlpMetricsCompression string `help:"Enable compression for OTLP metrics exporter. Accept: none, gzip." env:"OTEL_EXPORTER_OTLP_METRICS_COMPRESSION"`
+	OtlpCompression        string `help:"Enable compression for OTLP exporters. Accept: none, gzip" enum:"none,gzip" env:"OTEL_EXPORTER_OTLP_COMPRESSION" default:"gzip"`
+	OtlpTraceCompression   string `help:"Enable compression for OTLP traces exporter. Accept: none, gzip" enum:"none,gzip" env:"OTEL_EXPORTER_OTLP_TRACES_COMPRESSION" default:"gzip"`
+	OtlpMetricsCompression string `help:"Enable compression for OTLP metrics exporter. Accept: none, gzip" enum:"none,gzip" env:"OTEL_EXPORTER_OTLP_METRICS_COMPRESSION" default:"gzip"`
 
-	MetricsExporter string `help:"Metrics export type. Accept: none, otlp, prometheus." env:"OTEL_METRICS_EXPORTER" default:"none"`
-	PrometheusPort  *uint  `help:"Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty" env:"OTEL_EXPORTER_PROMETHEUS_PORT"`
+	MetricsExporter  string `help:"Metrics export type. Accept: none, otlp, prometheus" enum:"none,otlp,prometheus" env:"OTEL_METRICS_EXPORTER" default:"none"`
+	PrometheusPort   *uint  `help:"Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty" env:"OTEL_EXPORTER_PROMETHEUS_PORT"`
+	DisableGoMetrics *bool  `help:"Disable internal Go and process metrics"`
 }
 
 // TelemetryState contains OpenTelemetry exporters and basic connector metrics
@@ -120,10 +121,7 @@ func SetupOTelExporters(ctx context.Context, config *OTLPConfig, serviceVersion,
 	metricsEndpoint := utils.GetDefault(config.OtlpMetricsEndpoint, config.OtlpEndpoint)
 
 	// Set up resource.
-	res, err := newResource(config.ServiceName, serviceVersion)
-	if err != nil {
-		return nil, err
-	}
+	res := newResource(logger, config.ServiceName, serviceVersion)
 
 	var traceProvider *trace.TracerProvider
 	if tracesEndpoint != "" {
@@ -181,7 +179,7 @@ func SetupOTelExporters(ctx context.Context, config *OTLPConfig, serviceVersion,
 			trace.WithBatcher(traceExporter, trace.WithBatchTimeout(5*time.Second)),
 		)
 	} else {
-		traceProvider = trace.NewTracerProvider()
+		traceProvider = trace.NewTracerProvider(trace.WithResource(res))
 	}
 	otel.SetTracerProvider(traceProvider)
 
@@ -193,9 +191,11 @@ func SetupOTelExporters(ctx context.Context, config *OTLPConfig, serviceVersion,
 
 	metricOptions := []metric.Option{metric.WithResource(res)}
 
-	// disable default process and go collector metrics
-	prometheus.Unregister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
-	prometheus.Unregister(collectors.NewGoCollector())
+	if config.DisableGoMetrics != nil && !*config.DisableGoMetrics {
+		// disable default process and go collector metrics
+		prometheus.Unregister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
+		prometheus.Unregister(collectors.NewGoCollector())
+	}
 
 	switch metricsExporterType {
 	case otelMetricsExporterPrometheus:
@@ -270,20 +270,25 @@ func SetupOTelExporters(ctx context.Context, config *OTLPConfig, serviceVersion,
 	}
 
 	state := &TelemetryState{
-		Tracer:   &Tracer{traceProvider.Tracer(config.ServiceName)},
-		Meter:    meterProvider.Meter(config.ServiceName),
+		Tracer:   &Tracer{traceProvider.Tracer(config.ServiceName, traceapi.WithSchemaURL(semconv.SchemaURL))},
+		Meter:    meterProvider.Meter(config.ServiceName, metricapi.WithSchemaURL(semconv.SchemaURL)),
 		Shutdown: shutdownFunc,
 	}
 
 	return state, err
 }
 
-func newResource(serviceName, serviceVersion string) (*resource.Resource, error) {
-	return resource.Merge(resource.Default(),
-		resource.NewWithAttributes(semconv.SchemaURL,
-			semconv.ServiceName(serviceName),
-			semconv.ServiceVersion(serviceVersion),
-		))
+func newResource(logger *slog.Logger, serviceName, serviceVersion string) *resource.Resource {
+	attrs := resource.NewWithAttributes(semconv.SchemaURL,
+		semconv.ServiceName(serviceName),
+		semconv.ServiceVersion(serviceVersion),
+	)
+	res, err := resource.Merge(resource.Default(), attrs)
+	if err != nil {
+		logger.Warn(err.Error())
+		return attrs
+	}
+	return res
 }
 
 func newPropagator() propagation.TextMapPropagator {
