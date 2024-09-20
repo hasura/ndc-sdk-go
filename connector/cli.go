@@ -47,7 +47,7 @@ type ConnectorCLI interface {
 // This should be the entrypoint of your connector
 func Start[Configuration any, State any](connector Connector[Configuration, State], options ...ServeOption) error {
 	var cli ServeCLI
-	return StartCustom[Configuration, State](&cli, connector)
+	return StartCustom[Configuration, State](&cli, connector, options...)
 }
 
 // Starts the connector with custom CLI.
