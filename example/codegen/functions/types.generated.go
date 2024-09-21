@@ -17,9 +17,13 @@ import (
 var functions_Decoder = utils.NewDecoder()
 
 // FromValue decodes values from map
-func (j *GetAuthorArguments) FromValue(input map[string]any) error {
+func (j *GetArticlesArguments) FromValue(input map[string]any) error {
 	var err error
-	err = functions_Decoder.DecodeObjectValue(&j.CreateAuthorArguments, input, "CreateAuthorArguments")
+	err = functions_Decoder.DecodeObject(&j.BaseAuthor, input)
+	if err != nil {
+		return err
+	}
+	j.Limit, err = utils.GetFloat[float64](input, "Limit")
 	if err != nil {
 		return err
 	}
@@ -27,13 +31,123 @@ func (j *GetAuthorArguments) FromValue(input map[string]any) error {
 }
 
 // FromValue decodes values from map
-func (j *GetArticlesArguments) FromValue(input map[string]any) error {
+func (j *GetAuthorArguments) FromValue(input map[string]any) error {
 	var err error
-	j.Limit, err = utils.GetFloat[float64](input, "Limit")
+	j.BaseAuthor = new(BaseAuthor)
+	err = functions_Decoder.DecodeObject(j.BaseAuthor, input)
+	if err != nil {
+		return err
+	}
+	j.ID, err = utils.GetString(input, "id")
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+// FromValue decodes values from map
+func (j *BaseAuthor) FromValue(input map[string]any) error {
+	var err error
+	j.Name, err = utils.GetString(input, "Name")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// FromValue decodes values from map
+func (j *CreateArticleResult) FromValue(input map[string]any) error {
+	var err error
+	err = functions_Decoder.DecodeObjectValue(&j.Authors, input, "Authors")
+	if err != nil {
+		return err
+	}
+	j.ID, err = utils.GetUint[uint](input, "ID")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// FromValue decodes values from map
+func (j *CreateAuthorResult) FromValue(input map[string]any) error {
+	var err error
+	j.CreatedAt, err = utils.GetDateTime(input, "CreatedAt")
+	if err != nil {
+		return err
+	}
+	j.ID, err = utils.GetInt[int](input, "ID")
+	if err != nil {
+		return err
+	}
+	j.Name, err = utils.GetString(input, "Name")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// FromValue decodes values from map
+func (j *GetArticlesResult) FromValue(input map[string]any) error {
+	var err error
+	j.ID, err = utils.GetString(input, "ID")
+	if err != nil {
+		return err
+	}
+	err = functions_Decoder.DecodeObjectValue(&j.Name, input, "Name")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// FromValue decodes values from map
+func (j *GetAuthorResult) FromValue(input map[string]any) error {
+	var err error
+	j.CreateAuthorResult = new(CreateAuthorResult)
+	err = functions_Decoder.DecodeObject(j.CreateAuthorResult, input)
+	if err != nil {
+		return err
+	}
+	j.Disabled, err = utils.GetBoolean(input, "Disabled")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// FromValue decodes values from map
+func (j *HelloResult) FromValue(input map[string]any) error {
+	var err error
+	err = functions_Decoder.DecodeObjectValue(&j.Error, input, "Error")
+	if err != nil {
+		return err
+	}
+	err = functions_Decoder.DecodeObjectValue(&j.Foo, input, "Foo")
+	if err != nil {
+		return err
+	}
+	j.ID, err = utils.GetUUID(input, "ID")
+	if err != nil {
+		return err
+	}
+	j.Num, err = utils.GetInt[int](input, "Num")
+	if err != nil {
+		return err
+	}
+	err = functions_Decoder.DecodeObjectValue(&j.Text, input, "Text")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// ToMap encodes the struct to a value map
+func (j BaseAuthor) ToMap() map[string]any {
+	r := make(map[string]any)
+	r["name"] = j.Name
+
+	return r
 }
 
 // ToMap encodes the struct to a value map
@@ -45,14 +159,6 @@ func (j CreateArticleResult) ToMap() map[string]any {
 	}
 	r["authors"] = j_Authors
 	r["id"] = j.ID
-
-	return r
-}
-
-// ToMap encodes the struct to a value map
-func (j CreateAuthorArguments) ToMap() map[string]any {
-	r := make(map[string]any)
-	r["name"] = j.Name
 
 	return r
 }
@@ -79,7 +185,10 @@ func (j GetArticlesResult) ToMap() map[string]any {
 // ToMap encodes the struct to a value map
 func (j GetAuthorResult) ToMap() map[string]any {
 	r := make(map[string]any)
-	r["CreateAuthorResult"] = j.CreateAuthorResult
+	if j.CreateAuthorResult != nil {
+		r = utils.MergeMap(r, (*j.CreateAuthorResult).ToMap())
+	}
+	r["disabled"] = j.Disabled
 
 	return r
 }

@@ -43,13 +43,18 @@ func (ti *TypeInfo) IsArray() bool {
 	return isArrayFragments(ti.TypeFragments)
 }
 
-// IsArray checks if the current type is an array
+// GetArgumentName returns the argument name
 func (ti *TypeInfo) GetArgumentName(packagePath string) string {
 	if packagePath == ti.PackagePath {
 		return ti.Name
 	}
 
 	return fmt.Sprintf("%s.%s", ti.PackageName, ti.Name)
+}
+
+// String implements the fmt.Stringer interface
+func (ti *TypeInfo) String() string {
+	return fmt.Sprintf("%s.%s", ti.PackagePath, ti.Name)
 }
 
 func isNullableFragment(fragment string) bool {
@@ -70,40 +75,17 @@ func isArrayFragments(fragments []string) bool {
 
 // ObjectField represents the serialization information of an object field
 type ObjectField struct {
-	Name string
-	Key  string
-	Type *TypeInfo
-}
-
-// ObjectInfo represents the serialization information of an object type
-type ObjectInfo struct {
-	PackagePath string
-	PackageName string
-	IsAnonymous bool
-	Fields      map[string]*ObjectField
-}
-
-// ArgumentInfo represents the serialization information of an argument type
-type ArgumentInfo struct {
-	FieldName   string
+	Name        string
+	Key         string
 	Description *string
 	Type        *TypeInfo
 }
 
-// Schema converts to ArgumentInfo schema
-func (ai ArgumentInfo) Schema() schema.ArgumentInfo {
-	return schema.ArgumentInfo{
-		Description: ai.Description,
-		Type:        ai.Type.Schema.Encode(),
-	}
-}
-
-func buildArgumentInfosSchema(input map[string]ArgumentInfo) map[string]schema.ArgumentInfo {
-	result := make(map[string]schema.ArgumentInfo)
-	for k, arg := range input {
-		result[k] = arg.Schema()
-	}
-	return result
+// ObjectInfo represents the serialization information of an object type
+type ObjectInfo struct {
+	IsAnonymous bool
+	Type        *TypeInfo
+	Fields      map[string]ObjectField
 }
 
 // FunctionInfo represents a readable Go function info
@@ -116,7 +98,7 @@ type OperationInfo struct {
 	PackagePath   string
 	Description   *string
 	ArgumentsType *TypeInfo
-	Arguments     map[string]ArgumentInfo
+	Arguments     map[string]schema.ArgumentInfo
 	ResultType    *TypeInfo
 }
 
@@ -130,7 +112,7 @@ func (op FunctionInfo) Schema() schema.FunctionInfo {
 		Name:        op.Name,
 		Description: op.Description,
 		ResultType:  op.ResultType.Schema.Encode(),
-		Arguments:   buildArgumentInfosSchema(op.Arguments),
+		Arguments:   op.Arguments,
 	}
 	return result
 }
@@ -145,7 +127,7 @@ func (op ProcedureInfo) Schema() schema.ProcedureInfo {
 		Name:        op.Name,
 		Description: op.Description,
 		ResultType:  op.ResultType.Schema.Encode(),
-		Arguments:   schema.ProcedureInfoArguments(buildArgumentInfosSchema(op.Arguments)),
+		Arguments:   schema.ProcedureInfoArguments(op.Arguments),
 	}
 	return result
 }
@@ -153,26 +135,28 @@ func (op ProcedureInfo) Schema() schema.ProcedureInfo {
 // RawConnectorSchema represents a readable Go schema object
 // which can encode to NDC schema
 type RawConnectorSchema struct {
-	StateType     *TypeInfo
-	Imports       map[string]bool
-	CustomScalars map[string]*TypeInfo
-	ScalarSchemas schema.SchemaResponseScalarTypes
-	Objects       map[string]*ObjectInfo
-	ObjectSchemas schema.SchemaResponseObjectTypes
-	Functions     []FunctionInfo
-	Procedures    []ProcedureInfo
+	StateType         *TypeInfo
+	Imports           map[string]bool
+	CustomScalars     map[string]*TypeInfo
+	ScalarSchemas     schema.SchemaResponseScalarTypes
+	Objects           map[string]*ObjectInfo
+	ObjectSchemas     schema.SchemaResponseObjectTypes
+	Functions         []FunctionInfo
+	FunctionArguments map[string]ObjectInfo
+	Procedures        []ProcedureInfo
 }
 
 // NewRawConnectorSchema creates an empty RawConnectorSchema instance
 func NewRawConnectorSchema() *RawConnectorSchema {
 	return &RawConnectorSchema{
-		Imports:       make(map[string]bool),
-		CustomScalars: make(map[string]*TypeInfo),
-		ScalarSchemas: make(schema.SchemaResponseScalarTypes),
-		Objects:       make(map[string]*ObjectInfo),
-		ObjectSchemas: make(schema.SchemaResponseObjectTypes),
-		Functions:     []FunctionInfo{},
-		Procedures:    []ProcedureInfo{},
+		Imports:           make(map[string]bool),
+		CustomScalars:     make(map[string]*TypeInfo),
+		ScalarSchemas:     make(schema.SchemaResponseScalarTypes),
+		Objects:           make(map[string]*ObjectInfo),
+		ObjectSchemas:     make(schema.SchemaResponseObjectTypes),
+		Functions:         []FunctionInfo{},
+		FunctionArguments: make(map[string]ObjectInfo),
+		Procedures:        []ProcedureInfo{},
 	}
 }
 

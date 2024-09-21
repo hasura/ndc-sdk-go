@@ -253,11 +253,15 @@ func (cg *connectorGenerator) genTypeMethods() error {
 
 	log.Debug().Msg("Generating types...")
 	for packagePath, builder := range cg.typeBuilders {
+		if !strings.HasPrefix(packagePath, cg.moduleName) {
+			continue
+		}
 		relativePath := strings.TrimPrefix(packagePath, cg.moduleName)
 		schemaPath := path.Join(cg.basePath, relativePath, typeMethodsOutputFile)
 		log.Debug().
 			Str("package_name", builder.packageName).
-			Str("package_path", builder.packagePath).
+			Str("package_path", packagePath).
+			Str("module_name", cg.moduleName).
 			Msgf(schemaPath)
 
 		if err := os.WriteFile(schemaPath, []byte(builder.String()), 0644); err != nil {
@@ -277,10 +281,10 @@ func (cg *connectorGenerator) genObjectMethods() error {
 
 	for _, objectName := range objectKeys {
 		object := cg.rawSchema.Objects[objectName]
-		if object.IsAnonymous || !strings.HasPrefix(object.PackagePath, cg.moduleName) {
+		if object.IsAnonymous || !strings.HasPrefix(object.Type.PackagePath, cg.moduleName) {
 			continue
 		}
-		sb := cg.getOrCreateTypeBuilder(object.PackagePath)
+		sb := cg.getOrCreateTypeBuilder(object.Type.PackagePath)
 		sb.builder.WriteString(fmt.Sprintf(`
 // ToMap encodes the struct to a value map
 func (j %s) ToMap() map[string]any {
@@ -302,7 +306,7 @@ func (cg *connectorGenerator) genObjectToMap(sb *connectorTypeBuilder, object *O
 		field := object.Fields[fieldKey]
 		fieldSelector := fmt.Sprintf("%s.%s", selector, field.Name)
 		fieldAssigner := fmt.Sprintf("%s[\"%s\"]", name, field.Key)
-		cg.genToMapProperty(sb, field, fieldSelector, fieldAssigner, field.Type, field.Type.TypeFragments)
+		cg.genToMapProperty(sb, &field, fieldSelector, fieldAssigner, field.Type, field.Type.TypeFragments)
 	}
 }
 
@@ -332,26 +336,30 @@ func (cg *connectorGenerator) genToMapProperty(sb *connectorTypeBuilder, field *
 	}
 
 	isAnonymous := strings.HasPrefix(strings.Join(fragments, ""), "struct{")
-	if !isAnonymous {
-		sb.builder.WriteString(fmt.Sprintf(`  %s = %s
-		`, assigner, selector))
+	if isAnonymous {
+		innerObject, ok := cg.rawSchema.Objects[ty.Name]
+		if !ok {
+			tyName := buildTypeNameFromFragments(ty.TypeFragments, ty.PackagePath, sb.packagePath)
+			innerObject, ok = cg.rawSchema.Objects[tyName]
+			if !ok {
+				return selector
+			}
+		}
+
+		// anonymous struct
+		varName := formatLocalFieldName(selector, "obj")
+		sb.builder.WriteString(fmt.Sprintf("  %s := make(map[string]any)\n", varName))
+		cg.genObjectToMap(sb, innerObject, selector, varName)
+		sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, varName))
+		return varName
+	}
+	if !field.Type.Embedded {
+		sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, selector))
 		return selector
 	}
-	innerObject, ok := cg.rawSchema.Objects[ty.Name]
-	if !ok {
-		tyName := buildTypeNameFromFragments(ty.TypeFragments, ty.PackagePath, sb.packagePath)
-		innerObject, ok = cg.rawSchema.Objects[tyName]
-		if !ok {
-			return selector
-		}
-	}
 
-	// anonymous struct
-	varName := formatLocalFieldName(selector, "obj")
-	sb.builder.WriteString(fmt.Sprintf("  %s := make(map[string]any)\n", varName))
-	cg.genObjectToMap(sb, innerObject, selector, varName)
-	sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, varName))
-	return varName
+	sb.builder.WriteString(fmt.Sprintf("  r = utils.MergeMap(r, %s.ToMap())\n", selector))
+	return selector
 }
 
 // generate Scalar implementation for custom scalar types
@@ -457,35 +465,48 @@ func (cg *connectorGenerator) genFunctionArgumentConstructors() error {
 		return nil
 	}
 
-	renderedArguments := map[string]bool{}
-	for _, fn := range cg.rawSchema.Functions {
-		if len(fn.Arguments) == 0 || fn.ArgumentsType == nil {
-			continue
-		}
-		argumentPackage := fmt.Sprintf("%s.%s", fn.ArgumentsType.PackagePath, fn.ArgumentsType.Name)
-		if _, ok := renderedArguments[argumentPackage]; ok {
-			continue
-		}
-		renderedArguments[argumentPackage] = true
-		sb := cg.getOrCreateTypeBuilder(fn.ArgumentsType.PackagePath)
-		sb.builder.WriteString(`
-// FromValue decodes values from map
-func (j *`)
-		sb.builder.WriteString(fn.ArgumentsType.Name)
-		sb.builder.WriteString(`) FromValue(input map[string]any) error {
-  var err error
-`)
+	writtenObjects := make(map[string]bool)
+	fnKeys := utils.GetSortedKeys(cg.rawSchema.FunctionArguments)
+	for _, k := range fnKeys {
+		argInfo := cg.rawSchema.FunctionArguments[k]
+		writtenObjects[argInfo.Type.String()] = true
+		cg.writeObjectFromValue(&argInfo)
+	}
 
-		argumentKeys := utils.GetSortedKeys(fn.Arguments)
-		for _, key := range argumentKeys {
-			arg := fn.Arguments[key]
-			cg.genGetTypeValueDecoder(sb, arg.Type, key, arg.FieldName)
+	objKeys := utils.GetSortedKeys(cg.rawSchema.Objects)
+	for _, k := range objKeys {
+		objInfo := cg.rawSchema.Objects[k]
+		objectTypeName := objInfo.Type.String()
+		if _, ok := writtenObjects[objectTypeName]; ok {
+			continue
 		}
-		sb.builder.WriteString(`  return nil
-}`)
+		writtenObjects[objectTypeName] = true
+		cg.writeObjectFromValue(objInfo)
 	}
 
 	return nil
+}
+
+func (cg *connectorGenerator) writeObjectFromValue(info *ObjectInfo) {
+	if len(info.Fields) == 0 || info.Type == nil || info.IsAnonymous {
+		return
+	}
+
+	sb := cg.getOrCreateTypeBuilder(info.Type.PackagePath)
+	sb.builder.WriteString(`
+// FromValue decodes values from map
+func (j *`)
+	sb.builder.WriteString(info.Type.Name)
+	sb.builder.WriteString(`) FromValue(input map[string]any) error {
+  var err error
+`)
+	argumentKeys := utils.GetSortedKeys(info.Fields)
+	for _, key := range argumentKeys {
+		arg := info.Fields[key]
+		cg.genGetTypeValueDecoder(sb, arg.Type, key, arg.Name)
+	}
+	sb.builder.WriteString("  return nil\n}")
+	return
 }
 
 func (cg *connectorGenerator) getOrCreateTypeBuilder(packagePath string) *connectorTypeBuilder {
@@ -687,10 +708,35 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 			if pkgName != "" && pkgName != sb.packagePath {
 				sb.imports[pkgName] = ""
 			}
-			sb.builder.WriteString(fmt.Sprintf(`  j.%s = new(%s)
-  err = %s.DecodeNullableObjectValue(j.%s, input, "%s")`, fieldName, tyName, sb.GetDecoderName(), fieldName, key))
+			sb.builder.WriteString("  j.")
+			sb.builder.WriteString(fieldName)
+			sb.builder.WriteString(" = new(")
+			sb.builder.WriteString(tyName)
+			sb.builder.WriteString(")\n  err = ")
+			if ty.Embedded {
+				sb.builder.WriteString(" functions_Decoder.DecodeObject(j.")
+				sb.builder.WriteString(fieldName)
+				sb.builder.WriteString(", input)")
+			} else {
+				sb.builder.WriteString(sb.GetDecoderName())
+				sb.builder.WriteString(".DecodeNullableObjectValue(j.")
+				sb.builder.WriteString(fieldName)
+				sb.builder.WriteString(`, input, "`)
+				sb.builder.WriteString(key)
+				sb.builder.WriteString(`")`)
+			}
+		} else if ty.Embedded {
+			sb.builder.WriteString("  err = functions_Decoder.DecodeObject(&j.")
+			sb.builder.WriteString(fieldName)
+			sb.builder.WriteString(", input)")
 		} else {
-			sb.builder.WriteString(fmt.Sprintf(`  err = %s.DecodeObjectValue(&j.%s, input, "%s")`, sb.GetDecoderName(), fieldName, key))
+			sb.builder.WriteString("  err = ")
+			sb.builder.WriteString(sb.GetDecoderName())
+			sb.builder.WriteString(".DecodeObjectValue(&j.")
+			sb.builder.WriteString(fieldName)
+			sb.builder.WriteString(`, input, "`)
+			sb.builder.WriteString(key)
+			sb.builder.WriteString(`")`)
 		}
 	}
 	sb.builder.WriteString(textBlockErrorCheck)

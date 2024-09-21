@@ -54,20 +54,6 @@ func TestConnectorGeneration(t *testing.T) {
 			Directories:  []string{"connector/functions"},
 		},
 		{
-			Name:         "subdir_package_types",
-			BasePath:     "./testdata/subdir",
-			ConnectorDir: "connector",
-			ModuleName:   "github.com/hasura/ndc-codegen-subdir-test",
-			Directories:  []string{"connector/functions"},
-		},
-		{
-			Name:         "subdir_package_types_absolute",
-			BasePath:     "./testdata/subdir",
-			ConnectorDir: "connector",
-			ModuleName:   "github.com/hasura/ndc-codegen-subdir-test",
-			Directories:  []string{"connector/functions"},
-		},
-		{
 			Name:        "snake_case",
 			BasePath:    "./testdata/snake_case",
 			ModuleName:  "github.com/hasura/ndc-codegen-test-snake-case",
@@ -97,7 +83,9 @@ func TestConnectorGeneration(t *testing.T) {
 				assert.ErrorContains(t, err, tc.errorMsg)
 				return
 			}
-			assert.NoError(t, err)
+			if err != nil {
+				panic(err)
+			}
 
 			var expectedSchema schema.SchemaResponse
 			assert.NoError(t, json.Unmarshal(expectedSchemaBytes, &expectedSchema))

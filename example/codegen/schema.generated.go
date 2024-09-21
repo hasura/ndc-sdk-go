@@ -27,6 +27,13 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 				},
 			},
+			"BaseAuthor": schema.ObjectType{
+				Fields: schema.ObjectTypeFields{
+					"name": schema.ObjectField{
+						Type: schema.NewNamedType("String").Encode(),
+					},
+				},
+			},
 			"CreateArticleArgumentsAuthor": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
 					"created_at": schema.ObjectField{
@@ -44,13 +51,6 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 					"id": schema.ObjectField{
 						Type: schema.NewNamedType("Int32").Encode(),
-					},
-				},
-			},
-			"CreateAuthorArguments": schema.ObjectType{
-				Fields: schema.ObjectTypeFields{
-					"name": schema.ObjectField{
-						Type: schema.NewNamedType("String").Encode(),
 					},
 				},
 			},
@@ -79,8 +79,17 @@ func GetConnectorSchema() *schema.SchemaResponse {
 			},
 			"GetAuthorResult": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
-					"CreateAuthorResult": schema.ObjectField{
-						Type: schema.NewNamedType("CreateAuthorResult").Encode(),
+					"created_at": schema.ObjectField{
+						Type: schema.NewNamedType("TimestampTZ").Encode(),
+					},
+					"disabled": schema.ObjectField{
+						Type: schema.NewNamedType("Boolean").Encode(),
+					},
+					"id": schema.ObjectField{
+						Type: schema.NewNamedType("Int32").Encode(),
+					},
+					"name": schema.ObjectField{
+						Type: schema.NewNamedType("String").Encode(),
 					},
 				},
 			},
@@ -558,8 +567,11 @@ func GetConnectorSchema() *schema.SchemaResponse {
 				Name:       "getAuthor",
 				ResultType: schema.NewNullableType(schema.NewNamedType("GetAuthorResult")).Encode(),
 				Arguments: map[string]schema.ArgumentInfo{
-					"CreateAuthorArguments": {
-						Type: schema.NewNamedType("CreateAuthorArguments").Encode(),
+					"id": {
+						Type: schema.NewNamedType("String").Encode(),
+					},
+					"name": {
+						Type: schema.NewNamedType("String").Encode(),
 					},
 				},
 			},
@@ -999,6 +1011,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 				Arguments: map[string]schema.ArgumentInfo{
 					"Limit": {
 						Type: schema.NewNamedType("Float64").Encode(),
+					},
+					"name": {
+						Type: schema.NewNamedType("String").Encode(),
 					},
 				},
 			},

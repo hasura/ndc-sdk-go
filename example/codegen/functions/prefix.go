@@ -47,7 +47,7 @@ func FunctionHello(ctx context.Context, state *types.State) (*HelloResult, error
 
 // A create author argument
 type CreateAuthorArguments struct {
-	Name string `json:"name"`
+	BaseAuthor
 }
 
 // A create author result
@@ -84,19 +84,28 @@ func FunctionGetTypes(ctx context.Context, state *types.State, arguments *argume
 	return arguments, nil
 }
 
+type BaseAuthor struct {
+	Name string `json:"name"`
+}
+
 type GetAuthorArguments struct {
-	CreateAuthorArguments
+	*BaseAuthor
+
+	ID string `json:"id"`
 }
 
 type GetAuthorResult struct {
-	CreateAuthorResult
+	*CreateAuthorResult
+
+	Disabled bool `json:"disabled"`
 }
 
 func FunctionGetAuthor(ctx context.Context, state *types.State, arguments *GetAuthorArguments) (*GetAuthorResult, error) {
 	return &GetAuthorResult{
-		CreateAuthorResult: CreateAuthorResult{
+		CreateAuthorResult: &CreateAuthorResult{
 			ID:   1,
 			Name: arguments.Name,
 		},
+		Disabled: false,
 	}, nil
 }

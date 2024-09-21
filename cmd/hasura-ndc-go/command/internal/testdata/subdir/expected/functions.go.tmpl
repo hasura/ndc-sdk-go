@@ -15,7 +15,7 @@ var functions_Decoder = utils.NewDecoder()
 // FromValue decodes values from map
 func (j *GetArticlesArguments) FromValue(input map[string]any) error {
   var err error
-  err = functions_Decoder.DecodeObjectValue(&j.Author, input, "Author")
+  err = functions_Decoder.DecodeObject(&j.Author, input)
     if err != nil {
 		  return err
     }
@@ -25,11 +25,24 @@ func (j *GetArticlesArguments) FromValue(input map[string]any) error {
     }
   return nil
 }
+// FromValue decodes values from map
+func (j *GetArticlesResult) FromValue(input map[string]any) error {
+  var err error
+  err = functions_Decoder.DecodeObject(&j.Author, input)
+    if err != nil {
+		  return err
+    }
+  j.ID, err = utils.GetString(input, "ID")
+    if err != nil {
+		  return err
+    }
+  return nil
+}
 // ToMap encodes the struct to a value map
 func (j GetArticlesResult) ToMap() map[string]any {
   r := make(map[string]any)
-  r["Author"] = j.Author
-		  r["id"] = j.ID
+  r = utils.MergeMap(r, j.Author.ToMap())
+  r["id"] = j.ID
 
 	return r
 }

@@ -10,6 +10,29 @@ import (
 
 var types_Decoder = utils.NewDecoder()
 
+// FromValue decodes values from map
+func (j *Author) FromValue(input map[string]any) error {
+	var err error
+	j.Author = new(Author)
+	err = types_Decoder.DecodeNullableObjectValue(j.Author, input, "Author")
+	if err != nil {
+		return err
+	}
+	j.CreatedAt, err = utils.GetDateTime(input, "CreatedAt")
+	if err != nil {
+		return err
+	}
+	j.ID, err = utils.GetString(input, "ID")
+	if err != nil {
+		return err
+	}
+	err = types_Decoder.DecodeObjectValue(&j.Tags, input, "Tags")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // ToMap encodes the struct to a value map
 func (j Author) ToMap() map[string]any {
 	r := make(map[string]any)

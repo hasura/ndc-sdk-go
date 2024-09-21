@@ -9,6 +9,8 @@ import (
 )
 
 type GetArticlesArguments struct {
+	BaseAuthor
+
 	Limit float64
 }
 

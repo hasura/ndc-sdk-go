@@ -107,3 +107,15 @@ func UnwrapPointerFromAny(value any) (any, bool) {
 func IsDebug(logger *slog.Logger) bool {
 	return logger.Enabled(context.TODO(), slog.LevelDebug)
 }
+
+// MergeMap merges two value maps into one
+func MergeMap[K comparable, V any](dest map[K]V, src map[K]V) map[K]V {
+	result := dest
+	if result == nil {
+		result = map[K]V{}
+	}
+	for k, v := range src {
+		result[k] = v
+	}
+	return result
+}

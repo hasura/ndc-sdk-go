@@ -221,12 +221,35 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 		// ignore 2 first parameters (context and state)
 		if params.Len() == 3 {
 			arg := params.At(2)
-			arguments, argumentType, err := sp.parseArgumentTypes(arg.Type(), []string{})
+			argumentInfo, err := sp.parseArgumentTypes(arg.Type(), []string{})
 			if err != nil {
 				return err
 			}
-			opInfo.ArgumentsType = argumentType
-			opInfo.Arguments = arguments
+			opInfo.ArgumentsType = argumentInfo.Type
+			if opInfo.Kind == OperationFunction {
+				sp.rawSchema.FunctionArguments[argumentInfo.Type.Name] = *argumentInfo
+			}
+			// convert argument schema
+			for k, a := range argumentInfo.Fields {
+				if !a.Type.Embedded {
+					opInfo.Arguments[k] = schema.ArgumentInfo{
+						Description: a.Description,
+						Type:        a.Type.Schema.Encode(),
+					}
+					continue
+				}
+
+				embeddedObject, ok := sp.rawSchema.Objects[a.Type.Name]
+				if ok {
+					// flatten embedded object fields to the parent object
+					for _, of := range embeddedObject.Fields {
+						opInfo.Arguments[of.Key] = schema.ArgumentInfo{
+							Type: of.Type.Schema.Encode(),
+						}
+					}
+
+				}
+			}
 		}
 
 		resultType, err := sp.parseType(nil, resultTuple.At(0).Type(), []string{}, false, false)
@@ -260,13 +283,15 @@ func (sp *SchemaParser) getNamedType(ty types.Type) *types.Named {
 	}
 }
 
-func (sp *SchemaParser) parseArgumentTypes(ty types.Type, fieldPaths []string) (map[string]ArgumentInfo, *TypeInfo, error) {
+func (sp *SchemaParser) parseArgumentTypes(ty types.Type, fieldPaths []string) (*ObjectInfo, error) {
 
 	switch inferredType := ty.(type) {
 	case *types.Pointer:
 		return sp.parseArgumentTypes(inferredType.Elem(), fieldPaths)
 	case *types.Struct:
-		result := make(map[string]ArgumentInfo)
+		result := &ObjectInfo{
+			Fields: map[string]ObjectField{},
+		}
 		for i := 0; i < inferredType.NumFields(); i++ {
 			fieldVar := inferredType.Field(i)
 			fieldTag := inferredType.Tag(i)
@@ -276,28 +301,28 @@ func (sp *SchemaParser) parseArgumentTypes(ty types.Type, fieldPaths []string) (
 				typeInfo = &TypeInfo{
 					PackageName: fieldPackage.Name(),
 					PackagePath: fieldPackage.Path(),
-					Embedded:    fieldVar.Embedded(),
 				}
 			}
+			typeInfo.Embedded = fieldVar.Embedded()
 
 			fieldType, err := sp.parseType(typeInfo, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false, true)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 			fieldName := getFieldNameOrTag(fieldVar.Name(), fieldTag)
 			if fieldType.TypeAST == nil {
 				fieldType.TypeAST = fieldVar.Type()
 			}
-			result[fieldName] = ArgumentInfo{
-				FieldName: fieldVar.Name(),
-				Type:      fieldType,
+			result.Fields[fieldName] = ObjectField{
+				Name: fieldVar.Name(),
+				Type: fieldType,
 			}
 		}
-		return result, nil, nil
+		return result, nil
 	case *types.Named:
-		arguments, _, err := sp.parseArgumentTypes(inferredType.Obj().Type().Underlying(), append(fieldPaths, inferredType.Obj().Name()))
+		arguments, err := sp.parseArgumentTypes(inferredType.Obj().Type().Underlying(), append(fieldPaths, inferredType.Obj().Name()))
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		typeObj := inferredType.Obj()
@@ -310,9 +335,10 @@ func (sp *SchemaParser) parseArgumentTypes(ty types.Type, fieldPaths []string) (
 			typeInfo.PackagePath = pkg.Path()
 			typeInfo.PackageName = pkg.Name()
 		}
-		return arguments, typeInfo, nil
+		arguments.Type = typeInfo
+		return arguments, nil
 	default:
-		return nil, nil, fmt.Errorf("expected struct type, got %s", ty.String())
+		return nil, fmt.Errorf("expected struct type, got %s", ty.String())
 	}
 }
 
@@ -327,17 +353,10 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 		if err != nil {
 			return nil, err
 		}
-		return &TypeInfo{
-			Name:          innerType.Name,
-			SchemaName:    innerType.Name,
-			Description:   innerType.Description,
-			PackagePath:   innerType.PackagePath,
-			PackageName:   innerType.PackageName,
-			TypeAST:       ty,
-			TypeFragments: append([]string{"*"}, innerType.TypeFragments...),
-			IsScalar:      innerType.IsScalar,
-			Schema:        schema.NewNullableType(innerType.Schema),
-		}, nil
+		innerType.TypeAST = ty
+		innerType.TypeFragments = append([]string{"*"}, innerType.TypeFragments...)
+		innerType.Schema = schema.NewNullableType(innerType.Schema)
+		return innerType, nil
 	case *types.Struct:
 		isAnonymous := false
 		if rootType == nil {
@@ -365,10 +384,14 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 			Fields:      make(schema.ObjectTypeFields),
 		}
 		objFields := &ObjectInfo{
-			PackagePath: rootType.PackagePath,
-			PackageName: rootType.PackageName,
 			IsAnonymous: isAnonymous,
-			Fields:      map[string]*ObjectField{},
+			Type: &TypeInfo{
+				Name:        rootType.Name,
+				PackagePath: rootType.PackagePath,
+				PackageName: rootType.PackageName,
+				TypeAST:     inferredType,
+			},
+			Fields: map[string]ObjectField{},
 		}
 		// temporarily add the object type to raw schema to avoid infinite loop
 		sp.rawSchema.ObjectSchemas[rootType.Name] = objType
@@ -377,15 +400,28 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 		for i := 0; i < inferredType.NumFields(); i++ {
 			fieldVar := inferredType.Field(i)
 			fieldTag := inferredType.Tag(i)
+
 			fieldType, err := sp.parseType(nil, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false, isArgument)
 			if err != nil {
 				return nil, err
 			}
+			fieldType.Embedded = fieldVar.Embedded()
+			fieldType.TypeAST = fieldVar.Type()
 			fieldKey := getFieldNameOrTag(fieldVar.Name(), fieldTag)
-			objType.Fields[fieldKey] = schema.ObjectField{
-				Type: fieldType.Schema.Encode(),
+			if fieldType.Embedded {
+				embeddedObject, ok := sp.rawSchema.ObjectSchemas[fieldType.Name]
+				if ok {
+					// flatten embedded object fields to the parent object
+					for k, of := range embeddedObject.Fields {
+						objType.Fields[k] = of
+					}
+				}
+			} else {
+				objType.Fields[fieldKey] = schema.ObjectField{
+					Type: fieldType.Schema.Encode(),
+				}
 			}
-			objFields.Fields[fieldVar.Name()] = &ObjectField{
+			objFields.Fields[fieldVar.Name()] = ObjectField{
 				Name: fieldVar.Name(),
 				Key:  fieldKey,
 				Type: fieldType,
@@ -415,6 +451,9 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 					Schema:        schema.NewNamedType(innerType.Name()),
 					TypeFragments: []string{innerType.Name()},
 				}
+				if rootType != nil {
+					ty.Embedded = rootType.Embedded
+				}
 				return ty, nil
 			}
 
@@ -427,6 +466,10 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 			typeInfo.PackageName = innerPkg.Name()
 			typeInfo.PackagePath = innerPkg.Path()
 			scalarSchema := schema.NewScalarType()
+
+			if rootType != nil {
+				typeInfo.Embedded = rootType.Embedded
+			}
 
 			switch innerPkg.Path() {
 			case "time":
@@ -701,7 +744,7 @@ func (sp *SchemaParser) parseOperationInfo(fn *types.Func) *OperationInfo {
 	functionName := fn.Name()
 	result := OperationInfo{
 		OriginName: functionName,
-		Arguments:  make(map[string]ArgumentInfo),
+		Arguments:  make(map[string]schema.ArgumentInfo),
 	}
 
 	var descriptions []string

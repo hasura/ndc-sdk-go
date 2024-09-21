@@ -18,6 +18,15 @@ import (
 var functions_Decoder = utils.NewDecoder()
 
 // FromValue decodes values from map
+func (j *GetArticlesArguments) FromValue(input map[string]any) error {
+  var err error
+  j.Limit, err = utils.GetFloat[float64](input, "Limit")
+    if err != nil {
+		  return err
+    }
+  return nil
+}
+// FromValue decodes values from map
 func (j *GetTypesArguments) FromValue(input map[string]any) error {
   var err error
   err = functions_Decoder.DecodeObjectValue(&j.ArrayBigInt, input, "ArrayBigInt")
@@ -598,9 +607,81 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
   return nil
 }
 // FromValue decodes values from map
-func (j *GetArticlesArguments) FromValue(input map[string]any) error {
+func (j *Author) FromValue(input map[string]any) error {
   var err error
-  j.Limit, err = utils.GetFloat[float64](input, "Limit")
+  j.CreatedAt, err = utils.GetDateTime(input, "CreatedAt")
+    if err != nil {
+		  return err
+    }
+  j.ID, err = utils.GetString(input, "ID")
+    if err != nil {
+		  return err
+    }
+  return nil
+}
+// FromValue decodes values from map
+func (j *CreateArticleResult) FromValue(input map[string]any) error {
+  var err error
+  err = functions_Decoder.DecodeObjectValue(&j.Authors, input, "Authors")
+    if err != nil {
+		  return err
+    }
+  j.ID, err = utils.GetUint[uint](input, "ID")
+    if err != nil {
+		  return err
+    }
+  return nil
+}
+// FromValue decodes values from map
+func (j *CreateAuthorResult) FromValue(input map[string]any) error {
+  var err error
+  j.CreatedAt, err = utils.GetDateTime(input, "CreatedAt")
+    if err != nil {
+		  return err
+    }
+  j.ID, err = utils.GetInt[int](input, "ID")
+    if err != nil {
+		  return err
+    }
+  j.Name, err = utils.GetString(input, "Name")
+    if err != nil {
+		  return err
+    }
+  return nil
+}
+// FromValue decodes values from map
+func (j *GetArticlesResult) FromValue(input map[string]any) error {
+  var err error
+  j.ID, err = utils.GetString(input, "ID")
+    if err != nil {
+		  return err
+    }
+  err = functions_Decoder.DecodeObjectValue(&j.Name, input, "Name")
+    if err != nil {
+		  return err
+    }
+  return nil
+}
+// FromValue decodes values from map
+func (j *HelloResult) FromValue(input map[string]any) error {
+  var err error
+  err = functions_Decoder.DecodeObjectValue(&j.Error, input, "Error")
+    if err != nil {
+		  return err
+    }
+  err = functions_Decoder.DecodeObjectValue(&j.Foo, input, "Foo")
+    if err != nil {
+		  return err
+    }
+  j.ID, err = utils.GetUUID(input, "ID")
+    if err != nil {
+		  return err
+    }
+  j.Num, err = utils.GetInt[int](input, "Num")
+    if err != nil {
+		  return err
+    }
+  err = functions_Decoder.DecodeObjectValue(&j.Text, input, "Text")
     if err != nil {
 		  return err
     }
@@ -620,7 +701,7 @@ func (j CreateArticleResult) ToMap() map[string]any {
   j_Authors := make([]any, len(j.Authors))
   for i, j_Authors_v := range j.Authors {
   j_Authors[i] = j_Authors_v
-		  }
+  }
   r["authors"] = j_Authors
   r["id"] = j.ID
 
@@ -733,19 +814,19 @@ func (j GetTypesArguments) ToMap() map[string]any {
   j_NamedArray := make([]any, len(j.NamedArray))
   for i, j_NamedArray_v := range j.NamedArray {
   j_NamedArray[i] = j_NamedArray_v
-		  }
+  }
   r["NamedArray"] = j_NamedArray
   if j.NamedArrayPtr != nil {
   j_NamedArrayPtr := make([]any, len((*j.NamedArrayPtr)))
   for i, j_NamedArrayPtr_v := range (*j.NamedArrayPtr) {
   j_NamedArrayPtr[i] = j_NamedArrayPtr_v
-		  }
+  }
   r["NamedArrayPtr"] = j_NamedArrayPtr
   }
   r["NamedObject"] = j.NamedObject
-		  if j.NamedObjectPtr != nil {
+  if j.NamedObjectPtr != nil {
   r["NamedObjectPtr"] = (*j.NamedObjectPtr)
-		  }
+  }
   j_Object_obj := make(map[string]any)
   j_Object_obj["created_at"] = j.Object.CreatedAt
   j_Object_obj["id"] = j.Object.ID
