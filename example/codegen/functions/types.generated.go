@@ -14,12 +14,12 @@ import (
 	"slices"
 )
 
-var functions_Decoder = utils.NewDecoder()
+var connector_Decoder = utils.NewDecoder()
 
 // FromValue decodes values from map
 func (j *GetArticlesArguments) FromValue(input map[string]any) error {
 	var err error
-	err = functions_Decoder.DecodeObject(&j.BaseAuthor, input)
+	err = connector_Decoder.DecodeObject(&j.BaseAuthor, input)
 	if err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (j *GetArticlesArguments) FromValue(input map[string]any) error {
 func (j *GetAuthorArguments) FromValue(input map[string]any) error {
 	var err error
 	j.BaseAuthor = new(BaseAuthor)
-	err = functions_Decoder.DecodeObject(j.BaseAuthor, input)
+	err = connector_Decoder.DecodeObject(j.BaseAuthor, input)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (j *BaseAuthor) FromValue(input map[string]any) error {
 // FromValue decodes values from map
 func (j *CreateArticleResult) FromValue(input map[string]any) error {
 	var err error
-	err = functions_Decoder.DecodeObjectValue(&j.Authors, input, "authors")
+	err = connector_Decoder.DecodeObjectValue(&j.Authors, input, "authors")
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (j *CreateArticleResult) FromValue(input map[string]any) error {
 // FromValue decodes values from map
 func (j *CreateAuthorArguments) FromValue(input map[string]any) error {
 	var err error
-	err = functions_Decoder.DecodeObject(&j.BaseAuthor, input)
+	err = connector_Decoder.DecodeObject(&j.BaseAuthor, input)
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func (j *CreateAuthorResult) FromValue(input map[string]any) error {
 // FromValue decodes values from map
 func (j *GetArticlesResult) FromValue(input map[string]any) error {
 	var err error
-	err = functions_Decoder.DecodeObjectValue(&j.Name, input, "Name")
+	err = connector_Decoder.DecodeObjectValue(&j.Name, input, "Name")
 	if err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func (j *GetArticlesResult) FromValue(input map[string]any) error {
 func (j *GetAuthorResult) FromValue(input map[string]any) error {
 	var err error
 	j.CreateAuthorResult = new(CreateAuthorResult)
-	err = functions_Decoder.DecodeObject(j.CreateAuthorResult, input)
+	err = connector_Decoder.DecodeObject(j.CreateAuthorResult, input)
 	if err != nil {
 		return err
 	}
@@ -129,11 +129,11 @@ func (j *GetAuthorResult) FromValue(input map[string]any) error {
 // FromValue decodes values from map
 func (j *HelloResult) FromValue(input map[string]any) error {
 	var err error
-	err = functions_Decoder.DecodeObjectValue(&j.Error, input, "error")
+	err = connector_Decoder.DecodeObjectValue(&j.Error, input, "error")
 	if err != nil {
 		return err
 	}
-	err = functions_Decoder.DecodeObjectValue(&j.Foo, input, "foo")
+	err = connector_Decoder.DecodeObjectValue(&j.Foo, input, "foo")
 	if err != nil {
 		return err
 	}
@@ -145,7 +145,7 @@ func (j *HelloResult) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = functions_Decoder.DecodeObjectValue(&j.Text, input, "text")
+	err = connector_Decoder.DecodeObjectValue(&j.Text, input, "text")
 	if err != nil {
 		return err
 	}

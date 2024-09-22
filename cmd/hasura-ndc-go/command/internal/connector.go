@@ -45,11 +45,6 @@ func (ctb *connectorTypeBuilder) SetImport(value string, alias string) {
 	ctb.imports[value] = alias
 }
 
-// GetDecoderName gets the global decoder name
-func (ctb connectorTypeBuilder) GetDecoderName() string {
-	return fmt.Sprintf("%s_Decoder", ctb.packageName)
-}
-
 // String renders generated Go types and methods
 func (ctb connectorTypeBuilder) String() string {
 	var bs strings.Builder
@@ -67,8 +62,7 @@ func (ctb connectorTypeBuilder) String() string {
 		bs.WriteString(")\n")
 	}
 
-	decoderName := ctb.GetDecoderName()
-	bs.WriteString(fmt.Sprintf("var %s = utils.NewDecoder()\n", decoderName))
+	bs.WriteString("var connector_Decoder = utils.NewDecoder()\n")
 	bs.WriteString(ctb.builder.String())
 	return bs.String()
 }
@@ -712,27 +706,24 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 			sb.builder.WriteString(fieldName)
 			sb.builder.WriteString(" = new(")
 			sb.builder.WriteString(tyName)
-			sb.builder.WriteString(")\n  err = ")
+			sb.builder.WriteString(")\n  err = connector_Decoder.")
 			if ty.Embedded {
-				sb.builder.WriteString(" functions_Decoder.DecodeObject(j.")
+				sb.builder.WriteString("DecodeObject(j.")
 				sb.builder.WriteString(fieldName)
 				sb.builder.WriteString(", input)")
 			} else {
-				sb.builder.WriteString(sb.GetDecoderName())
-				sb.builder.WriteString(".DecodeNullableObjectValue(j.")
+				sb.builder.WriteString("DecodeNullableObjectValue(j.")
 				sb.builder.WriteString(fieldName)
 				sb.builder.WriteString(`, input, "`)
 				sb.builder.WriteString(key)
 				sb.builder.WriteString(`")`)
 			}
 		} else if ty.Embedded {
-			sb.builder.WriteString("  err = functions_Decoder.DecodeObject(&j.")
+			sb.builder.WriteString("  err = connector_Decoder.DecodeObject(&j.")
 			sb.builder.WriteString(fieldName)
 			sb.builder.WriteString(", input)")
 		} else {
-			sb.builder.WriteString("  err = ")
-			sb.builder.WriteString(sb.GetDecoderName())
-			sb.builder.WriteString(".DecodeObjectValue(&j.")
+			sb.builder.WriteString("  err = connector_Decoder.DecodeObjectValue(&j.")
 			sb.builder.WriteString(fieldName)
 			sb.builder.WriteString(`, input, "`)
 			sb.builder.WriteString(key)

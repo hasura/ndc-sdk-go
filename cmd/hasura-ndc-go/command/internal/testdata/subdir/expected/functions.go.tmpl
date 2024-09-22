@@ -10,12 +10,12 @@ import (
   "log/slog"
   "slices"
 )
-var functions_Decoder = utils.NewDecoder()
+var connector_Decoder = utils.NewDecoder()
 
 // FromValue decodes values from map
 func (j *GetArticlesArguments) FromValue(input map[string]any) error {
   var err error
-  err = functions_Decoder.DecodeObject(&j.Author, input)
+  err = connector_Decoder.DecodeObject(&j.Author, input)
     if err != nil {
 		  return err
     }
@@ -28,7 +28,7 @@ func (j *GetArticlesArguments) FromValue(input map[string]any) error {
 // FromValue decodes values from map
 func (j *GetArticlesResult) FromValue(input map[string]any) error {
   var err error
-  err = functions_Decoder.DecodeObject(&j.Author, input)
+  err = connector_Decoder.DecodeObject(&j.Author, input)
     if err != nil {
 		  return err
     }
