@@ -11,7 +11,7 @@ import (
 // WriteGoSchema writes the schema as Go codes
 func (rcs RawConnectorSchema) WriteGoSchema(packageName string) (string, error) {
 	builder := strings.Builder{}
-	renderFileHeader(&builder, packageName)
+	writeFileHeader(&builder, packageName)
 	builder.WriteString(`
 import (
   "github.com/hasura/ndc-sdk-go/schema"
