@@ -261,6 +261,7 @@ func TestQueryGetTypes(t *testing.T) {
 						"value": {
 							"id": "1",
 							"duration": 10,
+							"tags": [],
 							"created_at": "2024-03-05T05:00:00Z"
 						}
 					},
@@ -269,6 +270,7 @@ func TestQueryGetTypes(t *testing.T) {
 						"value": {
 							"id": "2",
 							"duration": 11,
+							"tags": [],
 							"created_at": "2024-03-05T04:00:00Z"
 						}
 					},
@@ -278,6 +280,7 @@ func TestQueryGetTypes(t *testing.T) {
 							{
 								"id": "3",
 								"duration": 12,
+								"tags": [],
 								"created_at": "2024-03-05T03:00:00Z"
 							}
 						]
@@ -287,6 +290,7 @@ func TestQueryGetTypes(t *testing.T) {
 						"value": [
 							{
 								"created_at": "2024-03-05T02:00:00Z",
+								"tags": [],
 								"id": "bPgG5cs38N"
 							}
 						]

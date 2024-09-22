@@ -49,6 +49,9 @@ func FunctionHello(ctx context.Context, state *types.State) (*HelloResult, error
 type CreateAuthorArguments struct {
 	BaseAuthor
 }
+type CreateAuthorsArguments struct {
+	Authors []CreateAuthorArguments
+}
 
 // A create author result
 type CreateAuthorResult struct {
@@ -66,13 +69,15 @@ func ProcedureCreateAuthor(ctx context.Context, state *types.State, arguments *C
 }
 
 // ProcedureCreateAuthors creates a list of authors
-func ProcedureCreateAuthors(ctx context.Context, state *types.State, arguments *CreateAuthorArguments) ([]CreateAuthorResult, error) {
-	return []CreateAuthorResult{
-		{
-			ID:   1,
-			Name: arguments.Name,
-		},
-	}, nil
+func ProcedureCreateAuthors(ctx context.Context, state *types.State, arguments *CreateAuthorsArguments) ([]CreateAuthorResult, error) {
+	results := make([]CreateAuthorResult, len(arguments.Authors))
+	for i, arg := range arguments.Authors {
+		results[i] = CreateAuthorResult{
+			ID:   i,
+			Name: arg.Name,
+		}
+	}
+	return results, nil
 }
 
 // FunctionGetBool return an scalar boolean

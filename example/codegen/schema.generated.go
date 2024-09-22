@@ -54,6 +54,13 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 				},
 			},
+			"CreateAuthorArguments": schema.ObjectType{
+				Fields: schema.ObjectTypeFields{
+					"name": schema.ObjectField{
+						Type: schema.NewNamedType("String").Encode(),
+					},
+				},
+			},
 			"CreateAuthorResult": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
 					"created_at": schema.ObjectField{
@@ -1050,8 +1057,8 @@ func GetConnectorSchema() *schema.SchemaResponse {
 				Description: utils.ToPtr("creates a list of authors"),
 				ResultType:  schema.NewArrayType(schema.NewNamedType("CreateAuthorResult")).Encode(),
 				Arguments: map[string]schema.ArgumentInfo{
-					"name": {
-						Type: schema.NewNamedType("String").Encode(),
+					"Authors": {
+						Type: schema.NewArrayType(schema.NewNamedType("CreateAuthorArguments")).Encode(),
 					},
 				},
 			},

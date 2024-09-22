@@ -48,7 +48,7 @@ func (j *GetAuthorArguments) FromValue(input map[string]any) error {
 // FromValue decodes values from map
 func (j *BaseAuthor) FromValue(input map[string]any) error {
 	var err error
-	j.Name, err = utils.GetString(input, "Name")
+	j.Name, err = utils.GetString(input, "name")
 	if err != nil {
 		return err
 	}
@@ -58,11 +58,21 @@ func (j *BaseAuthor) FromValue(input map[string]any) error {
 // FromValue decodes values from map
 func (j *CreateArticleResult) FromValue(input map[string]any) error {
 	var err error
-	err = functions_Decoder.DecodeObjectValue(&j.Authors, input, "Authors")
+	err = functions_Decoder.DecodeObjectValue(&j.Authors, input, "authors")
 	if err != nil {
 		return err
 	}
-	j.ID, err = utils.GetUint[uint](input, "ID")
+	j.ID, err = utils.GetUint[uint](input, "id")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// FromValue decodes values from map
+func (j *CreateAuthorArguments) FromValue(input map[string]any) error {
+	var err error
+	err = functions_Decoder.DecodeObject(&j.BaseAuthor, input)
 	if err != nil {
 		return err
 	}
@@ -72,15 +82,15 @@ func (j *CreateArticleResult) FromValue(input map[string]any) error {
 // FromValue decodes values from map
 func (j *CreateAuthorResult) FromValue(input map[string]any) error {
 	var err error
-	j.CreatedAt, err = utils.GetDateTime(input, "CreatedAt")
+	j.CreatedAt, err = utils.GetDateTime(input, "created_at")
 	if err != nil {
 		return err
 	}
-	j.ID, err = utils.GetInt[int](input, "ID")
+	j.ID, err = utils.GetInt[int](input, "id")
 	if err != nil {
 		return err
 	}
-	j.Name, err = utils.GetString(input, "Name")
+	j.Name, err = utils.GetString(input, "name")
 	if err != nil {
 		return err
 	}
@@ -90,11 +100,11 @@ func (j *CreateAuthorResult) FromValue(input map[string]any) error {
 // FromValue decodes values from map
 func (j *GetArticlesResult) FromValue(input map[string]any) error {
 	var err error
-	j.ID, err = utils.GetString(input, "ID")
+	err = functions_Decoder.DecodeObjectValue(&j.Name, input, "Name")
 	if err != nil {
 		return err
 	}
-	err = functions_Decoder.DecodeObjectValue(&j.Name, input, "Name")
+	j.ID, err = utils.GetString(input, "id")
 	if err != nil {
 		return err
 	}
@@ -109,7 +119,7 @@ func (j *GetAuthorResult) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.Disabled, err = utils.GetBoolean(input, "Disabled")
+	j.Disabled, err = utils.GetBoolean(input, "disabled")
 	if err != nil {
 		return err
 	}
@@ -119,23 +129,23 @@ func (j *GetAuthorResult) FromValue(input map[string]any) error {
 // FromValue decodes values from map
 func (j *HelloResult) FromValue(input map[string]any) error {
 	var err error
-	err = functions_Decoder.DecodeObjectValue(&j.Error, input, "Error")
+	err = functions_Decoder.DecodeObjectValue(&j.Error, input, "error")
 	if err != nil {
 		return err
 	}
-	err = functions_Decoder.DecodeObjectValue(&j.Foo, input, "Foo")
+	err = functions_Decoder.DecodeObjectValue(&j.Foo, input, "foo")
 	if err != nil {
 		return err
 	}
-	j.ID, err = utils.GetUUID(input, "ID")
+	j.ID, err = utils.GetUUID(input, "id")
 	if err != nil {
 		return err
 	}
-	j.Num, err = utils.GetInt[int](input, "Num")
+	j.Num, err = utils.GetInt[int](input, "num")
 	if err != nil {
 		return err
 	}
-	err = functions_Decoder.DecodeObjectValue(&j.Text, input, "Text")
+	err = functions_Decoder.DecodeObjectValue(&j.Text, input, "text")
 	if err != nil {
 		return err
 	}
@@ -164,6 +174,14 @@ func (j CreateArticleResult) ToMap() map[string]any {
 }
 
 // ToMap encodes the struct to a value map
+func (j CreateAuthorArguments) ToMap() map[string]any {
+	r := make(map[string]any)
+	r = utils.MergeMap(r, j.BaseAuthor.ToMap())
+
+	return r
+}
+
+// ToMap encodes the struct to a value map
 func (j CreateAuthorResult) ToMap() map[string]any {
 	r := make(map[string]any)
 	r["created_at"] = j.CreatedAt
@@ -176,8 +194,8 @@ func (j CreateAuthorResult) ToMap() map[string]any {
 // ToMap encodes the struct to a value map
 func (j GetArticlesResult) ToMap() map[string]any {
 	r := make(map[string]any)
-	r["id"] = j.ID
 	r["Name"] = j.Name
+	r["id"] = j.ID
 
 	return r
 }
@@ -228,7 +246,7 @@ func (dch DataConnectorHandler) Query(ctx context.Context, state *types.State, r
 
 	result, err := dch.execQuery(ctx, state, request, queryFields, rawArgs)
 	if err != nil {
-		return nil, schema.UnprocessableContentError(err.Error(), nil)
+		return nil, err
 	}
 
 	return &schema.RowSet{
@@ -493,7 +511,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
 				"cause": err.Error(),
 			})
 		}
-		var args CreateAuthorArguments
+		var args CreateAuthorsArguments
 		if err := json.Unmarshal(operation.Arguments, &args); err != nil {
 			return nil, schema.UnprocessableContentError("failed to decode arguments", map[string]any{
 				"cause": err.Error(),

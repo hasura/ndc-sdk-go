@@ -14,19 +14,19 @@ var types_Decoder = utils.NewDecoder()
 func (j *Author) FromValue(input map[string]any) error {
 	var err error
 	j.Author = new(Author)
-	err = types_Decoder.DecodeNullableObjectValue(j.Author, input, "Author")
+	err = types_Decoder.DecodeNullableObjectValue(j.Author, input, "author")
 	if err != nil {
 		return err
 	}
-	j.CreatedAt, err = utils.GetDateTime(input, "CreatedAt")
+	j.CreatedAt, err = utils.GetDateTime(input, "created_at")
 	if err != nil {
 		return err
 	}
-	j.ID, err = utils.GetString(input, "ID")
+	j.ID, err = utils.GetString(input, "id")
 	if err != nil {
 		return err
 	}
-	err = types_Decoder.DecodeObjectValue(&j.Tags, input, "Tags")
+	err = types_Decoder.DecodeObjectValue(&j.Tags, input, "tags")
 	if err != nil {
 		return err
 	}

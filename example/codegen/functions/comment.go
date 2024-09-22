@@ -25,7 +25,7 @@ func GetArticles(ctx context.Context, state *types.State, arguments *GetArticles
 	return []GetArticlesResult{
 		{
 			ID:   "1",
-			Name: "Article 1",
+			Name: types.Text(arguments.Name),
 		},
 	}, nil
 }

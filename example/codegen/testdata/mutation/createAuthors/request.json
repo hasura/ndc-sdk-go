@@ -5,8 +5,13 @@
       "type": "procedure",
       "name": "createAuthors",
       "arguments": {
-        "names": [
-          "JwqvHKZBCJ"
+        "Authors": [
+          {
+            "name": "Author 1"
+          },
+          {
+            "name": "Author 2"
+          }
         ]
       },
       "fields": {
