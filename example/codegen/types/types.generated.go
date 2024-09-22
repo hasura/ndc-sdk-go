@@ -26,6 +26,11 @@ func (j *Author) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	j.Status = new(AuthorStatus)
+	err = connector_Decoder.DecodeNullableObjectValue(j.Status, input, "status")
+	if err != nil {
+		return err
+	}
 	err = connector_Decoder.DecodeObjectValue(&j.Tags, input, "tags")
 	if err != nil {
 		return err
@@ -41,9 +46,71 @@ func (j Author) ToMap() map[string]any {
 	}
 	r["created_at"] = j.CreatedAt
 	r["id"] = j.ID
+	r["status"] = j.Status
 	r["tags"] = j.Tags
 
 	return r
+}
+
+// ScalarName get the schema name of the scalar
+func (j AuthorStatus) ScalarName() string {
+	return "AuthorStatus"
+}
+
+const (
+	AuthorStatusActive   AuthorStatus = "active"
+	AuthorStatusInactive AuthorStatus = "inactive"
+)
+
+var enumValues_AuthorStatus = []AuthorStatus{AuthorStatusActive, AuthorStatusInactive}
+
+// ParseAuthorStatus parses a AuthorStatus enum from string
+func ParseAuthorStatus(input string) (AuthorStatus, error) {
+	result := AuthorStatus(input)
+	if !slices.Contains(enumValues_AuthorStatus, result) {
+		return AuthorStatus(""), errors.New("failed to parse AuthorStatus, expect one of AuthorStatusActive, AuthorStatusInactive")
+	}
+
+	return result, nil
+}
+
+// IsValid checks if the value is invalid
+func (j AuthorStatus) IsValid() bool {
+	return slices.Contains(enumValues_AuthorStatus, j)
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *AuthorStatus) UnmarshalJSON(b []byte) error {
+	var rawValue string
+	if err := json.Unmarshal(b, &rawValue); err != nil {
+		return err
+	}
+
+	value, err := ParseAuthorStatus(rawValue)
+	if err != nil {
+		return err
+	}
+
+	*j = value
+	return nil
+}
+
+// FromValue decodes the scalar from an unknown value
+func (s *AuthorStatus) FromValue(value any) error {
+	valueStr, err := utils.DecodeNullableString(value)
+	if err != nil {
+		return err
+	}
+	if valueStr == nil {
+		return nil
+	}
+	result, err := ParseAuthorStatus(*valueStr)
+	if err != nil {
+		return err
+	}
+
+	*s = result
+	return nil
 }
 
 // ScalarName get the schema name of the scalar

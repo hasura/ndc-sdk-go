@@ -809,7 +809,7 @@ func findCommentsFromPos(pkg *packages.Package, scope *types.Scope, name string)
 			if len(cg.List) == 0 {
 				continue
 			}
-			exp := regexp.MustCompile(fmt.Sprintf(`^//\s+%s`, name))
+			exp := regexp.MustCompile(fmt.Sprintf(`^//\s+%s(\s|$)`, name))
 			if !exp.MatchString(cg.List[0].Text) {
 				continue
 			}

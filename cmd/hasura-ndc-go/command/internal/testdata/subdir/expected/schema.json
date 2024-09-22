@@ -30,6 +30,15 @@
             "type": "named"
           }
         },
+        "status": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
         "tags": {
           "type": {
             "element_type": {
@@ -75,6 +84,15 @@
             "type": "named"
           }
         },
+        "status": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
         "tags": {
           "type": {
             "element_type": {
@@ -107,6 +125,15 @@
           "type": {
             "name": "String",
             "type": "named"
+          }
+        },
+        "status": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
           }
         },
         "tags": {

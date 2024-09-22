@@ -22,6 +22,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					"id": schema.ObjectField{
 						Type: schema.NewNamedType("String").Encode(),
 					},
+					"status": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("AuthorStatus")).Encode(),
+					},
 					"tags": schema.ObjectField{
 						Type: schema.NewArrayType(schema.NewNamedType("String")).Encode(),
 					},
@@ -1064,6 +1067,11 @@ func GetConnectorSchema() *schema.SchemaResponse {
 			},
 		},
 		ScalarTypes: schema.SchemaResponseScalarTypes{
+			"AuthorStatus": schema.ScalarType{
+				AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+				ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+				Representation:      schema.NewTypeRepresentationEnum([]string{"active", "inactive"}).Encode(),
+			},
 			"BigInt": schema.ScalarType{
 				AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
 				ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
