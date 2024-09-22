@@ -44,8 +44,8 @@ type CreateArticleResult struct {
 
 // CreateArticle
 // @procedure create_article
-func CreateArticle(ctx context.Context, state *types.State, arguments *CreateArticleArguments) (*CreateArticleResult, error) {
-	return &CreateArticleResult{
+func CreateArticle(ctx context.Context, state *types.State, arguments *CreateArticleArguments) (CreateArticleResult, error) {
+	return CreateArticleResult{
 		ID:      1,
 		Authors: []types.Author{},
 	}, nil

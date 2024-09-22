@@ -176,7 +176,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 		}
 
 		sb.WriteString(fmt.Sprintf("\n    rawResult, err := %s(ctx, state%s)", fn.OriginName, argumentParamStr))
-		chb.genGeneralOperationResult(sb, fn.ResultType)
+		chb.writeGeneralOperationResult(sb, fn.ResultType)
 
 		sb.WriteString(`
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
@@ -282,7 +282,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
     result, err := %s(ctx, state%s)`, fn.OriginName, argumentParamStr))
 		} else {
 			sb.WriteString(fmt.Sprintf("\n    rawResult, err := %s(ctx, state%s)\n", fn.OriginName, argumentParamStr))
-			chb.genGeneralOperationResult(sb, fn.ResultType)
+			chb.writeGeneralOperationResult(sb, fn.ResultType)
 
 			sb.WriteString(`    connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
@@ -307,18 +307,12 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 	chb.writeOperationNameEnums(sb, procedureEnumsName, procedureKeys)
 }
 
-func (chb connectorHandlerBuilder) genGeneralOperationResult(sb *strings.Builder, resultType *TypeInfo) {
+func (chb connectorHandlerBuilder) writeGeneralOperationResult(sb *strings.Builder, resultType *TypeInfo) {
 	sb.WriteString(textBlockErrorCheck2)
 	if resultType.IsNullable() {
 		sb.WriteString(`
     if rawResult == nil {
       return nil, nil
-    }
-`)
-	} else {
-		sb.WriteString(`
-    if rawResult == nil {
-      return nil, schema.UnprocessableContentError("expected not null result", nil)
     }
 `)
 	}

@@ -695,7 +695,7 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 		if ty.IsNullable() {
 			typeName := strings.TrimLeft(typeName, "*")
 			pkgName, tyName, ok := findAndReplaceNativeScalarPackage(typeName)
-			if !ok {
+			if !ok && len(ty.TypeFragments) > 0 {
 				pkgName = ty.PackagePath
 				tyName = buildTypeNameFromFragments(ty.TypeFragments[1:], ty.PackagePath, sb.packagePath)
 			}

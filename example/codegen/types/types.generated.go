@@ -8,13 +8,13 @@ import (
 	"slices"
 )
 
-var types_Decoder = utils.NewDecoder()
+var connector_Decoder = utils.NewDecoder()
 
 // FromValue decodes values from map
 func (j *Author) FromValue(input map[string]any) error {
 	var err error
 	j.Author = new(Author)
-	err = types_Decoder.DecodeNullableObjectValue(j.Author, input, "author")
+	err = connector_Decoder.DecodeNullableObjectValue(j.Author, input, "author")
 	if err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func (j *Author) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = types_Decoder.DecodeObjectValue(&j.Tags, input, "tags")
+	err = connector_Decoder.DecodeObjectValue(&j.Tags, input, "tags")
 	if err != nil {
 		return err
 	}

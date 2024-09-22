@@ -1029,7 +1029,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 			{
 				Name:        "create_article",
 				Description: utils.ToPtr("CreateArticle"),
-				ResultType:  schema.NewNullableType(schema.NewNamedType("CreateArticleResult")).Encode(),
+				ResultType:  schema.NewNamedType("CreateArticleResult").Encode(),
 				Arguments: map[string]schema.ArgumentInfo{
 					"author": {
 						Type: schema.NewNamedType("CreateArticleArgumentsAuthor").Encode(),

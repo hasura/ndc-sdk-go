@@ -391,10 +391,6 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			return nil, err
 		}
 
-		if rawResult == nil {
-			return nil, schema.UnprocessableContentError("expected not null result", nil)
-		}
-
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
 		})
@@ -442,10 +438,6 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
 
 		if err != nil {
 			return nil, err
-		}
-
-		if rawResult == nil {
-			return nil, nil
 		}
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
@@ -522,10 +514,6 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
 
 		if err != nil {
 			return nil, err
-		}
-
-		if rawResult == nil {
-			return nil, schema.UnprocessableContentError("expected not null result", nil)
 		}
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
