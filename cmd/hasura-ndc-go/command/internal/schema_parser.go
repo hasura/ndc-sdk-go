@@ -242,8 +242,8 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 				embeddedObject, ok := sp.rawSchema.Objects[a.Type.Name]
 				if ok {
 					// flatten embedded object fields to the parent object
-					for _, of := range embeddedObject.Fields {
-						opInfo.Arguments[of.Key] = schema.ArgumentInfo{
+					for k, of := range embeddedObject.Fields {
+						opInfo.Arguments[k] = schema.ArgumentInfo{
 							Type: of.Type.Schema.Encode(),
 						}
 					}
@@ -421,9 +421,8 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 					Type: fieldType.Schema.Encode(),
 				}
 			}
-			objFields.Fields[fieldVar.Name()] = ObjectField{
+			objFields.Fields[fieldKey] = ObjectField{
 				Name: fieldVar.Name(),
-				Key:  fieldKey,
 				Type: fieldType,
 			}
 		}

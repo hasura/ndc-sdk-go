@@ -155,7 +155,7 @@ func (cg *connectorGenerator) generateConnector(name string) error {
 	if cg.schemaFormat == "go" {
 		schemaOutputFile = schemaOutputGoFile
 		cg.rawSchema.Imports["encoding/json"] = true
-		output, err := cg.rawSchema.Render(name)
+		output, err := cg.rawSchema.WriteGoSchema(name)
 		if err != nil {
 			return err
 		}
@@ -305,7 +305,7 @@ func (cg *connectorGenerator) genObjectToMap(sb *connectorTypeBuilder, object *O
 	for _, fieldKey := range fieldKeys {
 		field := object.Fields[fieldKey]
 		fieldSelector := fmt.Sprintf("%s.%s", selector, field.Name)
-		fieldAssigner := fmt.Sprintf("%s[\"%s\"]", name, field.Key)
+		fieldAssigner := fmt.Sprintf("%s[\"%s\"]", name, fieldKey)
 		cg.genToMapProperty(sb, &field, fieldSelector, fieldAssigner, field.Type, field.Type.TypeFragments)
 	}
 }

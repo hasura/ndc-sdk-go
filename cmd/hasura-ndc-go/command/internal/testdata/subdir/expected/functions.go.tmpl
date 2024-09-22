@@ -32,7 +32,7 @@ func (j *GetArticlesResult) FromValue(input map[string]any) error {
     if err != nil {
 		  return err
     }
-  j.ID, err = utils.GetString(input, "ID")
+  j.ID, err = utils.GetString(input, "id")
     if err != nil {
 		  return err
     }
@@ -64,7 +64,7 @@ func (dch DataConnectorHandler) Query(ctx context.Context, state *types.State, r
 
 	result, err := dch.execQuery(ctx, state, request, queryFields, rawArgs)
 	if err != nil {
-		return nil, schema.UnprocessableContentError(err.Error(), nil)
+		return nil, err
 	}
 	
 	return &schema.RowSet{

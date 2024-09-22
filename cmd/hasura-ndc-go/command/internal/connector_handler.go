@@ -97,7 +97,7 @@ func (dch DataConnectorHandler) Query(ctx context.Context, state *`)
 
 	result, err := dch.execQuery(ctx, state, request, queryFields, rawArgs)
 	if err != nil {
-		return nil, schema.UnprocessableContentError(err.Error(), nil)
+		return nil, err
 	}
 	
 	return &schema.RowSet{
