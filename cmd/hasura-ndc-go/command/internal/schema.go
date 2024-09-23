@@ -176,17 +176,6 @@ func (rcs RawConnectorSchema) Schema() *schema.SchemaResponse {
 	return result
 }
 
-// IsCustomType checks if the type name is a custom scalar or an exported object
-func (rcs RawConnectorSchema) IsCustomType(name string) bool {
-	if _, ok := rcs.CustomScalars[name]; ok {
-		return true
-	}
-	if obj, ok := rcs.Objects[name]; ok {
-		return !obj.IsAnonymous
-	}
-	return false
-}
-
 func (rcs RawConnectorSchema) setFunctionArgument(info ObjectInfo) {
 	key := info.Type.String()
 	if _, ok := rcs.FunctionArguments[key]; ok {

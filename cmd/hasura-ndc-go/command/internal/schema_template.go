@@ -15,8 +15,12 @@ func (rcs RawConnectorSchema) WriteGoSchema(packageName string) (string, error) 
 	builder.WriteString(`
 import (
   "github.com/hasura/ndc-sdk-go/schema"
-  "github.com/hasura/ndc-sdk-go/utils"
 )
+
+
+func toPtr[V any](value V) *V {
+	return &value
+}
 
 // GetConnectorSchema gets the generated connector schema
 func GetConnectorSchema() *schema.SchemaResponse {
@@ -190,7 +194,7 @@ func (rcs RawConnectorSchema) writeScalarType(builder *strings.Builder, key stri
 
 func (rcs RawConnectorSchema) writeDescription(builder *strings.Builder, description *string) {
 	if description != nil {
-		builder.WriteString(`      	Description: utils.ToPtr("`)
+		builder.WriteString(`      	Description: toPtr("`)
 		builder.WriteString(*description)
 		builder.WriteString("\"),\n")
 	}

@@ -134,7 +134,7 @@ func (cg *connectorGenerator) loadConnectorPackage() (string, error) {
 		return "", fmt.Errorf("failed to load the package in connector directory: %s", err)
 	}
 
-	if len(pkgList) == 0 {
+	if len(pkgList) == 0 || pkgList[0].Name == "" {
 		return "main", nil
 	}
 	return pkgList[0].Name, nil
@@ -190,6 +190,10 @@ func (cg *connectorGenerator) generateConnector(name string) error {
 			return err
 		}
 		_ = w.Flush()
+	}
+
+	if len(cg.rawSchema.Functions) == 0 && len(cg.rawSchema.Procedures) == 0 {
+		log.Warn().Msg("neither function nor procedure is generated. If your project uses Go Workspace please add the root path to the go.work file and update again")
 	}
 
 	return nil

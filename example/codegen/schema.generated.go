@@ -3,8 +3,11 @@ package main
 
 import (
 	"github.com/hasura/ndc-sdk-go/schema"
-	"github.com/hasura/ndc-sdk-go/utils"
 )
+
+func toPtr[V any](value V) *V {
+	return &value
+}
 
 // GetConnectorSchema gets the generated connector schema
 func GetConnectorSchema() *schema.SchemaResponse {
@@ -603,7 +606,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 			},
 			{
 				Name:        "getBool",
-				Description: utils.ToPtr("return an scalar boolean"),
+				Description: toPtr("return an scalar boolean"),
 				ResultType:  schema.NewNamedType("Boolean").Encode(),
 				Arguments:   map[string]schema.ArgumentInfo{},
 			},
@@ -1026,13 +1029,13 @@ func GetConnectorSchema() *schema.SchemaResponse {
 			},
 			{
 				Name:        "hello",
-				Description: utils.ToPtr("sends a hello message"),
+				Description: toPtr("sends a hello message"),
 				ResultType:  schema.NewNullableType(schema.NewNamedType("HelloResult")).Encode(),
 				Arguments:   map[string]schema.ArgumentInfo{},
 			},
 			{
 				Name:        "getArticles",
-				Description: utils.ToPtr("GetArticles"),
+				Description: toPtr("GetArticles"),
 				ResultType:  schema.NewArrayType(schema.NewNamedType("GetArticlesResult")).Encode(),
 				Arguments: map[string]schema.ArgumentInfo{
 					"Limit": {
@@ -1047,7 +1050,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 		Procedures: []schema.ProcedureInfo{
 			{
 				Name:        "create_article",
-				Description: utils.ToPtr("CreateArticle"),
+				Description: toPtr("CreateArticle"),
 				ResultType:  schema.NewNamedType("CreateArticleResult").Encode(),
 				Arguments: map[string]schema.ArgumentInfo{
 					"author": {
@@ -1057,13 +1060,13 @@ func GetConnectorSchema() *schema.SchemaResponse {
 			},
 			{
 				Name:        "increase",
-				Description: utils.ToPtr("Increase"),
+				Description: toPtr("Increase"),
 				ResultType:  schema.NewNamedType("Int32").Encode(),
 				Arguments:   map[string]schema.ArgumentInfo{},
 			},
 			{
 				Name:        "createAuthor",
-				Description: utils.ToPtr("creates an author"),
+				Description: toPtr("creates an author"),
 				ResultType:  schema.NewNullableType(schema.NewNamedType("CreateAuthorResult")).Encode(),
 				Arguments: map[string]schema.ArgumentInfo{
 					"name": {
@@ -1073,7 +1076,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 			},
 			{
 				Name:        "createAuthors",
-				Description: utils.ToPtr("creates a list of authors"),
+				Description: toPtr("creates a list of authors"),
 				ResultType:  schema.NewArrayType(schema.NewNamedType("CreateAuthorResult")).Encode(),
 				Arguments: map[string]schema.ArgumentInfo{
 					"Authors": {
