@@ -89,12 +89,16 @@ func GetConnectorSchema() *schema.SchemaResponse {
 			},
 			"GetAuthorResult": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
-					"created_at": schema.ObjectField{
-						Type: schema.NewNamedType("TimestampTZ").Encode(),
+					"id": schema.ObjectField{
+						Type: schema.NewNamedType("Int32").Encode(),
 					},
-					"disabled": schema.ObjectField{
-						Type: schema.NewNamedType("Boolean").Encode(),
+					"name": schema.ObjectField{
+						Type: schema.NewNamedType("String").Encode(),
 					},
+				},
+			},
+			"GetAuthorResult_types": schema.ObjectType{
+				Fields: schema.ObjectTypeFields{
 					"id": schema.ObjectField{
 						Type: schema.NewNamedType("Int32").Encode(),
 					},
@@ -576,6 +580,18 @@ func GetConnectorSchema() *schema.SchemaResponse {
 			{
 				Name:       "getAuthor",
 				ResultType: schema.NewNullableType(schema.NewNamedType("GetAuthorResult")).Encode(),
+				Arguments: map[string]schema.ArgumentInfo{
+					"id": {
+						Type: schema.NewNamedType("String").Encode(),
+					},
+					"name": {
+						Type: schema.NewNamedType("String").Encode(),
+					},
+				},
+			},
+			{
+				Name:       "getAuthor2",
+				ResultType: schema.NewNamedType("GetAuthorResult_types").Encode(),
 				Arguments: map[string]schema.ArgumentInfo{
 					"id": {
 						Type: schema.NewNamedType("String").Encode(),

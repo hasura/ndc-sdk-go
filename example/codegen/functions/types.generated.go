@@ -202,6 +202,38 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 		}
 		return result, nil
 
+	case "getAuthor2":
+
+		selection, err := queryFields.AsObject()
+		if err != nil {
+			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
+				"cause": err.Error(),
+			})
+		}
+		var args GetAuthorArguments
+		if parseErr := args.FromValue(rawArgs); parseErr != nil {
+			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
+				"cause": parseErr.Error(),
+			})
+		}
+
+		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
+			"arguments": args,
+		})
+		rawResult, err := FunctionGetAuthor2(ctx, state, &args)
+		if err != nil {
+			return nil, err
+		}
+
+		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})
+		result, err := utils.EvalNestedColumnObject(selection, rawResult)
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
+
 	case "getBool":
 
 		if len(queryFields) > 0 {
@@ -308,7 +340,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 	}
 }
 
-var enumValues_FunctionName = []string{"getAuthor", "getBool", "getTypes", "hello", "getArticles"}
+var enumValues_FunctionName = []string{"getAuthor", "getAuthor2", "getBool", "getTypes", "hello", "getArticles"}
 
 // MutationExists check if the mutation name exists
 func (dch DataConnectorHandler) MutationExists(name string) bool {

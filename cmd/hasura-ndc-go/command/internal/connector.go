@@ -281,7 +281,7 @@ func (cg *connectorGenerator) genObjectMethods() error {
 // ToMap encodes the struct to a value map
 func (j %s) ToMap() map[string]any {
   r := make(map[string]any)
-`, objectName))
+`, object.Type.Name))
 		cg.genObjectToMap(sb, &object, "j", "r")
 		sb.builder.WriteString(`
 	return r
@@ -329,7 +329,7 @@ func (cg *connectorGenerator) genToMapProperty(sb *connectorTypeBuilder, field *
 
 	isAnonymous := strings.HasPrefix(strings.Join(fragments, ""), "struct{")
 	if isAnonymous {
-		innerObject, ok := cg.rawSchema.Objects[ty.Name]
+		innerObject, ok := cg.rawSchema.Objects[ty.String()]
 		if !ok {
 			tyName := buildTypeNameFromFragments(ty.TypeFragments, ty.PackagePath, sb.packagePath)
 			innerObject, ok = cg.rawSchema.Objects[tyName]

@@ -114,3 +114,10 @@ func FunctionGetAuthor(ctx context.Context, state *types.State, arguments *GetAu
 		Disabled: false,
 	}, nil
 }
+
+func FunctionGetAuthor2(ctx context.Context, state *types.State, arguments *GetAuthorArguments) (types.GetAuthorResult, error) {
+	return types.GetAuthorResult{
+		ID:   1,
+		Name: arguments.Name,
+	}, nil
+}

@@ -50,3 +50,8 @@ type Author struct {
 	Status    *AuthorStatus `json:"status"`
 	Author    *Author       `json:"author"`
 }
+
+type GetAuthorResult struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}

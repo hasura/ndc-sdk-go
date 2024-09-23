@@ -239,7 +239,7 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 					continue
 				}
 
-				embeddedObject, ok := sp.rawSchema.Objects[a.Type.Name]
+				embeddedObject, ok := sp.rawSchema.Objects[a.Type.String()]
 				if ok {
 					// flatten embedded object fields to the parent object
 					for k, of := range embeddedObject.Fields {
@@ -314,7 +314,7 @@ func (sp *SchemaParser) parseArgumentTypes(ty types.Type, argumentFor *Operation
 				fieldType.TypeAST = fieldVar.Type()
 			}
 			if !fieldType.IsScalar && argumentFor != nil && *argumentFor == OperationFunction {
-				object, ok := sp.rawSchema.Objects[fieldType.Name]
+				object, ok := sp.rawSchema.Objects[fieldType.String()]
 				if ok {
 					sp.rawSchema.setFunctionArgument(object)
 				}
@@ -387,7 +387,7 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 		}
 
 		if rootType.Schema == nil {
-			rootType.Schema = schema.NewNamedType(name)
+			rootType.Schema = schema.NewNamedType(rootType.SchemaName)
 		}
 		objType := schema.ObjectType{
 			Description: rootType.Description,
@@ -397,6 +397,7 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 			IsAnonymous: isAnonymous,
 			Type: &TypeInfo{
 				Name:        rootType.Name,
+				SchemaName:  rootType.SchemaName,
 				PackagePath: rootType.PackagePath,
 				PackageName: rootType.PackageName,
 				TypeAST:     inferredType,
@@ -404,8 +405,8 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 			Fields: map[string]ObjectField{},
 		}
 		// temporarily add the object type to raw schema to avoid infinite loop
-		sp.rawSchema.ObjectSchemas[rootType.Name] = objType
-		sp.rawSchema.Objects[rootType.Name] = objFields
+		sp.rawSchema.ObjectSchemas[rootType.SchemaName] = objType
+		sp.rawSchema.Objects[rootType.String()] = objFields
 
 		for i := 0; i < inferredType.NumFields(); i++ {
 			fieldVar := inferredType.Field(i)
@@ -437,7 +438,7 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 			}
 		}
 		sp.rawSchema.ObjectSchemas[rootType.Name] = objType
-		sp.rawSchema.Objects[rootType.Name] = objFields
+		sp.rawSchema.Objects[rootType.String()] = objFields
 
 		return rootType, nil
 	case *types.Named:
@@ -448,37 +449,28 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 		}
 
 		innerPkg := innerType.Pkg()
-		var typeInfo *TypeInfo
+		typeInfo := &TypeInfo{
+			Name:       innerType.Name(),
+			SchemaName: innerType.Name(),
+			TypeAST:    innerType.Type(),
+			Schema:     schema.NewNamedType(innerType.Name()),
+		}
+		if rootType != nil {
+			typeInfo.Embedded = rootType.Embedded
+		}
 		if innerPkg != nil {
-			if _, ok := sp.rawSchema.Objects[innerType.Name()]; ok {
-				ty := &TypeInfo{
-					Name:          innerType.Name(),
-					SchemaName:    innerType.Name(),
-					PackageName:   innerPkg.Name(),
-					PackagePath:   innerPkg.Path(),
-					TypeAST:       innerType.Type(),
-					Schema:        schema.NewNamedType(innerType.Name()),
-					TypeFragments: []string{innerType.Name()},
-				}
-				if rootType != nil {
-					ty.Embedded = rootType.Embedded
-				}
-				return ty, nil
+			typeInfo.PackageName = innerPkg.Name()
+			typeInfo.PackagePath = innerPkg.Path()
+			typeInfo.TypeFragments = []string{innerType.Name()}
+			if _, ok := sp.rawSchema.Objects[typeInfo.String()]; ok {
+				return typeInfo, nil
 			}
 
-			var err error
-			typeInfo, err = sp.parseTypeInfoFromComments(innerType.Name(), innerPkg.Path(), innerType.Parent())
-			if err != nil {
+			if err := sp.parseTypeInfoFromComments(typeInfo, innerType.Parent()); err != nil {
 				return nil, err
 			}
 			var scalarName ScalarName
-			typeInfo.PackageName = innerPkg.Name()
-			typeInfo.PackagePath = innerPkg.Path()
 			scalarSchema := schema.NewScalarType()
-
-			if rootType != nil {
-				typeInfo.Embedded = rootType.Embedded
-			}
 
 			switch innerPkg.Path() {
 			case "time":
@@ -526,14 +518,11 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 			if argumentFor != nil {
 				return nil, fmt.Errorf("%s: native `error` interface isn't allowed in input arguments", strings.Join(fieldPaths, "."))
 			}
-			typeInfo = &TypeInfo{
-				Name:                 innerType.Name(),
-				SchemaName:           string(ScalarJSON),
-				TypeAST:              innerType.Type(),
-				Schema:               schema.NewNullableType(schema.NewNamedType(string(ScalarJSON))),
-				IsScalar:             true,
-				ScalarRepresentation: schema.NewTypeRepresentationJSON().Encode(),
-			}
+			typeInfo.IsScalar = true
+			typeInfo.SchemaName = string(ScalarJSON)
+			typeInfo.Schema = schema.NewNullableType(schema.NewNamedType(string(ScalarJSON)))
+			typeInfo.ScalarRepresentation = schema.NewTypeRepresentationJSON().Encode()
+
 			if _, ok := sp.rawSchema.ScalarSchemas[typeInfo.SchemaName]; !ok {
 				sp.rawSchema.ScalarSchemas[typeInfo.SchemaName] = defaultScalarTypes[ScalarJSON]
 			}
@@ -555,6 +544,12 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 			return typeInfo, nil
 		}
 
+		if _, ok := sp.rawSchema.ObjectSchemas[typeInfo.Name]; ok {
+			// the object schema exists, rename to format <name>_<package_name>
+			packagePath := strings.TrimPrefix(typeInfo.PackagePath, sp.moduleName)
+			typeInfo.SchemaName = fieldNameRegex.ReplaceAllString(strings.Join([]string{typeInfo.Name, packagePath}, ""), "_")
+			typeInfo.Schema = schema.NewNamedType(typeInfo.SchemaName)
+		}
 		return sp.parseType(typeInfo, innerType.Type().Underlying(), append(fieldPaths, innerType.Name()), false, argumentFor)
 	case *types.Basic:
 		var scalarName ScalarName
@@ -641,16 +636,9 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 	}
 }
 
-func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, packagePath string, scope *types.Scope) (*TypeInfo, error) {
-	typeInfo := &TypeInfo{
-		Name:          typeName,
-		SchemaName:    typeName,
-		IsScalar:      false,
-		TypeFragments: []string{typeName},
-		Schema:        schema.NewNamedType(typeName),
-	}
+func (sp *SchemaParser) parseTypeInfoFromComments(typeInfo *TypeInfo, scope *types.Scope) error {
 	comments := make([]string, 0)
-	commentGroup := findCommentsFromPos(sp.FindPackageByPath(packagePath), scope, typeName)
+	commentGroup := findCommentsFromPos(sp.FindPackageByPath(typeInfo.PackagePath), scope, typeInfo.Name)
 	if commentGroup != nil {
 		for i, line := range commentGroup.List {
 			text := strings.TrimSpace(strings.TrimLeft(line.Text, "/"))
@@ -658,7 +646,7 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, packagePath s
 				continue
 			}
 			if i == 0 {
-				text = strings.TrimPrefix(text, fmt.Sprintf("%s ", typeName))
+				text = strings.TrimPrefix(text, fmt.Sprintf("%s ", typeInfo.Name))
 			}
 
 			enumMatches := ndcEnumCommentRegex.FindStringSubmatch(text)
@@ -674,7 +662,7 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, packagePath s
 					}
 				}
 				if len(enums) == 0 {
-					return nil, fmt.Errorf("require enum values in the comment of %s", typeName)
+					return fmt.Errorf("require enum values in the comment of %s", typeInfo.Name)
 				}
 				typeInfo.ScalarRepresentation = schema.NewTypeRepresentationEnum(enums).Encode()
 				continue
@@ -689,10 +677,10 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, packagePath s
 					typeInfo.Schema = schema.NewNamedType(matches[2])
 					typeRep, err := schema.ParseTypeRepresentationType(strings.TrimSpace(matches[3]))
 					if err != nil {
-						return nil, fmt.Errorf("failed to parse type representation of scalar %s: %s", typeName, err)
+						return fmt.Errorf("failed to parse type representation of scalar %s: %s", typeInfo.Name, err)
 					}
 					if typeRep == schema.TypeRepresentationTypeEnum {
-						return nil, errors.New("use @enum tag with values instead")
+						return errors.New("use @enum tag with values instead")
 					}
 					typeInfo.ScalarRepresentation = schema.TypeRepresentation{
 						"type": typeRep,
@@ -703,7 +691,7 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, packagePath s
 					typeRep, err := schema.ParseTypeRepresentationType(matches[2])
 					if err == nil {
 						if typeRep == schema.TypeRepresentationTypeEnum {
-							return nil, errors.New("use @enum tag with values instead")
+							return errors.New("use @enum tag with values instead")
 						}
 						typeInfo.ScalarRepresentation = schema.TypeRepresentation{
 							"type": typeRep,
@@ -723,7 +711,7 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, packagePath s
 
 	if !typeInfo.IsScalar {
 		// fallback to parse scalar from type name with Scalar prefix
-		matches := ndcScalarNameRegex.FindStringSubmatch(typeName)
+		matches := ndcScalarNameRegex.FindStringSubmatch(typeInfo.Name)
 		if len(matches) > 1 {
 			typeInfo.IsScalar = true
 			typeInfo.SchemaName = matches[1]
@@ -736,7 +724,7 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeName string, packagePath s
 		typeInfo.Description = &desc
 	}
 
-	return typeInfo, nil
+	return nil
 }
 
 // format operation name with style
