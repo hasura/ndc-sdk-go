@@ -17,6 +17,16 @@ import (
 var connector_Decoder = utils.NewDecoder()
 
 // FromValue decodes values from map
+func (j *BaseAuthor) FromValue(input map[string]any) error {
+	var err error
+	j.Name, err = utils.GetString(input, "name")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// FromValue decodes values from map
 func (j *GetArticlesArguments) FromValue(input map[string]any) error {
 	var err error
 	err = connector_Decoder.DecodeObject(&j.BaseAuthor, input)
@@ -39,113 +49,6 @@ func (j *GetAuthorArguments) FromValue(input map[string]any) error {
 		return err
 	}
 	j.ID, err = utils.GetString(input, "id")
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// FromValue decodes values from map
-func (j *BaseAuthor) FromValue(input map[string]any) error {
-	var err error
-	j.Name, err = utils.GetString(input, "name")
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// FromValue decodes values from map
-func (j *CreateArticleResult) FromValue(input map[string]any) error {
-	var err error
-	err = connector_Decoder.DecodeObjectValue(&j.Authors, input, "authors")
-	if err != nil {
-		return err
-	}
-	j.ID, err = utils.GetUint[uint](input, "id")
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// FromValue decodes values from map
-func (j *CreateAuthorArguments) FromValue(input map[string]any) error {
-	var err error
-	err = connector_Decoder.DecodeObject(&j.BaseAuthor, input)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// FromValue decodes values from map
-func (j *CreateAuthorResult) FromValue(input map[string]any) error {
-	var err error
-	j.CreatedAt, err = utils.GetDateTime(input, "created_at")
-	if err != nil {
-		return err
-	}
-	j.ID, err = utils.GetInt[int](input, "id")
-	if err != nil {
-		return err
-	}
-	j.Name, err = utils.GetString(input, "name")
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// FromValue decodes values from map
-func (j *GetArticlesResult) FromValue(input map[string]any) error {
-	var err error
-	err = connector_Decoder.DecodeObjectValue(&j.Name, input, "Name")
-	if err != nil {
-		return err
-	}
-	j.ID, err = utils.GetString(input, "id")
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// FromValue decodes values from map
-func (j *GetAuthorResult) FromValue(input map[string]any) error {
-	var err error
-	j.CreateAuthorResult = new(CreateAuthorResult)
-	err = connector_Decoder.DecodeObject(j.CreateAuthorResult, input)
-	if err != nil {
-		return err
-	}
-	j.Disabled, err = utils.GetBoolean(input, "disabled")
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// FromValue decodes values from map
-func (j *HelloResult) FromValue(input map[string]any) error {
-	var err error
-	err = connector_Decoder.DecodeObjectValue(&j.Error, input, "error")
-	if err != nil {
-		return err
-	}
-	err = connector_Decoder.DecodeObjectValue(&j.Foo, input, "foo")
-	if err != nil {
-		return err
-	}
-	j.ID, err = utils.GetUUID(input, "id")
-	if err != nil {
-		return err
-	}
-	j.Num, err = utils.GetInt[int](input, "num")
-	if err != nil {
-		return err
-	}
-	err = connector_Decoder.DecodeObjectValue(&j.Text, input, "text")
 	if err != nil {
 		return err
 	}

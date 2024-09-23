@@ -234,9 +234,7 @@ func (cg *connectorGenerator) renderOperationHandlers(values []string) string {
 
 // generate encoding and decoding methods for schema types
 func (cg *connectorGenerator) genTypeMethods() error {
-	if err := cg.genFunctionArgumentConstructors(); err != nil {
-		return err
-	}
+	cg.genFunctionArgumentConstructors()
 	if err := cg.genObjectMethods(); err != nil {
 		return err
 	}
@@ -284,7 +282,7 @@ func (cg *connectorGenerator) genObjectMethods() error {
 func (j %s) ToMap() map[string]any {
   r := make(map[string]any)
 `, objectName))
-		cg.genObjectToMap(sb, object, "j", "r")
+		cg.genObjectToMap(sb, &object, "j", "r")
 		sb.builder.WriteString(`
 	return r
 }`)
@@ -343,7 +341,7 @@ func (cg *connectorGenerator) genToMapProperty(sb *connectorTypeBuilder, field *
 		// anonymous struct
 		varName := formatLocalFieldName(selector, "obj")
 		sb.builder.WriteString(fmt.Sprintf("  %s := make(map[string]any)\n", varName))
-		cg.genObjectToMap(sb, innerObject, selector, varName)
+		cg.genObjectToMap(sb, &innerObject, selector, varName)
 		sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, varName))
 		return varName
 	}
@@ -454,9 +452,9 @@ func (s *%s) FromValue(value any) error {
 	return nil
 }
 
-func (cg *connectorGenerator) genFunctionArgumentConstructors() error {
+func (cg *connectorGenerator) genFunctionArgumentConstructors() {
 	if len(cg.rawSchema.Functions) == 0 {
-		return nil
+		return
 	}
 
 	writtenObjects := make(map[string]bool)
@@ -466,19 +464,6 @@ func (cg *connectorGenerator) genFunctionArgumentConstructors() error {
 		writtenObjects[argInfo.Type.String()] = true
 		cg.writeObjectFromValue(&argInfo)
 	}
-
-	objKeys := utils.GetSortedKeys(cg.rawSchema.Objects)
-	for _, k := range objKeys {
-		objInfo := cg.rawSchema.Objects[k]
-		objectTypeName := objInfo.Type.String()
-		if _, ok := writtenObjects[objectTypeName]; ok {
-			continue
-		}
-		writtenObjects[objectTypeName] = true
-		cg.writeObjectFromValue(objInfo)
-	}
-
-	return nil
 }
 
 func (cg *connectorGenerator) writeObjectFromValue(info *ObjectInfo) {

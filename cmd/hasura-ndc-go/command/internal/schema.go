@@ -136,7 +136,7 @@ type RawConnectorSchema struct {
 	Imports           map[string]bool
 	CustomScalars     map[string]*TypeInfo
 	ScalarSchemas     schema.SchemaResponseScalarTypes
-	Objects           map[string]*ObjectInfo
+	Objects           map[string]ObjectInfo
 	ObjectSchemas     schema.SchemaResponseObjectTypes
 	Functions         []FunctionInfo
 	FunctionArguments map[string]ObjectInfo
@@ -149,7 +149,7 @@ func NewRawConnectorSchema() *RawConnectorSchema {
 		Imports:           make(map[string]bool),
 		CustomScalars:     make(map[string]*TypeInfo),
 		ScalarSchemas:     make(schema.SchemaResponseScalarTypes),
-		Objects:           make(map[string]*ObjectInfo),
+		Objects:           make(map[string]ObjectInfo),
 		ObjectSchemas:     make(schema.SchemaResponseObjectTypes),
 		Functions:         []FunctionInfo{},
 		FunctionArguments: make(map[string]ObjectInfo),
@@ -185,4 +185,12 @@ func (rcs RawConnectorSchema) IsCustomType(name string) bool {
 		return !obj.IsAnonymous
 	}
 	return false
+}
+
+func (rcs RawConnectorSchema) setFunctionArgument(info ObjectInfo) {
+	key := info.Type.String()
+	if _, ok := rcs.FunctionArguments[key]; ok {
+		return
+	}
+	rcs.FunctionArguments[key] = info
 }
