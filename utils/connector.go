@@ -310,16 +310,14 @@ func MergeSchemas(schemas ...*schema.SchemaResponse) (*schema.SchemaResponse, []
 		for k, sl := range s.ScalarTypes {
 			if _, ok := result.ScalarTypes[k]; ok {
 				errs = append(errs, fmt.Errorf("scalar type %s exists", k))
-			} else {
-				result.ScalarTypes[k] = sl
 			}
+			result.ScalarTypes[k] = sl
 		}
 		for k, obj := range s.ObjectTypes {
 			if _, ok := result.ObjectTypes[k]; ok {
 				errs = append(errs, fmt.Errorf("object type %s exists", k))
-			} else {
-				result.ObjectTypes[k] = obj
 			}
+			result.ObjectTypes[k] = obj
 		}
 	}
 	return &result, errs
