@@ -75,7 +75,8 @@ func ToPtr[V any](value V) *V {
 // ToPtrs converts the value slice to pointer slice
 func ToPtrs[T any](input []T) []*T {
 	results := make([]*T, len(input))
-	for i, v := range input {
+	for i := range input {
+		v := input[i]
 		results[i] = &v
 	}
 	return results
