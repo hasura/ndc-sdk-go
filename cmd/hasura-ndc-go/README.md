@@ -64,6 +64,9 @@ hasura-ndc-go new -n example -m github.com/foo/example -o .
 
 ### Generate queries and mutations
 
+> [!IMPORTANT]
+> If neither function nor procedure is generated your project may use Go workspace. You need to add the submodule path to the `go.work` file.
+
 The `update` command parses code in the `functions` folder, finds functions and types that are allowed to be exposed and generates the following files:
 
 - `schema.generated.json`: the generated connector schema in JSON format.
