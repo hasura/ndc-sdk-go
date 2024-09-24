@@ -3,6 +3,7 @@ package utils
 import (
 	"cmp"
 	"context"
+	"fmt"
 	"log/slog"
 	"reflect"
 	"slices"
@@ -78,6 +79,18 @@ func ToPtrs[T any](input []T) []*T {
 		results[i] = &v
 	}
 	return results
+}
+
+// PointersToValues converts the pointer slice to value slice
+func PointersToValues[T any](input []*T) ([]T, error) {
+	results := make([]T, len(input))
+	for i, v := range input {
+		if IsNil(v) {
+			return nil, fmt.Errorf("element at %d must not be nil", i)
+		}
+		results[i] = *v
+	}
+	return results, nil
 }
 
 // UnwrapPointerFromReflectValue unwraps pointers from the reflect value

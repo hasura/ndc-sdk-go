@@ -6,7 +6,14 @@ import (
 )
 
 func TestToPtrs(t *testing.T) {
-	assertDeepEqual(t, []*string{ToPtr("a"), ToPtr("b"), ToPtr("c")}, ToPtrs([]string{"a", "b", "c"}))
+	_, err := PointersToValues([]*string{ToPtr(""), nil})
+	assertError(t, err, "element at 1 must not be nil")
+	input, err := PointersToValues(ToPtrs([]string{"a", "b", "c"}))
+	assertNoError(t, err)
+	expected, err := PointersToValues([]*string{ToPtr("a"), ToPtr("b"), ToPtr("c")})
+	assertNoError(t, err)
+
+	assertDeepEqual(t, expected, input)
 }
 
 func TestIsDebug(t *testing.T) {
