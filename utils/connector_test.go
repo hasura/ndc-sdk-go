@@ -161,6 +161,147 @@ func TestMergeSchemas(t *testing.T) {
 						},
 					},
 					ObjectTypes: schema.SchemaResponseObjectTypes{
+						"GetArticlesResult": schema.ObjectType{
+							Fields: schema.ObjectTypeFields{
+								"Name": schema.ObjectField{
+									Type: schema.NewNamedType("String").Encode(),
+								},
+								"id": schema.ObjectField{
+									Type: schema.NewNamedType("String").Encode(),
+								},
+							},
+						},
+						"GetTypesArguments": schema.ObjectType{
+							Fields: schema.ObjectTypeFields{
+								"ArrayBigInt": schema.ObjectField{
+									Type: schema.NewArrayType(schema.NewNamedType("BigInt")).Encode(),
+								},
+							},
+						},
+						"GetTypesArgumentsArrayObject": schema.ObjectType{
+							Fields: schema.ObjectTypeFields{
+								"content": schema.ObjectField{
+									Type: schema.NewNamedType("String").Encode(),
+								},
+							},
+						},
+						"GetTypesArgumentsObjectPtr": schema.ObjectType{
+							Fields: schema.ObjectTypeFields{
+								"Lat": schema.ObjectField{
+									Type: schema.NewNamedType("Int32").Encode(),
+								},
+								"Long": schema.ObjectField{
+									Type: schema.NewNamedType("Int32").Encode(),
+								},
+							},
+						},
+						"HelloResult": schema.ObjectType{
+							Fields: schema.ObjectTypeFields{
+								"error": schema.ObjectField{
+									Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
+								},
+								"foo": schema.ObjectField{
+									Type: schema.NewNamedType("Foo").Encode(),
+								},
+								"id": schema.ObjectField{
+									Type: schema.NewNamedType("UUID").Encode(),
+								},
+								"num": schema.ObjectField{
+									Type: schema.NewNamedType("Int32").Encode(),
+								},
+								"text": schema.ObjectField{
+									Type: schema.NewNamedType("String").Encode(),
+								},
+							},
+						},
+					},
+					Functions: []schema.FunctionInfo{
+						{
+							Name:        "getBool",
+							Description: ToPtr("return an scalar boolean"),
+							ResultType:  schema.NewNamedType("Boolean").Encode(),
+							Arguments:   map[string]schema.ArgumentInfo{},
+						},
+						{
+							Name:        "hello",
+							Description: ToPtr("sends a hello message"),
+							ResultType:  schema.NewNullableType(schema.NewNamedType("HelloResult")).Encode(),
+							Arguments:   map[string]schema.ArgumentInfo{},
+						},
+						{
+							Name:        "getArticles",
+							Description: ToPtr("GetArticles"),
+							ResultType:  schema.NewArrayType(schema.NewNamedType("GetArticlesResult")).Encode(),
+							Arguments: map[string]schema.ArgumentInfo{
+								"Limit": {
+									Type: schema.NewNamedType("Float64").Encode(),
+								},
+							},
+						},
+					},
+					Procedures: []schema.ProcedureInfo{
+						{
+							Name:        "create_article",
+							Description: ToPtr("CreateArticle"),
+							ResultType:  schema.NewNullableType(schema.NewNamedType("CreateArticleResult")).Encode(),
+							Arguments: map[string]schema.ArgumentInfo{
+								"author": {
+									Type: schema.NewNamedType("CreateArticleArgumentsAuthor").Encode(),
+								},
+							},
+						},
+						{
+							Name:        "createAuthor",
+							Description: ToPtr("creates an author"),
+							ResultType:  schema.NewNullableType(schema.NewNamedType("CreateAuthorResult")).Encode(),
+							Arguments: map[string]schema.ArgumentInfo{
+								"name": {
+									Type: schema.NewNamedType("String").Encode(),
+								},
+							},
+						},
+						{
+							Name:        "createAuthors",
+							Description: ToPtr("creates a list of authors"),
+							ResultType:  schema.NewArrayType(schema.NewNamedType("CreateAuthorResult")).Encode(),
+							Arguments: map[string]schema.ArgumentInfo{
+								"names": {
+									Type: schema.NewArrayType(schema.NewNamedType("String")).Encode(),
+								},
+							},
+						},
+					},
+					ScalarTypes: schema.SchemaResponseScalarTypes{
+						"BigInt": schema.ScalarType{
+							AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+							ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+							Representation:      schema.NewTypeRepresentationBigInteger().Encode(),
+						},
+						"JSON": schema.ScalarType{
+							AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+							ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+							Representation:      schema.NewTypeRepresentationJSON().Encode(),
+						},
+						"TimestampTZ": schema.ScalarType{
+							AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+							ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+							Representation:      schema.NewTypeRepresentationTimestampTZ().Encode(),
+						},
+						"UUID": schema.ScalarType{
+							AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+							ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+							Representation:      schema.NewTypeRepresentationUUID().Encode(),
+						},
+					},
+				},
+				{
+					Collections: []schema.CollectionInfo{
+						{
+							Name:      "Foo",
+							Arguments: schema.CollectionInfoArguments{},
+						},
+					},
+					ObjectTypes: schema.SchemaResponseObjectTypes{
 						"Author": schema.ObjectType{
 							Fields: schema.ObjectTypeFields{
 								"created_at": schema.ObjectField{
@@ -299,147 +440,6 @@ func TestMergeSchemas(t *testing.T) {
 						},
 					},
 				},
-				{
-					Collections: []schema.CollectionInfo{
-						{
-							Name:      "Foo",
-							Arguments: schema.CollectionInfoArguments{},
-						},
-					},
-					ObjectTypes: schema.SchemaResponseObjectTypes{
-						"GetArticlesResult": schema.ObjectType{
-							Fields: schema.ObjectTypeFields{
-								"Name": schema.ObjectField{
-									Type: schema.NewNamedType("String").Encode(),
-								},
-								"id": schema.ObjectField{
-									Type: schema.NewNamedType("String").Encode(),
-								},
-							},
-						},
-						"GetTypesArguments": schema.ObjectType{
-							Fields: schema.ObjectTypeFields{
-								"ArrayBigInt": schema.ObjectField{
-									Type: schema.NewArrayType(schema.NewNamedType("BigInt")).Encode(),
-								},
-							},
-						},
-						"GetTypesArgumentsArrayObject": schema.ObjectType{
-							Fields: schema.ObjectTypeFields{
-								"content": schema.ObjectField{
-									Type: schema.NewNamedType("String").Encode(),
-								},
-							},
-						},
-						"GetTypesArgumentsObjectPtr": schema.ObjectType{
-							Fields: schema.ObjectTypeFields{
-								"Lat": schema.ObjectField{
-									Type: schema.NewNamedType("Int32").Encode(),
-								},
-								"Long": schema.ObjectField{
-									Type: schema.NewNamedType("Int32").Encode(),
-								},
-							},
-						},
-						"HelloResult": schema.ObjectType{
-							Fields: schema.ObjectTypeFields{
-								"error": schema.ObjectField{
-									Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
-								},
-								"foo": schema.ObjectField{
-									Type: schema.NewNamedType("Foo").Encode(),
-								},
-								"id": schema.ObjectField{
-									Type: schema.NewNamedType("UUID").Encode(),
-								},
-								"num": schema.ObjectField{
-									Type: schema.NewNamedType("Int32").Encode(),
-								},
-								"text": schema.ObjectField{
-									Type: schema.NewNamedType("String").Encode(),
-								},
-							},
-						},
-					},
-					Functions: []schema.FunctionInfo{
-						{
-							Name:        "getBool",
-							Description: ToPtr("return an scalar boolean"),
-							ResultType:  schema.NewNamedType("Boolean").Encode(),
-							Arguments:   map[string]schema.ArgumentInfo{},
-						},
-						{
-							Name:        "hello",
-							Description: ToPtr("sends a hello message"),
-							ResultType:  schema.NewNullableType(schema.NewNamedType("HelloResult")).Encode(),
-							Arguments:   map[string]schema.ArgumentInfo{},
-						},
-						{
-							Name:        "getArticles",
-							Description: ToPtr("GetArticles"),
-							ResultType:  schema.NewArrayType(schema.NewNamedType("GetArticlesResult")).Encode(),
-							Arguments: map[string]schema.ArgumentInfo{
-								"Limit": {
-									Type: schema.NewNamedType("Float64").Encode(),
-								},
-							},
-						},
-					},
-					Procedures: []schema.ProcedureInfo{
-						{
-							Name:        "create_article",
-							Description: ToPtr("CreateArticle"),
-							ResultType:  schema.NewNullableType(schema.NewNamedType("CreateArticleResult")).Encode(),
-							Arguments: map[string]schema.ArgumentInfo{
-								"author": {
-									Type: schema.NewNamedType("CreateArticleArgumentsAuthor").Encode(),
-								},
-							},
-						},
-						{
-							Name:        "createAuthor",
-							Description: ToPtr("creates an author"),
-							ResultType:  schema.NewNullableType(schema.NewNamedType("CreateAuthorResult")).Encode(),
-							Arguments: map[string]schema.ArgumentInfo{
-								"name": {
-									Type: schema.NewNamedType("String").Encode(),
-								},
-							},
-						},
-						{
-							Name:        "createAuthors",
-							Description: ToPtr("creates a list of authors"),
-							ResultType:  schema.NewArrayType(schema.NewNamedType("CreateAuthorResult")).Encode(),
-							Arguments: map[string]schema.ArgumentInfo{
-								"names": {
-									Type: schema.NewArrayType(schema.NewNamedType("String")).Encode(),
-								},
-							},
-						},
-					},
-					ScalarTypes: schema.SchemaResponseScalarTypes{
-						"BigInt": schema.ScalarType{
-							AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-							ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
-							Representation:      schema.NewTypeRepresentationBigInteger().Encode(),
-						},
-						"JSON": schema.ScalarType{
-							AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-							ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
-							Representation:      schema.NewTypeRepresentationJSON().Encode(),
-						},
-						"TimestampTZ": schema.ScalarType{
-							AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-							ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
-							Representation:      schema.NewTypeRepresentationTimestampTZ().Encode(),
-						},
-						"UUID": schema.ScalarType{
-							AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-							ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
-							Representation:      schema.NewTypeRepresentationUUID().Encode(),
-						},
-					},
-				},
 			},
 			Expected: schema.SchemaResponse{
 				Collections: []schema.CollectionInfo{
@@ -565,6 +565,16 @@ func TestMergeSchemas(t *testing.T) {
 				},
 				Functions: []schema.FunctionInfo{
 					{
+						Name:        "getArticles",
+						Description: ToPtr("GetArticles"),
+						ResultType:  schema.NewArrayType(schema.NewNamedType("GetArticlesResult")).Encode(),
+						Arguments: map[string]schema.ArgumentInfo{
+							"Limit": {
+								Type: schema.NewNamedType("Float64").Encode(),
+							},
+						},
+					},
+					{
 						Name:        "getBool",
 						Description: ToPtr("return an scalar boolean"),
 						ResultType:  schema.NewNamedType("Boolean").Encode(),
@@ -585,34 +595,8 @@ func TestMergeSchemas(t *testing.T) {
 						ResultType:  schema.NewNullableType(schema.NewNamedType("HelloResult")).Encode(),
 						Arguments:   map[string]schema.ArgumentInfo{},
 					},
-					{
-						Name:        "getArticles",
-						Description: ToPtr("GetArticles"),
-						ResultType:  schema.NewArrayType(schema.NewNamedType("GetArticlesResult")).Encode(),
-						Arguments: map[string]schema.ArgumentInfo{
-							"Limit": {
-								Type: schema.NewNamedType("Float64").Encode(),
-							},
-						},
-					},
 				},
 				Procedures: []schema.ProcedureInfo{
-					{
-						Name:        "create_article",
-						Description: ToPtr("CreateArticle"),
-						ResultType:  schema.NewNullableType(schema.NewNamedType("CreateArticleResult")).Encode(),
-						Arguments: map[string]schema.ArgumentInfo{
-							"author": {
-								Type: schema.NewNamedType("CreateArticleArgumentsAuthor").Encode(),
-							},
-						},
-					},
-					{
-						Name:        "increase",
-						Description: ToPtr("Increase"),
-						ResultType:  schema.NewNamedType("Int32").Encode(),
-						Arguments:   map[string]schema.ArgumentInfo{},
-					},
 					{
 						Name:        "createAuthor",
 						Description: ToPtr("creates an author"),
@@ -632,6 +616,22 @@ func TestMergeSchemas(t *testing.T) {
 								Type: schema.NewArrayType(schema.NewNamedType("String")).Encode(),
 							},
 						},
+					},
+					{
+						Name:        "create_article",
+						Description: ToPtr("CreateArticle"),
+						ResultType:  schema.NewNullableType(schema.NewNamedType("CreateArticleResult")).Encode(),
+						Arguments: map[string]schema.ArgumentInfo{
+							"author": {
+								Type: schema.NewNamedType("CreateArticleArgumentsAuthor").Encode(),
+							},
+						},
+					},
+					{
+						Name:        "increase",
+						Description: ToPtr("Increase"),
+						ResultType:  schema.NewNamedType("Int32").Encode(),
+						Arguments:   map[string]schema.ArgumentInfo{},
 					},
 				},
 				ScalarTypes: schema.SchemaResponseScalarTypes{

@@ -273,13 +273,10 @@ func MergeSchemas(schemas ...*schema.SchemaResponse) (*schema.SchemaResponse, []
 	result := schema.SchemaResponse{
 		ObjectTypes: schema.SchemaResponseObjectTypes{},
 		ScalarTypes: schema.SchemaResponseScalarTypes{},
-		Collections: []schema.CollectionInfo{},
-		Functions:   []schema.FunctionInfo{},
-		Procedures:  []schema.ProcedureInfo{},
 	}
-	collectionMap := map[string]bool{}
-	functionMap := map[string]bool{}
-	procedureMap := map[string]bool{}
+	collectionMap := map[string]schema.CollectionInfo{}
+	functionMap := map[string]schema.FunctionInfo{}
+	procedureMap := map[string]schema.ProcedureInfo{}
 
 	for _, s := range schemas {
 		if s == nil {
@@ -288,29 +285,27 @@ func MergeSchemas(schemas ...*schema.SchemaResponse) (*schema.SchemaResponse, []
 		for _, col := range s.Collections {
 			if _, ok := collectionMap[col.Name]; ok {
 				errs = append(errs, fmt.Errorf("collection `%s` exists", col.Name))
-			} else {
-				collectionMap[col.Name] = true
-				result.Collections = append(result.Collections, col)
 			}
+			collectionMap[col.Name] = col
 		}
 
 		for _, fn := range s.Functions {
 			if _, ok := functionMap[fn.Name]; ok {
 				errs = append(errs, fmt.Errorf("function `%s` exists", fn.Name))
-			} else {
-				functionMap[fn.Name] = true
-				result.Functions = append(result.Functions, fn)
 			}
+			functionMap[fn.Name] = fn
 		}
 
 		for _, fn := range s.Procedures {
 			if _, ok := procedureMap[fn.Name]; ok {
 				errs = append(errs, fmt.Errorf("procedure `%s` exists", fn.Name))
-			} else {
-				procedureMap[fn.Name] = true
-				result.Procedures = append(result.Procedures, fn)
 			}
+			procedureMap[fn.Name] = fn
 		}
+
+		result.Collections = GetSortedValuesByKey(collectionMap)
+		result.Functions = GetSortedValuesByKey(functionMap)
+		result.Procedures = GetSortedValuesByKey(procedureMap)
 
 		for k, sl := range s.ScalarTypes {
 			if _, ok := result.ScalarTypes[k]; ok {

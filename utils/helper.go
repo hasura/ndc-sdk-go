@@ -1,11 +1,11 @@
 package utils
 
 import (
+	"cmp"
 	"context"
-	"fmt"
 	"log/slog"
 	"reflect"
-	"sort"
+	"slices"
 )
 
 // GetDefault returns the value or default one if value is empty
@@ -38,8 +38,8 @@ func GetDefaultValuePtr[T comparable](value *T, defaultValue T) T {
 }
 
 // GetKeys gets keys of a map
-func GetKeys[V any](input map[string]V) []string {
-	var results []string
+func GetKeys[K cmp.Ordered, V any](input map[K]V) []K {
+	var results []K
 	for key := range input {
 		results = append(results, key)
 	}
@@ -47,9 +47,22 @@ func GetKeys[V any](input map[string]V) []string {
 }
 
 // GetSortedKeys gets keys of a map and sorts them
-func GetSortedKeys[V any](input map[string]V) []string {
+func GetSortedKeys[K cmp.Ordered, V any](input map[K]V) []K {
 	results := GetKeys(input)
-	sort.Strings(results)
+	slices.Sort(results)
+	return results
+}
+
+// GetSortedValuesByKey gets values of a map and sorts by keys
+func GetSortedValuesByKey[K cmp.Ordered, V any](input map[K]V) []V {
+	if len(input) == 0 {
+		return []V{}
+	}
+	keys := GetSortedKeys(input)
+	results := make([]V, len(input))
+	for i, k := range keys {
+		results[i] = input[k]
+	}
 	return results
 }
 
@@ -65,18 +78,6 @@ func ToPtrs[T any](input []T) []*T {
 		results[i] = &v
 	}
 	return results
-}
-
-// PointersToValues converts the pointer slice to value slice
-func PointersToValues[T any](input []*T) ([]T, error) {
-	results := make([]T, len(input))
-	for i, v := range input {
-		if IsNil(v) {
-			return nil, fmt.Errorf("element at %d must not be nil", i)
-		}
-		results[i] = *v
-	}
-	return results, nil
 }
 
 // UnwrapPointerFromReflectValue unwraps pointers from the reflect value
