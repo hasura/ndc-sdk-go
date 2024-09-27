@@ -476,16 +476,16 @@ var allowedTraceHeaders = []string{
 	"project-id",
 }
 
-func setSpanHeadersAttributes(span traceapi.Span, header http.Header, isDebug bool) {
+func setSpanHeadersAttributes(span traceapi.Span, prefix string, header http.Header, isDebug bool) {
 	for k, h := range header {
 		if len(h) == 0 {
 			continue
 		}
 
 		lowerKey := strings.ToLower(k)
-		attrKey := fmt.Sprintf("header.%s", lowerKey)
+		attrKey := fmt.Sprintf("%s.%s", prefix, lowerKey)
 		if isDebug {
-			span.SetAttributes(attribute.String(attrKey, h[0]))
+			span.SetAttributes(attribute.StringSlice(attrKey, h))
 			continue
 		}
 		for _, allowedKey := range allowedTraceHeaders {
