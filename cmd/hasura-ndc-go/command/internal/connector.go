@@ -5,27 +5,30 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go/token"
 	"io"
 	"os"
 	"path"
 	"runtime/trace"
 	"slices"
-	"sort"
 	"strings"
 
 	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/utils"
 	"github.com/iancoleman/strcase"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/tools/go/packages"
 )
 
 // ConnectorGenerationArguments represent input arguments of the ConnectorGenerator
 type ConnectorGenerationArguments struct {
 	Path         string   `help:"The path of the root directory where the go.mod file is present" short:"p" env:"HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH" default:"."`
 	ConnectorDir string   `help:"The directory where the connector.go file is placed" default:"."`
-	PackageTypes string   `help:"The name of types package where the State struct is in"`
 	Directories  []string `help:"Folders contain NDC operation functions" short:"d"`
 	Trace        string   `help:"Enable tracing and write to target file path."`
+	SchemaFormat string   `help:"The output format for the connector schema. Accept: json, go" enum:"json,go" default:"json"`
 	Style        string   `help:"The naming style for functions and procedures. Accept: camel-case, snake-case" enum:"camel-case,snake-case" default:"camel-case"`
+	TypeOnly     bool     `help:"Generate type only" default:"false"`
 }
 
 type connectorTypeBuilder struct {
@@ -33,6 +36,8 @@ type connectorTypeBuilder struct {
 	packagePath string
 	imports     map[string]string
 	builder     *strings.Builder
+	functions   []FunctionInfo
+	procedures  []ProcedureInfo
 }
 
 // SetImport sets an import package into the import list
@@ -40,18 +45,13 @@ func (ctb *connectorTypeBuilder) SetImport(value string, alias string) {
 	ctb.imports[value] = alias
 }
 
-// GetDecoderName gets the global decoder name
-func (ctb connectorTypeBuilder) GetDecoderName() string {
-	return fmt.Sprintf("%s_Decoder", ctb.packageName)
-}
-
 // String renders generated Go types and methods
 func (ctb connectorTypeBuilder) String() string {
 	var bs strings.Builder
-	bs.WriteString(genFileHeader(ctb.packageName))
+	writeFileHeader(&bs, ctb.packageName)
 	if len(ctb.imports) > 0 {
 		bs.WriteString("import (\n")
-		sortedImports := getSortedKeys(ctb.imports)
+		sortedImports := utils.GetSortedKeys(ctb.imports)
 		for _, pkg := range sortedImports {
 			alias := ctb.imports[pkg]
 			if alias != "" {
@@ -62,28 +62,21 @@ func (ctb connectorTypeBuilder) String() string {
 		bs.WriteString(")\n")
 	}
 
-	decoderName := ctb.GetDecoderName()
-	bs.WriteString(fmt.Sprintf("var %s = utils.NewDecoder()\n", decoderName))
+	bs.WriteString("var connector_Decoder = utils.NewDecoder()\n")
 	bs.WriteString(ctb.builder.String())
 	return bs.String()
 }
 
 type connectorGenerator struct {
-	basePath     string
-	connectorDir string
-	moduleName   string
-	rawSchema    *RawConnectorSchema
-	typeBuilders map[string]*connectorTypeBuilder
-}
-
-func NewConnectorGenerator(basePath string, connectorDir string, moduleName string, rawSchema *RawConnectorSchema) *connectorGenerator {
-	return &connectorGenerator{
-		basePath:     basePath,
-		connectorDir: connectorDir,
-		moduleName:   moduleName,
-		rawSchema:    rawSchema,
-		typeBuilders: make(map[string]*connectorTypeBuilder),
-	}
+	basePath          string
+	connectorDir      string
+	moduleName        string
+	schemaFormat      string
+	rawSchema         *RawConnectorSchema
+	typeBuilders      map[string]*connectorTypeBuilder
+	typeOnly          bool
+	functionHandlers  []string
+	procedureHandlers []string
 }
 
 // ParseAndGenerateConnector parses and generate connector codes
@@ -112,15 +105,61 @@ func ParseAndGenerateConnector(args ConnectorGenerationArguments, moduleName str
 
 	_, genTask := trace.NewTask(context.TODO(), "generate_code")
 	defer genTask.End()
-	connectorGen := NewConnectorGenerator(".", args.ConnectorDir, moduleName, sm)
-	return connectorGen.generateConnector()
-}
 
-func (cg *connectorGenerator) generateConnector() error {
-	// generate schema.generated.json
-	schemaBytes, err := json.MarshalIndent(cg.rawSchema.Schema(), "", "  ")
+	connectorGen := &connectorGenerator{
+		basePath:     ".",
+		connectorDir: args.ConnectorDir,
+		moduleName:   moduleName,
+		schemaFormat: args.SchemaFormat,
+		rawSchema:    sm,
+		typeBuilders: make(map[string]*connectorTypeBuilder),
+		typeOnly:     args.TypeOnly,
+	}
+	connectorPkgName, err := connectorGen.loadConnectorPackage()
 	if err != nil {
 		return err
+	}
+	return connectorGen.generateConnector(connectorPkgName)
+}
+
+func (cg *connectorGenerator) loadConnectorPackage() (string, error) {
+	connectorPath := path.Join(cg.basePath, cg.connectorDir)
+	fset := token.NewFileSet()
+	cfg := &packages.Config{
+		Dir:  connectorPath,
+		Fset: fset,
+	}
+	pkgList, err := packages.Load(cfg)
+	if err != nil {
+		return "", fmt.Errorf("failed to load the package in connector directory: %s", err)
+	}
+
+	if len(pkgList) == 0 || pkgList[0].Name == "" {
+		return "main", nil
+	}
+	return pkgList[0].Name, nil
+}
+
+func (cg *connectorGenerator) generateConnector(name string) error {
+
+	var schemaBytes []byte
+	var err error
+
+	schemaOutputFile := schemaOutputJSONFile
+	if cg.schemaFormat == "go" {
+		schemaOutputFile = schemaOutputGoFile
+		cg.rawSchema.Imports["encoding/json"] = true
+		output, err := cg.rawSchema.WriteGoSchema(name)
+		if err != nil {
+			return err
+		}
+		schemaBytes = []byte(output)
+	} else {
+		// generate schema.generated.json
+		schemaBytes, err = json.MarshalIndent(cg.rawSchema.Schema(), "", "  ")
+		if err != nil {
+			return err
+		}
 	}
 
 	schemaPath := path.Join(cg.basePath, cg.connectorDir, schemaOutputFile)
@@ -128,36 +167,40 @@ func (cg *connectorGenerator) generateConnector() error {
 		return err
 	}
 
-	targetPath := path.Join(cg.basePath, cg.connectorDir, connectorOutputFile)
-	f, err := os.Create(targetPath)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		_ = f.Close()
-	}()
-
-	w := bufio.NewWriter(f)
-	defer func() {
-		_ = w.Flush()
-	}()
-
-	if err := cg.genConnectorCodeFromTemplate(w); err != nil {
-		return err
-	}
-
 	if err := cg.genTypeMethods(); err != nil {
 		return err
+	}
+
+	if !cg.typeOnly {
+		targetPath := path.Join(cg.basePath, cg.connectorDir, connectorOutputFile)
+		f, err := os.Create(targetPath)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			_ = f.Close()
+		}()
+
+		w := bufio.NewWriter(f)
+		defer func() {
+			_ = w.Flush()
+		}()
+
+		if err := cg.genConnectorCodeFromTemplate(w, name); err != nil {
+			return err
+		}
+		_ = w.Flush()
+	}
+
+	if len(cg.rawSchema.Functions) == 0 && len(cg.rawSchema.Procedures) == 0 {
+		log.Warn().Msg("neither function nor procedure is generated. If your project uses Go Workspace please add the root path to the go.work file and update again")
 	}
 
 	return nil
 }
 
-func (cg *connectorGenerator) genConnectorCodeFromTemplate(w io.Writer) error {
-	queries := cg.genConnectorFunctions(cg.rawSchema)
-	procedures := cg.genConnectorProcedures(cg.rawSchema)
-
-	sortedImports := getSortedKeys(cg.rawSchema.Imports)
+func (cg *connectorGenerator) genConnectorCodeFromTemplate(w io.Writer, packageName string) error {
+	sortedImports := utils.GetSortedKeys(cg.rawSchema.Imports)
 
 	importLines := []string{}
 	for _, importPath := range sortedImports {
@@ -165,222 +208,58 @@ func (cg *connectorGenerator) genConnectorCodeFromTemplate(w io.Writer) error {
 	}
 
 	return connectorTemplate.Execute(w, map[string]any{
-		"Imports":    strings.Join(importLines, "\n"),
-		"Module":     cg.moduleName,
-		"Queries":    queries,
-		"Procedures": procedures,
+		"Imports":          strings.Join(importLines, "\n"),
+		"PackageName":      packageName,
+		"StateArgument":    cg.rawSchema.StateType.GetArgumentName(""),
+		"SchemaFormat":     cg.schemaFormat,
+		"QueryHandlers":    cg.renderOperationHandlers(cg.functionHandlers),
+		"MutationHandlers": cg.renderOperationHandlers(cg.procedureHandlers),
 	})
 }
 
-func (cg *connectorGenerator) genConnectorFunctions(rawSchema *RawConnectorSchema) string {
-	if len(rawSchema.Functions) == 0 {
-		return ""
+func (cg *connectorGenerator) renderOperationHandlers(values []string) string {
+	if len(values) == 0 {
+		return "{}"
 	}
-
 	var sb strings.Builder
-	for _, fn := range rawSchema.Functions {
-		if _, ok := cg.rawSchema.Imports[fn.PackagePath]; !ok {
-			cg.rawSchema.Imports[fn.PackagePath] = true
-		}
-		var argumentParamStr string
-		sb.WriteString(fmt.Sprintf("  case \"%s\":", fn.Name))
-		if fn.ResultType.IsScalar {
-			sb.WriteString(`
-    if len(queryFields) > 0 {
-      return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
-    }`)
-		} else if fn.ResultType.IsArray() {
-			sb.WriteString(`
-    selection, err := queryFields.AsArray()
-    if err != nil {
-      return nil, schema.UnprocessableContentError("the selection field type must be array", map[string]any{
-        "cause": err.Error(),
-      })
-    }`)
-		} else {
-			sb.WriteString(`
-    selection, err := queryFields.AsObject()
-    if err != nil {
-      return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
-        "cause": err.Error(),
-      })
-    }`)
+	sb.WriteRune('{')
+	for i, v := range values {
+		if i > 0 {
+			sb.WriteString(", ")
 		}
 
-		if fn.ArgumentsType != nil {
-			argName := fn.ArgumentsType.Name
-			if fn.ArgumentsType.PackagePath != "" {
-				cg.rawSchema.Imports[fn.ArgumentsType.PackagePath] = true
-				argName = fmt.Sprintf("%s.%s", fn.ArgumentsType.PackageName, fn.ArgumentsType.Name)
-			}
-
-			argumentStr := fmt.Sprintf(`
-    rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
-    if err != nil {
-      return nil, schema.UnprocessableContentError("failed to resolve argument variables", map[string]any{
-        "cause": err.Error(),
-      })
-    }
-    
-		connector_addSpanEvent(span, logger, "resolve_arguments", map[string]any{
-			"raw_arguments": rawArgs,
-		})
-		
-    var args %s
-    if err = args.FromValue(rawArgs); err != nil {
-      return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
-        "cause": err.Error(),
-      })
-    }
-		
-		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
-			"arguments": args,
-		})`, argName)
-			sb.WriteString(argumentStr)
-			argumentParamStr = ", &args"
-		}
-
-		if fn.ResultType.IsScalar {
-			sb.WriteString(fmt.Sprintf("\n    return %s.%s(ctx, state%s)\n", fn.PackageName, fn.OriginName, argumentParamStr))
-			continue
-		}
-
-		sb.WriteString(fmt.Sprintf("\n    rawResult, err := %s.%s(ctx, state%s)", fn.PackageName, fn.OriginName, argumentParamStr))
-		genGeneralOperationResult(&sb, fn.ResultType)
-
-		sb.WriteString(`
-		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
-			"raw_result": rawResult,
-		})`)
-		if fn.ResultType.IsArray() {
-			sb.WriteString("\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)")
-		} else {
-			sb.WriteString("\n    result, err := utils.EvalNestedColumnObject(selection, rawResult)")
-		}
-		sb.WriteString(textBlockErrorCheck2)
-		sb.WriteString("    return result, nil\n")
+		sb.WriteString(v)
+		sb.WriteString(".DataConnectorHandler{}")
 	}
 
-	return sb.String()
-}
-
-func genGeneralOperationResult(sb *strings.Builder, resultType *TypeInfo) {
-	sb.WriteString(textBlockErrorCheck2)
-	if resultType.IsNullable() {
-		sb.WriteString(`
-    if rawResult == nil {
-      return nil, nil
-    }
-`)
-	} else {
-		sb.WriteString(`
-    if rawResult == nil {
-      return nil, schema.UnprocessableContentError("expected not null result", nil)
-    }
-`)
-	}
-}
-
-func (cg *connectorGenerator) genConnectorProcedures(rawSchema *RawConnectorSchema) string {
-	if len(rawSchema.Procedures) == 0 {
-		return ""
-	}
-
-	cg.rawSchema.Imports["encoding/json"] = true
-
-	var sb strings.Builder
-	for _, fn := range rawSchema.Procedures {
-		if _, ok := cg.rawSchema.Imports[fn.PackagePath]; !ok {
-			cg.rawSchema.Imports[fn.PackagePath] = true
-		}
-		var argumentParamStr string
-		sb.WriteString(fmt.Sprintf("  case \"%s\":", fn.Name))
-		if fn.ResultType.IsScalar {
-			sb.WriteString(`
-    if len(operation.Fields) > 0 {
-      return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
-    }`)
-		} else if fn.ResultType.IsArray() {
-			sb.WriteString(`
-    selection, err := operation.Fields.AsArray()
-    if err != nil {
-      return nil, schema.UnprocessableContentError("the selection field type must be array", map[string]any{
-        "cause": err.Error(),
-      })
-    }`)
-		} else {
-			sb.WriteString(`
-    selection, err := operation.Fields.AsObject()
-    if err != nil {
-      return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
-        "cause": err.Error(),
-      })
-    }`)
-		}
-		if fn.ArgumentsType != nil {
-			argName := fn.ArgumentsType.Name
-			if fn.ArgumentsType.PackagePath != "" {
-				cg.rawSchema.Imports[fn.ArgumentsType.PackagePath] = true
-				argName = fmt.Sprintf("%s.%s", fn.ArgumentsType.PackageName, fn.ArgumentsType.Name)
-			}
-
-			argumentStr := fmt.Sprintf(`
-    var args %s
-    if err := json.Unmarshal(operation.Arguments, &args); err != nil {
-      return nil, schema.UnprocessableContentError("failed to decode arguments", map[string]any{
-        "cause": err.Error(),
-      })
-    }`, argName)
-			sb.WriteString(argumentStr)
-			argumentParamStr = ", &args"
-		}
-
-		sb.WriteString("\n    span.AddEvent(\"execute_procedure\")")
-		if fn.ResultType.IsScalar {
-			sb.WriteString(fmt.Sprintf(`
-    var err error
-    result, err := %s.%s(ctx, state%s)`, fn.PackageName, fn.OriginName, argumentParamStr))
-		} else {
-			sb.WriteString(fmt.Sprintf("\n    rawResult, err := %s.%s(ctx, state%s)\n", fn.PackageName, fn.OriginName, argumentParamStr))
-			genGeneralOperationResult(&sb, fn.ResultType)
-
-			sb.WriteString(`    connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
-			"raw_result": rawResult,
-		})`)
-			if fn.ResultType.IsArray() {
-				sb.WriteString("\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)\n")
-			} else {
-				sb.WriteString("\n    result, err := utils.EvalNestedColumnObject(selection, rawResult)\n")
-			}
-		}
-
-		sb.WriteString(textBlockErrorCheck2)
-		sb.WriteString("    return schema.NewProcedureResult(result).Encode(), nil\n")
-	}
-
+	sb.WriteRune('}')
 	return sb.String()
 }
 
 // generate encoding and decoding methods for schema types
 func (cg *connectorGenerator) genTypeMethods() error {
-	if err := cg.genFunctionArgumentConstructors(); err != nil {
-		return err
-	}
+	cg.genFunctionArgumentConstructors()
 	if err := cg.genObjectMethods(); err != nil {
 		return err
 	}
 	if err := cg.genCustomScalarMethods(); err != nil {
 		return err
 	}
+	cg.genConnectorHandlers()
 
 	log.Debug().Msg("Generating types...")
 	for packagePath, builder := range cg.typeBuilders {
+		if !strings.HasPrefix(packagePath, cg.moduleName) {
+			continue
+		}
 		relativePath := strings.TrimPrefix(packagePath, cg.moduleName)
 		schemaPath := path.Join(cg.basePath, relativePath, typeMethodsOutputFile)
 		log.Debug().
 			Str("package_name", builder.packageName).
-			Str("package_path", builder.packagePath).
+			Str("package_path", packagePath).
+			Str("module_name", cg.moduleName).
 			Msgf(schemaPath)
+
 		if err := os.WriteFile(schemaPath, []byte(builder.String()), 0644); err != nil {
 			return err
 		}
@@ -394,20 +273,20 @@ func (cg *connectorGenerator) genObjectMethods() error {
 		return nil
 	}
 
-	objectKeys := getSortedKeys(cg.rawSchema.Objects)
+	objectKeys := utils.GetSortedKeys(cg.rawSchema.Objects)
 
 	for _, objectName := range objectKeys {
 		object := cg.rawSchema.Objects[objectName]
-		if object.IsAnonymous || !strings.HasPrefix(object.PackagePath, cg.moduleName) {
+		if object.IsAnonymous || !strings.HasPrefix(object.Type.PackagePath, cg.moduleName) {
 			continue
 		}
-		sb := cg.getOrCreateTypeBuilder(object.PackagePath)
+		sb := cg.getOrCreateTypeBuilder(object.Type.PackagePath)
 		sb.builder.WriteString(fmt.Sprintf(`
 // ToMap encodes the struct to a value map
 func (j %s) ToMap() map[string]any {
   r := make(map[string]any)
-`, objectName))
-		cg.genObjectToMap(sb, object, "j", "r")
+`, object.Type.Name))
+		cg.genObjectToMap(sb, &object, "j", "r")
 		sb.builder.WriteString(`
 	return r
 }`)
@@ -418,12 +297,12 @@ func (j %s) ToMap() map[string]any {
 
 func (cg *connectorGenerator) genObjectToMap(sb *connectorTypeBuilder, object *ObjectInfo, selector string, name string) {
 
-	fieldKeys := getSortedKeys(object.Fields)
+	fieldKeys := utils.GetSortedKeys(object.Fields)
 	for _, fieldKey := range fieldKeys {
 		field := object.Fields[fieldKey]
 		fieldSelector := fmt.Sprintf("%s.%s", selector, field.Name)
-		fieldAssigner := fmt.Sprintf("%s[\"%s\"]", name, field.Key)
-		cg.genToMapProperty(sb, field, fieldSelector, fieldAssigner, field.Type, field.Type.TypeFragments)
+		fieldAssigner := fmt.Sprintf("%s[\"%s\"]", name, fieldKey)
+		cg.genToMapProperty(sb, &field, fieldSelector, fieldAssigner, field.Type, field.Type.TypeFragments)
 	}
 }
 
@@ -453,26 +332,30 @@ func (cg *connectorGenerator) genToMapProperty(sb *connectorTypeBuilder, field *
 	}
 
 	isAnonymous := strings.HasPrefix(strings.Join(fragments, ""), "struct{")
-	if !isAnonymous {
-		sb.builder.WriteString(fmt.Sprintf(`  %s = %s
-		`, assigner, selector))
+	if isAnonymous {
+		innerObject, ok := cg.rawSchema.Objects[ty.String()]
+		if !ok {
+			tyName := buildTypeNameFromFragments(ty.TypeFragments, ty.PackagePath, sb.packagePath)
+			innerObject, ok = cg.rawSchema.Objects[tyName]
+			if !ok {
+				return selector
+			}
+		}
+
+		// anonymous struct
+		varName := formatLocalFieldName(selector, "obj")
+		sb.builder.WriteString(fmt.Sprintf("  %s := make(map[string]any)\n", varName))
+		cg.genObjectToMap(sb, &innerObject, selector, varName)
+		sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, varName))
+		return varName
+	}
+	if !field.Type.Embedded {
+		sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, selector))
 		return selector
 	}
-	innerObject, ok := cg.rawSchema.Objects[ty.Name]
-	if !ok {
-		tyName := buildTypeNameFromFragments(ty.TypeFragments, ty.PackagePath, sb.packagePath)
-		innerObject, ok = cg.rawSchema.Objects[tyName]
-		if !ok {
-			return selector
-		}
-	}
 
-	// anonymous struct
-	varName := formatLocalFieldName(selector, "obj")
-	sb.builder.WriteString(fmt.Sprintf("  %s := make(map[string]any)\n", varName))
-	cg.genObjectToMap(sb, innerObject, selector, varName)
-	sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, varName))
-	return varName
+	sb.builder.WriteString(fmt.Sprintf("  r = utils.MergeMap(r, %s.ToMap())\n", selector))
+	return selector
 }
 
 // generate Scalar implementation for custom scalar types
@@ -481,7 +364,7 @@ func (cg *connectorGenerator) genCustomScalarMethods() error {
 		return nil
 	}
 
-	scalarKeys := getSortedKeys(cg.rawSchema.CustomScalars)
+	scalarKeys := utils.GetSortedKeys(cg.rawSchema.CustomScalars)
 
 	for _, scalarKey := range scalarKeys {
 		scalar := cg.rawSchema.CustomScalars[scalarKey]
@@ -573,32 +456,40 @@ func (s *%s) FromValue(value any) error {
 	return nil
 }
 
-func (cg *connectorGenerator) genFunctionArgumentConstructors() error {
+func (cg *connectorGenerator) genFunctionArgumentConstructors() {
 	if len(cg.rawSchema.Functions) == 0 {
-		return nil
+		return
 	}
 
-	for _, fn := range cg.rawSchema.Functions {
-		if len(fn.Arguments) == 0 || fn.ArgumentsType == nil {
-			continue
-		}
-		sb := cg.getOrCreateTypeBuilder(fn.ArgumentsType.PackagePath)
-		sb.builder.WriteString(fmt.Sprintf(`
+	writtenObjects := make(map[string]bool)
+	fnKeys := utils.GetSortedKeys(cg.rawSchema.FunctionArguments)
+	for _, k := range fnKeys {
+		argInfo := cg.rawSchema.FunctionArguments[k]
+		writtenObjects[argInfo.Type.String()] = true
+		cg.writeObjectFromValue(&argInfo)
+	}
+}
+
+func (cg *connectorGenerator) writeObjectFromValue(info *ObjectInfo) {
+	if len(info.Fields) == 0 || info.Type == nil || info.IsAnonymous {
+		return
+	}
+
+	sb := cg.getOrCreateTypeBuilder(info.Type.PackagePath)
+	sb.builder.WriteString(`
 // FromValue decodes values from map
-func (j *%s) FromValue(input map[string]any) error {
+func (j *`)
+	sb.builder.WriteString(info.Type.Name)
+	sb.builder.WriteString(`) FromValue(input map[string]any) error {
   var err error
-`, fn.ArgumentsType.Name))
-
-		argumentKeys := getSortedKeys(fn.Arguments)
-		for _, key := range argumentKeys {
-			arg := fn.Arguments[key]
-			cg.genGetTypeValueDecoder(sb, arg.Type, key, arg.FieldName)
-		}
-		sb.builder.WriteString(`  return nil
-}`)
+`)
+	argumentKeys := utils.GetSortedKeys(info.Fields)
+	for _, key := range argumentKeys {
+		arg := info.Fields[key]
+		cg.genGetTypeValueDecoder(sb, arg.Type, key, arg.Name)
 	}
-
-	return nil
+	sb.builder.WriteString("  return nil\n}")
+	return
 }
 
 func (cg *connectorGenerator) getOrCreateTypeBuilder(packagePath string) *connectorTypeBuilder {
@@ -619,10 +510,36 @@ func (cg *connectorGenerator) getOrCreateTypeBuilder(packagePath string) *connec
 	return bs
 }
 
-func genFileHeader(packageName string) string {
-	return fmt.Sprintf(`// Code generated by github.com/hasura/ndc-sdk-go/codegen, DO NOT EDIT.
-package %s
-`, packageName)
+func (cg *connectorGenerator) genConnectorHandlers() {
+	for _, fn := range cg.rawSchema.Functions {
+		builder := cg.getOrCreateTypeBuilder(fn.PackagePath)
+		builder.functions = append(builder.functions, fn)
+	}
+	for _, fn := range cg.rawSchema.Procedures {
+		builder := cg.getOrCreateTypeBuilder(fn.PackagePath)
+		builder.procedures = append(builder.procedures, fn)
+	}
+
+	for _, bs := range cg.typeBuilders {
+		fnLen := len(bs.functions)
+		procLen := len(bs.procedures)
+		if fnLen == 0 && procLen == 0 {
+			continue
+		}
+		cg.rawSchema.Imports[bs.packagePath] = true
+		if fnLen > 0 {
+			cg.functionHandlers = append(cg.functionHandlers, bs.packageName)
+		}
+		if procLen > 0 {
+			cg.procedureHandlers = append(cg.procedureHandlers, bs.packageName)
+		}
+		(&connectorHandlerBuilder{
+			Builder:    bs,
+			RawSchema:  cg.rawSchema,
+			Functions:  bs.functions,
+			Procedures: bs.procedures,
+		}).Render()
+	}
 }
 
 func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, ty *TypeInfo, key string, fieldName string) {
@@ -767,17 +684,39 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 		if ty.IsNullable() {
 			typeName := strings.TrimLeft(typeName, "*")
 			pkgName, tyName, ok := findAndReplaceNativeScalarPackage(typeName)
-			if !ok {
+			if !ok && len(ty.TypeFragments) > 0 {
 				pkgName = ty.PackagePath
 				tyName = buildTypeNameFromFragments(ty.TypeFragments[1:], ty.PackagePath, sb.packagePath)
 			}
 			if pkgName != "" && pkgName != sb.packagePath {
 				sb.imports[pkgName] = ""
 			}
-			sb.builder.WriteString(fmt.Sprintf(`  j.%s = new(%s)
-  err = %s.DecodeNullableObjectValue(j.%s, input, "%s")`, fieldName, tyName, sb.GetDecoderName(), fieldName, key))
+			sb.builder.WriteString("  j.")
+			sb.builder.WriteString(fieldName)
+			sb.builder.WriteString(" = new(")
+			sb.builder.WriteString(tyName)
+			sb.builder.WriteString(")\n  err = connector_Decoder.")
+			if ty.Embedded {
+				sb.builder.WriteString("DecodeObject(j.")
+				sb.builder.WriteString(fieldName)
+				sb.builder.WriteString(", input)")
+			} else {
+				sb.builder.WriteString("DecodeNullableObjectValue(j.")
+				sb.builder.WriteString(fieldName)
+				sb.builder.WriteString(`, input, "`)
+				sb.builder.WriteString(key)
+				sb.builder.WriteString(`")`)
+			}
+		} else if ty.Embedded {
+			sb.builder.WriteString("  err = connector_Decoder.DecodeObject(&j.")
+			sb.builder.WriteString(fieldName)
+			sb.builder.WriteString(", input)")
 		} else {
-			sb.builder.WriteString(fmt.Sprintf(`  err = %s.DecodeObjectValue(&j.%s, input, "%s")`, sb.GetDecoderName(), fieldName, key))
+			sb.builder.WriteString("  err = connector_Decoder.DecodeObjectValue(&j.")
+			sb.builder.WriteString(fieldName)
+			sb.builder.WriteString(`, input, "`)
+			sb.builder.WriteString(key)
+			sb.builder.WriteString(`")`)
 		}
 	}
 	sb.builder.WriteString(textBlockErrorCheck)
@@ -806,15 +745,6 @@ func buildTypeWithAlias(name string, typePackagePath string, currentPackagePath 
 	parts := strings.Split(typePackagePath, "/")
 	alias := parts[len(parts)-1]
 	return fmt.Sprintf("%s.%s", alias, name)
-}
-
-func getSortedKeys[V any](input map[string]V) []string {
-	var results []string
-	for key := range input {
-		results = append(results, key)
-	}
-	sort.Strings(results)
-	return results
 }
 
 func formatLocalFieldName(input string, others ...string) string {

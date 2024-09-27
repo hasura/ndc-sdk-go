@@ -1,37 +1,10 @@
 package internal
 
 import (
-	_ "embed"
-	"fmt"
 	"regexp"
-	"text/template"
 
 	"github.com/hasura/ndc-sdk-go/schema"
-	"github.com/iancoleman/strcase"
 )
-
-const (
-	connectorOutputFile   = "connector.generated.go"
-	schemaOutputFile      = "schema.generated.json"
-	typeMethodsOutputFile = "types.generated.go"
-)
-
-//go:embed templates/connector/connector.go.tmpl
-var connectorTemplateStr string
-var connectorTemplate *template.Template
-
-func init() {
-	var err error
-	connectorTemplate, err = template.New(connectorOutputFile).Parse(connectorTemplateStr)
-	if err != nil {
-		panic(fmt.Errorf("failed to parse connector template: %s", err))
-	}
-
-	strcase.ConfigureAcronym("API", "Api")
-	strcase.ConfigureAcronym("REST", "Rest")
-	strcase.ConfigureAcronym("HTTP", "Http")
-	strcase.ConfigureAcronym("SQL", "sql")
-}
 
 type ScalarName string
 

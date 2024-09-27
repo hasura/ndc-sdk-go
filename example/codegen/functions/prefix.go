@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -48,12 +47,10 @@ func FunctionHello(ctx context.Context, state *types.State) (*HelloResult, error
 
 // A create author argument
 type CreateAuthorArguments struct {
-	Name string `json:"name"`
+	BaseAuthor
 }
-
-// A create authors argument
 type CreateAuthorsArguments struct {
-	Names []string `json:"names"`
+	Authors []CreateAuthorArguments
 }
 
 // A create author result
@@ -73,12 +70,14 @@ func ProcedureCreateAuthor(ctx context.Context, state *types.State, arguments *C
 
 // ProcedureCreateAuthors creates a list of authors
 func ProcedureCreateAuthors(ctx context.Context, state *types.State, arguments *CreateAuthorsArguments) ([]CreateAuthorResult, error) {
-	return []CreateAuthorResult{
-		{
-			ID:   1,
-			Name: strings.Join(arguments.Names, ","),
-		},
-	}, nil
+	results := make([]CreateAuthorResult, len(arguments.Authors))
+	for i, arg := range arguments.Authors {
+		results[i] = CreateAuthorResult{
+			ID:   i,
+			Name: arg.Name,
+		}
+	}
+	return results, nil
 }
 
 // FunctionGetBool return an scalar boolean
@@ -88,4 +87,37 @@ func FunctionGetBool(ctx context.Context, state *types.State) (bool, error) {
 
 func FunctionGetTypes(ctx context.Context, state *types.State, arguments *arguments.GetTypesArguments) (*arguments.GetTypesArguments, error) {
 	return arguments, nil
+}
+
+type BaseAuthor struct {
+	Name string `json:"name"`
+}
+
+type GetAuthorArguments struct {
+	*BaseAuthor
+
+	ID string `json:"id"`
+}
+
+type GetAuthorResult struct {
+	*CreateAuthorResult
+
+	Disabled bool `json:"disabled"`
+}
+
+func FunctionGetAuthor(ctx context.Context, state *types.State, arguments *GetAuthorArguments) (*GetAuthorResult, error) {
+	return &GetAuthorResult{
+		CreateAuthorResult: &CreateAuthorResult{
+			ID:   1,
+			Name: arguments.Name,
+		},
+		Disabled: false,
+	}, nil
+}
+
+func FunctionGetAuthor2(ctx context.Context, state *types.State, arguments *GetAuthorArguments) (types.GetAuthorResult, error) {
+	return types.GetAuthorResult{
+		ID:   1,
+		Name: arguments.Name,
+	}, nil
 }

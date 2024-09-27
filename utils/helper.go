@@ -1,8 +1,12 @@
 package utils
 
 import (
+	"cmp"
+	"context"
 	"fmt"
+	"log/slog"
 	"reflect"
+	"slices"
 )
 
 // GetDefault returns the value or default one if value is empty
@@ -34,6 +38,35 @@ func GetDefaultValuePtr[T comparable](value *T, defaultValue T) T {
 	return *value
 }
 
+// GetKeys gets keys of a map
+func GetKeys[K cmp.Ordered, V any](input map[K]V) []K {
+	var results []K
+	for key := range input {
+		results = append(results, key)
+	}
+	return results
+}
+
+// GetSortedKeys gets keys of a map and sorts them
+func GetSortedKeys[K cmp.Ordered, V any](input map[K]V) []K {
+	results := GetKeys(input)
+	slices.Sort(results)
+	return results
+}
+
+// GetSortedValuesByKey gets values of a map and sorts by keys
+func GetSortedValuesByKey[K cmp.Ordered, V any](input map[K]V) []V {
+	if len(input) == 0 {
+		return []V{}
+	}
+	keys := GetSortedKeys(input)
+	results := make([]V, len(input))
+	for i, k := range keys {
+		results[i] = input[k]
+	}
+	return results
+}
+
 // ToPtr converts a value to its pointer
 func ToPtr[V any](value V) *V {
 	return &value
@@ -42,7 +75,8 @@ func ToPtr[V any](value V) *V {
 // ToPtrs converts the value slice to pointer slice
 func ToPtrs[T any](input []T) []*T {
 	results := make([]*T, len(input))
-	for i, v := range input {
+	for i := range input {
+		v := input[i]
 		results[i] = &v
 	}
 	return results
@@ -82,4 +116,21 @@ func UnwrapPointerFromAny(value any) (any, bool) {
 		return nil, false
 	}
 	return reflectValue.Interface(), true
+}
+
+// IsDebug checks if the log level is debug
+func IsDebug(logger *slog.Logger) bool {
+	return logger.Enabled(context.TODO(), slog.LevelDebug)
+}
+
+// MergeMap merges two value maps into one
+func MergeMap[K comparable, V any](dest map[K]V, src map[K]V) map[K]V {
+	result := dest
+	if result == nil {
+		result = map[K]V{}
+	}
+	for k, v := range src {
+		result[k] = v
+	}
+	return result
 }

@@ -3,16 +3,49 @@
   "functions": [
     {
       "arguments": {
-        "Author": {
-          "type": {
-            "name": "Author",
-            "type": "named"
-          }
-        },
         "Limit": {
           "type": {
             "name": "Float64",
             "type": "named"
+          }
+        },
+        "author": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Author",
+              "type": "named"
+            }
+          }
+        },
+        "created_at": {
+          "type": {
+            "name": "TimestampTZ",
+            "type": "named"
+          }
+        },
+        "id": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        },
+        "status": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "tags": {
+          "type": {
+            "element_type": {
+              "name": "String",
+              "type": "named"
+            },
+            "type": "array"
           }
         }
       },
@@ -51,6 +84,15 @@
             "type": "named"
           }
         },
+        "status": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
         "tags": {
           "type": {
             "element_type": {
@@ -64,9 +106,18 @@
     },
     "GetArticlesResult": {
       "fields": {
-        "Author": {
+        "author": {
           "type": {
-            "name": "Author",
+            "type": "nullable",
+            "underlying_type": {
+              "name": "Author",
+              "type": "named"
+            }
+          }
+        },
+        "created_at": {
+          "type": {
+            "name": "TimestampTZ",
             "type": "named"
           }
         },
@@ -74,6 +125,24 @@
           "type": {
             "name": "String",
             "type": "named"
+          }
+        },
+        "status": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "String",
+              "type": "named"
+            }
+          }
+        },
+        "tags": {
+          "type": {
+            "element_type": {
+              "name": "String",
+              "type": "named"
+            },
+            "type": "array"
           }
         }
       }

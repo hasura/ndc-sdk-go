@@ -2,16 +2,16 @@
 package main
 
 import (
-	"context"
-	_ "embed"
-	"fmt"
+  "context"
+  _ "embed"
+  "fmt"
 	"log/slog"
 
-	"encoding/json"
-	"github.com/hasura/ndc-codegen-example/functions"
-	"github.com/hasura/ndc-codegen-example/types"
-	"github.com/hasura/ndc-sdk-go/schema"
-	"github.com/hasura/ndc-sdk-go/utils"
+  "encoding/json"
+"github.com/hasura/ndc-codegen-test/functions"
+"github.com/hasura/ndc-codegen-test/types"
+  "github.com/hasura/ndc-sdk-go/schema"
+  "github.com/hasura/ndc-sdk-go/utils"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -21,26 +21,28 @@ var schemaResponse *schema.RawSchemaResponse
 var connectorQueryHandlers = []ConnectorQueryHandler{functions.DataConnectorHandler{}}
 var connectorMutationHandlers = []ConnectorMutationHandler{functions.DataConnectorHandler{}}
 
-// ConnectorQueryHandler abstracts the connector query handler
+// ConnectorQueryHandler abstracts the connector query handler 
 type ConnectorQueryHandler interface {
 	Query(ctx context.Context, state *types.State, request *schema.QueryRequest, arguments map[string]any) (*schema.RowSet, error)
 }
 
-// ConnectorMutationHandler abstracts the connector mutation handler
+// ConnectorMutationHandler abstracts the connector mutation handler 
 type ConnectorMutationHandler interface {
 	Mutation(ctx context.Context, state *types.State, request *schema.MutationOperation) (schema.MutationOperationResults, error)
 }
 
+
 func init() {
 	rawSchema, err := json.Marshal(GetConnectorSchema())
-	if err != nil {
-		panic(err)
-	}
+  if err != nil {
+    panic(err)
+  }
 	schemaResponse, err = schema.NewRawSchemaResponse(rawSchema)
 	if err != nil {
 		panic(err)
 	}
 }
+
 
 // GetSchema gets the connector's schema.
 func (c *Connector) GetSchema(ctx context.Context, configuration *types.Configuration, _ *types.State) (schema.SchemaResponseMarshaler, error) {

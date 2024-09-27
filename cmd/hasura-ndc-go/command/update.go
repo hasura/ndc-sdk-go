@@ -16,7 +16,6 @@ func UpdateConnectorSchema(args UpdateArguments, start time.Time) {
 	log.Info().
 		Str("path", args.Path).
 		Str("connector_dir", args.ConnectorDir).
-		Str("package_types", args.PackageTypes).
 		Msg("generating connector schema...")
 
 	moduleName, err := getModuleName(args.Path)

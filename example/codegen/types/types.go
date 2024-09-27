@@ -39,9 +39,19 @@ func (ct *CommentText) FromValue(value any) (err error) {
 // @enum foo, bar
 type SomeEnum string
 
+// AuthorStatus
+// @enum active, inactive
+type AuthorStatus string
+
 type Author struct {
-	ID        string    `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	Tags      []string  `json:"tags"`
-	Author    *Author   `json:"author"`
+	ID        string        `json:"id"`
+	CreatedAt time.Time     `json:"created_at"`
+	Tags      []string      `json:"tags"`
+	Status    *AuthorStatus `json:"status"`
+	Author    *Author       `json:"author"`
+}
+
+type GetAuthorResult struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }

@@ -22,22 +22,26 @@ go install github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go@latest
 
 ```bash
 ❯ hasura-ndc-go -h
-Usage: hasura-ndc-go <command>
+Usage: hasura-ndc-go <command> [flags]
 
 Flags:
-  -h, --help    Show context-sensitive help.
+  -h, --help                Show context-sensitive help.
+      --log-level="info"    Log level ($HASURA_PLUGIN_LOG_LEVEL).
 
 Commands:
-  new --name=STRING --module=STRING
+  new --name=STRING --module=STRING [flags]
     Initialize an NDC connector boilerplate. For example:
 
         hasura-ndc-go new -n example -m github.com/foo/example
 
-  update
+  update [flags]
     Generate schema and implementation for the connector from functions.
 
-  test snapshots
+  generate snapshots [flags]
     Generate test snapshots.
+
+  version [flags]
+    Print the CLI version.
 ```
 
 ### Initialize connector project
@@ -59,6 +63,9 @@ hasura-ndc-go new -n example -m github.com/foo/example -o .
 ```
 
 ### Generate queries and mutations
+
+> [!IMPORTANT]
+> If neither function nor procedure is generated your project may use Go workspace. You need to add the submodule path to the `go.work` file.
 
 The `update` command parses code in the `functions` folder, finds functions and types that are allowed to be exposed and generates the following files:
 

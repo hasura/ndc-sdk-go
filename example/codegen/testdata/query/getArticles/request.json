@@ -1,8 +1,12 @@
 {
   "arguments": {
+    "name": {
+      "type": "literal",
+      "value": "foo"
+    },
     "Limit": {
       "type": "literal",
-      "value": 0.6437828488913296
+      "value": 10
     }
   },
   "collection": "getArticles",

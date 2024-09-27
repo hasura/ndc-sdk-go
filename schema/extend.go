@@ -122,30 +122,6 @@ func (j *Argument) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// NewLiteralArgument creates an argument with a literal value
-//
-// Deprecated: use [NewArgumentLiteral] instead
-//
-// [NewArgumentLiteral]: https://pkg.go.dev/github.com/hasura/ndc-sdk-go/schema#NewArgumentLiteral
-func NewLiteralArgument(value any) *Argument {
-	return &Argument{
-		Type:  ArgumentTypeLiteral,
-		Value: value,
-	}
-}
-
-// NewVariableArgument creates an argument with a variable name
-//
-// Deprecated: use [NewArgumentVariable] instead
-//
-// [NewArgumentVariable]: https://pkg.go.dev/github.com/hasura/ndc-sdk-go/schema#NewArgumentVariable
-func NewVariableArgument(name string) *Argument {
-	return &Argument{
-		Type: ArgumentTypeVariable,
-		Name: name,
-	}
-}
-
 // AsLiteral converts the instance to ArgumentLiteral
 func (j Argument) AsLiteral() (*ArgumentLiteral, error) {
 	if j.Type != ArgumentTypeLiteral {

@@ -14,41 +14,6 @@ type MapEncoder interface {
 	ToMap() map[string]any
 }
 
-// EncodeMap encodes an object to a map[string]any, using json tag to convert object keys
-//
-// Deprecated: use EncodeObject instead
-func EncodeMap[T MapEncoder](input T) map[string]any {
-	if IsNil(input) {
-		return nil
-	}
-	return input.ToMap()
-}
-
-// EncodeMaps encode objects to a slice of map[string]any, using json tag to convert object keys
-//
-// Deprecated: use EncodeObjectSlice instead
-func EncodeMaps[T MapEncoder](inputs []T) []map[string]any {
-	var results []map[string]any
-	for _, item := range inputs {
-		results = append(results, item.ToMap())
-	}
-	return results
-}
-
-// EncodeNullableMaps encode objects to a slice of map[string]any, using json tag to convert object keys
-//
-// Deprecated: use EncodeNullableObjectSlice instead
-func EncodeNullableMaps[T MapEncoder](inputs *[]T) []map[string]any {
-	if inputs == nil {
-		return nil
-	}
-	var results []map[string]any
-	for _, item := range *inputs {
-		results = append(results, item.ToMap())
-	}
-	return results
-}
-
 // EncodeObject encodes an unknown type to a map[string]any, using json tag to convert object keys
 func EncodeObject(input any) (map[string]any, error) {
 	if IsNil(input) {

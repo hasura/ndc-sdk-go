@@ -2,6 +2,7 @@ package command
 
 import (
 	"bufio"
+	"bytes"
 	"embed"
 	"fmt"
 	"io/fs"
@@ -141,12 +142,15 @@ func execCommand(basePath string, commandName string, args ...string) error {
 	if basePath != "" {
 		cmd.Dir = basePath
 	}
+	l := log.With().Strs("args", args).Str("command", commandName).Logger()
+	var errBuf bytes.Buffer
+	cmd.Stderr = &errBuf
 	out, err := cmd.Output()
-	l := log.Debug()
 	if err != nil {
-		l = log.Error().Err(err)
+		l.Error().Err(fmt.Errorf(errBuf.String())).Msg(err.Error())
+	} else {
+		l.Debug().Str("logs", errBuf.String()).Msg(string(out))
 	}
-	l.Strs("args", args).Str("result", string(out)).Msg(commandName)
 	return err
 }
 

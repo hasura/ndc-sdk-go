@@ -356,15 +356,15 @@ func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, 
 
 func (s *Server[Configuration, State]) buildHandler() *http.ServeMux {
 	router := newRouter(s.logger, s.telemetry, !s.withoutRecovery)
-	router.Use("/capabilities", http.MethodGet, s.withAuth(s.GetCapabilities))
-	router.Use("/schema", http.MethodGet, s.withAuth(s.GetSchema))
-	router.Use("/query", http.MethodPost, s.withAuth(s.Query))
-	router.Use("/query/explain", http.MethodPost, s.withAuth(s.QueryExplain))
-	router.Use("/mutation/explain", http.MethodPost, s.withAuth(s.MutationExplain))
-	router.Use("/mutation", http.MethodPost, s.withAuth(s.Mutation))
-	router.Use("/health", http.MethodGet, s.Health)
+	router.Use(apiPathCapabilities, http.MethodGet, s.withAuth(s.GetCapabilities))
+	router.Use(apiPathSchema, http.MethodGet, s.withAuth(s.GetSchema))
+	router.Use(apiPathQuery, http.MethodPost, s.withAuth(s.Query))
+	router.Use(apiPathQueryExplain, http.MethodPost, s.withAuth(s.QueryExplain))
+	router.Use(apiPathMutationExplain, http.MethodPost, s.withAuth(s.MutationExplain))
+	router.Use(apiPathMutation, http.MethodPost, s.withAuth(s.Mutation))
+	router.Use(apiPathHealth, http.MethodGet, s.Health)
 	if s.options.MetricsExporter == string(otelMetricsExporterPrometheus) && s.options.PrometheusPort == nil {
-		router.Use("/metrics", http.MethodGet, s.withAuth(promhttp.Handler().ServeHTTP))
+		router.Use(apiPathMetrics, http.MethodGet, s.withAuth(promhttp.Handler().ServeHTTP))
 	}
 
 	return router.Build()

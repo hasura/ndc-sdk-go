@@ -261,6 +261,7 @@ func TestQueryGetTypes(t *testing.T) {
 						"value": {
 							"id": "1",
 							"duration": 10,
+							"tags": [],
 							"created_at": "2024-03-05T05:00:00Z"
 						}
 					},
@@ -269,6 +270,7 @@ func TestQueryGetTypes(t *testing.T) {
 						"value": {
 							"id": "2",
 							"duration": 11,
+							"tags": [],
 							"created_at": "2024-03-05T04:00:00Z"
 						}
 					},
@@ -278,6 +280,7 @@ func TestQueryGetTypes(t *testing.T) {
 							{
 								"id": "3",
 								"duration": 12,
+								"tags": [],
 								"created_at": "2024-03-05T03:00:00Z"
 							}
 						]
@@ -287,6 +290,7 @@ func TestQueryGetTypes(t *testing.T) {
 						"value": [
 							{
 								"created_at": "2024-03-05T02:00:00Z",
+								"tags": [],
 								"id": "bPgG5cs38N"
 							}
 						]
@@ -1667,6 +1671,10 @@ func TestQueries(t *testing.T) {
 					}
 				},
 				"arguments": {
+					"name": {
+						"type": "literal",
+						"value": "foo"
+					},
 					"Limit": {
 						"type": "literal",
 						"value": 1
@@ -1727,13 +1735,21 @@ func TestProcedures(t *testing.T) {
 					{
 						"type": "procedure",
 						"name": "create_article",
-						"arguments": {},
+						"arguments": {
+							"author": {
+								"type": "literal",
+								"value": {
+									"created_at": "2024-03-31T12:01:32+07:00",
+									"id": "5ea23c2a-f75b-4901-a640-87a46a509418"
+								}
+							}
+						},
 						"fields": {
 							"type": "object",
 							"fields": {
 								"id": {
-										"type": "column",
-										"column": "id"
+									"type": "column",
+									"column": "id"
 								}
 							}
 						}
@@ -1780,7 +1796,16 @@ func TestProcedures(t *testing.T) {
 					{
 						"type": "procedure",
 						"name": "createAuthors",
-						"arguments": {},
+						"arguments": {
+							"Authors": [
+								{
+									"name": "Author 1"
+								},
+								{
+									"name": "Author 2"
+								}
+							]
+						},
 						"fields": {
 							"type": "array",
 							"fields": {
@@ -1798,6 +1823,8 @@ func TestProcedures(t *testing.T) {
 				"collection_relationships": {}
 			}`,
 			response: `[{
+				"id": 0
+			}, {
 				"id": 1
 			}]`,
 		},

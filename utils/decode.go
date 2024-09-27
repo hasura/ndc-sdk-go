@@ -430,6 +430,22 @@ func (d Decoder) decodeValue(target any, value any) error {
 	return nil
 }
 
+// DecodeObject tries to decode an object from a map
+func (d Decoder) DecodeObject(target any, value map[string]any) error {
+	if len(value) == 0 {
+		return nil
+	}
+	if IsNil(target) {
+		return errors.New("the decoded target must be not null")
+	}
+
+	if t, ok := target.(ObjectDecoder); ok {
+		return t.FromValue(value)
+	}
+
+	return decodeAnyValue(target, value, d.decodeHook)
+}
+
 // DecodeNullableInt tries to convert an unknown value to a nullable integer
 func DecodeNullableInt[T int | int8 | int16 | int32 | int64](value any) (*T, error) {
 	return decodeNullableInt(value, convertNullableInt[T])
