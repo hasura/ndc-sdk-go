@@ -56,6 +56,7 @@ var debugApiPaths = []string{apiPathMetrics, apiPathHealth}
 type customResponseWriter struct {
 	http.ResponseWriter
 	statusCode int
+	bodyLength int
 	body       []byte
 }
 
@@ -66,7 +67,9 @@ func (cw *customResponseWriter) WriteHeader(statusCode int) {
 
 func (cw *customResponseWriter) Write(body []byte) (int, error) {
 	cw.body = body
-	return cw.ResponseWriter.Write(body)
+	bodyLength, err := cw.ResponseWriter.Write(body)
+	cw.bodyLength = bodyLength
+	return bodyLength, err
 }
 
 // implements a simple router to reuse for both configuration and connector servers
@@ -120,10 +123,18 @@ func (rt *router) Build() *http.ServeMux {
 			}
 			defer span.End()
 
+			// Add HTTP semantic attributes to the server span
+			// See: https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-server-semantic-conventions
+			span.SetAttributes(
+				attribute.String("http.request.method", strings.ToUpper(r.Method)),
+				attribute.String("url.path", r.URL.Path),
+				attribute.String("url.scheme", r.URL.Scheme),
+				attribute.Int64("http.request.body.size", r.ContentLength),
+			)
 			if isDebug {
 				requestLogData["headers"] = r.Header
 				if spanOk {
-					setSpanHeadersAttributes(span, r.Header, isDebug)
+					setSpanHeadersAttributes(span, "http.request.header", r.Header, isDebug)
 				}
 				if r.Body != nil {
 					bodyBytes, err := io.ReadAll(r.Body)
@@ -135,13 +146,13 @@ func (rt *router) Build() *http.ServeMux {
 							slog.Any("error", err),
 						)
 
+						span.SetAttributes(attribute.Int("http.response.status_code", http.StatusUnprocessableEntity))
 						writeJson(w, rt.logger, http.StatusUnprocessableEntity, schema.ErrorResponse{
 							Message: "failed to read request",
 							Details: map[string]any{
 								"cause": err,
 							},
 						})
-
 						span.SetStatus(codes.Error, "read_request_body_failure")
 						span.RecordError(err)
 						return
@@ -168,6 +179,7 @@ func (rt *router) Build() *http.ServeMux {
 							slog.String("stacktrace", stack),
 						)
 
+						span.SetAttributes(attribute.Int("http.response.status_code", http.StatusInternalServerError))
 						writeJson(w, rt.logger, http.StatusInternalServerError, schema.ErrorResponse{
 							Message: "internal server error",
 							Details: map[string]any{
@@ -194,6 +206,8 @@ func (rt *router) Build() *http.ServeMux {
 						"status": 404,
 					}),
 				)
+
+				span.SetAttributes(attribute.Int("http.response.status_code", http.StatusNotFound))
 				span.SetStatus(codes.Error, fmt.Sprintf("path %s is not found", r.URL.RequestURI()))
 				return
 			}
@@ -216,6 +230,7 @@ func (rt *router) Build() *http.ServeMux {
 							"body":   err,
 						}),
 					)
+					span.SetAttributes(attribute.Int("http.response.status_code", http.StatusUnprocessableEntity))
 					span.SetStatus(codes.Error, fmt.Sprintf("invalid content type: %s", contentType))
 					return
 				}
@@ -226,6 +241,8 @@ func (rt *router) Build() *http.ServeMux {
 			writer := &customResponseWriter{ResponseWriter: w}
 			h(writer, req)
 
+			span.SetAttributes(attribute.Int("http.response.status_code", writer.statusCode))
+			span.SetAttributes(attribute.Int("http.response.body.size", writer.bodyLength))
 			responseLogData := map[string]any{
 				"status": writer.statusCode,
 			}
@@ -236,7 +253,7 @@ func (rt *router) Build() *http.ServeMux {
 					span.SetAttributes(attribute.String("response.body", string(writer.body)))
 				}
 			}
-			setSpanHeadersAttributes(span, w.Header(), isDebug)
+			setSpanHeadersAttributes(span, "http.response.header", w.Header(), isDebug)
 
 			if writer.statusCode >= 400 {
 				logger.Error(
