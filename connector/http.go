@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	"runtime/debug"
+	"slices"
 	"strings"
 	"time"
 
@@ -31,12 +32,25 @@ const (
 	contentTypeJson   string           = "application/json"
 )
 
+const (
+	apiPathCapabilities    = "/capabilities"
+	apiPathSchema          = "/schema"
+	apiPathQuery           = "/query"
+	apiPathQueryExplain    = "/query/explain"
+	apiPathMutation        = "/mutation"
+	apiPathMutationExplain = "/mutation/explain"
+	apiPathHealth          = "/health"
+	apiPathMetrics         = "/metrics"
+)
+
 var allowedTraceEndpoints = map[string]string{
-	"/query":            "ndc_query",
-	"/query/explain":    "ndc_query_explain",
-	"/mutation":         "ndc_mutation",
-	"/mutation/explain": "ndc_mutation_explain",
+	apiPathQuery:           "ndc_query",
+	apiPathQueryExplain:    "ndc_query_explain",
+	apiPathMutation:        "ndc_mutation",
+	apiPathMutationExplain: "ndc_mutation_explain",
 }
+
+var debugApiPaths = []string{apiPathMetrics, apiPathHealth}
 
 // define a custom response write to capture response information for logging
 type customResponseWriter struct {
@@ -232,15 +246,20 @@ func (rt *router) Build() *http.ServeMux {
 					slog.Any("response", responseLogData),
 				)
 				span.SetStatus(codes.Error, http.StatusText(writer.statusCode))
-			} else {
-				logger.Info(
-					"success",
-					slog.Duration("latency", time.Since(startTime)),
-					slog.Any("request", requestLogData),
-					slog.Any("response", responseLogData),
-				)
-				span.SetStatus(codes.Ok, "success")
+				return
 			}
+			printSuccess := logger.Info
+			if slices.Contains(debugApiPaths, r.URL.Path) {
+				printSuccess = logger.Debug
+			}
+
+			printSuccess(
+				"success",
+				slog.Duration("latency", time.Since(startTime)),
+				slog.Any("request", requestLogData),
+				slog.Any("response", responseLogData),
+			)
+			span.SetStatus(codes.Ok, "success")
 		}
 	}
 
