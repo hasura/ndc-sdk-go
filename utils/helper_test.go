@@ -3,17 +3,19 @@ package utils
 import (
 	"log/slog"
 	"testing"
+
+	"gotest.tools/v3/assert"
 )
 
 func TestToPtrs(t *testing.T) {
 	_, err := PointersToValues([]*string{ToPtr(""), nil})
 	assertError(t, err, "element at 1 must not be nil")
 	input, err := PointersToValues(ToPtrs([]string{"a", "b", "c"}))
-	assertNoError(t, err)
+	assert.NilError(t, err)
 	expected, err := PointersToValues([]*string{ToPtr("a"), ToPtr("b"), ToPtr("c")})
-	assertNoError(t, err)
+	assert.NilError(t, err)
 
-	assertDeepEqual(t, expected, input)
+	assert.DeepEqual(t, expected, input)
 }
 
 func TestIsDebug(t *testing.T) {
@@ -31,7 +33,7 @@ func TestGetSortedKeys(t *testing.T) {
 	}
 	expected := []string{"a", "b", "c", "d"}
 
-	assertDeepEqual(t, expected, GetSortedKeys(input))
+	assert.DeepEqual(t, expected, GetSortedKeys(input))
 }
 
 func TestMergeMap(t *testing.T) {
@@ -43,8 +45,8 @@ func TestMergeMap(t *testing.T) {
 		"a": 1,
 		"b": 2,
 	}
-	assertDeepEqual(t, mapB, MergeMap(nil, mapB))
-	assertDeepEqual(t, map[string]any{
+	assert.DeepEqual(t, mapB, MergeMap(nil, mapB))
+	assert.DeepEqual(t, map[string]any{
 		"a": 1,
 		"b": 2,
 		"c": 3,

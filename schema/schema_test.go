@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/hasura/ndc-sdk-go/internal"
+	"gotest.tools/v3/assert"
 )
 
 func TestQueryRequest(t *testing.T) {
@@ -571,20 +571,9 @@ func TestQueryRequest(t *testing.T) {
 				t.FailNow()
 			}
 
-			if !internal.DeepEqual(tc.expected.Collection, q.Collection) {
-				t.Errorf("unexpected collection equality; expected: %+v, got: %+v", tc.expected.Collection, q.Collection)
-				t.FailNow()
-			}
-
-			if !internal.DeepEqual(tc.expected.Query, q.Query) {
-				t.Errorf("unexpected Query equality;\n expected: %+v,\n got: %+v\n", tc.expected.Query, q.Query)
-				t.FailNow()
-			}
-
-			if !internal.DeepEqual(tc.expected.CollectionRelationships, q.CollectionRelationships) {
-				t.Errorf("unexpected CollectionRelationships equality;\n expected: %+v,\n got: %+v\n", tc.expected.CollectionRelationships, q.CollectionRelationships)
-				t.FailNow()
-			}
+			assert.DeepEqual(t, tc.expected.Collection, q.Collection)
+			assert.DeepEqual(t, tc.expected.Query, q.Query)
+			assert.DeepEqual(t, tc.expected.CollectionRelationships, q.CollectionRelationships)
 		})
 	}
 }

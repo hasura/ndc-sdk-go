@@ -3,12 +3,12 @@ package command
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"gotest.tools/v3/assert"
 )
 
 func TestGenerateNewProject(t *testing.T) {
 	tempDir := t.TempDir()
-	assert.NoError(t, GenerateNewProject(&NewArguments{
+	assert.NilError(t, GenerateNewProject(&NewArguments{
 		Name:    "test",
 		Module:  "hasura.dev/connector",
 		Output:  tempDir,

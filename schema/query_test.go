@@ -3,6 +3,8 @@ package schema
 import (
 	"encoding/json"
 	"testing"
+
+	"gotest.tools/v3/assert"
 )
 
 func TestUnmarshalFunctionInfo(t *testing.T) {
@@ -49,15 +51,15 @@ func TestUnmarshalFunctionInfo(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			var procedure FunctionInfo
-			assertNoError(t, json.Unmarshal([]byte(tc.raw), &procedure))
-			assertDeepEqual(t, tc.expected, procedure)
+			assert.NilError(t, json.Unmarshal([]byte(tc.raw), &procedure))
+			assert.DeepEqual(t, tc.expected, procedure)
 
 			var jsonMap map[string]json.RawMessage
-			assertNoError(t, json.Unmarshal([]byte(tc.raw), &jsonMap))
+			assert.NilError(t, json.Unmarshal([]byte(tc.raw), &jsonMap))
 
 			var result FunctionInfo
-			assertNoError(t, result.UnmarshalJSONMap(jsonMap))
-			assertDeepEqual(t, procedure, result)
+			assert.NilError(t, result.UnmarshalJSONMap(jsonMap))
+			assert.DeepEqual(t, procedure, result)
 		})
 	}
 }

@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/hasura/ndc-sdk-go/connector"
-	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
+	"gotest.tools/v3/assert"
 )
 
 const test_SpecVersion = "v0.1.6"
@@ -74,11 +74,7 @@ func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int,
 		t.FailNow()
 	}
 
-	if !internal.DeepEqual(expectedBody, body) {
-		expectedBytes, _ := json.Marshal(expectedBody)
-		t.Errorf("\nexpect: %+v\ngot: %+v", string(expectedBytes), string(bodyBytes))
-		t.FailNow()
-	}
+	assert.DeepEqual(t, expectedBody, body)
 }
 
 func TestGeneralMethods(t *testing.T) {

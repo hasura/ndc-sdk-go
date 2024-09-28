@@ -7,16 +7,19 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"reflect"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-codegen-example/types"
 	"github.com/hasura/ndc-codegen-example/types/arguments"
 	"github.com/hasura/ndc-sdk-go/connector"
 	"github.com/hasura/ndc-sdk-go/scalar"
 	"github.com/hasura/ndc-sdk-go/utils"
-	"github.com/stretchr/testify/assert"
+	"gotest.tools/v3/assert"
 )
 
 func createTestServer(t *testing.T) *connector.Server[types.Configuration, types.State] {
@@ -25,16 +28,16 @@ func createTestServer(t *testing.T) *connector.Server[types.Configuration, types
 		InlineConfig:  true,
 	}, connector.WithoutRecovery())
 
-	assert.NoError(t, err)
+	assert.NilError(t, err)
 
 	return server
 }
 
 func TestQueryGetTypes(t *testing.T) {
 	commentText := types.CommentText{}
-	assert.NoError(t, commentText.FromValue("a comment"))
+	assert.NilError(t, commentText.FromValue("a comment"))
 	commentTextPtr := types.CommentText{}
-	assert.NoError(t, commentTextPtr.FromValue("a comment pointer"))
+	assert.NilError(t, commentTextPtr.FromValue("a comment pointer"))
 
 	testCases := []struct {
 		name     string
@@ -1514,12 +1517,12 @@ func TestQueryGetTypes(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/query", testServer.URL), "application/json", bytes.NewReader([]byte(tc.body)))
-			assert.NoError(t, err, "failed to request query")
+			assert.NilError(t, err, "failed to request query")
 			assert.Equal(t, tc.status, resp.StatusCode)
 			respBody, err := io.ReadAll(resp.Body)
 			if tc.errorMsg != "" {
-				assert.NoError(t, err)
-				assert.Contains(t, string(respBody), tc.errorMsg)
+				assert.NilError(t, err)
+				assert.Check(t, strings.Contains(string(respBody), tc.errorMsg))
 			} else if resp.StatusCode != http.StatusOK {
 				t.Errorf("expected successful response, got error: %s", string(respBody))
 			} else {
@@ -1529,10 +1532,10 @@ func TestQueryGetTypes(t *testing.T) {
 						Value arguments.GetTypesArguments `json:"__value"`
 					} `json:"rows,omitempty" mapstructure:"rows,omitempty"`
 				}
-				assert.NoError(t, json.Unmarshal(respBody, &results), "failed to decode response")
+				assert.NilError(t, json.Unmarshal(respBody, &results), "failed to decode response")
 				assert.Equal(t, 1, len(results))
 				assert.Equal(t, 1, len(results[0].Rows))
-				assert.Equal(t, tc.response, results[0].Rows[0].Value)
+				assert.DeepEqual(t, tc.response, results[0].Rows[0].Value, cmp.Exporter(func(t reflect.Type) bool { return true }))
 			}
 		})
 	}
@@ -1693,27 +1696,27 @@ func TestQueries(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/query", testServer.URL), "application/json", bytes.NewReader([]byte(tc.body)))
-			assert.NoError(t, err, "failed to request query")
+			assert.NilError(t, err, "failed to request query")
 			assert.Equal(t, tc.status, resp.StatusCode)
 			respBody, err := io.ReadAll(resp.Body)
 			if tc.errorMsg != "" {
-				assert.NoError(t, err)
-				assert.Contains(t, string(respBody), tc.errorMsg)
+				assert.NilError(t, err)
+				assert.Check(t, strings.Contains(string(respBody), tc.errorMsg))
 			} else if resp.StatusCode != http.StatusOK {
 				t.Errorf("expected successful response, got error: %s", string(respBody))
 			} else {
 				log.Print("response: ", string(respBody))
 				var expected any
-				assert.NoError(t, json.Unmarshal([]byte(tc.response), &expected))
+				assert.NilError(t, json.Unmarshal([]byte(tc.response), &expected))
 				var results []struct {
 					Rows []struct {
 						Value any `json:"__value"`
 					} `json:"rows,omitempty" mapstructure:"rows,omitempty"`
 				}
-				assert.NoError(t, json.Unmarshal(respBody, &results), "failed to decode response")
+				assert.NilError(t, json.Unmarshal(respBody, &results), "failed to decode response")
 				assert.Equal(t, 1, len(results))
 				assert.Equal(t, 1, len(results[0].Rows))
-				assert.Equal(t, expected, results[0].Rows[0].Value)
+				assert.DeepEqual(t, expected, results[0].Rows[0].Value)
 			}
 		})
 	}
@@ -1899,26 +1902,26 @@ func TestProcedures(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/mutation", testServer.URL), "application/json", bytes.NewReader([]byte(tc.body)))
-			assert.NoError(t, err, "failed to request mutation")
+			assert.NilError(t, err, "failed to request mutation")
 			assert.Equal(t, tc.status, resp.StatusCode)
 			respBody, err := io.ReadAll(resp.Body)
 			if tc.errorMsg != "" {
-				assert.NoError(t, err)
-				assert.Contains(t, string(respBody), tc.errorMsg)
+				assert.NilError(t, err)
+				assert.Check(t, strings.Contains(string(respBody), tc.errorMsg))
 			} else if resp.StatusCode != http.StatusOK {
 				t.Errorf("expected successful response, got error: %s", string(respBody))
 			} else {
 				log.Print("response: ", string(respBody))
 				var expected any
-				assert.NoError(t, json.Unmarshal([]byte(tc.response), &expected))
+				assert.NilError(t, json.Unmarshal([]byte(tc.response), &expected))
 				var results struct {
 					OperationResults []struct {
 						Result any `json:"result"`
 					} `json:"operation_results"`
 				}
-				assert.NoError(t, json.Unmarshal(respBody, &results), "failed to decode response")
+				assert.NilError(t, json.Unmarshal(respBody, &results), "failed to decode response")
 				assert.Equal(t, 1, len(results.OperationResults))
-				assert.Equal(t, expected, results.OperationResults[0].Result)
+				assert.DeepEqual(t, expected, results.OperationResults[0].Result)
 			}
 		})
 	}

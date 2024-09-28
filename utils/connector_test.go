@@ -2,11 +2,13 @@ package utils
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 
-	"github.com/hasura/ndc-sdk-go/internal"
+	"github.com/google/go-cmp/cmp"
 	"github.com/hasura/ndc-sdk-go/schema"
+	"gotest.tools/v3/assert"
 )
 
 func TestEvalNestedFields(t *testing.T) {
@@ -81,8 +83,8 @@ func TestEvalNestedFields(t *testing.T) {
 			}).Encode(),
 			Expected: map[string]any{
 				"id": "1",
-				"articles": []map[string]any{
-					{
+				"articles": []any{
+					map[string]any{
 						"id":         1,
 						"created_at": time.Date(2020, 01, 01, 00, 0, 0, 0, time.UTC),
 					},
@@ -118,8 +120,8 @@ func TestEvalNestedFields(t *testing.T) {
 			Expected: map[string]any{
 				"id":   "1",
 				"Name": "John",
-				"articles": []map[string]any{
-					{
+				"articles": []any{
+					map[string]any{
 						"name": "Article 1",
 					},
 				},
@@ -134,10 +136,7 @@ func TestEvalNestedFields(t *testing.T) {
 				t.Errorf("failed to evaluate nested column fields: %s", err)
 				t.FailNow()
 			}
-			if !internal.DeepEqual(tc.Expected, result) {
-				t.Errorf("evaluated result does not equal\nexpected: %+v, got: %+v", tc.Expected, result)
-				t.FailNow()
-			}
+			assert.DeepEqual(t, tc.Expected, result)
 		})
 	}
 }
@@ -359,16 +358,6 @@ func TestMergeSchemas(t *testing.T) {
 								},
 								"id": schema.ObjectField{
 									Type: schema.NewNamedType("UUID").Encode(),
-								},
-							},
-						},
-						"GetTypesArgumentsObjectPtr": schema.ObjectType{
-							Fields: schema.ObjectTypeFields{
-								"Lat": schema.ObjectField{
-									Type: schema.NewNamedType("Int32").Encode(),
-								},
-								"Long": schema.ObjectField{
-									Type: schema.NewNamedType("Int32").Encode(),
 								},
 							},
 						},
@@ -663,12 +652,11 @@ func TestMergeSchemas(t *testing.T) {
 				},
 			},
 			Errors: []error{
-				errors.New("collection type Foo exists"),
-				errors.New("function type getBool exists"),
-				errors.New("procedure type create_article exists"),
-				errors.New("object type HelloResult exists"),
-				errors.New("object type GetTypesArgumentsObjectPtr exists"),
-				errors.New("scalar type BigInt exists"),
+				errors.New("collection Foo exists"),
+				errors.New("function getBool exists"),
+				errors.New("procedure create_article exists"),
+				errors.New("object HelloResult exists"),
+				errors.New("scalar BigInt exists"),
 			},
 		},
 	}
@@ -676,12 +664,12 @@ func TestMergeSchemas(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			result, errs := MergeSchemas(tc.Inputs...)
-			assertDeepEqual(t, tc.Errors, errs)
-			assertDeepEqual(t, tc.Expected.Collections, result.Collections)
-			assertDeepEqual(t, tc.Expected.Functions, result.Functions)
-			assertDeepEqual(t, tc.Expected.ObjectTypes, result.ObjectTypes)
-			assertDeepEqual(t, tc.Expected.Procedures, result.Procedures)
-			assertDeepEqual(t, tc.Expected.ScalarTypes, result.ScalarTypes)
+			assert.DeepEqual(t, tc.Errors, errs, cmp.Exporter(func(t reflect.Type) bool { return true }))
+			assert.DeepEqual(t, tc.Expected.Collections, result.Collections)
+			assert.DeepEqual(t, tc.Expected.Functions, result.Functions)
+			assert.DeepEqual(t, tc.Expected.ObjectTypes, result.ObjectTypes)
+			assert.DeepEqual(t, tc.Expected.Procedures, result.Procedures)
+			assert.DeepEqual(t, tc.Expected.ScalarTypes, result.ScalarTypes)
 		})
 	}
 }

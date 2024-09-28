@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
+	"gotest.tools/v3/assert"
 )
 
 type mockConfiguration struct {
@@ -207,11 +207,7 @@ func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int,
 		t.FailNow()
 	}
 
-	if !internal.DeepEqual(body, expectedBody) {
-		expectedBytes, _ := json.Marshal(expectedBody)
-		t.Errorf("\nexpect: %+v\ngot: %+v", string(expectedBytes), string(bodyBytes))
-		t.FailNow()
-	}
+	assert.DeepEqual(t, body, expectedBody)
 }
 
 func TestNewServer(t *testing.T) {

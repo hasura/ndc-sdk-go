@@ -6,6 +6,7 @@ require (
 	github.com/alecthomas/kong v1.2.1
 	github.com/go-logr/logr v1.4.2
 	github.com/go-viper/mapstructure/v2 v2.2.1
+	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/prometheus/client_golang v1.20.4
 	go.opentelemetry.io/contrib/propagators/b3 v1.28.0
@@ -20,6 +21,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.28.0
 	go.opentelemetry.io/otel/sdk/metric v1.28.0
 	go.opentelemetry.io/otel/trace v1.28.0
+	gotest.tools/v3 v3.5.1
 )
 
 require (
