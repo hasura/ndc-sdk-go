@@ -48,6 +48,7 @@ func TestQueryRequest(t *testing.T) {
 						"bar_count": NewAggregateColumnCount("id", true, []string{"bar"}).Encode(),
 					},
 				},
+				CollectionRelationships: QueryRequestCollectionRelationships{},
 			},
 		},
 		{
@@ -549,7 +550,7 @@ func TestQueryRequest(t *testing.T) {
 					},
 					Predicate: NewExpressionExists(
 						NewExpressionBinaryComparisonOperator(
-							*NewComparisonTargetColumn("last_name", nil, nil),
+							*NewComparisonTargetColumn("last_name", nil, []PathElement{}),
 							"like",
 							NewComparisonValueScalar("s"),
 						),

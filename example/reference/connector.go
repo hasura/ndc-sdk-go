@@ -122,7 +122,7 @@ func (mc *Connector) GetCapabilities(configuration *Configuration) schema.Capabi
 					OrderBy:  schema.LeafCapability{},
 				},
 			},
-			Relationships: schema.RelationshipCapabilities{
+			Relationships: &schema.RelationshipCapabilities{
 				OrderByAggregate:    schema.LeafCapability{},
 				RelationComparisons: schema.LeafCapability{},
 			},

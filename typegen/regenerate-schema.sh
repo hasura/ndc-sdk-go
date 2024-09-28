@@ -15,6 +15,7 @@ fi
   schema.generated.json
 
 # patch some custom types because of the limitation of the generation tool
+sed -i 's/Relationships interface{}/Relationships *RelationshipCapabilities/g' ../schema/schema.generated.go
 sed -i 's/type Field interface{}//g' ../schema/schema.generated.go
 sed -i 's/type Argument interface{}//g' ../schema/schema.generated.go
 sed -i 's/type RelationshipArgument interface{}//g' ../schema/schema.generated.go
