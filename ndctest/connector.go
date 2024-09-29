@@ -174,8 +174,8 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 	for _, dir := range queryDirs {
 		t.Run(fmt.Sprintf("query/%s", dir.Name()), func(t *testing.T) {
 			snapshotDir := filepath.Join(options.TestDataDir, "query", dir.Name())
-			req, expected := readSnapshot(t, snapshotDir, options.SkipResponseValidation)
-			if len(req) == 0 {
+			req, expected := readSnapshot[schema.QueryRequest, schema.QueryResponse](t, snapshotDir, options.SkipResponseValidation)
+			if req == nil {
 				return
 			}
 			res, err := httpPostJSON(queryURL, req)
@@ -211,8 +211,8 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 	for _, dir := range mutationDirs {
 		t.Run(fmt.Sprintf("mutation/%s", dir.Name()), func(t *testing.T) {
 			snapshotDir := filepath.Join(options.TestDataDir, "mutation", dir.Name())
-			req, expected := readSnapshot(t, snapshotDir, options.SkipResponseValidation)
-			if len(req) == 0 {
+			req, expected := readSnapshot[schema.MutationRequest, schema.MutationResponse](t, snapshotDir, options.SkipResponseValidation)
+			if req == nil {
 				return
 			}
 			res, err := httpPostJSON(mutationURL, req)
