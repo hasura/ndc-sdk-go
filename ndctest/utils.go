@@ -32,7 +32,7 @@ func httpPostJSON(url string, body any) (*http.Response, error) {
 	return http.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
 }
 
-func readSnapshot(t *testing.T, dir string) (map[string]any, any) {
+func readSnapshot(t *testing.T, dir string, skipResponseValidation bool) (map[string]any, any) {
 	reqPath := filepath.Join(dir, "request.json")
 	reqBytes, err := os.ReadFile(reqPath)
 	if err != nil {
@@ -47,6 +47,10 @@ func readSnapshot(t *testing.T, dir string) (map[string]any, any) {
 	var req map[string]any
 	var expected any
 	assert.NilError(t, json.Unmarshal(reqBytes, &req))
+
+	if skipResponseValidation {
+		return req, nil
+	}
 
 	expectedPath := filepath.Join(dir, "expected.json")
 	expectedBytes, err := os.ReadFile(expectedPath)

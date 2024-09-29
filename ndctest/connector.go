@@ -17,15 +17,18 @@ import (
 
 // TestConnectorOptions options for the test connector runner
 type TestConnectorOptions struct {
-	Configuration string
-	InlineConfig  bool
-	TestDataDir   string
+	Configuration          string
+	InlineConfig           bool
+	TestDataDir            string
+	SkipResponseValidation bool
 }
 
 // TestConnector the native test runner for the data connector.
 // This is a port of [ndc-test]. ndc-test is awesome. However, it doesn't help increase the go coverage ratio.
+// You can use the [hasura-ndc-go generate snapshots] command to generate test snapshots
 //
 // [ndc-test]: https://github.com/hasura/ndc-spec/tree/main/ndc-test
+// [hasura-ndc-go generate snapshots]: https://github.com/hasura/ndc-sdk-go/tree/main/cmd/hasura-ndc-go#test-snapshots
 func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Connector[Configuration, State], options TestConnectorOptions) {
 	server, err := connector.NewServer(ndc, &connector.ServerOptions{
 		OTLPConfig: connector.OTLPConfig{
@@ -171,7 +174,7 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 	for _, dir := range queryDirs {
 		t.Run(fmt.Sprintf("query/%s", dir.Name()), func(t *testing.T) {
 			snapshotDir := filepath.Join(options.TestDataDir, "query", dir.Name())
-			req, expected := readSnapshot(t, snapshotDir)
+			req, expected := readSnapshot(t, snapshotDir, options.SkipResponseValidation)
 			if len(req) == 0 {
 				return
 			}
@@ -208,7 +211,7 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 	for _, dir := range mutationDirs {
 		t.Run(fmt.Sprintf("mutation/%s", dir.Name()), func(t *testing.T) {
 			snapshotDir := filepath.Join(options.TestDataDir, "mutation", dir.Name())
-			req, expected := readSnapshot(t, snapshotDir)
+			req, expected := readSnapshot(t, snapshotDir, options.SkipResponseValidation)
 			if len(req) == 0 {
 				return
 			}

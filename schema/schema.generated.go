@@ -65,7 +65,7 @@ type Capabilities struct {
 	Query QueryCapabilities `json:"query" yaml:"query" mapstructure:"query"`
 
 	// Relationships corresponds to the JSON schema field "relationships".
-	Relationships *RelationshipCapabilities `json:"relationships,omitempty" yaml:"relationships,omitempty" mapstructure:"relationships,omitempty"`
+	Relationships interface{} `json:"relationships,omitempty" yaml:"relationships,omitempty" mapstructure:"relationships,omitempty"`
 }
 
 type CapabilitiesResponse struct {
