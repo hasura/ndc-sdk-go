@@ -17,6 +17,7 @@ import (
 	"github.com/hasura/ndc-codegen-example/types"
 	"github.com/hasura/ndc-codegen-example/types/arguments"
 	"github.com/hasura/ndc-sdk-go/connector"
+	"github.com/hasura/ndc-sdk-go/ndctest"
 	"github.com/hasura/ndc-sdk-go/scalar"
 	"github.com/hasura/ndc-sdk-go/utils"
 	"gotest.tools/v3/assert"
@@ -31,6 +32,14 @@ func createTestServer(t *testing.T) *connector.Server[types.Configuration, types
 	assert.NilError(t, err)
 
 	return server
+}
+
+func TestConnector(t *testing.T) {
+	ndctest.TestConnector(t, &Connector{}, ndctest.TestConnectorOptions{
+		Configuration: "{}",
+		InlineConfig:  true,
+		TestDataDir:   "testdata",
+	})
 }
 
 func TestQueryGetTypes(t *testing.T) {

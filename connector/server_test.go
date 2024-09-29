@@ -294,10 +294,7 @@ func TestServerConnector(t *testing.T) {
 
 	t.Run("GET /health", func(t *testing.T) {
 		res, err := http.Get(fmt.Sprintf("%s/health", httpServer.URL))
-		if err != nil {
-			t.Errorf("expected no error, got %s", err)
-			t.FailNow()
-		}
+		assert.NilError(t, err)
 		assert.Equal(t, res.StatusCode, http.StatusOK)
 	})
 
