@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hasura/ndc-sdk-go/internal"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
+	"gotest.tools/v3/assert"
 )
 
 type mockConfiguration struct {
@@ -22,15 +22,15 @@ type mockState struct{}
 type mockConnector struct{}
 
 var mockCapabilities = schema.CapabilitiesResponse{
-	Version: "^0.1.0",
+	Version: "^0.1.6",
 	Capabilities: schema.Capabilities{
 		Query: schema.QueryCapabilities{
-			Aggregates: schema.LeafCapability{},
-			Variables:  schema.LeafCapability{},
+			Aggregates: map[string]any{},
+			Variables:  map[string]any{},
 		},
-		Relationships: schema.RelationshipCapabilities{
-			OrderByAggregate:    schema.LeafCapability{},
-			RelationComparisons: schema.LeafCapability{},
+		Relationships: map[string]any{
+			"order_by_aggregate":   map[string]any{},
+			"relation_comparisons": map[string]any{},
 		},
 	},
 }
@@ -182,13 +182,6 @@ func httpPostJSON(url string, body any) (*http.Response, error) {
 	return http.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
 }
 
-func assertHTTPResponseStatus(t *testing.T, name string, res *http.Response, statusCode int) {
-	if res.StatusCode != statusCode {
-		t.Errorf("\n%s: expected status %d, got %d", name, statusCode, res.StatusCode)
-		t.FailNow()
-	}
-}
-
 func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int, expectedBody B) {
 	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -207,11 +200,7 @@ func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int,
 		t.FailNow()
 	}
 
-	if !internal.DeepEqual(body, expectedBody) {
-		expectedBytes, _ := json.Marshal(expectedBody)
-		t.Errorf("\nexpect: %+v\ngot: %+v", string(expectedBytes), string(bodyBytes))
-		t.FailNow()
-	}
+	assert.DeepEqual(t, body, expectedBody)
 }
 
 func TestNewServer(t *testing.T) {
@@ -305,11 +294,8 @@ func TestServerConnector(t *testing.T) {
 
 	t.Run("GET /health", func(t *testing.T) {
 		res, err := http.Get(fmt.Sprintf("%s/health", httpServer.URL))
-		if err != nil {
-			t.Errorf("expected no error, got %s", err)
-			t.FailNow()
-		}
-		assertHTTPResponseStatus(t, "GET /health", res, http.StatusOK)
+		assert.NilError(t, err)
+		assert.Equal(t, res.StatusCode, http.StatusOK)
 	})
 
 	t.Run("GET /metrics", func(t *testing.T) {
@@ -338,12 +324,11 @@ func TestServerConnector(t *testing.T) {
 		}
 		assertHTTPResponse(t, res, http.StatusOK, schema.QueryResponse{
 			{
-				Aggregates: schema.RowSetAggregates{},
 				Rows: []map[string]any{
 					{
-						"id":        1,
+						"id":        float64(1),
 						"title":     "Hello world",
-						"author_id": 1,
+						"author_id": float64(1),
 					},
 				},
 			},

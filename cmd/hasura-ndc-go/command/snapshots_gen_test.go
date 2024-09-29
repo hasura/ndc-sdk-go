@@ -8,7 +8,7 @@ import (
 
 	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/command"
 	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/command/internal"
-	"github.com/stretchr/testify/assert"
+	"gotest.tools/v3/assert"
 )
 
 //go:embed testdata/snapshots/schema.json
@@ -23,7 +23,7 @@ func TestGenTestSnapshots(t *testing.T) {
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
-	assert.NoError(t, command.GenTestSnapshots(&command.GenTestSnapshotArguments{
+	assert.NilError(t, command.GenTestSnapshots(&command.GenTestSnapshotArguments{
 		Endpoint: server.URL,
 		Dir:      tmpDir,
 		Depth:    10,

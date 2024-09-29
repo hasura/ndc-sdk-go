@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hasura/ndc-sdk-go/internal"
+	"gotest.tools/v3/assert"
 )
 
 func TestUnmarshalProcedureInfo(t *testing.T) {
@@ -52,15 +52,15 @@ func TestUnmarshalProcedureInfo(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			var procedure ProcedureInfo
-			assertNoError(t, json.Unmarshal([]byte(tc.raw), &procedure))
-			assertDeepEqual(t, tc.expected, procedure)
+			assert.NilError(t, json.Unmarshal([]byte(tc.raw), &procedure))
+			assert.DeepEqual(t, tc.expected, procedure)
 
 			var jsonMap map[string]json.RawMessage
-			assertNoError(t, json.Unmarshal([]byte(tc.raw), &jsonMap))
+			assert.NilError(t, json.Unmarshal([]byte(tc.raw), &jsonMap))
 
 			var result ProcedureInfo
-			assertNoError(t, result.UnmarshalJSONMap(jsonMap))
-			assertDeepEqual(t, procedure, result)
+			assert.NilError(t, result.UnmarshalJSONMap(jsonMap))
+			assert.DeepEqual(t, procedure, result)
 		})
 	}
 }
@@ -73,18 +73,5 @@ func assertError(t *testing.T, err error, msg string) {
 	if !strings.Contains(err.Error(), msg) {
 		t.Errorf("expected error: %s, got: %s", msg, err.Error())
 		t.FailNow()
-	}
-}
-
-func assertNoError(t *testing.T, err error, msgs ...string) {
-	if err != nil {
-		t.Errorf("%s expected no error, got: %s", strings.Join(msgs, " "), err)
-		t.FailNow()
-	}
-}
-
-func assertDeepEqual(t *testing.T, expected any, reality any, msgs ...string) {
-	if !internal.DeepEqual(expected, reality) {
-		t.Fatalf("%s not equal\nexpected: %+v \ngot     : %+v", strings.Join(msgs, " "), expected, reality)
 	}
 }

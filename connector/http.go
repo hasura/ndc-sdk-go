@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hasura/ndc-sdk-go/internal"
+	"github.com/google/uuid"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
 	"go.opentelemetry.io/otel"
@@ -291,7 +291,7 @@ func (rt *router) Build() *http.ServeMux {
 func getRequestID(r *http.Request) string {
 	requestID := r.Header.Get("x-request-id")
 	if requestID == "" {
-		requestID = internal.GenRandomString(16)
+		requestID = uuid.NewString()
 	}
 	return requestID
 }

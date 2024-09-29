@@ -1,6 +1,10 @@
 package schema
 
-import "testing"
+import (
+	"testing"
+
+	"gotest.tools/v3/assert"
+)
 
 func TestTypeStringer(t *testing.T) {
 	testCases := []struct {
@@ -35,7 +39,7 @@ func TestTypeStringer(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Expected, func(t *testing.T) {
-			assertDeepEqual(t, tc.Expected, tc.Input.String())
+			assert.DeepEqual(t, tc.Expected, tc.Input.String())
 		})
 	}
 }
@@ -73,7 +77,7 @@ func TestGetUnderlyingNamedType(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			assertDeepEqual(t, tc.Expected, GetUnderlyingNamedType(tc.Input))
+			assert.DeepEqual(t, tc.Expected, GetUnderlyingNamedType(tc.Input))
 		})
 	}
 }
@@ -111,7 +115,7 @@ func TestUnwrapNullableType(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			assertDeepEqual(t, tc.Expected, UnwrapNullableType(tc.Input))
+			assert.DeepEqual(t, tc.Expected, UnwrapNullableType(tc.Input))
 		})
 	}
 }

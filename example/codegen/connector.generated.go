@@ -5,7 +5,6 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"log/slog"
 
 	"encoding/json"
 	"github.com/hasura/ndc-codegen-example/functions"
@@ -165,10 +164,4 @@ func (c *Connector) execProcedure(ctx context.Context, state *types.State, opera
 	}
 
 	return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported procedure operation: %s", operation.Name), nil)
-}
-
-func connector_addSpanEvent(span trace.Span, logger *slog.Logger, name string, data map[string]any, options ...trace.EventOption) {
-	logger.Debug(name, slog.Any("data", data))
-	attrs := utils.DebugJSONAttributes(data, utils.IsDebug(logger))
-	span.AddEvent(name, append(options, trace.WithAttributes(attrs...))...)
 }
