@@ -50,6 +50,7 @@ func httpPostJSON(url string, body any) (*http.Response, error) {
 }
 
 func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int, expectedBody B) {
+	defer res.Body.Close()
 	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		t.Error("failed to read response body")
@@ -78,8 +79,75 @@ func TestConnector(t *testing.T) {
 	})
 }
 
+func TestExplain(t *testing.T) {
+	server := createTestServer(t).BuildTestServer()
+	defer server.Close()
+
+	t.Run("query_explain_success", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/query/explain", server.URL), schema.QueryRequest{
+			Collection:              "articles",
+			Arguments:               schema.QueryRequestArguments{},
+			CollectionRelationships: schema.QueryRequestCollectionRelationships{},
+			Query:                   schema.Query{},
+			Variables:               []schema.QueryRequestVariablesElem{},
+		})
+		assert.NilError(t, err)
+		assertHTTPResponse(t, res, http.StatusOK, schema.ExplainResponse{
+			Details: schema.ExplainResponseDetails{},
+		})
+	})
+
+	t.Run("query_explain_invalid", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/query/explain", server.URL), schema.QueryRequest{
+			Collection:              "test",
+			Arguments:               schema.QueryRequestArguments{},
+			CollectionRelationships: schema.QueryRequestCollectionRelationships{},
+			Query:                   schema.Query{},
+			Variables:               []schema.QueryRequestVariablesElem{},
+		})
+		assert.NilError(t, err)
+		assertHTTPResponse(t, res, http.StatusUnprocessableEntity, schema.ErrorResponse{
+			Message: "invalid query name: test",
+			Details: map[string]any{},
+		})
+	})
+
+	t.Run("mutation_explain_success", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/mutation/explain", server.URL), schema.MutationRequest{
+			Operations: []schema.MutationOperation{
+				{
+					Name: "upsert_article",
+				},
+			},
+			CollectionRelationships: make(schema.MutationRequestCollectionRelationships),
+		})
+		assert.NilError(t, err)
+		assertHTTPResponse(t, res, http.StatusOK, schema.ExplainResponse{
+			Details: schema.ExplainResponseDetails{},
+		})
+	})
+
+	t.Run("mutation_explain_invalid", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/mutation/explain", server.URL), schema.MutationRequest{
+			Operations: []schema.MutationOperation{
+				{
+					Name: "test",
+					Type: schema.MutationOperationProcedure,
+				},
+			},
+			CollectionRelationships: make(schema.MutationRequestCollectionRelationships),
+		})
+		assert.NilError(t, err)
+		assertHTTPResponse(t, res, http.StatusUnprocessableEntity, schema.ErrorResponse{
+			Message: "invalid mutation name: test",
+			Details: map[string]any{},
+		})
+	})
+}
+
 func TestQuery(t *testing.T) {
 	server := createTestServer(t).BuildTestServer()
+	defer server.Close()
 
 	testCases := []struct {
 		name        string
@@ -283,6 +351,7 @@ func TestQuery(t *testing.T) {
 
 func TestMutation(t *testing.T) {
 	server := createTestServer(t).BuildTestServer()
+	defer server.Close()
 
 	testCases := []struct {
 		name        string
