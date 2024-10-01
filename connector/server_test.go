@@ -28,9 +28,9 @@ var mockCapabilities = schema.CapabilitiesResponse{
 			Aggregates: map[string]any{},
 			Variables:  map[string]any{},
 		},
-		Relationships: map[string]any{
-			"order_by_aggregate":   map[string]any{},
-			"relation_comparisons": map[string]any{},
+		Relationships: &schema.RelationshipCapabilities{
+			OrderByAggregate:    map[string]any{},
+			RelationComparisons: map[string]any{},
 		},
 	},
 }
