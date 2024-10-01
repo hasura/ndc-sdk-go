@@ -117,6 +117,7 @@ func TestExplain(t *testing.T) {
 			Operations: []schema.MutationOperation{
 				{
 					Name: "upsert_article",
+					Type: schema.MutationOperationProcedure,
 				},
 			},
 			CollectionRelationships: make(schema.MutationRequestCollectionRelationships),
