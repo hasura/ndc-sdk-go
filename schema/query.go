@@ -6,6 +6,19 @@ import (
 	"fmt"
 )
 
+// MarshalJSON implements json.Marshaler.
+func (j RowSet) MarshalJSON() ([]byte, error) {
+	result := map[string]any{}
+	if len(j.Aggregates) > 0 {
+		result["aggregates"] = j.Aggregates
+	}
+	if j.Rows != nil {
+		result["rows"] = j.Rows
+	}
+
+	return json.Marshal(result)
+}
+
 // UnmarshalJSONMap decodes FunctionInfo from a JSON map.
 func (j *FunctionInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 	rawArguments, ok := raw["arguments"]

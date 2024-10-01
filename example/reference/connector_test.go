@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/hasura/ndc-sdk-go/connector"
+	"github.com/hasura/ndc-sdk-go/ndctest"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"gotest.tools/v3/assert"
 )
@@ -49,14 +49,8 @@ func httpPostJSON(url string, body any) (*http.Response, error) {
 	return http.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
 }
 
-func assertHTTPResponseStatus(t *testing.T, name string, res *http.Response, statusCode int) {
-	if res.StatusCode != statusCode {
-		t.Errorf("\n%s: expected status %d, got %d", name, statusCode, res.StatusCode)
-		t.FailNow()
-	}
-}
-
 func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int, expectedBody B) {
+	defer res.Body.Close()
 	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		t.Error("failed to read response body")
@@ -77,76 +71,19 @@ func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int,
 	assert.DeepEqual(t, expectedBody, body)
 }
 
-func TestGeneralMethods(t *testing.T) {
+func TestConnector(t *testing.T) {
+	ndctest.TestConnector(t, &Connector{}, ndctest.TestConnectorOptions{
+		Configuration: "{}",
+		InlineConfig:  true,
+		TestDataDir:   "testdata",
+	})
+}
+
+func TestExplain(t *testing.T) {
 	server := createTestServer(t).BuildTestServer()
-	t.Run("capabilities", func(t *testing.T) {
-		expectedBytes, err := os.ReadFile("./testdata/capabilities")
-		if err != nil {
-			t.Errorf("failed to get expected capabilities: %s", err.Error())
-			t.FailNow()
-		}
+	defer server.Close()
 
-		var expectedResult schema.CapabilitiesResponse
-		err = json.Unmarshal(expectedBytes, &expectedResult)
-		if err != nil {
-			t.Errorf("failed to read expected body: %s", err.Error())
-			t.FailNow()
-		}
-
-		httpResp, err := http.Get(fmt.Sprintf("%s/capabilities", server.URL))
-		if err != nil {
-			t.Errorf("failed to fetch capabilities: %s", err.Error())
-			t.FailNow()
-		}
-
-		assertHTTPResponse(t, httpResp, http.StatusOK, expectedResult)
-	})
-
-	t.Run("schema", func(t *testing.T) {
-		expectedBytes, err := os.ReadFile("./testdata/schema")
-		if err != nil {
-			t.Errorf("failed to fetch expected schema: %s", err.Error())
-			t.FailNow()
-		}
-
-		var expectedSchema schema.SchemaResponse
-		err = json.Unmarshal(expectedBytes, &expectedSchema)
-		if err != nil {
-			t.Errorf("failed to read expected body: %s", err.Error())
-			t.FailNow()
-		}
-
-		httpResp, err := http.Get(fmt.Sprintf("%s/schema", server.URL))
-		if err != nil {
-			t.Errorf("failed to fetch schema: %s", err.Error())
-			t.FailNow()
-		}
-
-		assertHTTPResponse(t, httpResp, http.StatusOK, expectedSchema)
-	})
-
-	t.Run("GET /health", func(t *testing.T) {
-		res, err := http.Get(fmt.Sprintf("%s/health", server.URL))
-		if err != nil {
-			t.Errorf("expected no error, got %s", err)
-			t.FailNow()
-		}
-		assertHTTPResponseStatus(t, "GET /health", res, http.StatusOK)
-	})
-
-	t.Run("GET /metrics", func(t *testing.T) {
-		res, err := http.Get(fmt.Sprintf("%s/metrics", server.URL))
-		if err != nil {
-			t.Errorf("expected no error, got %s", err)
-			t.FailNow()
-		}
-		if res.StatusCode != http.StatusNotFound {
-			t.Errorf("\n%s: expected 404 got status %d", "/metrics", res.StatusCode)
-			t.FailNow()
-		}
-	})
-
-	t.Run("POST /query/explain", func(t *testing.T) {
+	t.Run("query_explain_success", func(t *testing.T) {
 		res, err := httpPostJSON(fmt.Sprintf("%s/query/explain", server.URL), schema.QueryRequest{
 			Collection:              "articles",
 			Arguments:               schema.QueryRequestArguments{},
@@ -154,33 +91,64 @@ func TestGeneralMethods(t *testing.T) {
 			Query:                   schema.Query{},
 			Variables:               []schema.QueryRequestVariablesElem{},
 		})
-		if err != nil {
-			t.Errorf("expected no error, got %s", err)
-			t.FailNow()
-		}
+		assert.NilError(t, err)
 		assertHTTPResponse(t, res, http.StatusOK, schema.ExplainResponse{
 			Details: schema.ExplainResponseDetails{},
 		})
 	})
 
-	t.Run("POST /mutation/explain", func(t *testing.T) {
+	t.Run("query_explain_invalid", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/query/explain", server.URL), schema.QueryRequest{
+			Collection:              "test",
+			Arguments:               schema.QueryRequestArguments{},
+			CollectionRelationships: schema.QueryRequestCollectionRelationships{},
+			Query:                   schema.Query{},
+			Variables:               []schema.QueryRequestVariablesElem{},
+		})
+		assert.NilError(t, err)
+		assertHTTPResponse(t, res, http.StatusUnprocessableEntity, schema.ErrorResponse{
+			Message: "invalid query name: test",
+			Details: map[string]any{},
+		})
+	})
+
+	t.Run("mutation_explain_success", func(t *testing.T) {
 		res, err := httpPostJSON(fmt.Sprintf("%s/mutation/explain", server.URL), schema.MutationRequest{
-			Operations:              []schema.MutationOperation{},
+			Operations: []schema.MutationOperation{
+				{
+					Name: "upsert_article",
+					Type: schema.MutationOperationProcedure,
+				},
+			},
 			CollectionRelationships: make(schema.MutationRequestCollectionRelationships),
 		})
-		if err != nil {
-			t.Errorf("expected no error, got %s", err)
-			t.FailNow()
-		}
+		assert.NilError(t, err)
 		assertHTTPResponse(t, res, http.StatusOK, schema.ExplainResponse{
 			Details: schema.ExplainResponseDetails{},
 		})
 	})
 
+	t.Run("mutation_explain_invalid", func(t *testing.T) {
+		res, err := httpPostJSON(fmt.Sprintf("%s/mutation/explain", server.URL), schema.MutationRequest{
+			Operations: []schema.MutationOperation{
+				{
+					Name: "test",
+					Type: schema.MutationOperationProcedure,
+				},
+			},
+			CollectionRelationships: make(schema.MutationRequestCollectionRelationships),
+		})
+		assert.NilError(t, err)
+		assertHTTPResponse(t, res, http.StatusUnprocessableEntity, schema.ErrorResponse{
+			Message: "invalid mutation name: test",
+			Details: map[string]any{},
+		})
+	})
 }
 
 func TestQuery(t *testing.T) {
 	server := createTestServer(t).BuildTestServer()
+	defer server.Close()
 
 	testCases := []struct {
 		name        string
@@ -299,9 +267,9 @@ func TestQuery(t *testing.T) {
 			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_unrelated_exists/expected.json", test_SpecVersion),
 		},
 		{
-			name:       "predicate_with_unrelated_exists_and_relationship",
-			requestURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_unrelated_exists_and_relationship/request.json", test_SpecVersion),
-			response:   []byte(`[{"rows":[{"author_if_has_functional_articles":{},"title":"The Next 700 Programming Languages"},{"author_if_has_functional_articles":{"rows":[{"articles":{"rows":[{"title":"Why Functional Programming Matters"},{"title":"The Design And Implementation Of Programming Languages"}]},"first_name":"John","last_name":"Hughes"}]},"title":"Why Functional Programming Matters"},{"author_if_has_functional_articles":{"rows":[{"articles":{"rows":[{"title":"Why Functional Programming Matters"},{"title":"The Design And Implementation Of Programming Languages"}]},"first_name":"John","last_name":"Hughes"}]},"title":"The Design And Implementation Of Programming Languages"}]}]`),
+			name:        "predicate_with_unrelated_exists_and_relationship",
+			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_unrelated_exists_and_relationship/request.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_unrelated_exists_and_relationship/expected.json", test_SpecVersion),
 		},
 		{
 			name:        "star_count",
@@ -384,6 +352,7 @@ func TestQuery(t *testing.T) {
 
 func TestMutation(t *testing.T) {
 	server := createTestServer(t).BuildTestServer()
+	defer server.Close()
 
 	testCases := []struct {
 		name        string
