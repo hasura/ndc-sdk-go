@@ -65,7 +65,7 @@ type Capabilities struct {
 	Query QueryCapabilities `json:"query" yaml:"query" mapstructure:"query"`
 
 	// Relationships corresponds to the JSON schema field "relationships".
-	Relationships interface{} `json:"relationships,omitempty" yaml:"relationships,omitempty" mapstructure:"relationships,omitempty"`
+	Relationships *RelationshipCapabilities `json:"relationships,omitempty" yaml:"relationships,omitempty" mapstructure:"relationships,omitempty"`
 }
 
 type CapabilitiesResponse struct {
@@ -839,7 +839,7 @@ type RowSet struct {
 	Aggregates RowSetAggregates `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
 
 	// The rows returned by the query, corresponding to the query's fields
-	Rows []map[string]any `json:"rows,omitempty" yaml:"rows,omitempty" mapstructure:"rows,omitempty"`
+	Rows []map[string]any `json:"rows" yaml:"rows" mapstructure:"rows"`
 }
 
 // The results of the aggregates returned by the query
