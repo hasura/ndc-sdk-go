@@ -299,9 +299,9 @@ func TestQuery(t *testing.T) {
 			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_unrelated_exists/expected.json", test_SpecVersion),
 		},
 		{
-			name:       "predicate_with_unrelated_exists_and_relationship",
-			requestURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_unrelated_exists_and_relationship/request.json", test_SpecVersion),
-			response:   []byte(`[{"rows":[{"author_if_has_functional_articles":{},"title":"The Next 700 Programming Languages"},{"author_if_has_functional_articles":{"rows":[{"articles":{"rows":[{"title":"Why Functional Programming Matters"},{"title":"The Design And Implementation Of Programming Languages"}]},"first_name":"John","last_name":"Hughes"}]},"title":"Why Functional Programming Matters"},{"author_if_has_functional_articles":{"rows":[{"articles":{"rows":[{"title":"Why Functional Programming Matters"},{"title":"The Design And Implementation Of Programming Languages"}]},"first_name":"John","last_name":"Hughes"}]},"title":"The Design And Implementation Of Programming Languages"}]}]`),
+			name:        "predicate_with_unrelated_exists_and_relationship",
+			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_unrelated_exists_and_relationship/request.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_unrelated_exists_and_relationship/expected.json", test_SpecVersion),
 		},
 		{
 			name:        "star_count",

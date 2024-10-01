@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"reflect"
 	"regexp"
 	"sort"
@@ -660,10 +661,13 @@ func executeQuery(
 		}
 	}
 
-	return &schema.RowSet{
+	result := &schema.RowSet{
 		Aggregates: aggregates,
-		Rows:       rows,
-	}, nil
+	}
+	if len(rows) > 0 || len(result.Aggregates) == 0 {
+		result.Rows = rows
+	}
+	return result, nil
 }
 
 func sortCollection(
@@ -712,11 +716,14 @@ func paginate[R any](collection []R, limit *int, offset *int) []R {
 	if offset != nil {
 		start = *offset
 	}
+	collectionLength := len(collection)
+	if collectionLength <= start {
+		return nil
+	}
 	if limit == nil {
 		return collection[start:]
 	}
-
-	return collection[start : start+*limit]
+	return collection[start:int(math.Min(float64(collectionLength), float64(start+*limit)))]
 }
 
 func evalOrderBy(
