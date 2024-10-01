@@ -839,7 +839,7 @@ type RowSet struct {
 	Aggregates RowSetAggregates `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
 
 	// The rows returned by the query, corresponding to the query's fields
-	Rows []map[string]any `json:"rows" yaml:"rows" mapstructure:"rows"`
+	Rows []map[string]any `json:"rows,omitempty" yaml:"rows,omitempty" mapstructure:"rows,omitempty"`
 }
 
 // The results of the aggregates returned by the query

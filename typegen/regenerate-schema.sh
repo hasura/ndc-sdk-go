@@ -61,7 +61,6 @@ sed -i 's/plain.NestedFields = map\[string\]interface{}{}/plain.NestedFields = N
 sed -i 's/Exists interface{}/Exists ExistsCapabilities/g' ../schema/schema.generated.go
 sed -i 's/plain.Exists = map\[string\]interface{}{}/plain.Exists = ExistsCapabilities{}/g' ../schema/schema.generated.go
 sed -i 's/Relationships interface{}/Relationships *RelationshipCapabilities/g' ../schema/schema.generated.go
-sed -i 's/Rows \[\]map\[string\]any `json:"rows,omitempty" yaml:"rows,omitempty" mapstructure:"rows,omitempty"`/Rows \[\]map\[string\]any `json:"rows" yaml:"rows" mapstructure:"rows"`/g' ../schema/schema.generated.go
 
 # format codes
 gofmt -w -s ../
