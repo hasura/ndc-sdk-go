@@ -1,6 +1,14 @@
 packagingDefinition:
   type: ManagedDockerBuild
-supportedEnvironmentVariables: []
+supportedEnvironmentVariables:
+  - name: QUERY_CONCURRENCY_LIMIT
+    description: The limit of concurrent query executions if there are many request variables
+    defaultValue: "1"
+    required: 
+  - name: MUTATION_CONCURRENCY_LIMIT
+    description: The limit of concurrent mutation executions if there are many operations in a single request
+    defaultValue: "1"
+    required: false
 commands:
   update: hasura-ndc-go update
 cliPlugin:
@@ -17,7 +25,5 @@ dockerComposeWatch:
   - path: connector.go
     action: rebuild
   - path: connector.generated.go
-    action: rebuild
-  - path: schema.generated.json
     action: rebuild
 documentationPage: https://hasura.io/docs/3.0/getting-started/build/add-business-logic?db=Go
