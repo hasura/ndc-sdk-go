@@ -50,7 +50,7 @@ type CreateArticleResult struct {
 // @procedure create_article
 func CreateArticle(ctx context.Context, state *types.State, arguments *CreateArticleArguments) (CreateArticleResult, error) {
 	if arguments.Author.ID > 0 {
-		time.Sleep(time.Duration(math.Min(float64(arguments.Author.ID), 2)) * time.Second)
+		time.Sleep(time.Duration(math.Min(float64(arguments.Author.ID), 2)) * 500 * time.Millisecond)
 	}
 	return CreateArticleResult{
 		ID:      uint(arguments.Author.ID),

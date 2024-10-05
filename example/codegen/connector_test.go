@@ -1838,13 +1838,19 @@ func testQueryLatency(t *testing.T) time.Duration {
 
 func TestMutationSync(t *testing.T) {
 	latency := testMutationLatency(t)
-	assert.Assert(t, latency >= (3*time.Second))
+	assert.Assert(t, latency >= (1500*time.Millisecond))
 }
 
-func TestMutationAsync(t *testing.T) {
+func TestMutationAsync2(t *testing.T) {
 	t.Setenv("MUTATION_CONCURRENCY_LIMIT", "2")
 	latency := testMutationLatency(t)
-	assert.Assert(t, latency < (3*time.Second))
+	assert.Assert(t, latency < (2000*time.Millisecond))
+}
+
+func TestMutationAsync3(t *testing.T) {
+	t.Setenv("MUTATION_CONCURRENCY_LIMIT", "3")
+	latency := testMutationLatency(t)
+	assert.Assert(t, latency < (1500*time.Millisecond))
 }
 
 func testMutationLatency(t *testing.T) time.Duration {

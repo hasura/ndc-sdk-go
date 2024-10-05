@@ -24,10 +24,20 @@ import (
 // ServerOptions presents the configuration object of the connector http server
 type ServerOptions struct {
 	OTLPConfig
+	HTTPServerConfig
 
 	Configuration      string
 	InlineConfig       bool
 	ServiceTokenSecret string
+}
+
+// HTTPServerConfig the configuration of the HTTP server
+type HTTPServerConfig struct {
+	ServerReadTimeout        time.Duration `help:"The maximum duration for reading the entire request, including the body. A zero or negative value means there will be no timeout" env:"HASURA_SERVER_READ_TIMEOUT"`
+	ServerReadHeaderTimeout  time.Duration `help:"The amount of time allowed to read request headers. If zero, the value of ReadTimeout is used" env:"HASURA_SERVER_READ_HEADER_TIMEOUT"`
+	ServerWriteTimeout       time.Duration `help:"The maximum duration before timing out writes of the response. A zero or negative value means there will be no timeout" env:"HASURA_SERVER_WRITE_TIMEOUT"`
+	ServerIdleTimeout        time.Duration `help:"The maximum amount of time to wait for the next request when keep-alives are enabled. If zero, the value of ReadTimeout is used" env:"HASURA_SERVER_IDLE_TIMEOUT"`
+	ServerMaxHeaderKilobytes int           `help:"The maximum number of kilobytes the server will read parsing the request header's keys and values, including the request line" default:"1024" env:"HASURA_SERVER_MAX_HEADER_KILOBYTES"`
 }
 
 // Server implements the [NDC API specification] for the connector
@@ -162,15 +172,12 @@ func (s *Server[Configuration, State]) Query(w http.ResponseWriter, r *http.Requ
 	logger := GetLogger(r.Context())
 	span := trace.SpanFromContext(r.Context())
 	var body schema.QueryRequest
-	if err := s.unmarshalBodyJSON(w, r, span, s.telemetry.queryCounter, &body); err != nil {
+	if err := s.unmarshalBodyJSON(w, r, s.telemetry.queryCounter, &body); err != nil {
 		return
 	}
 
 	collectionAttr := attribute.String("collection", body.Collection)
 	span.SetAttributes(collectionAttr)
-	span.AddEvent("execute_query", trace.WithAttributes(
-		collectionAttr,
-	))
 	execQueryCtx, execQuerySpan := s.telemetry.Tracer.Start(r.Context(), "ndc_execute_query")
 	defer execQuerySpan.End()
 
@@ -187,7 +194,6 @@ func (s *Server[Configuration, State]) Query(w http.ResponseWriter, r *http.Requ
 	}
 	execQuerySpan.End()
 
-	span.AddEvent("ndc_query_response")
 	writeJson(w, logger, http.StatusOK, response)
 
 	s.telemetry.queryCounter.Add(r.Context(), 1, metric.WithAttributes(collectionAttr, successStatusAttribute))
@@ -202,16 +208,13 @@ func (s *Server[Configuration, State]) QueryExplain(w http.ResponseWriter, r *ht
 	span := trace.SpanFromContext(r.Context())
 
 	var body schema.QueryRequest
-	if err := s.unmarshalBodyJSON(w, r, span, s.telemetry.queryExplainCounter, &body); err != nil {
+	if err := s.unmarshalBodyJSON(w, r, s.telemetry.queryExplainCounter, &body); err != nil {
 		return
 	}
 
 	collectionAttr := attribute.String("collection", body.Collection)
 	span.SetAttributes(collectionAttr)
 
-	span.AddEvent("execute_query_plain", trace.WithAttributes(
-		collectionAttr,
-	))
 	execCtx, execSpan := s.telemetry.Tracer.Start(r.Context(), "ndc_execute_plan")
 	defer execSpan.End()
 
@@ -230,7 +233,6 @@ func (s *Server[Configuration, State]) QueryExplain(w http.ResponseWriter, r *ht
 	}
 	execSpan.End()
 
-	span.AddEvent("query_explain_response")
 	writeJson(w, logger, http.StatusOK, response)
 	s.telemetry.queryExplainCounter.Add(r.Context(), 1, metric.WithAttributes(successStatusAttribute, collectionAttr))
 
@@ -244,7 +246,7 @@ func (s *Server[Configuration, State]) MutationExplain(w http.ResponseWriter, r 
 	logger := GetLogger(r.Context())
 	span := trace.SpanFromContext(r.Context())
 	var body schema.MutationRequest
-	if err := s.unmarshalBodyJSON(w, r, span, s.telemetry.mutationExplainCounter, &body); err != nil {
+	if err := s.unmarshalBodyJSON(w, r, s.telemetry.mutationExplainCounter, &body); err != nil {
 		return
 	}
 
@@ -256,9 +258,6 @@ func (s *Server[Configuration, State]) MutationExplain(w http.ResponseWriter, r 
 	operationAttr := attribute.String("operations", strings.Join(operationNames, ","))
 	span.SetAttributes(operationAttr)
 
-	span.AddEvent("execute_mutation_plain", trace.WithAttributes(
-		operationAttr,
-	))
 	execCtx, execSpan := s.telemetry.Tracer.Start(r.Context(), "ndc_execute_plan")
 	defer execSpan.End()
 
@@ -277,7 +276,6 @@ func (s *Server[Configuration, State]) MutationExplain(w http.ResponseWriter, r 
 	}
 	execSpan.End()
 
-	span.AddEvent("mutation_explain_response")
 	writeJson(w, logger, http.StatusOK, response)
 	s.telemetry.mutationExplainCounter.Add(r.Context(), 1, metric.WithAttributes(successStatusAttribute, operationAttr))
 
@@ -292,7 +290,7 @@ func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.R
 	span := trace.SpanFromContext(r.Context())
 
 	var body schema.MutationRequest
-	if err := s.unmarshalBodyJSON(w, r, span, s.telemetry.mutationCounter, &body); err != nil {
+	if err := s.unmarshalBodyJSON(w, r, s.telemetry.mutationCounter, &body); err != nil {
 		return
 	}
 
@@ -304,9 +302,6 @@ func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.R
 	operationAttr := attribute.String("operations", strings.Join(operationNames, ","))
 	span.SetAttributes(operationAttr)
 
-	span.AddEvent("execute_mutation", trace.WithAttributes(
-		operationAttr,
-	))
 	execCtx, execSpan := s.telemetry.Tracer.Start(r.Context(), "ndc_execute_mutation")
 	defer execSpan.End()
 	response, err := s.connector.Mutation(execCtx, s.configuration, s.state, &body)
@@ -324,7 +319,6 @@ func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.R
 	}
 	execSpan.End()
 
-	span.AddEvent("mutation_response")
 	writeJson(w, logger, http.StatusOK, response)
 
 	s.telemetry.mutationCounter.Add(r.Context(), 1, metric.WithAttributes(successStatusAttribute, operationAttr))
@@ -334,9 +328,9 @@ func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.R
 }
 
 // the common unmarshal json body method
-func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, r *http.Request, span trace.Span, counter metric.Int64Counter, body any) error {
-	span.AddEvent("decode_body_json")
-	if err := json.NewDecoder(r.Body).Decode(body); err != nil {
+func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, r *http.Request, counter metric.Int64Counter, body any) error {
+	err := json.NewDecoder(r.Body).Decode(body)
+	if err != nil {
 		writeJson(w, GetLogger(r.Context()), http.StatusUnprocessableEntity, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
@@ -348,10 +342,9 @@ func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, 
 			failureStatusAttribute,
 			httpStatusAttribute(http.StatusUnprocessableEntity),
 		))
-		return err
 	}
 
-	return nil
+	return err
 }
 
 func (s *Server[Configuration, State]) buildHandler() *http.ServeMux {
@@ -389,12 +382,22 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 		}
 	}()
 
+	maxHeaderBytes := http.DefaultMaxHeaderBytes
+	if s.options.HTTPServerConfig.ServerMaxHeaderKilobytes > 0 {
+		maxHeaderBytes = s.options.HTTPServerConfig.ServerMaxHeaderKilobytes * 1024
+	}
+
 	server := http.Server{
 		Addr: fmt.Sprintf(":%d", port),
 		BaseContext: func(_ net.Listener) context.Context {
 			return s.context
 		},
-		Handler: s.buildHandler(),
+		Handler:           s.buildHandler(),
+		ReadTimeout:       s.options.ServerReadTimeout,
+		ReadHeaderTimeout: s.options.ServerReadHeaderTimeout,
+		WriteTimeout:      s.options.ServerWriteTimeout,
+		IdleTimeout:       s.options.ServerIdleTimeout,
+		MaxHeaderBytes:    maxHeaderBytes,
 	}
 
 	serverErr := make(chan error, 1)
