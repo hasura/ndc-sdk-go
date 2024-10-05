@@ -7,6 +7,8 @@ import (
 	"log/slog"
 	"reflect"
 	"slices"
+	"strconv"
+	"strings"
 )
 
 // GetDefault returns the value or default one if value is empty
@@ -133,4 +135,28 @@ func MergeMap[K comparable, V any](dest map[K]V, src map[K]V) map[K]V {
 		result[k] = v
 	}
 	return result
+}
+
+// ParseIntMapFromString parses an integer map from a string with format:
+//
+//	<key1>=<value1>;<key2>=<value2>
+func ParseIntMapFromString(input string) (map[string]int, error) {
+	result := make(map[string]int)
+	if input == "" {
+		return result, nil
+	}
+	rawItems := strings.Split(input, ";")
+	for _, rawItem := range rawItems {
+		keyValue := strings.Split(rawItem, "=")
+		if len(keyValue) != 2 {
+			return nil, fmt.Errorf("invalid int map string %s, expected <key1>=<value1>;<key2>=<value2>", input)
+		}
+		value, err := strconv.ParseInt(keyValue[1], 10, 32)
+		if err != nil {
+			return nil, fmt.Errorf("invalid integer value %s in item %s", keyValue[1], rawItem)
+		}
+		result[keyValue[0]] = int(value)
+	}
+
+	return result, nil
 }

@@ -7,8 +7,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"reflect"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -19,15 +21,20 @@ import (
 	"github.com/hasura/ndc-sdk-go/connector"
 	"github.com/hasura/ndc-sdk-go/ndctest"
 	"github.com/hasura/ndc-sdk-go/scalar"
+	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
 	"gotest.tools/v3/assert"
 )
 
-func createTestServer(t *testing.T) *connector.Server[types.Configuration, types.State] {
+func createTestServer(t *testing.T, options ...connector.ServeOption) *connector.Server[types.Configuration, types.State] {
+	// reset global envs
+	loadGlobalEnvOnce = sync.Once{}
+	_globalEnvironments = globalEnvironments{}
+
 	server, err := connector.NewServer[types.Configuration, types.State](&Connector{}, &connector.ServerOptions{
 		Configuration: "{}",
 		InlineConfig:  true,
-	}, connector.WithoutRecovery())
+	}, append(options, connector.WithoutRecovery())...)
 
 	assert.NilError(t, err)
 
@@ -1523,6 +1530,7 @@ func TestQueryGetTypes(t *testing.T) {
 	}
 
 	testServer := createTestServer(t).BuildTestServer()
+	defer testServer.Close()
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/query", testServer.URL), "application/json", bytes.NewReader([]byte(tc.body)))
@@ -1617,25 +1625,6 @@ func TestQueries(t *testing.T) {
 			errorMsg: "the selection field type must be object",
 		},
 		{
-			name:   "getBool",
-			status: http.StatusOK,
-			body: `{
-				"collection": "getBool",
-				"arguments": {},
-				"query": {
-					"fields": {
-						"__value": {
-							"type": "column",
-							"column": "__value",
-							"fields": null
-						}
-					}
-				},
-				"collection_relationships": {}
-			}`,
-			response: `true`,
-		},
-		{
 			name:   "getArticles_failure_object",
 			status: http.StatusUnprocessableEntity,
 			body: `{
@@ -1660,52 +1649,16 @@ func TestQueries(t *testing.T) {
 			}`,
 			errorMsg: "the selection field type must be array",
 		},
-		{
-			name:   "getArticles_success",
-			status: http.StatusOK,
-			body: `{
-				"collection": "getArticles",
-				"query": {
-					"fields": {
-						"__value": {
-							"type": "column",
-							"column": "__value",
-							"fields": {
-								"type": "array",
-								"fields": {
-									"type": "object",
-									"fields": {
-										"id": { "type": "column", "column": "id" }
-									}
-								}
-							}
-						}
-					}
-				},
-				"arguments": {
-					"name": {
-						"type": "literal",
-						"value": "foo"
-					},
-					"Limit": {
-						"type": "literal",
-						"value": 1
-					}
-				},
-				"collection_relationships": {}
-			}`,
-			response: `[{
-				"id": "1"
-			}]`,
-		},
 	}
 
 	testServer := createTestServer(t).BuildTestServer()
+	defer testServer.Close()
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
 			resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/query", testServer.URL), "application/json", bytes.NewReader([]byte(tc.body)))
 			assert.NilError(t, err, "failed to request query")
+			defer resp.Body.Close()
 			assert.Equal(t, tc.status, resp.StatusCode)
 			respBody, err := io.ReadAll(resp.Body)
 			if tc.errorMsg != "" {
@@ -1740,40 +1693,6 @@ func TestProcedures(t *testing.T) {
 		errorMsg string
 	}{
 		{
-			name:   "create_article_success",
-			status: http.StatusOK,
-			body: `{
-				"operations": [
-					{
-						"type": "procedure",
-						"name": "create_article",
-						"arguments": {
-							"author": {
-								"type": "literal",
-								"value": {
-									"created_at": "2024-03-31T12:01:32+07:00",
-									"id": "5ea23c2a-f75b-4901-a640-87a46a509418"
-								}
-							}
-						},
-						"fields": {
-							"type": "object",
-							"fields": {
-								"id": {
-									"type": "column",
-									"column": "id"
-								}
-							}
-						}
-					}
-				],
-				"collection_relationships": {}
-			}`,
-			response: `{
-				"id": 1
-			}`,
-		},
-		{
 			name:   "create_article_array_400",
 			status: http.StatusUnprocessableEntity,
 			body: `{
@@ -1801,46 +1720,6 @@ func TestProcedures(t *testing.T) {
 			errorMsg: "the selection field type must be object",
 		},
 		{
-			name:   "createAuthors_success",
-			status: http.StatusOK,
-			body: `{
-				"operations": [
-					{
-						"type": "procedure",
-						"name": "createAuthors",
-						"arguments": {
-							"Authors": [
-								{
-									"name": "Author 1"
-								},
-								{
-									"name": "Author 2"
-								}
-							]
-						},
-						"fields": {
-							"type": "array",
-							"fields": {
-								"type": "object",
-								"fields": {
-									"id": {
-										"type": "column",
-										"column": "id"
-									}
-								}
-							}
-						}
-					}
-				],
-				"collection_relationships": {}
-			}`,
-			response: `[{
-				"id": 0
-			}, {
-				"id": 1
-			}]`,
-		},
-		{
 			name:   "createAuthors_object_422",
 			status: http.StatusUnprocessableEntity,
 			body: `{
@@ -1863,22 +1742,6 @@ func TestProcedures(t *testing.T) {
 				"collection_relationships": {}
 			}`,
 			errorMsg: "the selection field type must be array",
-		},
-		{
-			name:   "increase_success",
-			status: http.StatusOK,
-			body: `{
-				"operations": [
-					{
-						"type": "procedure",
-						"name": "increase",
-						"arguments": {},
-						"fields": null
-					}
-				],
-				"collection_relationships": {}
-			}`,
-			response: `1`,
 		},
 		{
 			name:   "increase_422",
@@ -1907,11 +1770,14 @@ func TestProcedures(t *testing.T) {
 	}
 
 	testServer := createTestServer(t).BuildTestServer()
+	defer testServer.Close()
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
 			resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/mutation", testServer.URL), "application/json", bytes.NewReader([]byte(tc.body)))
 			assert.NilError(t, err, "failed to request mutation")
+			defer resp.Body.Close()
+
 			assert.Equal(t, tc.status, resp.StatusCode)
 			respBody, err := io.ReadAll(resp.Body)
 			if tc.errorMsg != "" {
@@ -1934,4 +1800,84 @@ func TestProcedures(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestQuerySync(t *testing.T) {
+	latency := testQueryLatency(t)
+	assert.Assert(t, latency >= (3*time.Second))
+}
+
+func TestQueryAsync(t *testing.T) {
+	t.Setenv("QUERY_CONCURRENCY_LIMIT", "2")
+	latency := testQueryLatency(t)
+	assert.Assert(t, latency < (3*time.Second))
+}
+
+func TestQueryAsyncByName(t *testing.T) {
+	t.Setenv("QUERY_CONCURRENCY", "getArticles=2")
+	latency := testQueryLatency(t)
+	assert.Assert(t, latency < (3*time.Second))
+}
+
+func testQueryLatency(t *testing.T) time.Duration {
+	testServer := createTestServer(t).BuildTestServer()
+	defer testServer.Close()
+	rawRequestBody, err := os.ReadFile("testdata/query/getArticles/request.json")
+	assert.NilError(t, err)
+	rawExpectedBody, err := os.ReadFile("testdata/query/getArticles/expected.json")
+	assert.NilError(t, err)
+
+	var expected, respBody schema.QueryResponse
+	assert.NilError(t, json.Unmarshal(rawExpectedBody, &expected))
+
+	start := time.Now()
+	resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/query", testServer.URL), "application/json", bytes.NewReader(rawRequestBody))
+	latency := time.Since(start)
+	assert.NilError(t, err, "failed to request query")
+	defer resp.Body.Close()
+	assert.Equal(t, resp.StatusCode, http.StatusOK)
+	assert.NilError(t, json.NewDecoder(resp.Body).Decode(&respBody))
+	assert.DeepEqual(t, expected, respBody)
+
+	return latency
+}
+
+func TestMutationSync(t *testing.T) {
+	latency := testMutationLatency(t)
+	assert.Assert(t, latency >= (1500*time.Millisecond))
+}
+
+func TestMutationAsync2(t *testing.T) {
+	t.Setenv("MUTATION_CONCURRENCY_LIMIT", "2")
+	latency := testMutationLatency(t)
+	assert.Assert(t, latency < (2000*time.Millisecond))
+}
+
+func TestMutationAsync3(t *testing.T) {
+	t.Setenv("MUTATION_CONCURRENCY_LIMIT", "3")
+	latency := testMutationLatency(t)
+	assert.Assert(t, latency < (1500*time.Millisecond))
+}
+
+func testMutationLatency(t *testing.T) time.Duration {
+	testServer := createTestServer(t).BuildTestServer()
+	defer testServer.Close()
+	rawRequestBody, err := os.ReadFile("testdata/mutation/create_article/request.json")
+	assert.NilError(t, err)
+	rawExpectedBody, err := os.ReadFile("testdata/mutation/create_article/expected.json")
+	assert.NilError(t, err)
+
+	var expected, respBody schema.MutationResponse
+	assert.NilError(t, json.Unmarshal(rawExpectedBody, &expected))
+
+	start := time.Now()
+	resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/mutation", testServer.URL), "application/json", bytes.NewReader(rawRequestBody))
+	latency := time.Since(start)
+	assert.NilError(t, err, "failed to request mutation")
+	defer resp.Body.Close()
+	assert.Equal(t, resp.StatusCode, http.StatusOK)
+	assert.NilError(t, json.NewDecoder(resp.Body).Decode(&respBody))
+	assert.DeepEqual(t, expected, respBody)
+
+	return latency
 }

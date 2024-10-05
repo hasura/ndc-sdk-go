@@ -13,10 +13,11 @@ import (
 // ServeCommandArguments contains argument flags of the serve command
 type ServeCommandArguments struct {
 	OTLPConfig
+	HTTPServerConfig
 
-	Configuration      string `help:"Configuration directory." env:"HASURA_CONFIGURATION_DIRECTORY"`
-	Port               uint   `help:"Serve Port." env:"HASURA_CONNECTOR_PORT" default:"8080"`
-	ServiceTokenSecret string `help:"Service token secret." env:"HASURA_SERVICE_TOKEN_SECRET"`
+	Configuration      string `help:"Configuration directory" env:"HASURA_CONFIGURATION_DIRECTORY"`
+	Port               uint   `help:"Serve Port" env:"HASURA_CONNECTOR_PORT" default:"8080"`
+	ServiceTokenSecret string `help:"Service token secret" env:"HASURA_SERVICE_TOKEN_SECRET"`
 }
 
 // ServeCLI is used for CLI argument binding
@@ -47,7 +48,7 @@ type ConnectorCLI interface {
 // This should be the entrypoint of your connector
 func Start[Configuration any, State any](connector Connector[Configuration, State], options ...ServeOption) error {
 	var cli ServeCLI
-	return StartCustom[Configuration, State](&cli, connector, options...)
+	return StartCustom(&cli, connector, options...)
 }
 
 // Starts the connector with custom CLI.
@@ -64,10 +65,12 @@ func StartCustom[Configuration any, State any](cli ConnectorCLI, connector Conne
 	}
 	switch command {
 	case "serve":
-		server, err := NewServer[Configuration, State](connector, &ServerOptions{
+		logger.Debug("Start to serve the connector", slog.Any("arguments", serveCLI.Serve))
+		server, err := NewServer(connector, &ServerOptions{
 			Configuration:      serveCLI.Serve.Configuration,
 			ServiceTokenSecret: serveCLI.Serve.ServiceTokenSecret,
 			OTLPConfig:         serveCLI.Serve.OTLPConfig,
+			HTTPServerConfig:   serveCLI.Serve.HTTPServerConfig,
 		}, append([]ServeOption{WithLogger(logger), withLogLevel(logLevel)}, options...)...)
 		if err != nil {
 			return err

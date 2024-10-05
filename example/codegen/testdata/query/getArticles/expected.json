@@ -1,14 +1,4 @@
 [
-  {
-    "rows": [
-      {
-        "__value": [
-          {
-            "Name": "foo",
-            "id": "1"
-          }
-        ]
-      }
-    ]
-  }
+  { "rows": [{ "__value": [{ "Name": "foo", "id": 1 }] }] },
+  { "rows": [{ "__value": [{ "Name": "foo", "id": 2 }] }] }
 ]

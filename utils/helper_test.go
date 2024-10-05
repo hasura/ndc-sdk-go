@@ -52,3 +52,43 @@ func TestMergeMap(t *testing.T) {
 		"c": 3,
 	}, MergeMap(mapA, mapB))
 }
+
+func TestParseIntMapFromString(t *testing.T) {
+	testCases := []struct {
+		Input    string
+		Expected map[string]int
+		ErrorMsg string
+	}{
+		{
+			Expected: map[string]int{},
+		},
+		{
+			Input: "a=1;b=2;c=3",
+			Expected: map[string]int{
+				"a": 1,
+				"b": 2,
+				"c": 3,
+			},
+		},
+		{
+			Input:    "a;b=2",
+			ErrorMsg: "invalid int map string a;b=2, expected <key1>=<value1>;<key2>=<value2>",
+		},
+		{
+			Input:    "a=c;b=2",
+			ErrorMsg: "invalid integer value c in item a=c",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Input, func(t *testing.T) {
+			result, err := ParseIntMapFromString(tc.Input)
+			if tc.ErrorMsg != "" {
+				assert.ErrorContains(t, err, tc.ErrorMsg)
+			} else {
+				assert.NilError(t, err)
+				assert.DeepEqual(t, result, tc.Expected)
+			}
+		})
+	}
+}
