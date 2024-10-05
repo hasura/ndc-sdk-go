@@ -2,35 +2,15 @@
 
 ## Get started
 
-Start the connector server at http://localhost:8080
+Read the documentation at https://hasura.io/docs/3.0/getting-started/build/add-business-logic?db=Go
 
-```go
-go run . serve
-```
+## Configuration
 
-## Development
+See the help of [serve](https://github.com/hasura/ndc-sdk-go#using-this-sdk) command of the connector SDK.
 
-### DDN CLI
+Besides that the connector supports extra environments:
 
-The boilerplate follows [Native Connector Packaging](https://github.com/hasura/ndc-hub/blob/main/rfcs/0004-native-packaging.md) with convenience shell scripts at [the connector definition folder](.hasura-connector/scripts). 
-DDN CLI can automatically invoke those scripts when developing with DDN projects.
-
-### Manual 
-
-#### Installation
-
-Install following tools for development:
-
-- [hasura-ndc-go](https://github.com/hasura/ndc-sdk-go/tree/main/cmd/hasura-ndc-go)
-
-```sh
-go install github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go@latest
-```
-
-#### Code generation
-
-Whenever modifying NDC types and functions in the `functions` folder, you need to generate NDC schema and codes.
-
-```sh
-hasura-ndc-go update
-```
+| Name                         | Description                                                                                      | Default Value |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ | ------------- |
+| `QUERY_CONCURRENCY_LIMIT`    | The limit of concurrent query executions if there are many request variables in a single request | `1`           |
+| `MUTATION_CONCURRENCY_LIMIT` | The limit of concurrent mutation executions if there are many operations in a single request     | `1`           |

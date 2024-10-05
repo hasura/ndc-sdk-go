@@ -33,11 +33,13 @@ type ServerOptions struct {
 
 // HTTPServerConfig the configuration of the HTTP server
 type HTTPServerConfig struct {
-	ServerReadTimeout        time.Duration `help:"The maximum duration for reading the entire request, including the body. A zero or negative value means there will be no timeout" env:"HASURA_SERVER_READ_TIMEOUT"`
-	ServerReadHeaderTimeout  time.Duration `help:"The amount of time allowed to read request headers. If zero, the value of ReadTimeout is used" env:"HASURA_SERVER_READ_HEADER_TIMEOUT"`
-	ServerWriteTimeout       time.Duration `help:"The maximum duration before timing out writes of the response. A zero or negative value means there will be no timeout" env:"HASURA_SERVER_WRITE_TIMEOUT"`
-	ServerIdleTimeout        time.Duration `help:"The maximum amount of time to wait for the next request when keep-alives are enabled. If zero, the value of ReadTimeout is used" env:"HASURA_SERVER_IDLE_TIMEOUT"`
-	ServerMaxHeaderKilobytes int           `help:"The maximum number of kilobytes the server will read parsing the request header's keys and values, including the request line" default:"1024" env:"HASURA_SERVER_MAX_HEADER_KILOBYTES"`
+	ServerReadTimeout        time.Duration `help:"Maximum duration for reading the entire request, including the body. A zero or negative value means there will be no timeout" env:"HASURA_SERVER_READ_TIMEOUT"`
+	ServerReadHeaderTimeout  time.Duration `help:"Amount of time allowed to read request headers. If zero, the value of ReadTimeout is used" env:"HASURA_SERVER_READ_HEADER_TIMEOUT"`
+	ServerWriteTimeout       time.Duration `help:"Maximum duration before timing out writes of the response. A zero or negative value means there will be no timeout" env:"HASURA_SERVER_WRITE_TIMEOUT"`
+	ServerIdleTimeout        time.Duration `help:"Maximum amount of time to wait for the next request when keep-alives are enabled. If zero, the value of ReadTimeout is used" env:"HASURA_SERVER_IDLE_TIMEOUT"`
+	ServerMaxHeaderKilobytes int           `help:"Maximum number of kilobytes the server will read parsing the request header's keys and values, including the request line" default:"1024" env:"HASURA_SERVER_MAX_HEADER_KILOBYTES"`
+	ServerTLSCertFile        string        `help:"Path of the TLS certificate file" env:"HASURA_SERVER_TLS_CERT_FILE"`
+	ServerTLSKeyFile         string        `help:"Path of the TLS key file" env:"HASURA_SERVER_TLS_KEY_FILE"`
 }
 
 // Server implements the [NDC API specification] for the connector
@@ -402,8 +404,16 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 
 	serverErr := make(chan error, 1)
 	go func() {
-		s.logger.Info(fmt.Sprintf("Listening server on %s", server.Addr))
-		if err := server.ListenAndServe(); err != http.ErrServerClosed {
+		var err error
+		if s.options.ServerTLSCertFile != "" || s.options.ServerTLSKeyFile != "" {
+			s.logger.Info(fmt.Sprintf("Listening server and serving TLS on %s", server.Addr))
+			err = server.ListenAndServeTLS(s.options.ServerTLSCertFile, s.options.ServerTLSKeyFile)
+		} else {
+			s.logger.Info(fmt.Sprintf("Listening server on %s", server.Addr))
+			err = server.ListenAndServe()
+		}
+
+		if err != nil && err != http.ErrServerClosed {
 			serverErr <- err
 		}
 	}()

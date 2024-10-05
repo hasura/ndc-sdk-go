@@ -2,9 +2,9 @@ packagingDefinition:
   type: ManagedDockerBuild
 supportedEnvironmentVariables:
   - name: QUERY_CONCURRENCY_LIMIT
-    description: The limit of concurrent query executions if there are many request variables
+    description: The limit of concurrent query executions if there are many request variables in a single request
     defaultValue: "1"
-    required: 
+    required: false
   - name: MUTATION_CONCURRENCY_LIMIT
     description: The limit of concurrent mutation executions if there are many operations in a single request
     defaultValue: "1"

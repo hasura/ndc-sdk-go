@@ -52,17 +52,43 @@ The `Start` function create a CLI application with following commands:
 ```sh
 Commands:
   serve
-    Serve the NDC connector.
+Serve the NDC connector.
 
-    Flags:
-      --configuration=STRING               Configuration directory ($HASURA_CONFIGURATION_DIRECTORY).
-      --port=8080                          Serve Port ($HASURA_CONNECTOR_PORT).
-      --service-token-secret=STRING        Service token secret ($HASURA_SERVICE_TOKEN_SECRET).
-      --service-name=STRING                OpenTelemetry service name ($OTEL_SERVICE_NAME).
-      --otlp-endpoint=STRING               OpenTelemetry receiver endpoint that is set as default for all types ($OTEL_EXPORTER_OTLP_ENDPOINT).
-      --metrics-exporter="none"            Metrics export type. Accept: none, otlp, prometheus ($OTEL_METRICS_EXPORTER).
-      --prometheus-port=PROMETHEUS-PORT    Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty ($OTEL_EXPORTER_PROMETHEUS_PORT)
-      ...
+Flags:
+  -h, --help                                   Show context-sensitive help.
+      --log-level="info"                       Log level ($HASURA_LOG_LEVEL).
+
+      --service-name=STRING                    OpenTelemetry service name ($OTEL_SERVICE_NAME).
+      --otlp-endpoint=STRING                   OpenTelemetry receiver endpoint that is set as default for all types ($OTEL_EXPORTER_OTLP_ENDPOINT).
+      --otlp-traces-endpoint=STRING            OpenTelemetry endpoint for traces ($OTEL_EXPORTER_OTLP_TRACES_ENDPOINT).
+      --otlp-metrics-endpoint=STRING           OpenTelemetry endpoint for metrics ($OTEL_EXPORTER_OTLP_METRICS_ENDPOINT).
+      --otlp-insecure                          Disable LTS for OpenTelemetry exporters ($OTEL_EXPORTER_OTLP_INSECURE).
+      --otlp-traces-insecure                   Disable LTS for OpenTelemetry traces exporter ($OTEL_EXPORTER_OTLP_TRACES_INSECURE).
+      --otlp-metrics-insecure                  Disable LTS for OpenTelemetry metrics exporter ($OTEL_EXPORTER_OTLP_METRICS_INSECURE).
+      --otlp-protocol=STRING                   OpenTelemetry receiver protocol for all types ($OTEL_EXPORTER_OTLP_PROTOCOL).
+      --otlp-traces-protocol=STRING            OpenTelemetry receiver protocol for traces ($OTEL_EXPORTER_OTLP_TRACES_PROTOCOL).
+      --otlp-metrics-protocol=STRING           OpenTelemetry receiver protocol for metrics ($OTEL_EXPORTER_OTLP_METRICS_PROTOCOL).
+      --otlp-compression="gzip"                Enable compression for OTLP exporters. Accept: none, gzip ($OTEL_EXPORTER_OTLP_COMPRESSION)
+      --otlp-trace-compression="gzip"          Enable compression for OTLP traces exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_TRACES_COMPRESSION)
+      --otlp-metrics-compression="gzip"        Enable compression for OTLP metrics exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_METRICS_COMPRESSION)
+      --metrics-exporter="none"                Metrics export type. Accept: none, otlp, prometheus ($OTEL_METRICS_EXPORTER)
+      --prometheus-port=PROMETHEUS-PORT        Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty
+                                               ($OTEL_EXPORTER_PROMETHEUS_PORT)
+      --disable-go-metrics                     Disable internal Go and process metrics
+      --server-read-timeout=DURATION           Maximum duration for reading the entire request, including the body. A zero or negative value means there will be no timeout
+                                               ($HASURA_SERVER_READ_TIMEOUT)
+      --server-read-header-timeout=DURATION    Amount of time allowed to read request headers. If zero, the value of ReadTimeout is used ($HASURA_SERVER_READ_HEADER_TIMEOUT)
+      --server-write-timeout=DURATION          Maximum duration before timing out writes of the response. A zero or negative value means there will be no timeout
+                                               ($HASURA_SERVER_WRITE_TIMEOUT)
+      --server-idle-timeout=DURATION           Maximum amount of time to wait for the next request when keep-alives are enabled. If zero, the value of ReadTimeout is used
+                                               ($HASURA_SERVER_IDLE_TIMEOUT)
+      --server-max-header-kilobytes=1024       Maximum number of kilobytes the server will read parsing the request header's keys and values, including the request line
+                                               ($HASURA_SERVER_MAX_HEADER_KILOBYTES)
+      --server-tls-cert-file=STRING            Path of the TLS certificate file ($HASURA_SERVER_TLS_CERT_FILE)
+      --server-tls-key-file=STRING             Path of the TLS key file ($HASURA_SERVER_TLS_KEY_FILE)
+      --configuration=STRING                   Configuration directory ($HASURA_CONFIGURATION_DIRECTORY)
+      --port=8080                              Serve Port ($HASURA_CONNECTOR_PORT)
+      --service-token-secret=STRING            Service token secret ($HASURA_SERVICE_TOKEN_SECRET)
 ```
 
 Please refer to the [NDC Spec](https://hasura.github.io/ndc-spec/) for details on implementing the Connector interface, or see [examples](./example).
