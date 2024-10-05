@@ -10,7 +10,8 @@ See the help of [serve](https://github.com/hasura/ndc-sdk-go#using-this-sdk) com
 
 Besides that the connector supports extra environments:
 
-| Name                         | Description                                                                                      | Default Value |
-| ---------------------------- | ------------------------------------------------------------------------------------------------ | ------------- |
-| `QUERY_CONCURRENCY_LIMIT`    | The limit of concurrent query executions if there are many request variables in a single request | `1`           |
-| `MUTATION_CONCURRENCY_LIMIT` | The limit of concurrent mutation executions if there are many operations in a single request     | `1`           |
+| Name                         | Description                                                                                                                                             | Default Value |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| `QUERY_CONCURRENCY`          | The limit of concurrent query executions by name if there are many request variables in a single request wit h format `<key1>=<value1>;<key2>=<value2>` |               |
+| `QUERY_CONCURRENCY_LIMIT`    | The limit of concurrent query executions if there are many request variables in a single request                                                        | `1`           |
+| `MUTATION_CONCURRENCY_LIMIT` | The limit of concurrent mutation executions if there are many operations in a single request                                                            | `1`           |

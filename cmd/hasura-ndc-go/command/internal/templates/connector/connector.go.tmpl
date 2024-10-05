@@ -70,10 +70,11 @@ func (c *Connector) Query(ctx context.Context, configuration *types.Configuratio
 		requestVars = []schema.QueryRequestVariablesElem{make(schema.QueryRequestVariablesElem)}
 	}
 
-	if getGlobalEnvironments().queryConcurrencyLimit <= 1 || len(request.Variables) <= 1 {
+	concurrencyLimit := getGlobalEnvironments().GetQueryConcurrencyLimitByName(request.Collection)
+	if concurrencyLimit <= 1 || len(request.Variables) <= 1 {
 		return c.execQuerySync(ctx, state, request, requestVars)
 	}
-	return c.execQueryAsync(ctx, state, request, requestVars)
+	return c.execQueryAsync(ctx, state, request, requestVars, concurrencyLimit)
 }
 
 func (c *Connector) execQuerySync(ctx context.Context, state *{{.StateArgument}}, request *schema.QueryRequest, requestVars []schema.QueryRequestVariablesElem) (schema.QueryResponse, error) {
@@ -89,10 +90,10 @@ func (c *Connector) execQuerySync(ctx context.Context, state *{{.StateArgument}}
 	return rowSets, nil
 }
 
-func (c *Connector) execQueryAsync(ctx context.Context, state *{{.StateArgument}}, request *schema.QueryRequest, requestVars []schema.QueryRequestVariablesElem) (schema.QueryResponse, error) {
+func (c *Connector) execQueryAsync(ctx context.Context, state *{{.StateArgument}}, request *schema.QueryRequest, requestVars []schema.QueryRequestVariablesElem, concurrencyLimit int) (schema.QueryResponse, error) {
 	rowSets := make([]schema.RowSet, len(requestVars))
 	eg, ctx := errgroup.WithContext(ctx)
-	eg.SetLimit(getGlobalEnvironments().queryConcurrencyLimit)
+	eg.SetLimit(concurrencyLimit)
 
 	for i, requestVar := range requestVars {
 		func(index int, vars schema.QueryRequestVariablesElem) {
@@ -150,11 +151,12 @@ func (c *Connector) Mutation(ctx context.Context, configuration *types.Configura
 		return nil, schema.UnprocessableContentError("unsupported mutation", nil)
 	}
 
-	if len(request.Operations) <= 1 || getGlobalEnvironments().mutationConcurrencyLimit <= 1 {
+	concurrencyLimit := getGlobalEnvironments().mutationConcurrencyLimit
+	if len(request.Operations) <= 1 || concurrencyLimit <= 1 {
 		return c.execMutationSync(ctx, state, request)
 	}
 
-	return c.execMutationAsync(ctx, state, request)
+	return c.execMutationAsync(ctx, state, request, concurrencyLimit)
 }
 
 func (c *Connector) execMutationSync(ctx context.Context, state *{{.StateArgument}}, request *schema.MutationRequest) (*schema.MutationResponse, error) {
@@ -172,10 +174,10 @@ func (c *Connector) execMutationSync(ctx context.Context, state *{{.StateArgumen
 	}, nil
 }
 
-func (c *Connector) execMutationAsync(ctx context.Context, state *{{.StateArgument}}, request *schema.MutationRequest) (*schema.MutationResponse, error) {
+func (c *Connector) execMutationAsync(ctx context.Context, state *{{.StateArgument}}, request *schema.MutationRequest, concurrencyLimit int) (*schema.MutationResponse, error) {
 	operationResults := make([]schema.MutationOperationResults, len(request.Operations))
 	eg, ctx := errgroup.WithContext(ctx)
-	eg.SetLimit(getGlobalEnvironments().mutationConcurrencyLimit)
+	eg.SetLimit(concurrencyLimit)
 
 	for i, operation := range request.Operations {
 		func(index int, op schema.MutationOperation) {
@@ -238,8 +240,20 @@ func (c *Connector) execProcedure(ctx context.Context, state *{{.StateArgument}}
 }
 
 type globalEnvironments struct {
-	queryConcurrencyLimit int
+	queryConcurrency         map[string]int
+	queryConcurrencyLimit    int
 	mutationConcurrencyLimit int
+}
+
+// GetQueryConcurrencyLimitByName gets the concurrency limit of the query by name
+func (ge globalEnvironments) GetQueryConcurrencyLimitByName(name string) int {
+	if len(ge.queryConcurrency) > 0 {
+		if limit, ok := ge.queryConcurrency[name]; ok {
+			return limit
+		}
+	}
+
+	return ge.queryConcurrencyLimit
 }
 
 var _globalEnvironments = globalEnvironments{}
@@ -262,6 +276,12 @@ func initGlobalEnvironments() {
 		}
 		_globalEnvironments.mutationConcurrencyLimit = int(limit)
 	}
+
+	queryConcurrency, err := utils.ParseIntMapFromString(os.Getenv("QUERY_CONCURRENCY"))
+	if err != nil {
+		panic(fmt.Sprintf("QUERY_CONCURRENCY: %s", err))
+	}
+	_globalEnvironments.queryConcurrency = queryConcurrency
 }
 
 func getGlobalEnvironments() *globalEnvironments {
