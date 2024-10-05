@@ -46,7 +46,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("TimestampTZ").Encode(),
 					},
 					"id": schema.ObjectField{
-						Type: schema.NewNamedType("UUID").Encode(),
+						Type: schema.NewNamedType("Int32").Encode(),
 					},
 				},
 			},
@@ -86,7 +86,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("String").Encode(),
 					},
 					"id": schema.ObjectField{
-						Type: schema.NewNamedType("String").Encode(),
+						Type: schema.NewNamedType("Int32").Encode(),
 					},
 				},
 			},
@@ -1038,6 +1038,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 				Description: toPtr("GetArticles"),
 				ResultType:  schema.NewArrayType(schema.NewNamedType("GetArticlesResult")).Encode(),
 				Arguments: map[string]schema.ArgumentInfo{
+					"AuthorID": {
+						Type: schema.NewNamedType("Int32").Encode(),
+					},
 					"Limit": {
 						Type: schema.NewNamedType("Float64").Encode(),
 					},

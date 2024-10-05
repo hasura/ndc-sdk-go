@@ -29,6 +29,10 @@ func (j *BaseAuthor) FromValue(input map[string]any) error {
 // FromValue decodes values from map
 func (j *GetArticlesArguments) FromValue(input map[string]any) error {
 	var err error
+	j.AuthorID, err = utils.GetInt[int](input, "AuthorID")
+	if err != nil {
+		return err
+	}
 	err = connector_Decoder.DecodeObject(&j.BaseAuthor, input)
 	if err != nil {
 		return err

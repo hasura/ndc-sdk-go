@@ -2,29 +2,33 @@ package functions
 
 import (
 	"context"
+	"math"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/hasura/ndc-codegen-example/types"
 )
 
 type GetArticlesArguments struct {
 	BaseAuthor
 
-	Limit float64
+	AuthorID int
+	Limit    float64
 }
 
 type GetArticlesResult struct {
-	ID   string `json:"id"`
+	ID   uint `json:"id"`
 	Name types.Text
 }
 
 // GetArticles
 // @function
 func GetArticles(ctx context.Context, state *types.State, arguments *GetArticlesArguments) ([]GetArticlesResult, error) {
+	if arguments.AuthorID > 0 {
+		time.Sleep(time.Duration(math.Min(float64(arguments.AuthorID), 2)) * time.Second)
+	}
 	return []GetArticlesResult{
 		{
-			ID:   "1",
+			ID:   uint(arguments.AuthorID),
 			Name: types.Text(arguments.Name),
 		},
 	}, nil
@@ -32,7 +36,7 @@ func GetArticles(ctx context.Context, state *types.State, arguments *GetArticles
 
 type CreateArticleArguments struct {
 	Author struct {
-		ID        uuid.UUID `json:"id"`
+		ID        int       `json:"id"`
 		CreatedAt time.Time `json:"created_at"`
 	} `json:"author"`
 }
@@ -45,8 +49,11 @@ type CreateArticleResult struct {
 // CreateArticle
 // @procedure create_article
 func CreateArticle(ctx context.Context, state *types.State, arguments *CreateArticleArguments) (CreateArticleResult, error) {
+	if arguments.Author.ID > 0 {
+		time.Sleep(time.Duration(math.Min(float64(arguments.Author.ID), 2)) * time.Second)
+	}
 	return CreateArticleResult{
-		ID:      1,
+		ID:      uint(arguments.Author.ID),
 		Authors: []types.Author{},
 	}, nil
 }

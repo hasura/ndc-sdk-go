@@ -7,8 +7,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"reflect"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -19,15 +21,20 @@ import (
 	"github.com/hasura/ndc-sdk-go/connector"
 	"github.com/hasura/ndc-sdk-go/ndctest"
 	"github.com/hasura/ndc-sdk-go/scalar"
+	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
 	"gotest.tools/v3/assert"
 )
 
-func createTestServer(t *testing.T) *connector.Server[types.Configuration, types.State] {
+func createTestServer(t *testing.T, options ...connector.ServeOption) *connector.Server[types.Configuration, types.State] {
+	// reset global envs
+	loadGlobalEnvOnce = sync.Once{}
+	_globalEnvironments = globalEnvironments{}
+
 	server, err := connector.NewServer[types.Configuration, types.State](&Connector{}, &connector.ServerOptions{
 		Configuration: "{}",
 		InlineConfig:  true,
-	}, connector.WithoutRecovery())
+	}, append(options, connector.WithoutRecovery())...)
 
 	assert.NilError(t, err)
 
@@ -1523,6 +1530,7 @@ func TestQueryGetTypes(t *testing.T) {
 	}
 
 	testServer := createTestServer(t).BuildTestServer()
+	defer testServer.Close()
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/query", testServer.URL), "application/json", bytes.NewReader([]byte(tc.body)))
@@ -1690,22 +1698,25 @@ func TestQueries(t *testing.T) {
 					"Limit": {
 						"type": "literal",
 						"value": 1
-					}
+					},
+    			"AuthorID": { "type": "literal", "value": 1 }
 				},
 				"collection_relationships": {}
 			}`,
 			response: `[{
-				"id": "1"
+				"id": 1
 			}]`,
 		},
 	}
 
 	testServer := createTestServer(t).BuildTestServer()
+	defer testServer.Close()
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
 			resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/query", testServer.URL), "application/json", bytes.NewReader([]byte(tc.body)))
 			assert.NilError(t, err, "failed to request query")
+			defer resp.Body.Close()
 			assert.Equal(t, tc.status, resp.StatusCode)
 			respBody, err := io.ReadAll(resp.Body)
 			if tc.errorMsg != "" {
@@ -1907,11 +1918,14 @@ func TestProcedures(t *testing.T) {
 	}
 
 	testServer := createTestServer(t).BuildTestServer()
+	defer testServer.Close()
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
 			resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/mutation", testServer.URL), "application/json", bytes.NewReader([]byte(tc.body)))
 			assert.NilError(t, err, "failed to request mutation")
+			defer resp.Body.Close()
+
 			assert.Equal(t, tc.status, resp.StatusCode)
 			respBody, err := io.ReadAll(resp.Body)
 			if tc.errorMsg != "" {
@@ -1934,4 +1948,72 @@ func TestProcedures(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestQuerySync(t *testing.T) {
+	latency := testQueryLatency(t)
+	assert.Assert(t, latency >= (3*time.Second))
+}
+
+func TestQueryAsync(t *testing.T) {
+	t.Setenv("QUERY_CONCURRENCY_LIMIT", "2")
+	latency := testQueryLatency(t)
+	assert.Assert(t, latency < (3*time.Second))
+}
+
+func testQueryLatency(t *testing.T) time.Duration {
+	testServer := createTestServer(t).BuildTestServer()
+	defer testServer.Close()
+	rawRequestBody, err := os.ReadFile("testdata/query/getArticles/request.json")
+	assert.NilError(t, err)
+	rawExpectedBody, err := os.ReadFile("testdata/query/getArticles/expected.json")
+	assert.NilError(t, err)
+
+	var expected, respBody schema.QueryResponse
+	assert.NilError(t, json.Unmarshal(rawExpectedBody, &expected))
+
+	start := time.Now()
+	resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/query", testServer.URL), "application/json", bytes.NewReader(rawRequestBody))
+	latency := time.Since(start)
+	assert.NilError(t, err, "failed to request query")
+	defer resp.Body.Close()
+	assert.Equal(t, resp.StatusCode, http.StatusOK)
+	assert.NilError(t, json.NewDecoder(resp.Body).Decode(&respBody))
+	assert.DeepEqual(t, expected, respBody)
+
+	return latency
+}
+
+func TestMutationSync(t *testing.T) {
+	latency := testMutationLatency(t)
+	assert.Assert(t, latency >= (3*time.Second))
+}
+
+func TestMutationAsync(t *testing.T) {
+	t.Setenv("MUTATION_CONCURRENCY_LIMIT", "2")
+	latency := testMutationLatency(t)
+	assert.Assert(t, latency < (3*time.Second))
+}
+
+func testMutationLatency(t *testing.T) time.Duration {
+	testServer := createTestServer(t).BuildTestServer()
+	defer testServer.Close()
+	rawRequestBody, err := os.ReadFile("testdata/mutation/create_article/request.json")
+	assert.NilError(t, err)
+	rawExpectedBody, err := os.ReadFile("testdata/mutation/create_article/expected.json")
+	assert.NilError(t, err)
+
+	var expected, respBody schema.MutationResponse
+	assert.NilError(t, json.Unmarshal(rawExpectedBody, &expected))
+
+	start := time.Now()
+	resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/mutation", testServer.URL), "application/json", bytes.NewReader(rawRequestBody))
+	latency := time.Since(start)
+	assert.NilError(t, err, "failed to request mutation")
+	defer resp.Body.Close()
+	assert.Equal(t, resp.StatusCode, http.StatusOK)
+	assert.NilError(t, json.NewDecoder(resp.Body).Decode(&respBody))
+	assert.DeepEqual(t, expected, respBody)
+
+	return latency
 }
