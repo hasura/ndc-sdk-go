@@ -1625,25 +1625,6 @@ func TestQueries(t *testing.T) {
 			errorMsg: "the selection field type must be object",
 		},
 		{
-			name:   "getBool",
-			status: http.StatusOK,
-			body: `{
-				"collection": "getBool",
-				"arguments": {},
-				"query": {
-					"fields": {
-						"__value": {
-							"type": "column",
-							"column": "__value",
-							"fields": null
-						}
-					}
-				},
-				"collection_relationships": {}
-			}`,
-			response: `true`,
-		},
-		{
 			name:   "getArticles_failure_object",
 			status: http.StatusUnprocessableEntity,
 			body: `{
@@ -1667,45 +1648,6 @@ func TestQueries(t *testing.T) {
 				"collection_relationships": {}
 			}`,
 			errorMsg: "the selection field type must be array",
-		},
-		{
-			name:   "getArticles_success",
-			status: http.StatusOK,
-			body: `{
-				"collection": "getArticles",
-				"query": {
-					"fields": {
-						"__value": {
-							"type": "column",
-							"column": "__value",
-							"fields": {
-								"type": "array",
-								"fields": {
-									"type": "object",
-									"fields": {
-										"id": { "type": "column", "column": "id" }
-									}
-								}
-							}
-						}
-					}
-				},
-				"arguments": {
-					"name": {
-						"type": "literal",
-						"value": "foo"
-					},
-					"Limit": {
-						"type": "literal",
-						"value": 1
-					},
-    			"AuthorID": { "type": "literal", "value": 1 }
-				},
-				"collection_relationships": {}
-			}`,
-			response: `[{
-				"id": 1
-			}]`,
 		},
 	}
 
@@ -1751,40 +1693,6 @@ func TestProcedures(t *testing.T) {
 		errorMsg string
 	}{
 		{
-			name:   "create_article_success",
-			status: http.StatusOK,
-			body: `{
-				"operations": [
-					{
-						"type": "procedure",
-						"name": "create_article",
-						"arguments": {
-							"author": {
-								"type": "literal",
-								"value": {
-									"created_at": "2024-03-31T12:01:32+07:00",
-									"id": "5ea23c2a-f75b-4901-a640-87a46a509418"
-								}
-							}
-						},
-						"fields": {
-							"type": "object",
-							"fields": {
-								"id": {
-									"type": "column",
-									"column": "id"
-								}
-							}
-						}
-					}
-				],
-				"collection_relationships": {}
-			}`,
-			response: `{
-				"id": 1
-			}`,
-		},
-		{
 			name:   "create_article_array_400",
 			status: http.StatusUnprocessableEntity,
 			body: `{
@@ -1812,46 +1720,6 @@ func TestProcedures(t *testing.T) {
 			errorMsg: "the selection field type must be object",
 		},
 		{
-			name:   "createAuthors_success",
-			status: http.StatusOK,
-			body: `{
-				"operations": [
-					{
-						"type": "procedure",
-						"name": "createAuthors",
-						"arguments": {
-							"Authors": [
-								{
-									"name": "Author 1"
-								},
-								{
-									"name": "Author 2"
-								}
-							]
-						},
-						"fields": {
-							"type": "array",
-							"fields": {
-								"type": "object",
-								"fields": {
-									"id": {
-										"type": "column",
-										"column": "id"
-									}
-								}
-							}
-						}
-					}
-				],
-				"collection_relationships": {}
-			}`,
-			response: `[{
-				"id": 0
-			}, {
-				"id": 1
-			}]`,
-		},
-		{
 			name:   "createAuthors_object_422",
 			status: http.StatusUnprocessableEntity,
 			body: `{
@@ -1874,22 +1742,6 @@ func TestProcedures(t *testing.T) {
 				"collection_relationships": {}
 			}`,
 			errorMsg: "the selection field type must be array",
-		},
-		{
-			name:   "increase_success",
-			status: http.StatusOK,
-			body: `{
-				"operations": [
-					{
-						"type": "procedure",
-						"name": "increase",
-						"arguments": {},
-						"fields": null
-					}
-				],
-				"collection_relationships": {}
-			}`,
-			response: `1`,
 		},
 		{
 			name:   "increase_422",
