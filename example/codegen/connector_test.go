@@ -1813,6 +1813,12 @@ func TestQueryAsync(t *testing.T) {
 	assert.Assert(t, latency < (3*time.Second))
 }
 
+func TestQueryAsyncByName(t *testing.T) {
+	t.Setenv("QUERY_CONCURRENCY", "getArticles=2")
+	latency := testQueryLatency(t)
+	assert.Assert(t, latency < (3*time.Second))
+}
+
 func testQueryLatency(t *testing.T) time.Duration {
 	testServer := createTestServer(t).BuildTestServer()
 	defer testServer.Close()
