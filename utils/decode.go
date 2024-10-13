@@ -15,8 +15,15 @@ import (
 var trueValue = reflect.ValueOf(true)
 var falseValue = reflect.ValueOf(false)
 
-type convertFunc[T any] func(value any) (*T, error)
-type convertFuncReflection[T any] func(value reflect.Value) (*T, error)
+type convertFunc[T any] func(value any) (T, error)
+type convertNullableFunc[T any] func(value any) (*T, error)
+type convertFuncReflection[T any] func(value reflect.Value) (T, error)
+type convertNullableFuncReflection[T any] func(value reflect.Value) (*T, error)
+
+var (
+	errIntRequired  = errors.New("the Int value must not be null")
+	errUintRequired = errors.New("the Uint value must not be null")
+)
 
 // ValueDecoder abstracts a type with the FromValue method to decode any value
 type ValueDecoder interface {
@@ -448,7 +455,7 @@ func (d Decoder) DecodeObject(target any, value map[string]any) error {
 
 // DecodeNullableInt tries to convert an unknown value to a nullable integer
 func DecodeNullableInt[T int | int8 | int16 | int32 | int64](value any) (*T, error) {
-	return decodeNullableInt(value, convertNullableInt[T])
+	return decodeNullableInt(value, convertInt[T])
 }
 
 // DecodeInt tries to convert an unknown value to a not-null integer value
@@ -458,24 +465,24 @@ func DecodeInt[T int | int8 | int16 | int32 | int64](value any) (T, error) {
 		return T(0), err
 	}
 	if result == nil {
-		return T(0), errors.New("the Int value must not be null")
+		return T(0), errIntRequired
 	}
 	return *result, nil
 }
 
 // DecodeNullableIntReflection tries to convert an reflection value to a nullable integer
 func DecodeNullableIntReflection[T int | int8 | int16 | int32 | int64](value reflect.Value) (*T, error) {
-	return decodeNullableIntRefection(convertNullableInt[T])(value)
+	return decodeNullableIntRefection(convertInt[T])(value)
 }
 
 // DecodeIntReflection tries to convert an reflection value to an integer
-func DecodeIntReflection[T int | int8 | int16 | int32 | int64](value reflect.Value) (*T, error) {
-	return decodeIntRefection(convertNullableInt[T])(value)
+func DecodeIntReflection[T int | int8 | int16 | int32 | int64](value reflect.Value) (T, error) {
+	return decodeIntRefection(convertInt[T])(value)
 }
 
 // DecodeNullableUint tries to convert an unknown value to a nullable unsigned integer pointer
 func DecodeNullableUint[T uint | uint8 | uint16 | uint32 | uint64](value any) (*T, error) {
-	return decodeNullableInt(value, convertNullableUint[T])
+	return decodeNullableInt(value, convertUint[T])
 }
 
 // DecodeUint tries to convert an unknown value to an unsigned integer value
@@ -485,19 +492,28 @@ func DecodeUint[T uint | uint8 | uint16 | uint32 | uint64](value any) (T, error)
 		return T(0), err
 	}
 	if result == nil {
-		return T(0), errors.New("the Uint value must not be null")
+		return T(0), errUintRequired
 	}
 	return *result, nil
 }
 
 // DecodeNullableUintReflection tries to convert an reflection value to a nullable unsigned-integer
 func DecodeNullableUintReflection[T uint | uint8 | uint16 | uint32 | uint64](value reflect.Value) (*T, error) {
-	return decodeNullableIntRefection(convertNullableUint[T])(value)
+	return decodeNullableIntRefection(convertUint[T])(value)
 }
 
 // DecodeUintReflection tries to convert an reflection value to an unsigned-integer
-func DecodeUintReflection[T uint | uint8 | uint16 | uint32 | uint64](value reflect.Value) (*T, error) {
-	return decodeIntRefection(convertNullableUint[T])(value)
+func DecodeUintReflection[T uint | uint8 | uint16 | uint32 | uint64](value reflect.Value) (T, error) {
+	result, err := decodeNullableIntRefection(convertUint[T])(value)
+	if err != nil {
+		var t T
+		return t, err
+	}
+
+	if result == nil {
+		return T(0), errUintRequired
+	}
+	return *result, nil
 }
 
 func decodeNullableInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](value any, convertFn convertFunc[T]) (*T, error) {
@@ -507,18 +523,22 @@ func decodeNullableInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uin
 	return decodeNullableIntRefection(convertFn)(reflect.ValueOf(value))
 }
 
-func decodeNullableIntRefection[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](convertFn convertFunc[T]) convertFuncReflection[T] {
+func decodeNullableIntRefection[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](convertFn convertFunc[T]) convertNullableFuncReflection[T] {
 	return func(value reflect.Value) (*T, error) {
 		inferredValue, ok := UnwrapPointerFromReflectValue(value)
 		if !ok {
 			return nil, nil
 		}
-		return decodeIntRefection(convertFn)(inferredValue)
+		result, err := decodeIntRefection(convertFn)(inferredValue)
+		if err != nil {
+			return nil, err
+		}
+		return &result, nil
 	}
 }
 
 func decodeIntRefection[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](convertFn convertFunc[T]) convertFuncReflection[T] {
-	return func(inferredValue reflect.Value) (*T, error) {
+	return func(inferredValue reflect.Value) (T, error) {
 		var result T
 		switch inferredValue.Kind() {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -530,33 +550,33 @@ func decodeIntRefection[T int | int8 | int16 | int32 | int64 | uint | uint8 | ui
 		case reflect.Interface, reflect.String:
 			newVal, parseErr := convertFn(inferredValue.Interface())
 			if parseErr != nil {
-				return nil, fmt.Errorf("failed to convert integer, got: %+v", inferredValue.Interface())
+				return result, fmt.Errorf("failed to convert integer, got: %+v", inferredValue.Interface())
 			}
-			result = T(*newVal)
+			result = T(newVal)
 		default:
-			return nil, fmt.Errorf("failed to convert integer, got: %+v", inferredValue.Interface())
+			return result, fmt.Errorf("failed to convert integer, got: %+v", inferredValue.Interface())
 		}
 
-		return &result, nil
+		return result, nil
 	}
 }
 
-func convertNullableInt[T int | int8 | int16 | int32 | int64](v any) (*T, error) {
+func convertInt[T int | int8 | int16 | int32 | int64](v any) (T, error) {
 	rawResult, err := strconv.ParseInt(fmt.Sprint(v), 10, 64)
 	if err != nil {
-		return nil, err
+		var result T
+		return result, err
 	}
-	result := T(rawResult)
-	return &result, nil
+	return T(rawResult), nil
 }
 
-func convertNullableUint[T uint | uint8 | uint16 | uint32 | uint64](v any) (*T, error) {
+func convertUint[T uint | uint8 | uint16 | uint32 | uint64](v any) (T, error) {
 	rawResult, err := strconv.ParseUint(fmt.Sprint(v), 10, 64)
 	if err != nil {
-		return nil, err
+		var result T
+		return result, err
 	}
-	result := T(rawResult)
-	return &result, nil
+	return T(rawResult), nil
 }
 
 // DecodeNullableString tries to convert an unknown value to a string pointer
@@ -574,20 +594,22 @@ func DecodeNullableStringReflection(value reflect.Value) (*string, error) {
 		return nil, nil
 	}
 
-	return DecodeStringReflection(inferredValue)
+	result, err := DecodeStringReflection(inferredValue)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 // DecodeStringReflection decodes a string from reflection value
-func DecodeStringReflection(value reflect.Value) (*string, error) {
+func DecodeStringReflection(value reflect.Value) (string, error) {
 	switch value.Kind() {
 	case reflect.String:
-		result := value.String()
-		return &result, nil
+		return value.String(), nil
 	case reflect.Interface:
-		result := fmt.Sprint(value.Interface())
-		return &result, nil
+		return fmt.Sprint(value.Interface()), nil
 	default:
-		return nil, fmt.Errorf("failed to convert String, got: %v", value)
+		return "", fmt.Errorf("failed to convert String, got: %v", value)
 	}
 }
 
@@ -617,11 +639,15 @@ func DecodeNullableFloatReflection[T float32 | float64](value reflect.Value) (*T
 	if !ok {
 		return nil, nil
 	}
-	return DecodeFloatReflection[T](inferredValue)
+	result, err := DecodeFloatReflection[T](inferredValue)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 // DecodeFloatReflection decodes the floating-point value using reflection
-func DecodeFloatReflection[T float32 | float64](value reflect.Value) (*T, error) {
+func DecodeFloatReflection[T float32 | float64](value reflect.Value) (T, error) {
 	kind := value.Kind()
 	var result T
 	switch kind {
@@ -635,20 +661,20 @@ func DecodeFloatReflection[T float32 | float64](value reflect.Value) (*T, error)
 		v := value.String()
 		newVal, parseErr := strconv.ParseFloat(v, 64)
 		if parseErr != nil {
-			return nil, fmt.Errorf("failed to convert Float, got: %s", v)
+			return T(0), fmt.Errorf("failed to convert Float, got: %s", v)
 		}
 		result = T(newVal)
 	case reflect.Interface:
 		v := fmt.Sprint(value.Interface())
 		newVal, parseErr := strconv.ParseFloat(v, 64)
 		if parseErr != nil {
-			return nil, fmt.Errorf("failed to convert Float, got: %s", v)
+			return T(0), fmt.Errorf("failed to convert Float, got: %s", v)
 		}
 		result = T(newVal)
 	default:
-		return nil, fmt.Errorf("failed to convert Float, got: %+v <%s>", value.Interface(), kind)
+		return T(0), fmt.Errorf("failed to convert Float, got: %+v <%s>", value.Interface(), kind)
 	}
-	return &result, nil
+	return result, nil
 }
 
 // DecodeFloat tries to convert an unknown value to a float value
@@ -665,21 +691,18 @@ func DecodeFloat[T float32 | float64](value any) (T, error) {
 
 // DecodeNullableBoolean tries to convert an unknown value to a bool pointer
 func DecodeNullableBoolean(value any) (*bool, error) {
-	if IsNil(value) {
+	if value == nil {
 		return nil, nil
 	}
 
-	var result bool
 	switch v := value.(type) {
 	case bool:
-		result = v
+		return &v, nil
 	case *bool:
-		result = *v
+		return v, nil
 	default:
 		return DecodeNullableBooleanReflection(reflect.ValueOf(value))
 	}
-
-	return &result, nil
 }
 
 // DecodeBoolean tries to convert an unknown value to a bool value
@@ -701,57 +724,80 @@ func DecodeNullableBooleanReflection(value reflect.Value) (*bool, error) {
 		return nil, nil
 	}
 
-	return DecodeBooleanReflection(inferredValue)
+	result, err := DecodeBooleanReflection(inferredValue)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 // DecodeBooleanReflection decodes a boolean value from reflection
-func DecodeBooleanReflection(value reflect.Value) (*bool, error) {
+func DecodeBooleanReflection(value reflect.Value) (bool, error) {
 	kind := value.Kind()
 	switch kind {
 	case reflect.Bool:
 		result := value.Bool()
-		return &result, nil
+		return result, nil
 	case reflect.Interface:
-		var result bool
 		if value.Equal(trueValue) {
-			result = true
-			return &result, nil
+			return true, nil
 		}
 		if value.Equal(falseValue) {
-			result = false
-			return &result, nil
+			return false, nil
 		}
 	}
-	return nil, fmt.Errorf("failed to convert Boolean, got: %v", kind)
+	return false, fmt.Errorf("failed to convert Boolean, got: %v", kind)
 }
 
 // DecodeNullableDateTime tries to convert an unknown value to a time.Time pointer
 func DecodeNullableDateTime(value any) (*time.Time, error) {
-	var result time.Time
+	if value == nil {
+		return nil, nil
+	}
 	switch v := value.(type) {
 	case time.Time:
-		result = v
+		return &v, nil
 	case *time.Time:
-		result = *v
-	case string:
-		return parseDateTime(v)
-	case *string:
-		if IsNil(v) {
-			return nil, nil
-		}
-		return parseDateTime(*v)
+		return v, nil
 	default:
-		i64, err := DecodeNullableInt[int64](v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert DateTime, got: %v", value)
-		}
-		if i64 == nil {
+		inferredValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
+		if !ok {
 			return nil, nil
 		}
-		result = time.UnixMilli(*i64)
-	}
 
-	return &result, nil
+		result, err := DecodeDateTimeReflection(inferredValue)
+		if err != nil {
+			return nil, err
+		}
+		return &result, nil
+	}
+}
+
+// DecodeDateTimeReflection decodes a time.Time value from reflection
+func DecodeDateTimeReflection(value reflect.Value) (time.Time, error) {
+	kind := value.Kind()
+	switch kind {
+	case reflect.String:
+		result, err := parseDateTime(value.String())
+		if err != nil {
+			return time.Time{}, err
+		}
+		return *result, nil
+	case reflect.Interface:
+		result, err := parseDateTime(fmt.Sprint(value.Interface()))
+		if err != nil {
+			return time.Time{}, err
+		}
+		return *result, nil
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return time.UnixMilli(value.Int()), nil
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return time.UnixMilli(int64(value.Uint())), nil
+	case reflect.Float32, reflect.Float64:
+		return time.UnixMilli(int64(value.Float())), nil
+	default:
+		return time.Time{}, fmt.Errorf("failed to convert DateTime, got: %v", value)
+	}
 }
 
 // DecodeDateTime tries to convert an unknown value to a time.Time value
@@ -777,6 +823,55 @@ func parseDateTime(value string) (*time.Time, error) {
 	}
 
 	return nil, fmt.Errorf("failed to parse time from string: %s", value)
+}
+
+// DecodeNullableDate tries to convert an unknown value to a date pointer
+func DecodeNullableDate(value any) (*time.Time, error) {
+	if value == nil {
+		return nil, nil
+	}
+	switch v := value.(type) {
+	case time.Time:
+		return &v, nil
+	case *time.Time:
+		return v, nil
+	default:
+		inferredValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
+		if !ok {
+			return nil, nil
+		}
+
+		result, err := DecodeDateReflection(inferredValue)
+		if err != nil {
+			return nil, err
+		}
+		return &result, nil
+	}
+}
+
+// DecodeDateReflection decodes a date value from reflection
+func DecodeDateReflection(value reflect.Value) (time.Time, error) {
+	kind := value.Kind()
+	switch kind {
+	case reflect.String:
+		return time.Parse(time.DateOnly, value.String())
+	case reflect.Interface:
+		return time.Parse(time.DateOnly, fmt.Sprint(value.Interface()))
+	default:
+		return time.Time{}, fmt.Errorf("failed to convert Date, got: %v", value)
+	}
+}
+
+// DecodeDate tries to convert an unknown date value to a time.Time value
+func DecodeDate(value any) (time.Time, error) {
+	result, err := DecodeNullableDate(value)
+	if err != nil {
+		return time.Time{}, err
+	}
+	if result == nil {
+		return time.Time{}, errors.New("the Date value must not be null")
+	}
+	return *result, nil
 }
 
 // DecodeNullableDuration tries to convert an unknown value to a duration pointer

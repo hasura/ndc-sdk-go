@@ -9,7 +9,7 @@ import (
 
 func TestToPtrs(t *testing.T) {
 	_, err := PointersToValues([]*string{ToPtr(""), nil})
-	assertError(t, err, "element at 1 must not be nil")
+	assert.ErrorContains(t, err, "element at 1 must not be nil")
 	input, err := PointersToValues(ToPtrs([]string{"a", "b", "c"}))
 	assert.NilError(t, err)
 	expected, err := PointersToValues([]*string{ToPtr("a"), ToPtr("b"), ToPtr("c")})
