@@ -691,21 +691,18 @@ func DecodeFloat[T float32 | float64](value any) (T, error) {
 
 // DecodeNullableBoolean tries to convert an unknown value to a bool pointer
 func DecodeNullableBoolean(value any) (*bool, error) {
-	if IsNil(value) {
+	if value == nil {
 		return nil, nil
 	}
 
-	var result bool
 	switch v := value.(type) {
 	case bool:
-		result = v
+		return &v, nil
 	case *bool:
-		result = *v
+		return v, nil
 	default:
 		return DecodeNullableBooleanReflection(reflect.ValueOf(value))
 	}
-
-	return &result, nil
 }
 
 // DecodeBoolean tries to convert an unknown value to a bool value
@@ -754,31 +751,53 @@ func DecodeBooleanReflection(value reflect.Value) (bool, error) {
 
 // DecodeNullableDateTime tries to convert an unknown value to a time.Time pointer
 func DecodeNullableDateTime(value any) (*time.Time, error) {
-	var result time.Time
+	if value == nil {
+		return nil, nil
+	}
 	switch v := value.(type) {
 	case time.Time:
-		result = v
+		return &v, nil
 	case *time.Time:
-		result = *v
-	case string:
-		return parseDateTime(v)
-	case *string:
-		if IsNil(v) {
-			return nil, nil
-		}
-		return parseDateTime(*v)
+		return v, nil
 	default:
-		i64, err := DecodeNullableInt[int64](v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert DateTime, got: %v", value)
-		}
-		if i64 == nil {
+		inferredValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
+		if !ok {
 			return nil, nil
 		}
-		result = time.UnixMilli(*i64)
-	}
 
-	return &result, nil
+		result, err := DecodeDateTimeReflection(inferredValue)
+		if err != nil {
+			return nil, err
+		}
+		return &result, nil
+	}
+}
+
+// DecodeDateTimeReflection decodes a time.Time value from reflection
+func DecodeDateTimeReflection(value reflect.Value) (time.Time, error) {
+	kind := value.Kind()
+	switch kind {
+	case reflect.String:
+		result, err := parseDateTime(value.String())
+		if err != nil {
+			return time.Time{}, err
+		}
+		return *result, nil
+	case reflect.Interface:
+		result, err := parseDateTime(fmt.Sprint(value.Interface()))
+		if err != nil {
+			return time.Time{}, err
+		}
+		return *result, nil
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return time.UnixMilli(value.Int()), nil
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return time.UnixMilli(int64(value.Uint())), nil
+	case reflect.Float32, reflect.Float64:
+		return time.UnixMilli(int64(value.Float())), nil
+	default:
+		return time.Time{}, fmt.Errorf("failed to convert DateTime, got: %v", value)
+	}
 }
 
 // DecodeDateTime tries to convert an unknown value to a time.Time value
@@ -804,6 +823,55 @@ func parseDateTime(value string) (*time.Time, error) {
 	}
 
 	return nil, fmt.Errorf("failed to parse time from string: %s", value)
+}
+
+// DecodeNullableDate tries to convert an unknown value to a date pointer
+func DecodeNullableDate(value any) (*time.Time, error) {
+	if value == nil {
+		return nil, nil
+	}
+	switch v := value.(type) {
+	case time.Time:
+		return &v, nil
+	case *time.Time:
+		return v, nil
+	default:
+		inferredValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
+		if !ok {
+			return nil, nil
+		}
+
+		result, err := DecodeDateReflection(inferredValue)
+		if err != nil {
+			return nil, err
+		}
+		return &result, nil
+	}
+}
+
+// DecodeDateReflection decodes a date value from reflection
+func DecodeDateReflection(value reflect.Value) (time.Time, error) {
+	kind := value.Kind()
+	switch kind {
+	case reflect.String:
+		return time.Parse(time.DateOnly, value.String())
+	case reflect.Interface:
+		return time.Parse(time.DateOnly, fmt.Sprint(value.Interface()))
+	default:
+		return time.Time{}, fmt.Errorf("failed to convert Date, got: %v", value)
+	}
+}
+
+// DecodeDate tries to convert an unknown date value to a time.Time value
+func DecodeDate(value any) (time.Time, error) {
+	result, err := DecodeNullableDate(value)
+	if err != nil {
+		return time.Time{}, err
+	}
+	if result == nil {
+		return time.Time{}, errors.New("the Date value must not be null")
+	}
+	return *result, nil
 }
 
 // DecodeNullableDuration tries to convert an unknown value to a duration pointer
