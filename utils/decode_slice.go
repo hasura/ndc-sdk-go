@@ -12,12 +12,12 @@ import (
 
 // DecodeNullableIntSlice decodes an integer pointer slice from an unknown value
 func DecodeNullableIntSlice[T int | int8 | int16 | int32 | int64](value any) (*[]T, error) {
-	return decodeNullableNumberSlice(value, decodeNullableIntRefection(convertNullableInt[T]))
+	return decodeNullableNumberSlice(value, decodeNullableIntRefection(convertInt[T]))
 }
 
 // DecodeNullableUintSlice decodes an unsigned integer slice from an unknown value
 func DecodeNullableUintSlice[T uint | uint8 | uint16 | uint32 | uint64](value any) (*[]T, error) {
-	return decodeNullableNumberSlice(value, decodeNullableIntRefection(convertNullableUint[T]))
+	return decodeNullableNumberSlice(value, decodeNullableIntRefection(convertUint[T]))
 }
 
 // DecodeNullableFloatSlice decodes a float slice from an unknown value
@@ -27,7 +27,7 @@ func DecodeNullableFloatSlice[T float32 | float64](value any) (*[]T, error) {
 
 // DecodeIntSlice decodes an integer slice from an unknown value
 func DecodeIntSlice[T int | int8 | int16 | int32 | int64](value any) ([]T, error) {
-	results, err := decodeNullableNumberSlice(value, decodeNullableIntRefection(convertNullableInt[T]))
+	results, err := decodeNullableNumberSlice(value, decodeNullableIntRefection(convertInt[T]))
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func DecodeIntSlice[T int | int8 | int16 | int32 | int64](value any) ([]T, error
 
 // DecodeUintSlice decodes an unsigned integer slice from an unknown value
 func DecodeUintSlice[T uint | uint8 | uint16 | uint32 | uint64](value any) ([]T, error) {
-	results, err := decodeNullableNumberSlice(value, decodeNullableIntRefection(convertNullableUint[T]))
+	results, err := decodeNullableNumberSlice(value, decodeNullableIntRefection(convertUint[T]))
 	if err != nil {
 		return nil, err
 	}
@@ -269,7 +269,7 @@ func GetFloatPtrSlice[T float32 | float64](object map[string]any, key string) ([
 }
 
 // decodeNullableNumberSlice tries to convert an unknown value to a number slice
-func decodeNullableNumberSlice[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](value any, convertFn convertFuncReflection[T]) (*[]T, error) {
+func decodeNullableNumberSlice[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](value any, convertFn convertNullableFuncReflection[T]) (*[]T, error) {
 	if value == nil {
 		return nil, nil
 	}
@@ -299,7 +299,7 @@ func decodeNullableNumberSlice[T int | int8 | int16 | int32 | int64 | uint | uin
 }
 
 // decodeNullableNumberPtrSlice tries to convert an unknown value to a number slice
-func decodeNullableNumberPtrSlice[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](value any, convertFn convertFunc[T]) (*[]*T, error) {
+func decodeNullableNumberPtrSlice[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](value any, convertFn convertNullableFunc[T]) (*[]*T, error) {
 	if value == nil {
 		return nil, nil
 	}
