@@ -22,7 +22,7 @@ func DecodeNullableUintSlice[T uint | uint8 | uint16 | uint32 | uint64](value an
 
 // DecodeNullableFloatSlice decodes a float slice from an unknown value
 func DecodeNullableFloatSlice[T float32 | float64](value any) (*[]T, error) {
-	return decodeNullableNumberSlice(value, decodeNullableFloatReflection[T])
+	return decodeNullableNumberSlice(value, DecodeNullableFloatReflection[T])
 }
 
 // DecodeIntSlice decodes an integer slice from an unknown value
@@ -51,7 +51,7 @@ func DecodeUintSlice[T uint | uint8 | uint16 | uint32 | uint64](value any) ([]T,
 
 // DecodeFloatSlice decodes a float slice from an unknown value
 func DecodeFloatSlice[T float32 | float64](value any) ([]T, error) {
-	results, err := decodeNullableNumberSlice(value, decodeNullableFloatReflection[T])
+	results, err := decodeNullableNumberSlice(value, DecodeNullableFloatReflection[T])
 	if err != nil {
 		return nil, err
 	}
@@ -342,7 +342,7 @@ func DecodeNullableStringSlice(value any) (*[]string, error) {
 	valueLen := reflectValue.Len()
 	results := make([]string, valueLen)
 	for i := 0; i < valueLen; i++ {
-		elem, err := decodeNullableStringReflection(reflectValue.Index(i))
+		elem, err := DecodeNullableStringReflection(reflectValue.Index(i))
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode string element at %d: %s", i, err)
 		}
@@ -383,7 +383,7 @@ func DecodeNullableStringPtrSlice(value any) (*[]*string, error) {
 	valueLen := reflectValue.Len()
 	results := make([]*string, valueLen)
 	for i := 0; i < valueLen; i++ {
-		elem, err := decodeNullableStringReflection(reflectValue.Index(i))
+		elem, err := DecodeNullableStringReflection(reflectValue.Index(i))
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode string element at %d: %s", i, err)
 		}
@@ -473,7 +473,7 @@ func DecodeNullableBooleanSlice(value any) (*[]bool, error) {
 	valueLen := reflectValue.Len()
 	results := make([]bool, valueLen)
 	for i := 0; i < valueLen; i++ {
-		elem, err := decodeNullableBooleanReflection(reflectValue.Index(i))
+		elem, err := DecodeNullableBooleanReflection(reflectValue.Index(i))
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode boolean element at %d: %s", i, err)
 		}
@@ -514,7 +514,7 @@ func DecodeNullableBooleanPtrSlice(value any) (*[]*bool, error) {
 	valueLen := reflectValue.Len()
 	results := make([]*bool, valueLen)
 	for i := 0; i < valueLen; i++ {
-		elem, err := decodeNullableBooleanReflection(reflectValue.Index(i))
+		elem, err := DecodeNullableBooleanReflection(reflectValue.Index(i))
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode boolean element at %d: %s", i, err)
 		}

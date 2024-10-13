@@ -463,6 +463,16 @@ func DecodeInt[T int | int8 | int16 | int32 | int64](value any) (T, error) {
 	return *result, nil
 }
 
+// DecodeNullableIntReflection tries to convert an reflection value to a nullable integer
+func DecodeNullableIntReflection[T int | int8 | int16 | int32 | int64](value reflect.Value) (*T, error) {
+	return decodeNullableIntRefection(convertNullableInt[T])(value)
+}
+
+// DecodeIntReflection tries to convert an reflection value to an integer
+func DecodeIntReflection[T int | int8 | int16 | int32 | int64](value reflect.Value) (*T, error) {
+	return decodeIntRefection(convertNullableInt[T])(value)
+}
+
 // DecodeNullableUint tries to convert an unknown value to a nullable unsigned integer pointer
 func DecodeNullableUint[T uint | uint8 | uint16 | uint32 | uint64](value any) (*T, error) {
 	return decodeNullableInt(value, convertNullableUint[T])
@@ -480,6 +490,16 @@ func DecodeUint[T uint | uint8 | uint16 | uint32 | uint64](value any) (T, error)
 	return *result, nil
 }
 
+// DecodeNullableUintReflection tries to convert an reflection value to a nullable unsigned-integer
+func DecodeNullableUintReflection[T uint | uint8 | uint16 | uint32 | uint64](value reflect.Value) (*T, error) {
+	return decodeNullableIntRefection(convertNullableUint[T])(value)
+}
+
+// DecodeUintReflection tries to convert an reflection value to an unsigned-integer
+func DecodeUintReflection[T uint | uint8 | uint16 | uint32 | uint64](value reflect.Value) (*T, error) {
+	return decodeIntRefection(convertNullableUint[T])(value)
+}
+
 func decodeNullableInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](value any, convertFn convertFunc[T]) (*T, error) {
 	if value == nil {
 		return nil, nil
@@ -493,6 +513,12 @@ func decodeNullableIntRefection[T int | int8 | int16 | int32 | int64 | uint | ui
 		if !ok {
 			return nil, nil
 		}
+		return decodeIntRefection(convertFn)(inferredValue)
+	}
+}
+
+func decodeIntRefection[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](convertFn convertFunc[T]) convertFuncReflection[T] {
+	return func(inferredValue reflect.Value) (*T, error) {
 		var result T
 		switch inferredValue.Kind() {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -538,21 +564,27 @@ func DecodeNullableString(value any) (*string, error) {
 	if value == nil {
 		return nil, nil
 	}
-	return decodeNullableStringReflection(reflect.ValueOf(value))
+	return DecodeNullableStringReflection(reflect.ValueOf(value))
 }
 
-func decodeNullableStringReflection(value reflect.Value) (*string, error) {
+// DecodeNullableStringReflection a nullable string from reflection value
+func DecodeNullableStringReflection(value reflect.Value) (*string, error) {
 	inferredValue, ok := UnwrapPointerFromReflectValue(value)
 	if !ok {
 		return nil, nil
 	}
 
-	switch inferredValue.Kind() {
+	return DecodeStringReflection(inferredValue)
+}
+
+// DecodeStringReflection decodes a string from reflection value
+func DecodeStringReflection(value reflect.Value) (*string, error) {
+	switch value.Kind() {
 	case reflect.String:
-		result := inferredValue.String()
+		result := value.String()
 		return &result, nil
 	case reflect.Interface:
-		result := fmt.Sprint(inferredValue.Interface())
+		result := fmt.Sprint(value.Interface())
 		return &result, nil
 	default:
 		return nil, fmt.Errorf("failed to convert String, got: %v", value)
@@ -576,39 +608,45 @@ func DecodeNullableFloat[T float32 | float64](value any) (*T, error) {
 	if value == nil {
 		return nil, nil
 	}
-	return decodeNullableFloatReflection[T](reflect.ValueOf(value))
+	return DecodeNullableFloatReflection[T](reflect.ValueOf(value))
 }
 
-func decodeNullableFloatReflection[T float32 | float64](value reflect.Value) (*T, error) {
+// DecodeNullableFloatReflection decodes the nullable floating-point value using reflection
+func DecodeNullableFloatReflection[T float32 | float64](value reflect.Value) (*T, error) {
 	inferredValue, ok := UnwrapPointerFromReflectValue(value)
 	if !ok {
 		return nil, nil
 	}
-	kind := inferredValue.Kind()
+	return DecodeFloatReflection[T](inferredValue)
+}
+
+// DecodeFloatReflection decodes the floating-point value using reflection
+func DecodeFloatReflection[T float32 | float64](value reflect.Value) (*T, error) {
+	kind := value.Kind()
 	var result T
 	switch kind {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		result = T(inferredValue.Int())
+		result = T(value.Int())
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		result = T(inferredValue.Uint())
+		result = T(value.Uint())
 	case reflect.Float32, reflect.Float64:
-		result = T(inferredValue.Float())
+		result = T(value.Float())
 	case reflect.String:
-		v := inferredValue.String()
+		v := value.String()
 		newVal, parseErr := strconv.ParseFloat(v, 64)
 		if parseErr != nil {
 			return nil, fmt.Errorf("failed to convert Float, got: %s", v)
 		}
 		result = T(newVal)
 	case reflect.Interface:
-		v := fmt.Sprint(inferredValue.Interface())
+		v := fmt.Sprint(value.Interface())
 		newVal, parseErr := strconv.ParseFloat(v, 64)
 		if parseErr != nil {
 			return nil, fmt.Errorf("failed to convert Float, got: %s", v)
 		}
 		result = T(newVal)
 	default:
-		return nil, fmt.Errorf("failed to convert Float, got: %+v <%s>", inferredValue.Interface(), kind)
+		return nil, fmt.Errorf("failed to convert Float, got: %+v <%s>", value.Interface(), kind)
 	}
 	return &result, nil
 }
@@ -638,7 +676,7 @@ func DecodeNullableBoolean(value any) (*bool, error) {
 	case *bool:
 		result = *v
 	default:
-		return decodeNullableBooleanReflection(reflect.ValueOf(value))
+		return DecodeNullableBooleanReflection(reflect.ValueOf(value))
 	}
 
 	return &result, nil
@@ -656,32 +694,35 @@ func DecodeBoolean(value any) (bool, error) {
 	return *result, nil
 }
 
-func decodeNullableBooleanReflection(value reflect.Value) (*bool, error) {
+// DecodeBooleanReflection decodes a nullable boolean value from reflection
+func DecodeNullableBooleanReflection(value reflect.Value) (*bool, error) {
 	inferredValue, ok := UnwrapPointerFromReflectValue(value)
 	if !ok {
 		return nil, nil
 	}
 
-	kind := inferredValue.Kind()
+	return DecodeBooleanReflection(inferredValue)
+}
+
+// DecodeBooleanReflection decodes a boolean value from reflection
+func DecodeBooleanReflection(value reflect.Value) (*bool, error) {
+	kind := value.Kind()
 	switch kind {
 	case reflect.Bool:
-		result := inferredValue.Bool()
+		result := value.Bool()
 		return &result, nil
 	case reflect.Interface:
 		var result bool
-		if inferredValue.Equal(trueValue) {
+		if value.Equal(trueValue) {
 			result = true
 			return &result, nil
 		}
-		if inferredValue.Equal(falseValue) {
+		if value.Equal(falseValue) {
 			result = false
 			return &result, nil
 		}
-
-		return nil, fmt.Errorf("failed to convert Boolean, got: %s", kind)
-	default:
-		return nil, fmt.Errorf("failed to convert Boolean, got: %v", kind)
 	}
+	return nil, fmt.Errorf("failed to convert Boolean, got: %v", kind)
 }
 
 // DecodeNullableDateTime tries to convert an unknown value to a time.Time pointer
