@@ -98,17 +98,29 @@ func PointersToValues[T any](input []*T) ([]T, error) {
 
 // UnwrapPointerFromReflectValue unwraps pointers from the reflect value
 func UnwrapPointerFromReflectValue(reflectValue reflect.Value) (reflect.Value, bool) {
-	for reflectValue.Kind() == reflect.Pointer {
+	switch reflectValue.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Invalid:
+		return reflectValue, false
+	case reflect.Pointer:
 		if reflectValue.IsNil() {
 			return reflectValue, false
 		}
-		reflectValue = reflectValue.Elem()
-	}
-	kind := reflectValue.Kind()
-	if (kind == reflect.Slice || kind == reflect.Interface || kind == reflect.Map) && reflectValue.IsNil() {
-		return reflectValue, false
+		return UnwrapPointerFromReflectValue(reflectValue.Elem())
+	case reflect.Slice, reflect.Interface, reflect.Map:
+		if reflectValue.IsNil() {
+			return reflectValue, false
+		}
 	}
 	return reflectValue, true
+}
+
+// UnwrapPointerFromAnyToReflectValue unwraps pointers from the input any type to the reflection value
+func UnwrapPointerFromAnyToReflectValue(value any) (reflect.Value, bool) {
+	if value == nil {
+		return reflect.Value{}, false
+	}
+
+	return UnwrapPointerFromReflectValue(reflect.ValueOf(value))
 }
 
 // UnwrapPointerFromAny unwraps pointers from the input any type
