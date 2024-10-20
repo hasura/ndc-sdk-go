@@ -2,6 +2,7 @@ package command
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math/rand"
@@ -64,19 +65,20 @@ func (cmd *genTestSnapshotsCommand) fetchSchema() error {
 	if cmd.args.Schema != "" {
 		rawBytes, err := os.ReadFile(cmd.args.Schema)
 		if err != nil {
-			return fmt.Errorf("failed to read schema from %s: %s", cmd.args.Schema, err)
+			return fmt.Errorf("failed to read schema from %s: %w", cmd.args.Schema, err)
 		}
 		if err := json.Unmarshal(rawBytes, &cmd.schema); err != nil {
-			return fmt.Errorf("failed to decode schema json from %s: %s", cmd.args.Schema, err)
+			return fmt.Errorf("failed to decode schema json from %s: %w", cmd.args.Schema, err)
 		}
 		return nil
 	}
 
 	if cmd.args.Endpoint != "" {
-		resp, err := http.Get(fmt.Sprintf("%s/schema", cmd.args.Endpoint))
+		resp, err := http.Get(cmd.args.Endpoint + "/schema")
 		if err != nil {
-			return fmt.Errorf("failed to fetch schema from %s: %s", cmd.args.Endpoint, err)
+			return fmt.Errorf("failed to fetch schema from %s: %w", cmd.args.Endpoint, err)
 		}
+		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
 			var respBytes []byte
@@ -93,12 +95,12 @@ func (cmd *genTestSnapshotsCommand) fetchSchema() error {
 		}
 
 		if err := json.NewDecoder(resp.Body).Decode(&cmd.schema); err != nil {
-			return fmt.Errorf("failed to decode schema json from %s: %s", cmd.args.Schema, err)
+			return fmt.Errorf("failed to decode schema json from %s: %w", cmd.args.Schema, err)
 		}
 		return nil
 	}
 
-	return fmt.Errorf("required either endpoint or file path to the schema")
+	return errors.New("required either endpoint or file path to the schema")
 }
 
 func (cmd *genTestSnapshotsCommand) genFunction(fn *schema.FunctionInfo) error {
@@ -107,11 +109,11 @@ func (cmd *genTestSnapshotsCommand) genFunction(fn *schema.FunctionInfo) error {
 	}
 	args, err := cmd.genQueryArguments(fn.Arguments)
 	if err != nil {
-		return fmt.Errorf("failed to generate arguments for %s function: %s", fn.Name, err)
+		return fmt.Errorf("failed to generate arguments for %s function: %w", fn.Name, err)
 	}
 	fields, value, err := cmd.genNestFieldAndValue(fn.ResultType)
 	if err != nil {
-		return fmt.Errorf("failed to generate result for %s function: %s", fn.Name, err)
+		return fmt.Errorf("failed to generate result for %s function: %w", fn.Name, err)
 	}
 
 	queryReq := schema.QueryRequest{
@@ -165,12 +167,12 @@ func (cmd *genTestSnapshotsCommand) genProcedure(proc *schema.ProcedureInfo) err
 	}
 	args, err := cmd.genOperationArguments(proc.Arguments)
 	if err != nil {
-		return fmt.Errorf("failed to generate arguments for %s procedure: %s", proc.Name, err)
+		return fmt.Errorf("failed to generate arguments for %s procedure: %w", proc.Name, err)
 	}
 
 	fields, value, err := cmd.genNestFieldAndValue(proc.ResultType)
 	if err != nil {
-		return fmt.Errorf("failed to generate result for %s procedure: %s", proc.Name, err)
+		return fmt.Errorf("failed to generate result for %s procedure: %w", proc.Name, err)
 	}
 	var rawFields schema.NestedField
 	if fields != nil {

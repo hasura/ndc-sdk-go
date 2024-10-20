@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-// isNil a safe function to check null value
+// isNil a safe function to check null value.
 func isNil(value any) bool {
 	if value == nil {
 		return true

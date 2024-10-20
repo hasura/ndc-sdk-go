@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"embed"
-	"fmt"
+	"errors"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -86,7 +86,6 @@ func GenerateNewProject(args *NewArguments, silent bool) error {
 }
 
 func generateNewProjectFiles(args *NewArguments, srcPath string) error {
-
 	return fs.WalkDir(initTemplateFS, templateNewPath, func(filePath string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -97,7 +96,7 @@ func generateNewProjectFiles(args *NewArguments, srcPath string) error {
 			return nil
 		}
 
-		targetPath := path.Join(srcPath, strings.TrimPrefix(filePath, fmt.Sprintf("%s/", templateNewPath)))
+		targetPath := path.Join(srcPath, strings.TrimPrefix(filePath, templateNewPath+"/"))
 		if d.IsDir() {
 			return os.Mkdir(targetPath, 0755)
 		}
@@ -151,7 +150,7 @@ func execCommand(basePath string, commandName string, args ...string) error {
 	cmd.Stderr = &errBuf
 	out, err := cmd.Output()
 	if err != nil {
-		l.Error().Err(fmt.Errorf(errBuf.String())).Msg(err.Error())
+		l.Error().Err(errors.New(errBuf.String())).Msg(err.Error())
 	} else {
 		l.Debug().Str("logs", errBuf.String()).Msg(string(out))
 	}

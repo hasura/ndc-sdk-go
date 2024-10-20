@@ -13,19 +13,19 @@ const (
 
 // Date wraps the scalar implementation for date representation string
 //
-// @scalar Date date
+// @scalar Date date.
 type Date struct {
 	time.Time
 }
 
-// NewDate creates a date instance
+// NewDate creates a date instance.
 func NewDate(year int, month time.Month, day int) *Date {
 	return &Date{
 		Time: time.Date(year, month, day, 0, 0, 0, 0, time.UTC),
 	}
 }
 
-// ParseDate parses a date from string
+// ParseDate parses a date from string.
 func ParseDate(value string) (*Date, error) {
 	t, err := time.Parse(dateFormat, value)
 	if err != nil {
@@ -34,7 +34,7 @@ func ParseDate(value string) (*Date, error) {
 	return &Date{Time: t}, nil
 }
 
-// ScalarName get the schema name of the scalar
+// ScalarName get the schema name of the scalar.
 func (d Date) ScalarName() string {
 	return "Date"
 }

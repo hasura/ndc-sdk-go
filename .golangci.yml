@@ -41,6 +41,7 @@ linters:
     - unparam
     - forbidigo
     - tagalign
+    - gochecknoinits
 
 issues:
   exclude-files:

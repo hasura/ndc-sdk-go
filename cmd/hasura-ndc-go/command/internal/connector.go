@@ -90,7 +90,7 @@ func ParseAndGenerateConnector(args ConnectorGenerationArguments, moduleName str
 			_ = w.Close()
 		}()
 		if err = trace.Start(w); err != nil {
-			return fmt.Errorf("failed to start trace: %v", err)
+			return fmt.Errorf("failed to start trace: %w", err)
 		}
 		defer trace.Stop()
 	}
@@ -131,7 +131,7 @@ func (cg *connectorGenerator) loadConnectorPackage() (string, error) {
 	}
 	pkgList, err := packages.Load(cfg)
 	if err != nil {
-		return "", fmt.Errorf("failed to load the package in connector directory: %s", err)
+		return "", fmt.Errorf("failed to load the package in connector directory: %w", err)
 	}
 
 	if len(pkgList) == 0 || pkgList[0].Name == "" {
@@ -141,7 +141,6 @@ func (cg *connectorGenerator) loadConnectorPackage() (string, error) {
 }
 
 func (cg *connectorGenerator) generateConnector(name string) error {
-
 	var schemaBytes []byte
 	var err error
 
@@ -258,7 +257,7 @@ func (cg *connectorGenerator) genTypeMethods() error {
 			Str("package_name", builder.packageName).
 			Str("package_path", packagePath).
 			Str("module_name", cg.moduleName).
-			Msgf(schemaPath)
+			Msg(schemaPath)
 
 		if err := os.WriteFile(schemaPath, []byte(builder.String()), 0644); err != nil {
 			return err
@@ -296,7 +295,6 @@ func (j %s) ToMap() map[string]any {
 }
 
 func (cg *connectorGenerator) genObjectToMap(sb *connectorTypeBuilder, object *ObjectInfo, selector string, name string) {
-
 	fieldKeys := utils.GetSortedKeys(object.Fields)
 	for _, fieldKey := range fieldKeys {
 		field := object.Fields[fieldKey]
@@ -322,10 +320,10 @@ func (cg *connectorGenerator) genToMapProperty(sb *connectorTypeBuilder, field *
 
 	if isArrayFragments(fragments) {
 		varName := formatLocalFieldName(selector)
-		valueName := fmt.Sprintf("%s_v", varName)
+		valueName := varName + "_v"
 		sb.builder.WriteString(fmt.Sprintf("  %s := make([]any, len(%s))\n", varName, selector))
 		sb.builder.WriteString(fmt.Sprintf("  for i, %s := range %s {\n", valueName, selector))
-		cg.genToMapProperty(sb, field, valueName, fmt.Sprintf("%s[i]", varName), ty, fragments[1:])
+		cg.genToMapProperty(sb, field, valueName, varName+"[i]", ty, fragments[1:])
 		sb.builder.WriteString("  }\n")
 		sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, varName))
 		return varName
@@ -377,7 +375,6 @@ func (j %s) ScalarName() string {
 `, scalar.Name, scalar.SchemaName))
 		// generate enum and parsers if exist
 		if scalar.ScalarRepresentation != nil {
-
 			switch scalarRep := scalar.ScalarRepresentation.Interface().(type) {
 			case *schema.TypeRepresentationEnum:
 				sb.imports["errors"] = ""
@@ -489,7 +486,6 @@ func (j *`)
 		cg.genGetTypeValueDecoder(sb, arg.Type, key, arg.Name)
 	}
 	sb.builder.WriteString("  return nil\n}")
-	return
 }
 
 func (cg *connectorGenerator) getOrCreateTypeBuilder(packagePath string) *connectorTypeBuilder {

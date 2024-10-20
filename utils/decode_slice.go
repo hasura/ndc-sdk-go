@@ -10,22 +10,22 @@ import (
 	"github.com/google/uuid"
 )
 
-// DecodeNullableIntSlice decodes an integer pointer slice from an unknown value
+// DecodeNullableIntSlice decodes an integer pointer slice from an unknown value.
 func DecodeNullableIntSlice[T int | int8 | int16 | int32 | int64](value any) (*[]T, error) {
 	return decodeNullableNumberSlice(value, decodeNullableIntRefection(convertInt[T]))
 }
 
-// DecodeNullableUintSlice decodes an unsigned integer slice from an unknown value
+// DecodeNullableUintSlice decodes an unsigned integer slice from an unknown value.
 func DecodeNullableUintSlice[T uint | uint8 | uint16 | uint32 | uint64](value any) (*[]T, error) {
 	return decodeNullableNumberSlice(value, decodeNullableIntRefection(convertUint[T]))
 }
 
-// DecodeNullableFloatSlice decodes a float slice from an unknown value
+// DecodeNullableFloatSlice decodes a float slice from an unknown value.
 func DecodeNullableFloatSlice[T float32 | float64](value any) (*[]T, error) {
 	return decodeNullableNumberSlice(value, DecodeNullableFloatReflection[T])
 }
 
-// DecodeIntSlice decodes an integer slice from an unknown value
+// DecodeIntSlice decodes an integer slice from an unknown value.
 func DecodeIntSlice[T int | int8 | int16 | int32 | int64](value any) ([]T, error) {
 	results, err := decodeNullableNumberSlice(value, decodeNullableIntRefection(convertInt[T]))
 	if err != nil {
@@ -37,7 +37,7 @@ func DecodeIntSlice[T int | int8 | int16 | int32 | int64](value any) ([]T, error
 	return *results, nil
 }
 
-// DecodeUintSlice decodes an unsigned integer slice from an unknown value
+// DecodeUintSlice decodes an unsigned integer slice from an unknown value.
 func DecodeUintSlice[T uint | uint8 | uint16 | uint32 | uint64](value any) ([]T, error) {
 	results, err := decodeNullableNumberSlice(value, decodeNullableIntRefection(convertUint[T]))
 	if err != nil {
@@ -49,7 +49,7 @@ func DecodeUintSlice[T uint | uint8 | uint16 | uint32 | uint64](value any) ([]T,
 	return *results, nil
 }
 
-// DecodeFloatSlice decodes a float slice from an unknown value
+// DecodeFloatSlice decodes a float slice from an unknown value.
 func DecodeFloatSlice[T float32 | float64](value any) ([]T, error) {
 	results, err := decodeNullableNumberSlice(value, DecodeNullableFloatReflection[T])
 	if err != nil {
@@ -61,22 +61,22 @@ func DecodeFloatSlice[T float32 | float64](value any) ([]T, error) {
 	return *results, nil
 }
 
-// DecodeNullableIntPtrSlice decodes an integer pointer slice from an unknown value
+// DecodeNullableIntPtrSlice decodes an integer pointer slice from an unknown value.
 func DecodeNullableIntPtrSlice[T int | int8 | int16 | int32 | int64](value any) (*[]*T, error) {
 	return decodeNullableNumberPtrSlice(value, DecodeNullableInt[T])
 }
 
-// DecodeNullableUintPtrSlice decodes an unsigned integer pointer slice from an unknown value
+// DecodeNullableUintPtrSlice decodes an unsigned integer pointer slice from an unknown value.
 func DecodeNullableUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](value any) (*[]*T, error) {
 	return decodeNullableNumberPtrSlice(value, DecodeNullableUint[T])
 }
 
-// DecodeNullableFloatPtrSlice decodes a float pointer slice from an unknown value
+// DecodeNullableFloatPtrSlice decodes a float pointer slice from an unknown value.
 func DecodeNullableFloatPtrSlice[T float32 | float64](value any) (*[]*T, error) {
 	return decodeNullableNumberPtrSlice(value, DecodeNullableFloat[T])
 }
 
-// DecodeIntPtrSlice decodes an integer slice from an unknown value
+// DecodeIntPtrSlice decodes an integer slice from an unknown value.
 func DecodeIntPtrSlice[T int | int8 | int16 | int32 | int64](value any) ([]*T, error) {
 	results, err := decodeNullableNumberPtrSlice(value, DecodeNullableInt[T])
 	if err != nil {
@@ -88,7 +88,7 @@ func DecodeIntPtrSlice[T int | int8 | int16 | int32 | int64](value any) ([]*T, e
 	return *results, nil
 }
 
-// DecodeUintSlice decodes an unsigned integer pointer slice from an unknown value
+// DecodeUintSlice decodes an unsigned integer pointer slice from an unknown value.
 func DecodeUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](value any) ([]*T, error) {
 	results, err := decodeNullableNumberPtrSlice(value, DecodeNullableUint[T])
 	if err != nil {
@@ -100,7 +100,7 @@ func DecodeUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](value any) ([
 	return *results, nil
 }
 
-// DecodeFloatSlice decodes a float pointer slice from an unknown value
+// DecodeFloatSlice decodes a float pointer slice from an unknown value.
 func DecodeFloatPtrSlice[T float32 | float64](value any) ([]*T, error) {
 	results, err := decodeNullableNumberPtrSlice(value, DecodeNullableFloat[T])
 	if err != nil {
@@ -112,7 +112,7 @@ func DecodeFloatPtrSlice[T float32 | float64](value any) ([]*T, error) {
 	return *results, nil
 }
 
-// GetNullableIntSlice get an integer pointer slice from object by key
+// GetNullableIntSlice get an integer pointer slice from object by key.
 func GetNullableIntSlice[T int | int8 | int16 | int32 | int64](object map[string]any, key string) (*[]T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -125,7 +125,7 @@ func GetNullableIntSlice[T int | int8 | int16 | int32 | int64](object map[string
 	return result, nil
 }
 
-// GetNullableUintSlice get an unsigned integer pointer slice from object by key
+// GetNullableUintSlice get an unsigned integer pointer slice from object by key.
 func GetNullableUintSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (*[]T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -138,7 +138,7 @@ func GetNullableUintSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[
 	return result, nil
 }
 
-// GetNullableFloatSlice get a float pointer slice from object by key
+// GetNullableFloatSlice get a float pointer slice from object by key.
 func GetNullableFloatSlice[T float32 | float64](object map[string]any, key string) (*[]T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -151,7 +151,7 @@ func GetNullableFloatSlice[T float32 | float64](object map[string]any, key strin
 	return result, nil
 }
 
-// GetIntSlice get an integer slice from object by key
+// GetIntSlice get an integer slice from object by key.
 func GetIntSlice[T int | int8 | int16 | int32 | int64](object map[string]any, key string) ([]T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -164,7 +164,7 @@ func GetIntSlice[T int | int8 | int16 | int32 | int64](object map[string]any, ke
 	return result, nil
 }
 
-// GetUintSlice get an unsigned integer slice from object by key
+// GetUintSlice get an unsigned integer slice from object by key.
 func GetUintSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) ([]T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -177,7 +177,7 @@ func GetUintSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[string]a
 	return result, nil
 }
 
-// GetFloatSlice get a float slice from object by key
+// GetFloatSlice get a float slice from object by key.
 func GetFloatSlice[T float32 | float64](object map[string]any, key string) ([]T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -190,7 +190,7 @@ func GetFloatSlice[T float32 | float64](object map[string]any, key string) ([]T,
 	return result, nil
 }
 
-// GetNullableIntPtrSlice get an integer pointer slice from object by key
+// GetNullableIntPtrSlice get an integer pointer slice from object by key.
 func GetNullableIntPtrSlice[T int | int8 | int16 | int32 | int64](object map[string]any, key string) (*[]*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -203,7 +203,7 @@ func GetNullableIntPtrSlice[T int | int8 | int16 | int32 | int64](object map[str
 	return result, nil
 }
 
-// GetNullableUintPtrSlice get an unsigned integer pointer slice from object by key
+// GetNullableUintPtrSlice get an unsigned integer pointer slice from object by key.
 func GetNullableUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (*[]*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -216,7 +216,7 @@ func GetNullableUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](object m
 	return result, nil
 }
 
-// GetNullableFloatPtrSlice get a float pointer slice from object by key
+// GetNullableFloatPtrSlice get a float pointer slice from object by key.
 func GetNullableFloatPtrSlice[T float32 | float64](object map[string]any, key string) (*[]*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -229,7 +229,7 @@ func GetNullableFloatPtrSlice[T float32 | float64](object map[string]any, key st
 	return result, nil
 }
 
-// GetIntPtrSlice get an integer slice from object by key
+// GetIntPtrSlice get an integer slice from object by key.
 func GetIntPtrSlice[T int | int8 | int16 | int32 | int64](object map[string]any, key string) ([]*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -242,7 +242,7 @@ func GetIntPtrSlice[T int | int8 | int16 | int32 | int64](object map[string]any,
 	return result, nil
 }
 
-// GetUintPtrSlice get an unsigned integer slice from object by key
+// GetUintPtrSlice get an unsigned integer slice from object by key.
 func GetUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) ([]*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -255,7 +255,7 @@ func GetUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[strin
 	return result, nil
 }
 
-// GetFloatPtrSlice get a float slice from object by key
+// GetFloatPtrSlice get a float slice from object by key.
 func GetFloatPtrSlice[T float32 | float64](object map[string]any, key string) ([]*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -268,7 +268,7 @@ func GetFloatPtrSlice[T float32 | float64](object map[string]any, key string) ([
 	return result, nil
 }
 
-// decodeNullableNumberSlice tries to convert an unknown value to a number slice
+// decodeNullableNumberSlice tries to convert an unknown value to a number slice.
 func decodeNullableNumberSlice[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](value any, convertFn convertNullableFuncReflection[T]) (*[]T, error) {
 	if value == nil {
 		return nil, nil
@@ -298,7 +298,7 @@ func decodeNullableNumberSlice[T int | int8 | int16 | int32 | int64 | uint | uin
 	return &results, nil
 }
 
-// decodeNullableNumberPtrSlice tries to convert an unknown value to a number slice
+// decodeNullableNumberPtrSlice tries to convert an unknown value to a number slice.
 func decodeNullableNumberPtrSlice[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](value any, convertFn convertNullableFunc[T]) (*[]*T, error) {
 	if value == nil {
 		return nil, nil
@@ -325,7 +325,7 @@ func decodeNullableNumberPtrSlice[T int | int8 | int16 | int32 | int64 | uint | 
 	return &results, nil
 }
 
-// DecodeNullableStringSlice decodes a nullable string slice from an unknown value
+// DecodeNullableStringSlice decodes a nullable string slice from an unknown value.
 func DecodeNullableStringSlice(value any) (*[]string, error) {
 	if value == nil {
 		return nil, nil
@@ -354,7 +354,7 @@ func DecodeNullableStringSlice(value any) (*[]string, error) {
 	return &results, nil
 }
 
-// DecodeStringSlice decodes a string slice from an unknown value
+// DecodeStringSlice decodes a string slice from an unknown value.
 func DecodeStringSlice(value any) ([]string, error) {
 	results, err := DecodeNullableStringSlice(value)
 	if err != nil {
@@ -366,7 +366,7 @@ func DecodeStringSlice(value any) ([]string, error) {
 	return *results, nil
 }
 
-// DecodeNullableStringSlice decodes a nullable string slice from an unknown value
+// DecodeNullableStringSlice decodes a nullable string slice from an unknown value.
 func DecodeNullableStringPtrSlice(value any) (*[]*string, error) {
 	if value == nil {
 		return nil, nil
@@ -392,7 +392,7 @@ func DecodeNullableStringPtrSlice(value any) (*[]*string, error) {
 	return &results, nil
 }
 
-// DecodeStringPtrSlice decodes a string pointer slice from an unknown value
+// DecodeStringPtrSlice decodes a string pointer slice from an unknown value.
 func DecodeStringPtrSlice(value any) ([]*string, error) {
 	results, err := DecodeNullableStringPtrSlice(value)
 	if err != nil {
@@ -404,7 +404,7 @@ func DecodeStringPtrSlice(value any) ([]*string, error) {
 	return *results, nil
 }
 
-// GetStringSlice get a string slice value from object by key
+// GetStringSlice get a string slice value from object by key.
 func GetStringSlice(object map[string]any, key string) ([]string, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -417,7 +417,7 @@ func GetStringSlice(object map[string]any, key string) ([]string, error) {
 	return result, nil
 }
 
-// GetNullableStringSlice get a string pointer slice from object by key
+// GetNullableStringSlice get a string pointer slice from object by key.
 func GetNullableStringSlice(object map[string]any, key string) (*[]string, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -430,7 +430,7 @@ func GetNullableStringSlice(object map[string]any, key string) (*[]string, error
 	return result, nil
 }
 
-// GetStringPtrSlice get a string pointer slice value from object by key
+// GetStringPtrSlice get a string pointer slice value from object by key.
 func GetStringPtrSlice(object map[string]any, key string) ([]*string, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -443,7 +443,7 @@ func GetStringPtrSlice(object map[string]any, key string) ([]*string, error) {
 	return result, nil
 }
 
-// GetNullableStringPtrSlice get a nullable string pointer slice from object by key
+// GetNullableStringPtrSlice get a nullable string pointer slice from object by key.
 func GetNullableStringPtrSlice(object map[string]any, key string) (*[]*string, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -456,7 +456,7 @@ func GetNullableStringPtrSlice(object map[string]any, key string) (*[]*string, e
 	return result, nil
 }
 
-// DecodeNullableBooleanSlice decodes a nullable boolean slice from an unknown value
+// DecodeNullableBooleanSlice decodes a nullable boolean slice from an unknown value.
 func DecodeNullableBooleanSlice(value any) (*[]bool, error) {
 	if value == nil {
 		return nil, nil
@@ -485,7 +485,7 @@ func DecodeNullableBooleanSlice(value any) (*[]bool, error) {
 	return &results, nil
 }
 
-// DecodeBooleanSlice decodes a boolean slice from an unknown value
+// DecodeBooleanSlice decodes a boolean slice from an unknown value.
 func DecodeBooleanSlice(value any) ([]bool, error) {
 	results, err := DecodeNullableBooleanSlice(value)
 	if err != nil {
@@ -497,7 +497,7 @@ func DecodeBooleanSlice(value any) ([]bool, error) {
 	return *results, nil
 }
 
-// DecodeNullableBooleanPtrSlice decodes a boolean pointer slice from an unknown value
+// DecodeNullableBooleanPtrSlice decodes a boolean pointer slice from an unknown value.
 func DecodeNullableBooleanPtrSlice(value any) (*[]*bool, error) {
 	if value == nil {
 		return nil, nil
@@ -523,7 +523,7 @@ func DecodeNullableBooleanPtrSlice(value any) (*[]*bool, error) {
 	return &results, nil
 }
 
-// DecodeBooleanPtrSlice decodes a boolean pointer slice from an unknown value
+// DecodeBooleanPtrSlice decodes a boolean pointer slice from an unknown value.
 func DecodeBooleanPtrSlice(value any) ([]*bool, error) {
 	results, err := DecodeNullableBooleanPtrSlice(value)
 	if err != nil {
@@ -535,7 +535,7 @@ func DecodeBooleanPtrSlice(value any) ([]*bool, error) {
 	return *results, nil
 }
 
-// GetBooleanSlice get a boolean slice value from object by key
+// GetBooleanSlice get a boolean slice value from object by key.
 func GetBooleanSlice(object map[string]any, key string) ([]bool, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -548,7 +548,7 @@ func GetBooleanSlice(object map[string]any, key string) ([]bool, error) {
 	return result, nil
 }
 
-// GetNullableBooleanSlice get a nullable boolean slice from object by key
+// GetNullableBooleanSlice get a nullable boolean slice from object by key.
 func GetNullableBooleanSlice(object map[string]any, key string) (*[]bool, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -561,7 +561,7 @@ func GetNullableBooleanSlice(object map[string]any, key string) (*[]bool, error)
 	return result, nil
 }
 
-// GetBooleanPtrSlice get a boolean pointer slice value from object by key
+// GetBooleanPtrSlice get a boolean pointer slice value from object by key.
 func GetBooleanPtrSlice(object map[string]any, key string) ([]*bool, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -574,7 +574,7 @@ func GetBooleanPtrSlice(object map[string]any, key string) ([]*bool, error) {
 	return result, nil
 }
 
-// GetNullableBooleanPtrSlice get a nullable boolean slice from object by key
+// GetNullableBooleanPtrSlice get a nullable boolean slice from object by key.
 func GetNullableBooleanPtrSlice(object map[string]any, key string) (*[]*bool, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -587,7 +587,7 @@ func GetNullableBooleanPtrSlice(object map[string]any, key string) (*[]*bool, er
 	return result, nil
 }
 
-// DecodeUUIDSlice decodes UUID slice from array string
+// DecodeUUIDSlice decodes UUID slice from array string.
 func DecodeUUIDSlice(value any) ([]uuid.UUID, error) {
 	results, err := DecodeNullableUUIDSlice(value)
 	if err != nil {
@@ -599,7 +599,7 @@ func DecodeUUIDSlice(value any) ([]uuid.UUID, error) {
 	return *results, nil
 }
 
-// DecodeNullableUUIDSlice decodes a nullable UUID slice from array string
+// DecodeNullableUUIDSlice decodes a nullable UUID slice from array string.
 func DecodeNullableUUIDSlice(value any) (*[]uuid.UUID, error) {
 	if value == nil {
 		return nil, nil
@@ -625,7 +625,7 @@ func DecodeNullableUUIDSlice(value any) (*[]uuid.UUID, error) {
 	return &results, nil
 }
 
-// DecodeUUIDPtrSlice decodes UUID slice from array string
+// DecodeUUIDPtrSlice decodes UUID slice from array string.
 func DecodeUUIDPtrSlice(value any) ([]*uuid.UUID, error) {
 	results, err := DecodeNullableUUIDPtrSlice(value)
 	if err != nil {
@@ -637,7 +637,7 @@ func DecodeUUIDPtrSlice(value any) ([]*uuid.UUID, error) {
 	return *results, nil
 }
 
-// DecodeNullableUUIDPtrSlice decodes UUID pointer slice from array string
+// DecodeNullableUUIDPtrSlice decodes UUID pointer slice from array string.
 func DecodeNullableUUIDPtrSlice(value any) (*[]*uuid.UUID, error) {
 	if value == nil {
 		return nil, nil
@@ -663,7 +663,7 @@ func DecodeNullableUUIDPtrSlice(value any) (*[]*uuid.UUID, error) {
 	return &results, nil
 }
 
-// GetUUIDSlice get an UUID slice from object by key
+// GetUUIDSlice get an UUID slice from object by key.
 func GetUUIDSlice(object map[string]any, key string) ([]uuid.UUID, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -676,7 +676,7 @@ func GetUUIDSlice(object map[string]any, key string) ([]uuid.UUID, error) {
 	return result, nil
 }
 
-// GetNullableUUIDSlice get an UUID pointer slice from object by key
+// GetNullableUUIDSlice get an UUID pointer slice from object by key.
 func GetNullableUUIDSlice(object map[string]any, key string) (*[]uuid.UUID, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -689,7 +689,7 @@ func GetNullableUUIDSlice(object map[string]any, key string) (*[]uuid.UUID, erro
 	return result, nil
 }
 
-// GetUUIDPtrSlice get an UUID slice from object by key
+// GetUUIDPtrSlice get an UUID slice from object by key.
 func GetUUIDPtrSlice(object map[string]any, key string) ([]*uuid.UUID, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -702,7 +702,7 @@ func GetUUIDPtrSlice(object map[string]any, key string) ([]*uuid.UUID, error) {
 	return result, nil
 }
 
-// GetNullableUUIDPtrSlice get an UUID pointer slice from object by key
+// GetNullableUUIDPtrSlice get an UUID pointer slice from object by key.
 func GetNullableUUIDPtrSlice(object map[string]any, key string) (*[]*uuid.UUID, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -715,7 +715,7 @@ func GetNullableUUIDPtrSlice(object map[string]any, key string) (*[]*uuid.UUID, 
 	return result, nil
 }
 
-// DecodeNullableDateTimePtrSlice tries to convert an unknown value to a nullable time.Time pointer slice
+// DecodeNullableDateTimePtrSlice tries to convert an unknown value to a nullable time.Time pointer slice.
 func DecodeNullableDateTimePtrSlice(value any) (*[]*time.Time, error) {
 	if value == nil {
 		return nil, nil
@@ -744,7 +744,7 @@ func DecodeNullableDateTimePtrSlice(value any) (*[]*time.Time, error) {
 	return &results, nil
 }
 
-// DecodeDateTimePtrSlice tries to convert an unknown value to a time.Time pointer slice
+// DecodeDateTimePtrSlice tries to convert an unknown value to a time.Time pointer slice.
 func DecodeDateTimePtrSlice(value any) ([]*time.Time, error) {
 	results, err := DecodeNullableDateTimePtrSlice(value)
 	if err != nil {
@@ -756,7 +756,7 @@ func DecodeDateTimePtrSlice(value any) ([]*time.Time, error) {
 	return *results, nil
 }
 
-// DecodeNullableDateTimeSlice tries to convert an unknown value to a nullable time.Time slice
+// DecodeNullableDateTimeSlice tries to convert an unknown value to a nullable time.Time slice.
 func DecodeNullableDateTimeSlice(value any) (*[]time.Time, error) {
 	if value == nil {
 		return nil, nil
@@ -785,7 +785,7 @@ func DecodeNullableDateTimeSlice(value any) (*[]time.Time, error) {
 	return &results, nil
 }
 
-// DecodeDateTimeSlice tries to convert an unknown value to a time.Time slice
+// DecodeDateTimeSlice tries to convert an unknown value to a time.Time slice.
 func DecodeDateTimeSlice(value any) ([]time.Time, error) {
 	results, err := DecodeNullableDateTimeSlice(value)
 	if err != nil {
@@ -797,7 +797,7 @@ func DecodeDateTimeSlice(value any) ([]time.Time, error) {
 	return *results, nil
 }
 
-// GetNullableDateTimeSlice get a nullable time.Time slice from object by key
+// GetNullableDateTimeSlice get a nullable time.Time slice from object by key.
 func GetNullableDateTimeSlice(object map[string]any, key string) (*[]time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -810,7 +810,7 @@ func GetNullableDateTimeSlice(object map[string]any, key string) (*[]time.Time, 
 	return result, nil
 }
 
-// GetDateTimeSlice get a time.Time slice from object by key
+// GetDateTimeSlice get a time.Time slice from object by key.
 func GetDateTimeSlice(object map[string]any, key string) ([]time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -823,7 +823,7 @@ func GetDateTimeSlice(object map[string]any, key string) ([]time.Time, error) {
 	return result, nil
 }
 
-// GetNullableDateTimePtrSlice get a nullable time.Time pointer slice from object by key
+// GetNullableDateTimePtrSlice get a nullable time.Time pointer slice from object by key.
 func GetNullableDateTimePtrSlice(object map[string]any, key string) (*[]*time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -836,7 +836,7 @@ func GetNullableDateTimePtrSlice(object map[string]any, key string) (*[]*time.Ti
 	return result, nil
 }
 
-// GetDateTimePtrSlice get a time.Time pointer slice from object by key
+// GetDateTimePtrSlice get a time.Time pointer slice from object by key.
 func GetDateTimePtrSlice(object map[string]any, key string) ([]*time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -849,7 +849,7 @@ func GetDateTimePtrSlice(object map[string]any, key string) ([]*time.Time, error
 	return result, nil
 }
 
-// DecodeNullableArbitraryJSONPtrSlice decodes a nullable arbitrary json pointer slice from object by key
+// DecodeNullableArbitraryJSONPtrSlice decodes a nullable arbitrary json pointer slice from object by key.
 func DecodeNullableArbitraryJSONPtrSlice(value any) (*[]*any, error) {
 	if value == nil {
 		return nil, nil
@@ -876,7 +876,7 @@ func DecodeNullableArbitraryJSONPtrSlice(value any) (*[]*any, error) {
 	return &results, nil
 }
 
-// DecodeArbitraryJSONPtrSlice decodes an arbitrary json pointer slice from object by key
+// DecodeArbitraryJSONPtrSlice decodes an arbitrary json pointer slice from object by key.
 func DecodeArbitraryJSONPtrSlice(value any) ([]*any, error) {
 	results, err := DecodeNullableArbitraryJSONPtrSlice(value)
 	if err != nil {
@@ -888,7 +888,7 @@ func DecodeArbitraryJSONPtrSlice(value any) ([]*any, error) {
 	return *results, nil
 }
 
-// DecodeNullableArbitraryJSONSlice decodes a nullable arbitrary json slice from object by key
+// DecodeNullableArbitraryJSONSlice decodes a nullable arbitrary json slice from object by key.
 func DecodeNullableArbitraryJSONSlice(value any) (*[]any, error) {
 	if value == nil {
 		return nil, nil
@@ -914,7 +914,7 @@ func DecodeNullableArbitraryJSONSlice(value any) (*[]any, error) {
 	return &results, nil
 }
 
-// DecodeArbitraryJSONSlice decodes an arbitrary json slice from object by key
+// DecodeArbitraryJSONSlice decodes an arbitrary json slice from object by key.
 func DecodeArbitraryJSONSlice(value any) ([]any, error) {
 	results, err := DecodeNullableArbitraryJSONSlice(value)
 	if err != nil {
@@ -926,7 +926,7 @@ func DecodeArbitraryJSONSlice(value any) ([]any, error) {
 	return *results, nil
 }
 
-// GetNullableArbitraryJSONPtrSlice get a nullable arbitrary json pointer slice from object by key
+// GetNullableArbitraryJSONPtrSlice get a nullable arbitrary json pointer slice from object by key.
 func GetNullableArbitraryJSONPtrSlice(object map[string]any, key string) (*[]*any, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -935,7 +935,7 @@ func GetNullableArbitraryJSONPtrSlice(object map[string]any, key string) (*[]*an
 	return DecodeNullableArbitraryJSONPtrSlice(value)
 }
 
-// GetArbitraryJSONPtrSlice get an arbitrary json pointer slice from object by key
+// GetArbitraryJSONPtrSlice get an arbitrary json pointer slice from object by key.
 func GetArbitraryJSONPtrSlice(object map[string]any, key string) ([]*any, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -944,7 +944,7 @@ func GetArbitraryJSONPtrSlice(object map[string]any, key string) ([]*any, error)
 	return DecodeArbitraryJSONPtrSlice(value)
 }
 
-// GetNullableArbitraryJSONSlice get a nullable arbitrary json slice from object by key
+// GetNullableArbitraryJSONSlice get a nullable arbitrary json slice from object by key.
 func GetNullableArbitraryJSONSlice(object map[string]any, key string) (*[]any, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -953,7 +953,7 @@ func GetNullableArbitraryJSONSlice(object map[string]any, key string) (*[]any, e
 	return DecodeNullableArbitraryJSONSlice(value)
 }
 
-// GetArbitraryJSON get an arbitrary json slice from object by key
+// GetArbitraryJSON get an arbitrary json slice from object by key.
 func GetArbitraryJSONSlice(object map[string]any, key string) ([]any, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -962,7 +962,7 @@ func GetArbitraryJSONSlice(object map[string]any, key string) ([]any, error) {
 	return DecodeArbitraryJSONSlice(value)
 }
 
-// DecodeNullableRawJSONSlice decodes a nullable json.RawMessage slice from object by key
+// DecodeNullableRawJSONSlice decodes a nullable json.RawMessage slice from object by key.
 func DecodeNullableRawJSONSlice(value any) (*[]json.RawMessage, error) {
 	if value == nil {
 		return nil, nil
@@ -991,7 +991,7 @@ func DecodeNullableRawJSONSlice(value any) (*[]json.RawMessage, error) {
 	return &results, nil
 }
 
-// DecodeRawJSONSlice decodes a json.RawMessage slice from object by key
+// DecodeRawJSONSlice decodes a json.RawMessage slice from object by key.
 func DecodeRawJSONSlice(value any) ([]json.RawMessage, error) {
 	results, err := DecodeNullableRawJSONSlice(value)
 	if err != nil {
@@ -1003,7 +1003,7 @@ func DecodeRawJSONSlice(value any) ([]json.RawMessage, error) {
 	return *results, nil
 }
 
-// DecodeNullableRawJSONPtrSlice decodes a nullable json.RawMessage pointer slice from object by key
+// DecodeNullableRawJSONPtrSlice decodes a nullable json.RawMessage pointer slice from object by key.
 func DecodeNullableRawJSONPtrSlice(value any) (*[]*json.RawMessage, error) {
 	if value == nil {
 		return nil, nil
@@ -1029,7 +1029,7 @@ func DecodeNullableRawJSONPtrSlice(value any) (*[]*json.RawMessage, error) {
 	return &results, nil
 }
 
-// DecodeRawJSONPtrSlice decodes a json.RawMessage pointer slice from object by key
+// DecodeRawJSONPtrSlice decodes a json.RawMessage pointer slice from object by key.
 func DecodeRawJSONPtrSlice(value any) ([]*json.RawMessage, error) {
 	results, err := DecodeNullableRawJSONPtrSlice(value)
 	if err != nil {
@@ -1041,7 +1041,7 @@ func DecodeRawJSONPtrSlice(value any) ([]*json.RawMessage, error) {
 	return *results, nil
 }
 
-// GetNullableRawJSONSlice get a nullable json.RawMessage slice from object by key
+// GetNullableRawJSONSlice get a nullable json.RawMessage slice from object by key.
 func GetNullableRawJSONSlice(object map[string]any, key string) (*[]json.RawMessage, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -1050,7 +1050,7 @@ func GetNullableRawJSONSlice(object map[string]any, key string) (*[]json.RawMess
 	return DecodeNullableRawJSONSlice(value)
 }
 
-// GetRawJSONSlice get a raw json.RawMessage slice from object by key
+// GetRawJSONSlice get a raw json.RawMessage slice from object by key.
 func GetRawJSONSlice(object map[string]any, key string) ([]json.RawMessage, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -1059,7 +1059,7 @@ func GetRawJSONSlice(object map[string]any, key string) ([]json.RawMessage, erro
 	return DecodeRawJSONSlice(value)
 }
 
-// GetNullableRawJSONPtrSlice get a nullable json.RawMessage pointer slice from object by key
+// GetNullableRawJSONPtrSlice get a nullable json.RawMessage pointer slice from object by key.
 func GetNullableRawJSONPtrSlice(object map[string]any, key string) (*[]*json.RawMessage, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -1068,7 +1068,7 @@ func GetNullableRawJSONPtrSlice(object map[string]any, key string) (*[]*json.Raw
 	return DecodeNullableRawJSONPtrSlice(value)
 }
 
-// GetRawJSONPtrSlice get a json.RawMessage pointer slice from object by key
+// GetRawJSONPtrSlice get a json.RawMessage pointer slice from object by key.
 func GetRawJSONPtrSlice(object map[string]any, key string) ([]*json.RawMessage, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {

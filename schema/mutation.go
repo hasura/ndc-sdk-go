@@ -54,14 +54,14 @@ func (j *ProcedureInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 	return nil
 }
 
-// MutationOperationType represents the mutation operation type enum
+// MutationOperationType represents the mutation operation type enum.
 type MutationOperationType string
 
 const (
 	MutationOperationProcedure MutationOperationType = "procedure"
 )
 
-// ParseMutationOperationType parses a mutation operation type argument type from string
+// ParseMutationOperationType parses a mutation operation type argument type from string.
 func ParseMutationOperationType(input string) (*MutationOperationType, error) {
 	if input != string(MutationOperationProcedure) {
 		return nil, fmt.Errorf("failed to parse MutationOperationType, expect one of %v, got %s", []MutationOperationType{MutationOperationProcedure}, input)
@@ -87,7 +87,7 @@ func (j *MutationOperationType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// MutationOperation represents a mutation operation
+// MutationOperation represents a mutation operation.
 type MutationOperation struct {
 	Type MutationOperationType `json:"type" yaml:"type" mapstructure:"type"`
 	// The name of the operation
@@ -149,7 +149,7 @@ func (j *MutationOperation) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// MutationOperationResults represent the result of mutation operation
+// MutationOperationResults represent the result of mutation operation.
 type MutationOperationResults map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -188,7 +188,7 @@ func (j *MutationOperationResults) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Type gets the type enum of the current type
+// Type gets the type enum of the current type.
 func (j MutationOperationResults) Type() (MutationOperationType, error) {
 	t, ok := j["type"]
 	if !ok {
@@ -208,7 +208,7 @@ func (j MutationOperationResults) Type() (MutationOperationType, error) {
 	}
 }
 
-// AsProcedure tries to convert the instance to ProcedureResult type
+// AsProcedure tries to convert the instance to ProcedureResult type.
 func (j MutationOperationResults) AsProcedure() (*ProcedureResult, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -229,13 +229,13 @@ func (j MutationOperationResults) AsProcedure() (*ProcedureResult, error) {
 	}, nil
 }
 
-// Interface tries to convert the instance to MutationOperationResultsEncoder interface
+// Interface tries to convert the instance to MutationOperationResultsEncoder interface.
 func (j MutationOperationResults) Interface() MutationOperationResultsEncoder {
 	result, _ := j.InterfaceT()
 	return result
 }
 
-// InterfaceT tries to convert the instance to MutationOperationResultsEncoder interface safely with explicit error
+// InterfaceT tries to convert the instance to MutationOperationResultsEncoder interface safely with explicit error.
 func (j MutationOperationResults) InterfaceT() (MutationOperationResultsEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -250,18 +250,18 @@ func (j MutationOperationResults) InterfaceT() (MutationOperationResultsEncoder,
 	}
 }
 
-// MutationOperationResultsEncoder abstracts the serialization interface for MutationOperationResults
+// MutationOperationResultsEncoder abstracts the serialization interface for MutationOperationResults.
 type MutationOperationResultsEncoder interface {
 	Encode() MutationOperationResults
 }
 
-// ProcedureResult represent the result of a procedure mutation operation
+// ProcedureResult represent the result of a procedure mutation operation.
 type ProcedureResult struct {
 	Type   MutationOperationType `json:"type" yaml:"type" mapstructure:"type"`
 	Result any                   `json:"result" yaml:"result" mapstructure:"result"`
 }
 
-// Encode encodes the struct to MutationOperationResults
+// Encode encodes the struct to MutationOperationResults.
 func (pr ProcedureResult) Encode() MutationOperationResults {
 	return MutationOperationResults{
 		"type":   pr.Type,
@@ -269,7 +269,7 @@ func (pr ProcedureResult) Encode() MutationOperationResults {
 	}
 }
 
-// NewProcedureResult creates a MutationProcedureResult instance
+// NewProcedureResult creates a MutationProcedureResult instance.
 func NewProcedureResult(result any) *ProcedureResult {
 	return &ProcedureResult{
 		Type:   MutationOperationProcedure,

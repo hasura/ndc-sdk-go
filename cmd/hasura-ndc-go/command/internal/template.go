@@ -24,7 +24,7 @@ func init() {
 	var err error
 	connectorTemplate, err = template.New(connectorOutputFile).Parse(connectorTemplateStr)
 	if err != nil {
-		panic(fmt.Errorf("failed to parse connector template: %s", err))
+		panic(fmt.Errorf("failed to parse connector template: %w", err))
 	}
 
 	strcase.ConfigureAcronym("API", "Api")

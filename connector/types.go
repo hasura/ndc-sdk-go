@@ -11,7 +11,6 @@ import (
 //
 // [NDC Specification]: https://hasura.github.io/ndc-spec/specification/index.html
 type Connector[Configuration any, State any] interface {
-
 	// ParseConfiguration validates the configuration files provided by the user, returning a validated 'Configuration',
 	// or throwing an error to prevents Connector startup.
 	ParseConfiguration(ctx context.Context, configurationDir string) (*Configuration, error)
@@ -76,7 +75,7 @@ type Connector[Configuration any, State any] interface {
 	Query(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (schema.QueryResponse, error)
 }
 
-// the common serve options for the server
+// the common serve options for the server.
 type serveOptions struct {
 	logger          *slog.Logger
 	logLevel        slog.Level
@@ -97,45 +96,45 @@ func defaultServeOptions() *serveOptions {
 	}
 }
 
-// ServeOption abstracts a public interface to update server options
+// ServeOption abstracts a public interface to update server options.
 type ServeOption func(*serveOptions)
 
-// WithLogger sets a custom logger option
+// WithLogger sets a custom logger option.
 func WithLogger(logger *slog.Logger) ServeOption {
 	return func(so *serveOptions) {
 		so.logger = logger
 	}
 }
 
-// WithLoggerFunc sets a custom logger option with a constructor function
+// WithLoggerFunc sets a custom logger option with a constructor function.
 func WithLoggerFunc(fn func(level slog.Level) *slog.Logger) ServeOption {
 	return func(so *serveOptions) {
 		so.logger = fn(so.logLevel)
 	}
 }
 
-// WithMetricsPrefix sets the custom metrics prefix option
+// WithMetricsPrefix sets the custom metrics prefix option.
 func WithMetricsPrefix(prefix string) ServeOption {
 	return func(so *serveOptions) {
 		so.metricsPrefix = prefix
 	}
 }
 
-// WithVersion sets the custom version option
+// WithVersion sets the custom version option.
 func WithVersion(version string) ServeOption {
 	return func(so *serveOptions) {
 		so.version = version
 	}
 }
 
-// WithDefaultServiceName sets the default service name option
+// WithDefaultServiceName sets the default service name option.
 func WithDefaultServiceName(name string) ServeOption {
 	return func(so *serveOptions) {
 		so.serviceName = name
 	}
 }
 
-// WithoutRecovery disables recovery on panic
+// WithoutRecovery disables recovery on panic.
 func WithoutRecovery() ServeOption {
 	return func(so *serveOptions) {
 		so.withoutRecovery = true

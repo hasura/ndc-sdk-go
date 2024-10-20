@@ -6,7 +6,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
-// JSONAttribute creates a OpenTelemetry attribute with JSON data
+// JSONAttribute creates a OpenTelemetry attribute with JSON data.
 func JSONAttribute(key string, data any) attribute.KeyValue {
 	switch d := data.(type) {
 	case json.RawMessage:
@@ -21,7 +21,7 @@ func JSONAttribute(key string, data any) attribute.KeyValue {
 }
 
 // DebugJSONAttributes create OpenTelemetry attributes with JSON data.
-// They are only visible on debug mode
+// They are only visible on debug mode.
 func DebugJSONAttributes(data map[string]any, isDebug bool) []attribute.KeyValue {
 	if !isDebug || len(data) == 0 {
 		return []attribute.KeyValue{}

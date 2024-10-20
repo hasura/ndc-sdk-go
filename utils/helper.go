@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-// GetDefault returns the value or default one if value is empty
+// GetDefault returns the value or default one if value is empty.
 func GetDefault[T comparable](value T, defaultValue T) T {
 	var empty T
 	if value == empty {
@@ -20,7 +20,7 @@ func GetDefault[T comparable](value T, defaultValue T) T {
 	return value
 }
 
-// GetDefaultPtr returns the first pointer or default one if GetDefaultPtr is nil
+// GetDefaultPtr returns the first pointer or default one if GetDefaultPtr is nil.
 func GetDefaultPtr[T any](value *T, defaultValue *T) *T {
 	if value == nil {
 		return defaultValue
@@ -28,7 +28,7 @@ func GetDefaultPtr[T any](value *T, defaultValue *T) *T {
 	return value
 }
 
-// GetDefaultValuePtr return the value of pointer or default one if the value of pointer is null or empty
+// GetDefaultValuePtr return the value of pointer or default one if the value of pointer is null or empty.
 func GetDefaultValuePtr[T comparable](value *T, defaultValue T) T {
 	if value == nil {
 		return defaultValue
@@ -40,7 +40,7 @@ func GetDefaultValuePtr[T comparable](value *T, defaultValue T) T {
 	return *value
 }
 
-// GetKeys gets keys of a map
+// GetKeys gets keys of a map.
 func GetKeys[K cmp.Ordered, V any](input map[K]V) []K {
 	var results []K
 	for key := range input {
@@ -49,14 +49,14 @@ func GetKeys[K cmp.Ordered, V any](input map[K]V) []K {
 	return results
 }
 
-// GetSortedKeys gets keys of a map and sorts them
+// GetSortedKeys gets keys of a map and sorts them.
 func GetSortedKeys[K cmp.Ordered, V any](input map[K]V) []K {
 	results := GetKeys(input)
 	slices.Sort(results)
 	return results
 }
 
-// GetSortedValuesByKey gets values of a map and sorts by keys
+// GetSortedValuesByKey gets values of a map and sorts by keys.
 func GetSortedValuesByKey[K cmp.Ordered, V any](input map[K]V) []V {
 	if len(input) == 0 {
 		return []V{}
@@ -69,12 +69,12 @@ func GetSortedValuesByKey[K cmp.Ordered, V any](input map[K]V) []V {
 	return results
 }
 
-// ToPtr converts a value to its pointer
+// ToPtr converts a value to its pointer.
 func ToPtr[V any](value V) *V {
 	return &value
 }
 
-// ToPtrs converts the value slice to pointer slice
+// ToPtrs converts the value slice to pointer slice.
 func ToPtrs[T any](input []T) []*T {
 	results := make([]*T, len(input))
 	for i := range input {
@@ -84,7 +84,7 @@ func ToPtrs[T any](input []T) []*T {
 	return results
 }
 
-// PointersToValues converts the pointer slice to value slice
+// PointersToValues converts the pointer slice to value slice.
 func PointersToValues[T any](input []*T) ([]T, error) {
 	results := make([]T, len(input))
 	for i, v := range input {
@@ -96,7 +96,7 @@ func PointersToValues[T any](input []*T) ([]T, error) {
 	return results, nil
 }
 
-// UnwrapPointerFromReflectValue unwraps pointers from the reflect value
+// UnwrapPointerFromReflectValue unwraps pointers from the reflect value.
 func UnwrapPointerFromReflectValue(reflectValue reflect.Value) (reflect.Value, bool) {
 	switch reflectValue.Kind() {
 	case reflect.Chan, reflect.Func, reflect.Invalid:
@@ -114,7 +114,7 @@ func UnwrapPointerFromReflectValue(reflectValue reflect.Value) (reflect.Value, b
 	return reflectValue, true
 }
 
-// UnwrapPointerFromAnyToReflectValue unwraps pointers from the input any type to the reflection value
+// UnwrapPointerFromAnyToReflectValue unwraps pointers from the input any type to the reflection value.
 func UnwrapPointerFromAnyToReflectValue(value any) (reflect.Value, bool) {
 	if value == nil {
 		return reflect.Value{}, false
@@ -123,7 +123,7 @@ func UnwrapPointerFromAnyToReflectValue(value any) (reflect.Value, bool) {
 	return UnwrapPointerFromReflectValue(reflect.ValueOf(value))
 }
 
-// UnwrapPointerFromAny unwraps pointers from the input any type
+// UnwrapPointerFromAny unwraps pointers from the input any type.
 func UnwrapPointerFromAny(value any) (any, bool) {
 	reflectValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
 	if !ok {
@@ -132,12 +132,12 @@ func UnwrapPointerFromAny(value any) (any, bool) {
 	return reflectValue.Interface(), true
 }
 
-// IsDebug checks if the log level is debug
+// IsDebug checks if the log level is debug.
 func IsDebug(logger *slog.Logger) bool {
 	return logger.Enabled(context.TODO(), slog.LevelDebug)
 }
 
-// MergeMap merges two value maps into one
+// MergeMap merges two value maps into one.
 func MergeMap[K comparable, V any](dest map[K]V, src map[K]V) map[K]V {
 	result := dest
 	if result == nil {

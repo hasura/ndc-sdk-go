@@ -47,7 +47,7 @@ const (
 	otlpProtocolHTTPProtobuf otlpProtocol = "http/protobuf"
 )
 
-// defines the type of OpenTelemetry metrics exporter
+// defines the type of OpenTelemetry metrics exporter.
 type otelMetricsExporterType string
 
 const (
@@ -62,7 +62,7 @@ var (
 	failureStatusAttribute  = attribute.String("status", "failure")
 )
 
-// OTLPConfig contains configuration for OpenTelemetry exporter
+// OTLPConfig contains configuration for OpenTelemetry exporter.
 type OTLPConfig struct {
 	ServiceName            string `help:"OpenTelemetry service name." env:"OTEL_SERVICE_NAME"`
 	OtlpEndpoint           string `help:"OpenTelemetry receiver endpoint that is set as default for all types." env:"OTEL_EXPORTER_OTLP_ENDPOINT"`
@@ -83,7 +83,7 @@ type OTLPConfig struct {
 	DisableGoMetrics *bool  `help:"Disable internal Go and process metrics"`
 }
 
-// TelemetryState contains OpenTelemetry exporters and basic connector metrics
+// TelemetryState contains OpenTelemetry exporters and basic connector metrics.
 type TelemetryState struct {
 	*connectorMetrics
 
@@ -114,7 +114,7 @@ func setupOTelSDK(ctx context.Context, config *OTLPConfig, serviceVersion, metri
 	return state, setupConnectorMetrics(state, metricsPrefix)
 }
 
-// SetupOTelExporters set up OpenTelemetry exporters from configuration
+// SetupOTelExporters set up OpenTelemetry exporters from configuration.
 func SetupOTelExporters(ctx context.Context, config *OTLPConfig, serviceVersion, metricsPrefix string, logger *slog.Logger) (*TelemetryState, error) {
 	otel.SetLogger(logr.FromSlogHandler(logger.Handler()))
 	tracesEndpoint := utils.GetDefault(config.OtlpTracesEndpoint, config.OtlpEndpoint)
@@ -300,7 +300,7 @@ func newPropagator() propagation.TextMapPropagator {
 
 func setupConnectorMetrics(telemetry *TelemetryState, metricsPrefix string) error {
 	if metricsPrefix != "" {
-		metricsPrefix = metricsPrefix + "."
+		metricsPrefix += "."
 	}
 
 	var err error
@@ -319,7 +319,6 @@ func setupConnectorMetrics(telemetry *TelemetryState, metricsPrefix string) erro
 		metricsPrefix+"mutation.total",
 		metricapi.WithDescription("Total number of mutation requests"),
 	)
-
 	if err != nil {
 		return err
 	}
@@ -360,7 +359,6 @@ func setupConnectorMetrics(telemetry *TelemetryState, metricsPrefix string) erro
 		metricsPrefix+"query.explain_total_time",
 		metricapi.WithDescription("Total time taken to plan and execute an explain query request, in seconds"),
 	)
-
 	if err != nil {
 		return err
 	}
@@ -373,14 +371,14 @@ func setupConnectorMetrics(telemetry *TelemetryState, metricsPrefix string) erro
 	return err
 }
 
-// Tracer is the wrapper of traceapi.Tracer with user visibility on Hasura Console
+// Tracer is the wrapper of traceapi.Tracer with user visibility on Hasura Console.
 type Tracer struct {
 	traceapi.Tracer
 }
 
 var _ traceapi.Tracer = &Tracer{}
 
-// NewTracer creates a new OpenTelemetry tracer
+// NewTracer creates a new OpenTelemetry tracer.
 func NewTracer(name string, opts ...traceapi.TracerOption) *Tracer {
 	return &Tracer{
 		Tracer: otel.Tracer(name, opts...),
@@ -394,7 +392,7 @@ func (t *Tracer) Start(ctx context.Context, spanName string, opts ...traceapi.Sp
 }
 
 // StartInternal creates a span and a context.Context containing the newly-created span.
-// It won't show up in the Hasura Console
+// It won't show up in the Hasura Console.
 func (t *Tracer) StartInternal(ctx context.Context, spanName string, opts ...traceapi.SpanStartOption) (context.Context, traceapi.Span) {
 	return t.Tracer.Start(ctx, spanName, opts...) //nolint:all
 }

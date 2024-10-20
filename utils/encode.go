@@ -10,12 +10,12 @@ import (
 	"github.com/hasura/ndc-sdk-go/schema"
 )
 
-// MapEncoder abstracts a type with the ToMap method to encode type to map
+// MapEncoder abstracts a type with the ToMap method to encode type to map.
 type MapEncoder interface {
 	ToMap() map[string]any
 }
 
-// EncodeObject encodes an unknown type to a map[string]any, using json tag to convert object keys
+// EncodeObject encodes an unknown type to a map[string]any, using json tag to convert object keys.
 func EncodeObject(input any) (map[string]any, error) {
 	if IsNil(input) {
 		return nil, nil
@@ -23,12 +23,12 @@ func EncodeObject(input any) (map[string]any, error) {
 	return encodeObject(input, "")
 }
 
-// EncodeObjectSlice encodes an array of unknown type to map[string]any slice, using json tag to convert object keys
+// EncodeObjectSlice encodes an array of unknown type to map[string]any slice, using json tag to convert object keys.
 func EncodeObjectSlice[T any](input []T) ([]map[string]any, error) {
 	return encodeObjectSlice(input, "")
 }
 
-// EncodeNullableObjectSlice encodes the pointer array of unknown type to map[string]any slice, using json tag to convert object keys
+// EncodeNullableObjectSlice encodes the pointer array of unknown type to map[string]any slice, using json tag to convert object keys.
 func EncodeNullableObjectSlice[T any](inputs *[]T) ([]map[string]any, error) {
 	if inputs == nil {
 		return nil, nil
@@ -170,7 +170,7 @@ func encodeStruct(input reflect.Value) map[string]any {
 	return result
 }
 
-// EncodeObjects encodes an object rows to a slice of map[string]any, using json tag to convert object keys
+// EncodeObjects encodes an object rows to a slice of map[string]any, using json tag to convert object keys.
 func EncodeObjects(input any) ([]map[string]any, error) {
 	return encodeObjects(input, "")
 }

@@ -27,7 +27,7 @@ var enumValues_Type = []TypeEnum{
 	TypePredicate,
 }
 
-// ParseTypeEnum parses a type enum from string
+// ParseTypeEnum parses a type enum from string.
 func ParseTypeEnum(input string) (TypeEnum, error) {
 	result := TypeEnum(input)
 
@@ -38,7 +38,7 @@ func ParseTypeEnum(input string) (TypeEnum, error) {
 	return result, nil
 }
 
-// IsValid checks if the value is invalid
+// IsValid checks if the value is invalid.
 func (j TypeEnum) IsValid() bool {
 	return slices.Contains(enumValues_Type, j)
 }
@@ -59,7 +59,7 @@ func (j *TypeEnum) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Types track the valid representations of values as JSON
+// Types track the valid representations of values as JSON.
 type Type map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -134,7 +134,7 @@ func (j *Type) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// IsZero checks whether is the instance is empty
+// IsZero checks whether is the instance is empty.
 func (ty Type) IsZero() bool {
 	if len(ty) == 0 {
 		return true
@@ -143,7 +143,7 @@ func (ty Type) IsZero() bool {
 	return !ok
 }
 
-// Type gets the type enum of the current type
+// Type gets the type enum of the current type.
 func (ty Type) Type() (TypeEnum, error) {
 	t, ok := ty["type"]
 	if !ok {
@@ -163,7 +163,7 @@ func (ty Type) Type() (TypeEnum, error) {
 	}
 }
 
-// AsNamed tries to convert the current type to NamedType
+// AsNamed tries to convert the current type to NamedType.
 func (ty Type) AsNamed() (*NamedType, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -178,7 +178,7 @@ func (ty Type) AsNamed() (*NamedType, error) {
 	}, nil
 }
 
-// AsNullable tries to convert the current type to NullableType
+// AsNullable tries to convert the current type to NullableType.
 func (ty Type) AsNullable() (*NullableType, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -202,7 +202,7 @@ func (ty Type) AsNullable() (*NullableType, error) {
 	}, nil
 }
 
-// AsArray tries to convert the current type to ArrayType
+// AsArray tries to convert the current type to ArrayType.
 func (ty Type) AsArray() (*ArrayType, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -226,7 +226,7 @@ func (ty Type) AsArray() (*ArrayType, error) {
 	}, nil
 }
 
-// AsPredicate tries to convert the current type to PredicateType
+// AsPredicate tries to convert the current type to PredicateType.
 func (ty Type) AsPredicate() (*PredicateType, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -242,13 +242,13 @@ func (ty Type) AsPredicate() (*PredicateType, error) {
 	}, nil
 }
 
-// Interface converts the instance to the TypeEncoder interface
+// Interface converts the instance to the TypeEncoder interface.
 func (ty Type) Interface() TypeEncoder {
 	result, _ := ty.InterfaceT()
 	return result
 }
 
-// InterfaceT converts the instance to the TypeEncoder interface safely with explicit error
+// InterfaceT converts the instance to the TypeEncoder interface safely with explicit error.
 func (ty Type) InterfaceT() (TypeEncoder, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -269,7 +269,7 @@ func (ty Type) InterfaceT() (TypeEncoder, error) {
 	}
 }
 
-// String implements the fmt.Stringer interface
+// String implements the fmt.Stringer interface.
 func (ty Type) String() string {
 	if ty.IsZero() {
 		return "zero_type"
@@ -281,19 +281,19 @@ func (ty Type) String() string {
 	return fmt.Sprint(t)
 }
 
-// TypeEncoder abstracts the Type interface
+// TypeEncoder abstracts the Type interface.
 type TypeEncoder interface {
 	Encode() Type
 }
 
-// NamedType represents a named type
+// NamedType represents a named type.
 type NamedType struct {
 	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
 	// The name can refer to a primitive type or a scalar type
 	Name string `json:"name" yaml:"name" mapstructure:"name"`
 }
 
-// NewNamedType creates a new NamedType instance
+// NewNamedType creates a new NamedType instance.
 func NewNamedType(name string) *NamedType {
 	return &NamedType{
 		Type: TypeNamed,
@@ -301,7 +301,7 @@ func NewNamedType(name string) *NamedType {
 	}
 }
 
-// Encode returns the raw Type instance
+// Encode returns the raw Type instance.
 func (ty NamedType) Encode() Type {
 	return map[string]any{
 		"type": ty.Type,
@@ -309,19 +309,19 @@ func (ty NamedType) Encode() Type {
 	}
 }
 
-// String implements the fmt.Stringer interface
+// String implements the fmt.Stringer interface.
 func (ty NamedType) String() string {
 	return ty.Name
 }
 
-// NullableType represents a nullable type
+// NullableType represents a nullable type.
 type NullableType struct {
 	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
 	// The type of the non-null inhabitants of this type
 	UnderlyingType Type `json:"underlying_type" yaml:"underlying_type" mapstructure:"underlying_type"`
 }
 
-// NewNullableType creates a new NullableType instance with underlying type
+// NewNullableType creates a new NullableType instance with underlying type.
 func NewNullableType(underlyingType TypeEncoder) *NullableType {
 	return &NullableType{
 		Type:           TypeNullable,
@@ -329,7 +329,7 @@ func NewNullableType(underlyingType TypeEncoder) *NullableType {
 	}
 }
 
-// NewNullableNamedType creates a new NullableType instance with underlying named type
+// NewNullableNamedType creates a new NullableType instance with underlying named type.
 func NewNullableNamedType(name string) *NullableType {
 	return &NullableType{
 		Type:           TypeNullable,
@@ -337,7 +337,7 @@ func NewNullableNamedType(name string) *NullableType {
 	}
 }
 
-// Encode returns the raw Type instance
+// Encode returns the raw Type instance.
 func (ty NullableType) Encode() Type {
 	return map[string]any{
 		"type":            ty.Type,
@@ -345,19 +345,19 @@ func (ty NullableType) Encode() Type {
 	}
 }
 
-// String implements the fmt.Stringer interface
+// String implements the fmt.Stringer interface.
 func (ty NullableType) String() string {
 	return fmt.Sprintf("Nullable<%s>", ty.UnderlyingType)
 }
 
-// ArrayType represents an array type
+// ArrayType represents an array type.
 type ArrayType struct {
 	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
 	// The type of the elements of the array
 	ElementType Type `json:"element_type" yaml:"element_type" mapstructure:"element_type"`
 }
 
-// Encode returns the raw Type instance
+// Encode returns the raw Type instance.
 func (ty ArrayType) Encode() Type {
 	return map[string]any{
 		"type":         ty.Type,
@@ -365,12 +365,12 @@ func (ty ArrayType) Encode() Type {
 	}
 }
 
-// String implements the fmt.Stringer interface
+// String implements the fmt.Stringer interface.
 func (ty ArrayType) String() string {
 	return fmt.Sprintf("Array<%s>", ty.ElementType)
 }
 
-// NewArrayType creates a new ArrayType instance
+// NewArrayType creates a new ArrayType instance.
 func NewArrayType(elementType TypeEncoder) *ArrayType {
 	return &ArrayType{
 		Type:        TypeArray,
@@ -378,14 +378,14 @@ func NewArrayType(elementType TypeEncoder) *ArrayType {
 	}
 }
 
-// PredicateType represents a predicate type for a given object type
+// PredicateType represents a predicate type for a given object type.
 type PredicateType struct {
 	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
 	// The name can refer to a primitive type or a scalar type
 	ObjectTypeName string `json:"object_type_name" yaml:"object_type_name" mapstructure:"object_type_name"`
 }
 
-// NewPredicateType creates a new PredicateType instance
+// NewPredicateType creates a new PredicateType instance.
 func NewPredicateType(objectTypeName string) *PredicateType {
 	return &PredicateType{
 		Type:           TypePredicate,
@@ -393,7 +393,7 @@ func NewPredicateType(objectTypeName string) *PredicateType {
 	}
 }
 
-// Encode returns the raw Type instance
+// Encode returns the raw Type instance.
 func (ty PredicateType) Encode() Type {
 	return map[string]any{
 		"type":             ty.Type,
@@ -401,12 +401,12 @@ func (ty PredicateType) Encode() Type {
 	}
 }
 
-// String implements the fmt.Stringer interface
+// String implements the fmt.Stringer interface.
 func (ty PredicateType) String() string {
 	return fmt.Sprintf("Predicate<%s>", ty.ObjectTypeName)
 }
 
-// GetUnderlyingNamedType gets the underlying named type of the input type recursively if exists
+// GetUnderlyingNamedType gets the underlying named type of the input type recursively if exists.
 func GetUnderlyingNamedType(input Type) *NamedType {
 	if len(input) == 0 {
 		return nil
@@ -423,7 +423,7 @@ func GetUnderlyingNamedType(input Type) *NamedType {
 	}
 }
 
-// UnwrapNullableType unwraps nullable types from the input type recursively
+// UnwrapNullableType unwraps nullable types from the input type recursively.
 func UnwrapNullableType(input Type) Type {
 	if input == nil || input.IsZero() {
 		return nil

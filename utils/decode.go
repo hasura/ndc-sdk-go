@@ -12,30 +12,34 @@ import (
 	"github.com/google/uuid"
 )
 
-var trueValue = reflect.ValueOf(true)
-var falseValue = reflect.ValueOf(false)
+var (
+	trueValue  = reflect.ValueOf(true)
+	falseValue = reflect.ValueOf(false)
+)
 
-type convertFunc[T any] func(value any) (T, error)
-type convertNullableFunc[T any] func(value any) (*T, error)
-type convertFuncReflection[T any] func(value reflect.Value) (T, error)
-type convertNullableFuncReflection[T any] func(value reflect.Value) (*T, error)
+type (
+	convertFunc[T any]                   func(value any) (T, error)
+	convertNullableFunc[T any]           func(value any) (*T, error)
+	convertFuncReflection[T any]         func(value reflect.Value) (T, error)
+	convertNullableFuncReflection[T any] func(value reflect.Value) (*T, error)
+)
 
 var (
 	errIntRequired  = errors.New("the Int value must not be null")
 	errUintRequired = errors.New("the Uint value must not be null")
 )
 
-// ValueDecoder abstracts a type with the FromValue method to decode any value
+// ValueDecoder abstracts a type with the FromValue method to decode any value.
 type ValueDecoder interface {
 	FromValue(value any) error
 }
 
-// ObjectDecoder abstracts a type with the FromValue method to decode an object value
+// ObjectDecoder abstracts a type with the FromValue method to decode an object value.
 type ObjectDecoder interface {
 	FromValue(value map[string]any) error
 }
 
-// IsNil a safe function to check null value
+// IsNil a safe function to check null value.
 func IsNil(value any) bool {
 	if value == nil {
 		return true
@@ -44,19 +48,19 @@ func IsNil(value any) bool {
 	return v.Kind() == reflect.Pointer && v.IsNil()
 }
 
-// Decoder is a wrapper of mapstructure decoder
+// Decoder is a wrapper of mapstructure decoder.
 type Decoder struct {
 	decodeHook mapstructure.DecodeHookFunc
 }
 
-// NewDecoder creates a Decoder instance
+// NewDecoder creates a Decoder instance.
 func NewDecoder(decodeHooks ...mapstructure.DecodeHookFunc) *Decoder {
 	return &Decoder{
 		decodeHook: mapstructure.ComposeDecodeHookFunc(append(defaultDecodeFuncs, decodeHooks...)...),
 	}
 }
 
-// DecodeObjectValue get and decode a value from object by key
+// DecodeObjectValue get and decode a value from object by key.
 func (d Decoder) DecodeObjectValue(target any, object map[string]any, key string) error {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -69,7 +73,7 @@ func (d Decoder) DecodeObjectValue(target any, object map[string]any, key string
 	return nil
 }
 
-// DecodeNullableObjectValue get and decode a nullable value from object by key
+// DecodeNullableObjectValue get and decode a nullable value from object by key.
 func (d Decoder) DecodeNullableObjectValue(target any, object map[string]any, key string) error {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -83,7 +87,7 @@ func (d Decoder) DecodeNullableObjectValue(target any, object map[string]any, ke
 }
 
 // DecodeValue tries to convert and set an unknown value into the target, the value must not be null
-// fallback to mapstructure decoder
+// fallback to mapstructure decoder.
 func (d Decoder) DecodeValue(target any, value any) error {
 	if IsNil(value) {
 		return errors.New("the value must not be null")
@@ -92,7 +96,7 @@ func (d Decoder) DecodeValue(target any, value any) error {
 }
 
 // DecodeNullableValue tries to convert and set an unknown value into the target,
-// fallback to mapstructure decoder
+// fallback to mapstructure decoder.
 func (d Decoder) DecodeNullableValue(target any, value any) error {
 	if IsNil(value) {
 		return nil
@@ -437,7 +441,7 @@ func (d Decoder) decodeValue(target any, value any) error {
 	return nil
 }
 
-// DecodeObject tries to decode an object from a map
+// DecodeObject tries to decode an object from a map.
 func (d Decoder) DecodeObject(target any, value map[string]any) error {
 	if len(value) == 0 {
 		return nil
@@ -453,12 +457,12 @@ func (d Decoder) DecodeObject(target any, value map[string]any) error {
 	return decodeAnyValue(target, value, d.decodeHook)
 }
 
-// DecodeNullableInt tries to convert an unknown value to a nullable integer
+// DecodeNullableInt tries to convert an unknown value to a nullable integer.
 func DecodeNullableInt[T int | int8 | int16 | int32 | int64](value any) (*T, error) {
 	return decodeNullableInt(value, convertInt[T])
 }
 
-// DecodeInt tries to convert an unknown value to a not-null integer value
+// DecodeInt tries to convert an unknown value to a not-null integer value.
 func DecodeInt[T int | int8 | int16 | int32 | int64](value any) (T, error) {
 	result, err := DecodeNullableInt[T](value)
 	if err != nil {
@@ -470,22 +474,22 @@ func DecodeInt[T int | int8 | int16 | int32 | int64](value any) (T, error) {
 	return *result, nil
 }
 
-// DecodeNullableIntReflection tries to convert an reflection value to a nullable integer
+// DecodeNullableIntReflection tries to convert an reflection value to a nullable integer.
 func DecodeNullableIntReflection[T int | int8 | int16 | int32 | int64](value reflect.Value) (*T, error) {
 	return decodeNullableIntRefection(convertInt[T])(value)
 }
 
-// DecodeIntReflection tries to convert an reflection value to an integer
+// DecodeIntReflection tries to convert an reflection value to an integer.
 func DecodeIntReflection[T int | int8 | int16 | int32 | int64](value reflect.Value) (T, error) {
 	return decodeIntRefection(convertInt[T])(value)
 }
 
-// DecodeNullableUint tries to convert an unknown value to a nullable unsigned integer pointer
+// DecodeNullableUint tries to convert an unknown value to a nullable unsigned integer pointer.
 func DecodeNullableUint[T uint | uint8 | uint16 | uint32 | uint64](value any) (*T, error) {
 	return decodeNullableInt(value, convertUint[T])
 }
 
-// DecodeUint tries to convert an unknown value to an unsigned integer value
+// DecodeUint tries to convert an unknown value to an unsigned integer value.
 func DecodeUint[T uint | uint8 | uint16 | uint32 | uint64](value any) (T, error) {
 	result, err := DecodeNullableUint[T](value)
 	if err != nil {
@@ -497,12 +501,12 @@ func DecodeUint[T uint | uint8 | uint16 | uint32 | uint64](value any) (T, error)
 	return *result, nil
 }
 
-// DecodeNullableUintReflection tries to convert an reflection value to a nullable unsigned-integer
+// DecodeNullableUintReflection tries to convert an reflection value to a nullable unsigned-integer.
 func DecodeNullableUintReflection[T uint | uint8 | uint16 | uint32 | uint64](value reflect.Value) (*T, error) {
 	return decodeNullableIntRefection(convertUint[T])(value)
 }
 
-// DecodeUintReflection tries to convert an reflection value to an unsigned-integer
+// DecodeUintReflection tries to convert an reflection value to an unsigned-integer.
 func DecodeUintReflection[T uint | uint8 | uint16 | uint32 | uint64](value reflect.Value) (T, error) {
 	result, err := decodeNullableIntRefection(convertUint[T])(value)
 	if err != nil {
@@ -579,7 +583,7 @@ func convertUint[T uint | uint8 | uint16 | uint32 | uint64](v any) (T, error) {
 	return T(rawResult), nil
 }
 
-// DecodeNullableString tries to convert an unknown value to a string pointer
+// DecodeNullableString tries to convert an unknown value to a string pointer.
 func DecodeNullableString(value any) (*string, error) {
 	if value == nil {
 		return nil, nil
@@ -587,7 +591,7 @@ func DecodeNullableString(value any) (*string, error) {
 	return DecodeNullableStringReflection(reflect.ValueOf(value))
 }
 
-// DecodeNullableStringReflection a nullable string from reflection value
+// DecodeNullableStringReflection a nullable string from reflection value.
 func DecodeNullableStringReflection(value reflect.Value) (*string, error) {
 	inferredValue, ok := UnwrapPointerFromReflectValue(value)
 	if !ok {
@@ -601,7 +605,7 @@ func DecodeNullableStringReflection(value reflect.Value) (*string, error) {
 	return &result, nil
 }
 
-// DecodeStringReflection decodes a string from reflection value
+// DecodeStringReflection decodes a string from reflection value.
 func DecodeStringReflection(value reflect.Value) (string, error) {
 	switch value.Kind() {
 	case reflect.String:
@@ -613,7 +617,7 @@ func DecodeStringReflection(value reflect.Value) (string, error) {
 	}
 }
 
-// DecodeString tries to convert an unknown value to a string value
+// DecodeString tries to convert an unknown value to a string value.
 func DecodeString(value any) (string, error) {
 	result, err := DecodeNullableString(value)
 	if err != nil {
@@ -625,7 +629,7 @@ func DecodeString(value any) (string, error) {
 	return *result, nil
 }
 
-// DecodeNullableFloat tries to convert an unknown value to a float pointer
+// DecodeNullableFloat tries to convert an unknown value to a float pointer.
 func DecodeNullableFloat[T float32 | float64](value any) (*T, error) {
 	if value == nil {
 		return nil, nil
@@ -633,7 +637,7 @@ func DecodeNullableFloat[T float32 | float64](value any) (*T, error) {
 	return DecodeNullableFloatReflection[T](reflect.ValueOf(value))
 }
 
-// DecodeNullableFloatReflection decodes the nullable floating-point value using reflection
+// DecodeNullableFloatReflection decodes the nullable floating-point value using reflection.
 func DecodeNullableFloatReflection[T float32 | float64](value reflect.Value) (*T, error) {
 	inferredValue, ok := UnwrapPointerFromReflectValue(value)
 	if !ok {
@@ -646,7 +650,7 @@ func DecodeNullableFloatReflection[T float32 | float64](value reflect.Value) (*T
 	return &result, nil
 }
 
-// DecodeFloatReflection decodes the floating-point value using reflection
+// DecodeFloatReflection decodes the floating-point value using reflection.
 func DecodeFloatReflection[T float32 | float64](value reflect.Value) (T, error) {
 	kind := value.Kind()
 	var result T
@@ -677,7 +681,7 @@ func DecodeFloatReflection[T float32 | float64](value reflect.Value) (T, error) 
 	return result, nil
 }
 
-// DecodeFloat tries to convert an unknown value to a float value
+// DecodeFloat tries to convert an unknown value to a float value.
 func DecodeFloat[T float32 | float64](value any) (T, error) {
 	result, err := DecodeNullableFloat[T](value)
 	if err != nil {
@@ -689,7 +693,7 @@ func DecodeFloat[T float32 | float64](value any) (T, error) {
 	return *result, nil
 }
 
-// DecodeNullableBoolean tries to convert an unknown value to a bool pointer
+// DecodeNullableBoolean tries to convert an unknown value to a bool pointer.
 func DecodeNullableBoolean(value any) (*bool, error) {
 	if value == nil {
 		return nil, nil
@@ -705,7 +709,7 @@ func DecodeNullableBoolean(value any) (*bool, error) {
 	}
 }
 
-// DecodeBoolean tries to convert an unknown value to a bool value
+// DecodeBoolean tries to convert an unknown value to a bool value.
 func DecodeBoolean(value any) (bool, error) {
 	result, err := DecodeNullableBoolean(value)
 	if err != nil {
@@ -717,7 +721,7 @@ func DecodeBoolean(value any) (bool, error) {
 	return *result, nil
 }
 
-// DecodeBooleanReflection decodes a nullable boolean value from reflection
+// DecodeBooleanReflection decodes a nullable boolean value from reflection.
 func DecodeNullableBooleanReflection(value reflect.Value) (*bool, error) {
 	inferredValue, ok := UnwrapPointerFromReflectValue(value)
 	if !ok {
@@ -731,7 +735,7 @@ func DecodeNullableBooleanReflection(value reflect.Value) (*bool, error) {
 	return &result, nil
 }
 
-// DecodeBooleanReflection decodes a boolean value from reflection
+// DecodeBooleanReflection decodes a boolean value from reflection.
 func DecodeBooleanReflection(value reflect.Value) (bool, error) {
 	kind := value.Kind()
 	switch kind {
@@ -749,7 +753,7 @@ func DecodeBooleanReflection(value reflect.Value) (bool, error) {
 	return false, fmt.Errorf("failed to convert Boolean, got: %v", kind)
 }
 
-// DecodeNullableDateTime tries to convert an unknown value to a time.Time pointer
+// DecodeNullableDateTime tries to convert an unknown value to a time.Time pointer.
 func DecodeNullableDateTime(value any) (*time.Time, error) {
 	if value == nil {
 		return nil, nil
@@ -773,7 +777,7 @@ func DecodeNullableDateTime(value any) (*time.Time, error) {
 	}
 }
 
-// DecodeDateTimeReflection decodes a time.Time value from reflection
+// DecodeDateTimeReflection decodes a time.Time value from reflection.
 func DecodeDateTimeReflection(value reflect.Value) (time.Time, error) {
 	kind := value.Kind()
 	switch kind {
@@ -800,7 +804,7 @@ func DecodeDateTimeReflection(value reflect.Value) (time.Time, error) {
 	}
 }
 
-// DecodeDateTime tries to convert an unknown value to a time.Time value
+// DecodeDateTime tries to convert an unknown value to a time.Time value.
 func DecodeDateTime(value any) (time.Time, error) {
 	result, err := DecodeNullableDateTime(value)
 	if err != nil {
@@ -812,7 +816,7 @@ func DecodeDateTime(value any) (time.Time, error) {
 	return *result, nil
 }
 
-// parse date time with fallback ISO8601 formats
+// parse date time with fallback ISO8601 formats.
 func parseDateTime(value string) (*time.Time, error) {
 	for _, format := range []string{time.RFC3339, "2006-01-02T15:04:05Z0700", "2006-01-02T15:04:05-0700", time.RFC3339Nano} {
 		result, err := time.Parse(format, value)
@@ -825,7 +829,7 @@ func parseDateTime(value string) (*time.Time, error) {
 	return nil, fmt.Errorf("failed to parse time from string: %s", value)
 }
 
-// DecodeNullableDate tries to convert an unknown value to a date pointer
+// DecodeNullableDate tries to convert an unknown value to a date pointer.
 func DecodeNullableDate(value any) (*time.Time, error) {
 	if value == nil {
 		return nil, nil
@@ -849,7 +853,7 @@ func DecodeNullableDate(value any) (*time.Time, error) {
 	}
 }
 
-// DecodeDateReflection decodes a date value from reflection
+// DecodeDateReflection decodes a date value from reflection.
 func DecodeDateReflection(value reflect.Value) (time.Time, error) {
 	kind := value.Kind()
 	switch kind {
@@ -862,7 +866,7 @@ func DecodeDateReflection(value reflect.Value) (time.Time, error) {
 	}
 }
 
-// DecodeDate tries to convert an unknown date value to a time.Time value
+// DecodeDate tries to convert an unknown date value to a time.Time value.
 func DecodeDate(value any) (time.Time, error) {
 	result, err := DecodeNullableDate(value)
 	if err != nil {
@@ -874,7 +878,7 @@ func DecodeDate(value any) (time.Time, error) {
 	return *result, nil
 }
 
-// DecodeNullableDuration tries to convert an unknown value to a duration pointer
+// DecodeNullableDuration tries to convert an unknown value to a duration pointer.
 func DecodeNullableDuration(value any) (*time.Duration, error) {
 	var result time.Duration
 	switch v := value.(type) {
@@ -911,7 +915,7 @@ func DecodeNullableDuration(value any) (*time.Duration, error) {
 	return &result, nil
 }
 
-// DecodeDuration tries to convert an unknown value to a duration value
+// DecodeDuration tries to convert an unknown value to a duration value.
 func DecodeDuration(value any) (time.Duration, error) {
 	result, err := DecodeNullableDuration(value)
 	if err != nil {
@@ -923,7 +927,7 @@ func DecodeDuration(value any) (time.Duration, error) {
 	return *result, nil
 }
 
-// GetAny get an unknown value from object by key
+// GetAny get an unknown value from object by key.
 func GetAny(object map[string]any, key string) (any, bool) {
 	if object == nil {
 		return nil, false
@@ -932,7 +936,7 @@ func GetAny(object map[string]any, key string) (any, bool) {
 	return value, ok
 }
 
-// GetNullableArbitraryJSON get an arbitrary json pointer from object by key
+// GetNullableArbitraryJSON get an arbitrary json pointer from object by key.
 func GetNullableArbitraryJSON(object map[string]any, key string) (*any, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -945,7 +949,7 @@ func GetNullableArbitraryJSON(object map[string]any, key string) (*any, error) {
 	return &value, nil
 }
 
-// GetArbitraryJSON get an arbitrary json value from object by key
+// GetArbitraryJSON get an arbitrary json value from object by key.
 func GetArbitraryJSON(object map[string]any, key string) (any, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -959,7 +963,7 @@ func GetArbitraryJSON(object map[string]any, key string) (any, error) {
 	return value, nil
 }
 
-// GetNullableInt get an integer pointer from object by key
+// GetNullableInt get an integer pointer from object by key.
 func GetNullableInt[T int | int8 | int16 | int32 | int64](object map[string]any, key string) (*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -972,7 +976,7 @@ func GetNullableInt[T int | int8 | int16 | int32 | int64](object map[string]any,
 	return result, nil
 }
 
-// GetInt get an integer value from object by key
+// GetInt get an integer value from object by key.
 func GetInt[T int | int8 | int16 | int32 | int64](object map[string]any, key string) (T, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -985,7 +989,7 @@ func GetInt[T int | int8 | int16 | int32 | int64](object map[string]any, key str
 	return result, nil
 }
 
-// GetNullableUint get an unsigned integer pointer from object by key
+// GetNullableUint get an unsigned integer pointer from object by key.
 func GetNullableUint[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -998,7 +1002,7 @@ func GetNullableUint[T uint | uint8 | uint16 | uint32 | uint64](object map[strin
 	return result, nil
 }
 
-// GetUint get an unsigned integer value from object by key
+// GetUint get an unsigned integer value from object by key.
 func GetUint[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (T, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -1011,7 +1015,7 @@ func GetUint[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, k
 	return result, nil
 }
 
-// GetNullableFloat get a float pointer from object by key
+// GetNullableFloat get a float pointer from object by key.
 func GetNullableFloat[T float32 | float64](object map[string]any, key string) (*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -1024,7 +1028,7 @@ func GetNullableFloat[T float32 | float64](object map[string]any, key string) (*
 	return result, nil
 }
 
-// GetFloat get a float value from object by key
+// GetFloat get a float value from object by key.
 func GetFloat[T float32 | float64](object map[string]any, key string) (T, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -1037,7 +1041,7 @@ func GetFloat[T float32 | float64](object map[string]any, key string) (T, error)
 	return result, nil
 }
 
-// GetNullableString get a string pointer from object by key
+// GetNullableString get a string pointer from object by key.
 func GetNullableString(object map[string]any, key string) (*string, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -1050,7 +1054,7 @@ func GetNullableString(object map[string]any, key string) (*string, error) {
 	return result, nil
 }
 
-// GetString get a string value from object by key
+// GetString get a string value from object by key.
 func GetString(object map[string]any, key string) (string, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -1063,7 +1067,7 @@ func GetString(object map[string]any, key string) (string, error) {
 	return result, nil
 }
 
-// GetNullableBoolean get a bool pointer from object by key
+// GetNullableBoolean get a bool pointer from object by key.
 func GetNullableBoolean(object map[string]any, key string) (*bool, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -1076,7 +1080,7 @@ func GetNullableBoolean(object map[string]any, key string) (*bool, error) {
 	return result, nil
 }
 
-// GetBoolean get a bool value from object by key
+// GetBoolean get a bool value from object by key.
 func GetBoolean(object map[string]any, key string) (bool, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -1089,7 +1093,7 @@ func GetBoolean(object map[string]any, key string) (bool, error) {
 	return result, nil
 }
 
-// GetNullableDateTime get a time.Time pointer from object by key
+// GetNullableDateTime get a time.Time pointer from object by key.
 func GetNullableDateTime(object map[string]any, key string) (*time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -1102,7 +1106,7 @@ func GetNullableDateTime(object map[string]any, key string) (*time.Time, error) 
 	return result, nil
 }
 
-// GetDateTime get a time.Time value from object by key
+// GetDateTime get a time.Time value from object by key.
 func GetDateTime(object map[string]any, key string) (time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -1115,7 +1119,7 @@ func GetDateTime(object map[string]any, key string) (time.Time, error) {
 	return result, nil
 }
 
-// GetNullableDuration get a time.Duration pointer from object by key
+// GetNullableDuration get a time.Duration pointer from object by key.
 func GetNullableDuration(object map[string]any, key string) (*time.Duration, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
@@ -1128,7 +1132,7 @@ func GetNullableDuration(object map[string]any, key string) (*time.Duration, err
 	return result, nil
 }
 
-// GetDuration get a time.Duration value from object by key
+// GetDuration get a time.Duration value from object by key.
 func GetDuration(object map[string]any, key string) (time.Duration, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -1141,7 +1145,7 @@ func GetDuration(object map[string]any, key string) (time.Duration, error) {
 	return result, nil
 }
 
-// DecodeUUID decodes UUID from string
+// DecodeUUID decodes UUID from string.
 func DecodeUUID(value any) (uuid.UUID, error) {
 	result, err := DecodeNullableUUID(value)
 	if err != nil {
@@ -1153,7 +1157,7 @@ func DecodeUUID(value any) (uuid.UUID, error) {
 	return *result, nil
 }
 
-// DecodeNullableUUID decodes UUID pointer from string or bytes
+// DecodeNullableUUID decodes UUID pointer from string or bytes.
 func DecodeNullableUUID(value any) (*uuid.UUID, error) {
 	if IsNil(value) {
 		return nil, nil
@@ -1192,7 +1196,7 @@ func DecodeNullableUUID(value any) (*uuid.UUID, error) {
 	}
 }
 
-// GetUUID get an UUID value from object by key
+// GetUUID get an UUID value from object by key.
 func GetUUID(object map[string]any, key string) (uuid.UUID, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -1205,7 +1209,7 @@ func GetUUID(object map[string]any, key string) (uuid.UUID, error) {
 	return result, nil
 }
 
-// GetNullableUUID get an UUID pointer from object by key
+// GetNullableUUID get an UUID pointer from object by key.
 func GetNullableUUID(object map[string]any, key string) (*uuid.UUID, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -1218,7 +1222,7 @@ func GetNullableUUID(object map[string]any, key string) (*uuid.UUID, error) {
 	return result, nil
 }
 
-// GetRawJSON get a raw json.RawMessage value from object by key
+// GetRawJSON get a raw json.RawMessage value from object by key.
 func GetRawJSON(object map[string]any, key string) (json.RawMessage, error) {
 	value, ok := GetAny(object, key)
 	if !ok || IsNil(value) {
@@ -1231,7 +1235,7 @@ func GetRawJSON(object map[string]any, key string) (json.RawMessage, error) {
 	return *result, nil
 }
 
-// DecodeNullableRawJSON decodes a raw json.RawMessage pointer from object by key
+// DecodeNullableRawJSON decodes a raw json.RawMessage pointer from object by key.
 func DecodeNullableRawJSON(value any) (*json.RawMessage, error) {
 	if IsNil(value) {
 		return nil, nil
@@ -1253,7 +1257,7 @@ func DecodeNullableRawJSON(value any) (*json.RawMessage, error) {
 	}
 }
 
-// GetNullableRawJSON gets a raw json.RawMessage pointer from object by key
+// GetNullableRawJSON gets a raw json.RawMessage pointer from object by key.
 func GetNullableRawJSON(object map[string]any, key string) (*json.RawMessage, error) {
 	value, ok := GetAny(object, key)
 	if !ok {

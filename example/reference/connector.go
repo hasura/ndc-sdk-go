@@ -297,9 +297,9 @@ type Connector struct{}
 func (mc *Connector) ParseConfiguration(ctx context.Context, rawConfiguration string) (*Configuration, error) {
 	return &Configuration{}, nil
 }
+
 func (mc *Connector) TryInitState(ctx context.Context, configuration *Configuration, metrics *connector.TelemetryState) (*State, error) {
 	articles, err := readArticles()
-
 	if err != nil {
 		return nil, schema.InternalServerError("failed to read articles from csv", map[string]any{
 			"cause": err.Error(),

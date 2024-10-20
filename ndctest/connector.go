@@ -14,7 +14,7 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-// TestConnectorOptions options for the test connector runner
+// TestConnectorOptions options for the test connector runner.
 type TestConnectorOptions struct {
 	Configuration          string
 	InlineConfig           bool

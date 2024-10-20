@@ -41,7 +41,8 @@ go-tidy:
 .PHONY: lint
 lint:
 	golangci-lint run --fix
-
+	cd cmd/hasura-ndc-go && golangci-lint run --fix
+	
 # clean the output directory and generated tests snapshots
 .PHONY: clean
 clean:

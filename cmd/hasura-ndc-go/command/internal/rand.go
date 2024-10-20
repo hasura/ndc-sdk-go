@@ -1,14 +1,13 @@
 package internal
 
 import (
+	"encoding/base64"
 	"fmt"
 	"math"
 	"math/rand"
 	"strconv"
 	"strings"
 	"time"
-
-	"encoding/base64"
 
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-sdk-go/schema"

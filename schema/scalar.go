@@ -7,7 +7,7 @@ import (
 	"slices"
 )
 
-// NewScalarType creates an empty ScalarType instance
+// NewScalarType creates an empty ScalarType instance.
 func NewScalarType() *ScalarType {
 	return &ScalarType{
 		AggregateFunctions:  ScalarTypeAggregateFunctions{},
@@ -19,13 +19,13 @@ func NewScalarType() *ScalarType {
  * Representations of scalar types
  */
 
-// TypeRepresentationType represents the type enum of TypeRepresentation
+// TypeRepresentationType represents the type enum of TypeRepresentation.
 type TypeRepresentationType string
 
 const (
-	// JSON booleans
+	// JSON booleans.
 	TypeRepresentationTypeBoolean TypeRepresentationType = "boolean"
-	// JSON booleans
+	// JSON booleans.
 	TypeRepresentationTypeString TypeRepresentationType = "string"
 	// Any JSON number
 	//
@@ -39,39 +39,39 @@ const (
 	//
 	// [Deprecate Int and Number representations]: https://github.com/hasura/ndc-spec/blob/main/rfcs/0007-additional-type-representations.md#deprecate-int-and-number-representations
 	TypeRepresentationTypeInteger TypeRepresentationType = "integer"
-	// One of the specified string values
+	// One of the specified string values.
 	TypeRepresentationTypeEnum TypeRepresentationType = "enum"
-	// A 8-bit signed integer with a minimum value of -2^7 and a maximum value of 2^7 - 1
+	// A 8-bit signed integer with a minimum value of -2^7 and a maximum value of 2^7 - 1.
 	TypeRepresentationTypeInt8 TypeRepresentationType = "int8"
-	// A 16-bit signed integer with a minimum value of -2^15 and a maximum value of 2^15 - 1
+	// A 16-bit signed integer with a minimum value of -2^15 and a maximum value of 2^15 - 1.
 	TypeRepresentationTypeInt16 TypeRepresentationType = "int16"
-	// A 32-bit signed integer with a minimum value of -2^31 and a maximum value of 2^31 - 1
+	// A 32-bit signed integer with a minimum value of -2^31 and a maximum value of 2^31 - 1.
 	TypeRepresentationTypeInt32 TypeRepresentationType = "int32"
-	// A 64-bit signed integer with a minimum value of -2^63 and a maximum value of 2^63 - 1
+	// A 64-bit signed integer with a minimum value of -2^63 and a maximum value of 2^63 - 1.
 	TypeRepresentationTypeInt64 TypeRepresentationType = "int64"
-	// An IEEE-754 single-precision floating-point number
+	// An IEEE-754 single-precision floating-point number.
 	TypeRepresentationTypeFloat32 TypeRepresentationType = "float32"
-	// An IEEE-754 double-precision floating-point number
+	// An IEEE-754 double-precision floating-point number.
 	TypeRepresentationTypeFloat64 TypeRepresentationType = "float64"
-	// Arbitrary-precision integer string
+	// Arbitrary-precision integer string.
 	TypeRepresentationTypeBigInteger TypeRepresentationType = "biginteger"
-	// Arbitrary-precision decimal string
+	// Arbitrary-precision decimal string.
 	TypeRepresentationTypeBigDecimal TypeRepresentationType = "bigdecimal"
-	// UUID string (8-4-4-4-12)
+	// UUID string (8-4-4-4-12).
 	TypeRepresentationTypeUUID TypeRepresentationType = "uuid"
-	// ISO 8601 date
+	// ISO 8601 date.
 	TypeRepresentationTypeDate TypeRepresentationType = "date"
-	// ISO 8601 timestamp
+	// ISO 8601 timestamp.
 	TypeRepresentationTypeTimestamp TypeRepresentationType = "timestamp"
-	// ISO 8601 timestamp-with-timezone
+	// ISO 8601 timestamp-with-timezone.
 	TypeRepresentationTypeTimestampTZ TypeRepresentationType = "timestamptz"
-	// GeoJSON, per RFC 7946
+	// GeoJSON, per RFC 7946.
 	TypeRepresentationTypeGeography TypeRepresentationType = "geography"
-	// GeoJSON Geometry object, per RFC 7946
+	// GeoJSON Geometry object, per RFC 7946.
 	TypeRepresentationTypeGeometry TypeRepresentationType = "geometry"
-	// Base64-encoded bytes
+	// Base64-encoded bytes.
 	TypeRepresentationTypeBytes TypeRepresentationType = "bytes"
-	// Arbitrary JSON
+	// Arbitrary JSON.
 	TypeRepresentationTypeJSON TypeRepresentationType = "json"
 )
 
@@ -99,7 +99,7 @@ var enumValues_TypeRepresentationType = []TypeRepresentationType{
 	TypeRepresentationTypeJSON,
 }
 
-// ParseTypeRepresentationType parses a TypeRepresentationType enum from string
+// ParseTypeRepresentationType parses a TypeRepresentationType enum from string.
 func ParseTypeRepresentationType(input string) (TypeRepresentationType, error) {
 	result := TypeRepresentationType(input)
 	if !result.IsValid() {
@@ -109,7 +109,7 @@ func ParseTypeRepresentationType(input string) (TypeRepresentationType, error) {
 	return result, nil
 }
 
-// IsValid checks if the value is invalid
+// IsValid checks if the value is invalid.
 func (j TypeRepresentationType) IsValid() bool {
 	return slices.Contains(enumValues_TypeRepresentationType, j)
 }
@@ -130,7 +130,7 @@ func (j *TypeRepresentationType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Representations of scalar types
+// Representations of scalar types.
 type TypeRepresentation map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -172,7 +172,7 @@ func (j *TypeRepresentation) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Type gets the type enum of the current type
+// Type gets the type enum of the current type.
 func (ty TypeRepresentation) Type() (TypeRepresentationType, error) {
 	t, ok := ty["type"]
 	if !ok {
@@ -192,7 +192,7 @@ func (ty TypeRepresentation) Type() (TypeRepresentationType, error) {
 	}
 }
 
-// AsBoolean tries to convert the current type to TypeRepresentationBoolean
+// AsBoolean tries to convert the current type to TypeRepresentationBoolean.
 func (ty TypeRepresentation) AsBoolean() (*TypeRepresentationBoolean, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -207,7 +207,7 @@ func (ty TypeRepresentation) AsBoolean() (*TypeRepresentationBoolean, error) {
 	}, nil
 }
 
-// AsString tries to convert the current type to TypeRepresentationString
+// AsString tries to convert the current type to TypeRepresentationString.
 func (ty TypeRepresentation) AsString() (*TypeRepresentationString, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -260,7 +260,7 @@ func (ty TypeRepresentation) AsInteger() (*TypeRepresentationInteger, error) {
 	}, nil
 }
 
-// AsInt8 tries to convert the current type to TypeRepresentationInt8
+// AsInt8 tries to convert the current type to TypeRepresentationInt8.
 func (ty TypeRepresentation) AsInt8() (*TypeRepresentationInt8, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -275,7 +275,7 @@ func (ty TypeRepresentation) AsInt8() (*TypeRepresentationInt8, error) {
 	}, nil
 }
 
-// AsInt16 tries to convert the current type to TypeRepresentationInt16
+// AsInt16 tries to convert the current type to TypeRepresentationInt16.
 func (ty TypeRepresentation) AsInt16() (*TypeRepresentationInt16, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -290,7 +290,7 @@ func (ty TypeRepresentation) AsInt16() (*TypeRepresentationInt16, error) {
 	}, nil
 }
 
-// AsInt32 tries to convert the current type to TypeRepresentationInt32
+// AsInt32 tries to convert the current type to TypeRepresentationInt32.
 func (ty TypeRepresentation) AsInt32() (*TypeRepresentationInt32, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -305,7 +305,7 @@ func (ty TypeRepresentation) AsInt32() (*TypeRepresentationInt32, error) {
 	}, nil
 }
 
-// AsInt64 tries to convert the current type to TypeRepresentationInt64
+// AsInt64 tries to convert the current type to TypeRepresentationInt64.
 func (ty TypeRepresentation) AsInt64() (*TypeRepresentationInt64, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -320,7 +320,7 @@ func (ty TypeRepresentation) AsInt64() (*TypeRepresentationInt64, error) {
 	}, nil
 }
 
-// AsFloat32 tries to convert the current type to TypeRepresentationFloat32
+// AsFloat32 tries to convert the current type to TypeRepresentationFloat32.
 func (ty TypeRepresentation) AsFloat32() (*TypeRepresentationFloat32, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -335,7 +335,7 @@ func (ty TypeRepresentation) AsFloat32() (*TypeRepresentationFloat32, error) {
 	}, nil
 }
 
-// AsFloat64 tries to convert the current type to TypeRepresentationFloat64
+// AsFloat64 tries to convert the current type to TypeRepresentationFloat64.
 func (ty TypeRepresentation) AsFloat64() (*TypeRepresentationFloat64, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -350,7 +350,7 @@ func (ty TypeRepresentation) AsFloat64() (*TypeRepresentationFloat64, error) {
 	}, nil
 }
 
-// AsBigInteger tries to convert the current type to TypeRepresentationBigInteger
+// AsBigInteger tries to convert the current type to TypeRepresentationBigInteger.
 func (ty TypeRepresentation) AsBigInteger() (*TypeRepresentationBigInteger, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -365,7 +365,7 @@ func (ty TypeRepresentation) AsBigInteger() (*TypeRepresentationBigInteger, erro
 	}, nil
 }
 
-// AsBigDecimal tries to convert the current type to TypeRepresentationBigDecimal
+// AsBigDecimal tries to convert the current type to TypeRepresentationBigDecimal.
 func (ty TypeRepresentation) AsBigDecimal() (*TypeRepresentationBigDecimal, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -380,7 +380,7 @@ func (ty TypeRepresentation) AsBigDecimal() (*TypeRepresentationBigDecimal, erro
 	}, nil
 }
 
-// AsUUID tries to convert the current type to TypeRepresentationUUID
+// AsUUID tries to convert the current type to TypeRepresentationUUID.
 func (ty TypeRepresentation) AsUUID() (*TypeRepresentationUUID, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -395,7 +395,7 @@ func (ty TypeRepresentation) AsUUID() (*TypeRepresentationUUID, error) {
 	}, nil
 }
 
-// AsDate tries to convert the current type to TypeRepresentationDate
+// AsDate tries to convert the current type to TypeRepresentationDate.
 func (ty TypeRepresentation) AsDate() (*TypeRepresentationDate, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -410,7 +410,7 @@ func (ty TypeRepresentation) AsDate() (*TypeRepresentationDate, error) {
 	}, nil
 }
 
-// AsTimestamp tries to convert the current type to TypeRepresentationTimestamp
+// AsTimestamp tries to convert the current type to TypeRepresentationTimestamp.
 func (ty TypeRepresentation) AsTimestamp() (*TypeRepresentationTimestamp, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -425,7 +425,7 @@ func (ty TypeRepresentation) AsTimestamp() (*TypeRepresentationTimestamp, error)
 	}, nil
 }
 
-// AsTimestampTZ tries to convert the current type to TypeRepresentationTimestampTZ
+// AsTimestampTZ tries to convert the current type to TypeRepresentationTimestampTZ.
 func (ty TypeRepresentation) AsTimestampTZ() (*TypeRepresentationTimestampTZ, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -440,7 +440,7 @@ func (ty TypeRepresentation) AsTimestampTZ() (*TypeRepresentationTimestampTZ, er
 	}, nil
 }
 
-// AsGeography tries to convert the current type to TypeRepresentationGeography
+// AsGeography tries to convert the current type to TypeRepresentationGeography.
 func (ty TypeRepresentation) AsGeography() (*TypeRepresentationGeography, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -455,7 +455,7 @@ func (ty TypeRepresentation) AsGeography() (*TypeRepresentationGeography, error)
 	}, nil
 }
 
-// AsGeometry tries to convert the current type to TypeRepresentationGeometry
+// AsGeometry tries to convert the current type to TypeRepresentationGeometry.
 func (ty TypeRepresentation) AsGeometry() (*TypeRepresentationGeometry, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -470,7 +470,7 @@ func (ty TypeRepresentation) AsGeometry() (*TypeRepresentationGeometry, error) {
 	}, nil
 }
 
-// AsBytes tries to convert the current type to TypeRepresentationBytes
+// AsBytes tries to convert the current type to TypeRepresentationBytes.
 func (ty TypeRepresentation) AsBytes() (*TypeRepresentationBytes, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -485,7 +485,7 @@ func (ty TypeRepresentation) AsBytes() (*TypeRepresentationBytes, error) {
 	}, nil
 }
 
-// AsJSON tries to convert the current type to TypeRepresentationJSON
+// AsJSON tries to convert the current type to TypeRepresentationJSON.
 func (ty TypeRepresentation) AsJSON() (*TypeRepresentationJSON, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -502,7 +502,7 @@ func (ty TypeRepresentation) AsJSON() (*TypeRepresentationJSON, error) {
 
 var errTypeRepresentationOneOfRequired = errors.New("TypeRepresentationEnum must have at least 1 item in one_of array")
 
-// AsEnum tries to convert the current type to TypeRepresentationEnum
+// AsEnum tries to convert the current type to TypeRepresentationEnum.
 func (ty TypeRepresentation) AsEnum() (*TypeRepresentationEnum, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -532,13 +532,13 @@ func (ty TypeRepresentation) AsEnum() (*TypeRepresentationEnum, error) {
 	}, nil
 }
 
-// Interface converts the instance to the TypeRepresentationEncoder interface
+// Interface converts the instance to the TypeRepresentationEncoder interface.
 func (ty TypeRepresentation) Interface() TypeRepresentationEncoder {
 	result, _ := ty.InterfaceT()
 	return result
 }
 
-// InterfaceT converts the instance to the TypeRepresentationEncoder interface safely with explicit error
+// InterfaceT converts the instance to the TypeRepresentationEncoder interface safely with explicit error.
 func (ty TypeRepresentation) InterfaceT() (TypeRepresentationEncoder, error) {
 	t, err := ty.Type()
 	if err != nil {
@@ -593,43 +593,43 @@ func (ty TypeRepresentation) InterfaceT() (TypeRepresentationEncoder, error) {
 	}
 }
 
-// TypeRepresentationEncoder abstracts the TypeRepresentation interface
+// TypeRepresentationEncoder abstracts the TypeRepresentation interface.
 type TypeRepresentationEncoder interface {
 	Encode() TypeRepresentation
 }
 
-// TypeRepresentationBoolean represents a JSON boolean type representation
+// TypeRepresentationBoolean represents a JSON boolean type representation.
 type TypeRepresentationBoolean struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationBoolean creates a new TypeRepresentationBoolean instance
+// NewTypeRepresentationBoolean creates a new TypeRepresentationBoolean instance.
 func NewTypeRepresentationBoolean() *TypeRepresentationBoolean {
 	return &TypeRepresentationBoolean{
 		Type: TypeRepresentationTypeBoolean,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationBoolean) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationString represents a JSON string type representation
+// TypeRepresentationString represents a JSON string type representation.
 type TypeRepresentationString struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationString creates a new TypeRepresentationString instance
+// NewTypeRepresentationString creates a new TypeRepresentationString instance.
 func NewTypeRepresentationString() *TypeRepresentationString {
 	return &TypeRepresentationString{
 		Type: TypeRepresentationTypeString,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationString) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
@@ -645,14 +645,14 @@ type TypeRepresentationNumber struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationNumber creates a new TypeRepresentationNumber instance
+// NewTypeRepresentationNumber creates a new TypeRepresentationNumber instance.
 func NewTypeRepresentationNumber() *TypeRepresentationNumber {
 	return &TypeRepresentationNumber{
 		Type: TypeRepresentationTypeNumber,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationNumber) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
@@ -668,331 +668,331 @@ type TypeRepresentationInteger struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationInteger creates a new TypeRepresentationInteger instance
+// NewTypeRepresentationInteger creates a new TypeRepresentationInteger instance.
 func NewTypeRepresentationInteger() *TypeRepresentationInteger {
 	return &TypeRepresentationInteger{
 		Type: TypeRepresentationTypeInteger,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationInteger) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationInt8 represents a 8-bit signed integer with a minimum value of -2^7 and a maximum value of 2^7 - 1
+// TypeRepresentationInt8 represents a 8-bit signed integer with a minimum value of -2^7 and a maximum value of 2^7 - 1.
 type TypeRepresentationInt8 struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationInt8 creates a new TypeRepresentationInt8 instance
+// NewTypeRepresentationInt8 creates a new TypeRepresentationInt8 instance.
 func NewTypeRepresentationInt8() *TypeRepresentationInt8 {
 	return &TypeRepresentationInt8{
 		Type: TypeRepresentationTypeInt8,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationInt8) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationInt16 represents a 16-bit signed integer with a minimum value of -2^15 and a maximum value of 2^15 - 1
+// TypeRepresentationInt16 represents a 16-bit signed integer with a minimum value of -2^15 and a maximum value of 2^15 - 1.
 type TypeRepresentationInt16 struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationInt16 creates a new TypeRepresentationInt16 instance
+// NewTypeRepresentationInt16 creates a new TypeRepresentationInt16 instance.
 func NewTypeRepresentationInt16() *TypeRepresentationInt16 {
 	return &TypeRepresentationInt16{
 		Type: TypeRepresentationTypeInt16,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationInt16) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationInt32 represents a 32-bit signed integer with a minimum value of -2^31 and a maximum value of 2^31 - 1
+// TypeRepresentationInt32 represents a 32-bit signed integer with a minimum value of -2^31 and a maximum value of 2^31 - 1.
 type TypeRepresentationInt32 struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationInt32 creates a new TypeRepresentationInt32 instance
+// NewTypeRepresentationInt32 creates a new TypeRepresentationInt32 instance.
 func NewTypeRepresentationInt32() *TypeRepresentationInt32 {
 	return &TypeRepresentationInt32{
 		Type: TypeRepresentationTypeInt32,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationInt32) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationInt64 represents a 64-bit signed integer with a minimum value of -2^63 and a maximum value of 2^63 - 1
+// TypeRepresentationInt64 represents a 64-bit signed integer with a minimum value of -2^63 and a maximum value of 2^63 - 1.
 type TypeRepresentationInt64 struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationInt64 creates a new TypeRepresentationInt64 instance
+// NewTypeRepresentationInt64 creates a new TypeRepresentationInt64 instance.
 func NewTypeRepresentationInt64() *TypeRepresentationInt64 {
 	return &TypeRepresentationInt64{
 		Type: TypeRepresentationTypeInt64,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationInt64) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationFloat32 represents an IEEE-754 single-precision floating-point number
+// TypeRepresentationFloat32 represents an IEEE-754 single-precision floating-point number.
 type TypeRepresentationFloat32 struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationFloat32 creates a new TypeRepresentationFloat32 instance
+// NewTypeRepresentationFloat32 creates a new TypeRepresentationFloat32 instance.
 func NewTypeRepresentationFloat32() *TypeRepresentationFloat32 {
 	return &TypeRepresentationFloat32{
 		Type: TypeRepresentationTypeFloat32,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationFloat32) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationFloat64 represents an IEEE-754 double-precision floating-point number
+// TypeRepresentationFloat64 represents an IEEE-754 double-precision floating-point number.
 type TypeRepresentationFloat64 struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationFloat64 creates a new TypeRepresentationFloat64 instance
+// NewTypeRepresentationFloat64 creates a new TypeRepresentationFloat64 instance.
 func NewTypeRepresentationFloat64() *TypeRepresentationFloat64 {
 	return &TypeRepresentationFloat64{
 		Type: TypeRepresentationTypeFloat64,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationFloat64) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationBigInteger represents an arbitrary-precision integer string
+// TypeRepresentationBigInteger represents an arbitrary-precision integer string.
 type TypeRepresentationBigInteger struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationBigInteger creates a new TypeRepresentationBigInteger instance
+// NewTypeRepresentationBigInteger creates a new TypeRepresentationBigInteger instance.
 func NewTypeRepresentationBigInteger() *TypeRepresentationBigInteger {
 	return &TypeRepresentationBigInteger{
 		Type: TypeRepresentationTypeBigInteger,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationBigInteger) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationBigDecimal represents an arbitrary-precision decimal string
+// TypeRepresentationBigDecimal represents an arbitrary-precision decimal string.
 type TypeRepresentationBigDecimal struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationBigDecimal creates a new TypeRepresentationBigDecimal instance
+// NewTypeRepresentationBigDecimal creates a new TypeRepresentationBigDecimal instance.
 func NewTypeRepresentationBigDecimal() *TypeRepresentationBigDecimal {
 	return &TypeRepresentationBigDecimal{
 		Type: TypeRepresentationTypeBigDecimal,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationBigDecimal) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationUUID represents an UUID string (8-4-4-4-12)
+// TypeRepresentationUUID represents an UUID string (8-4-4-4-12).
 type TypeRepresentationUUID struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationUUID creates a new TypeRepresentationUUID instance
+// NewTypeRepresentationUUID creates a new TypeRepresentationUUID instance.
 func NewTypeRepresentationUUID() *TypeRepresentationUUID {
 	return &TypeRepresentationUUID{
 		Type: TypeRepresentationTypeUUID,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationUUID) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationDate represents an ISO 8601 date
+// TypeRepresentationDate represents an ISO 8601 date.
 type TypeRepresentationDate struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationDate creates a new TypeRepresentationDate instance
+// NewTypeRepresentationDate creates a new TypeRepresentationDate instance.
 func NewTypeRepresentationDate() *TypeRepresentationDate {
 	return &TypeRepresentationDate{
 		Type: TypeRepresentationTypeDate,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationDate) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationTimestamp represents an ISO 8601 timestamp
+// TypeRepresentationTimestamp represents an ISO 8601 timestamp.
 type TypeRepresentationTimestamp struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationTimestamp creates a new TypeRepresentationTimestamp instance
+// NewTypeRepresentationTimestamp creates a new TypeRepresentationTimestamp instance.
 func NewTypeRepresentationTimestamp() *TypeRepresentationTimestamp {
 	return &TypeRepresentationTimestamp{
 		Type: TypeRepresentationTypeTimestamp,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationTimestamp) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationTimestampTZ represents an ISO 8601 timestamp-with-timezone
+// TypeRepresentationTimestampTZ represents an ISO 8601 timestamp-with-timezone.
 type TypeRepresentationTimestampTZ struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationTimestampTZ creates a new TypeRepresentationTimestampTZ instance
+// NewTypeRepresentationTimestampTZ creates a new TypeRepresentationTimestampTZ instance.
 func NewTypeRepresentationTimestampTZ() *TypeRepresentationTimestampTZ {
 	return &TypeRepresentationTimestampTZ{
 		Type: TypeRepresentationTypeTimestampTZ,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationTimestampTZ) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationGeography represents a geography JSON object
+// TypeRepresentationGeography represents a geography JSON object.
 type TypeRepresentationGeography struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationGeography creates a new TypeRepresentationGeography instance
+// NewTypeRepresentationGeography creates a new TypeRepresentationGeography instance.
 func NewTypeRepresentationGeography() *TypeRepresentationGeography {
 	return &TypeRepresentationGeography{
 		Type: TypeRepresentationTypeGeography,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationGeography) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationGeometry represents a geography JSON object
+// TypeRepresentationGeometry represents a geography JSON object.
 type TypeRepresentationGeometry struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationGeometry creates a new TypeRepresentationGeometry instance
+// NewTypeRepresentationGeometry creates a new TypeRepresentationGeometry instance.
 func NewTypeRepresentationGeometry() *TypeRepresentationGeometry {
 	return &TypeRepresentationGeometry{
 		Type: TypeRepresentationTypeGeometry,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationGeometry) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationBytes represent a base64-encoded bytes
+// TypeRepresentationBytes represent a base64-encoded bytes.
 type TypeRepresentationBytes struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationBytes creates a new TypeRepresentationBytes instance
+// NewTypeRepresentationBytes creates a new TypeRepresentationBytes instance.
 func NewTypeRepresentationBytes() *TypeRepresentationBytes {
 	return &TypeRepresentationBytes{
 		Type: TypeRepresentationTypeBytes,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationBytes) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationJSON represents an arbitrary JSON
+// TypeRepresentationJSON represents an arbitrary JSON.
 type TypeRepresentationJSON struct {
 	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewTypeRepresentationJSON creates a new TypeRepresentationBytes instance
+// NewTypeRepresentationJSON creates a new TypeRepresentationBytes instance.
 func NewTypeRepresentationJSON() *TypeRepresentationJSON {
 	return &TypeRepresentationJSON{
 		Type: TypeRepresentationTypeJSON,
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationJSON) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}
 }
 
-// TypeRepresentationEnum represents an enum type representation
+// TypeRepresentationEnum represents an enum type representation.
 type TypeRepresentationEnum struct {
 	Type  TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
 	OneOf []string               `json:"one_of" yaml:"one_of" mapstructure:"one_of"`
 }
 
-// NewTypeRepresentationEnum creates a new TypeRepresentationEnum instance
+// NewTypeRepresentationEnum creates a new TypeRepresentationEnum instance.
 func NewTypeRepresentationEnum(oneOf []string) *TypeRepresentationEnum {
 	return &TypeRepresentationEnum{
 		Type:  TypeRepresentationTypeEnum,
@@ -1000,7 +1000,7 @@ func NewTypeRepresentationEnum(oneOf []string) *TypeRepresentationEnum {
 	}
 }
 
-// Encode returns the raw TypeRepresentation instance
+// Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationEnum) Encode() TypeRepresentation {
 	return map[string]any{
 		"type":   ty.Type,
