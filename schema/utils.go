@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-// isNil a safe function to check null value
+// isNil a safe function to check null value.
 func isNil(value any) bool {
 	if value == nil {
 		return true
@@ -37,7 +37,6 @@ func getStringValueByKey(collection map[string]any, key string) string {
 }
 
 func unmarshalStringFromJsonMap(collection map[string]json.RawMessage, key string, required bool) (string, error) {
-
 	emptyFn := func() (string, error) {
 		if !required {
 			return "", nil

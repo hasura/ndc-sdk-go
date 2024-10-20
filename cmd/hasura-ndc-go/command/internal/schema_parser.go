@@ -62,7 +62,7 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 		// recursively walk directories if the user don't explicitly specify target folders
 		entries, err := os.ReadDir(filePath)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read subdirectories of %s: %s", filePath, err)
+			return nil, fmt.Errorf("failed to read subdirectories of %s: %w", filePath, err)
 		}
 		for _, entry := range entries {
 			if !entry.IsDir() {
@@ -76,7 +76,7 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 		for _, globPath := range []string{path.Join(filePath, dir, "*.go"), path.Join(filePath, dir, "**", "*.go")} {
 			goFiles, err := filepath.Glob(globPath)
 			if err != nil {
-				return nil, fmt.Errorf("failed to read subdirectories of %s/%s: %s", filePath, dir, err)
+				return nil, fmt.Errorf("failed to read subdirectories of %s/%s: %w", filePath, dir, err)
 			}
 			// cleanup types.generated.go files
 			fileCount := 0
@@ -86,7 +86,7 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 					continue
 				}
 				if err := os.Remove(fp); err != nil {
-					return nil, fmt.Errorf("failed to delete %s: %s", fp, err)
+					return nil, fmt.Errorf("failed to delete %s: %w", fp, err)
 				}
 			}
 			if fileCount > 0 {
@@ -118,7 +118,7 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 		}
 
 		for i := range packageList {
-			parseSchemaCtx, parseSchemaTask := trace.NewTask(ctx, fmt.Sprintf("parse_schema_%s", packageList[i].ID))
+			parseSchemaCtx, parseSchemaTask := trace.NewTask(ctx, "parse_schema_"+packageList[i].ID)
 			sp := &SchemaParser{
 				context:      parseSchemaCtx,
 				moduleName:   moduleName,
@@ -247,7 +247,6 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 							Type: of.Type.Schema.Encode(),
 						}
 					}
-
 				}
 			}
 		}
@@ -284,7 +283,6 @@ func (sp *SchemaParser) getNamedType(ty types.Type) *types.Named {
 }
 
 func (sp *SchemaParser) parseArgumentTypes(ty types.Type, argumentFor *OperationKind, fieldPaths []string) (*ObjectInfo, error) {
-
 	switch inferredType := ty.(type) {
 	case *types.Pointer:
 		return sp.parseArgumentTypes(inferredType.Elem(), argumentFor, fieldPaths)
@@ -353,7 +351,6 @@ func (sp *SchemaParser) parseArgumentTypes(ty types.Type, argumentFor *Operation
 }
 
 func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths []string, skipNullable bool, argumentFor *OperationKind) (*TypeInfo, error) {
-
 	switch inferredType := ty.(type) {
 	case *types.Pointer:
 		if skipNullable {
@@ -646,7 +643,7 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeInfo *TypeInfo, scope *typ
 				continue
 			}
 			if i == 0 {
-				text = strings.TrimPrefix(text, fmt.Sprintf("%s ", typeInfo.Name))
+				text = strings.TrimPrefix(text, typeInfo.Name+" ")
 			}
 
 			enumMatches := ndcEnumCommentRegex.FindStringSubmatch(text)
@@ -677,7 +674,7 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeInfo *TypeInfo, scope *typ
 					typeInfo.Schema = schema.NewNamedType(matches[2])
 					typeRep, err := schema.ParseTypeRepresentationType(strings.TrimSpace(matches[3]))
 					if err != nil {
-						return fmt.Errorf("failed to parse type representation of scalar %s: %s", typeInfo.Name, err)
+						return fmt.Errorf("failed to parse type representation of scalar %s: %w", typeInfo.Name, err)
 					}
 					if typeRep == schema.TypeRepresentationTypeEnum {
 						return errors.New("use @enum tag with values instead")
@@ -752,7 +749,7 @@ func (sp *SchemaParser) parseOperationInfo(fn *types.Func) *OperationInfo {
 
 			// trim the function name in the first line if exists
 			if i == 0 {
-				text = strings.TrimPrefix(text, fmt.Sprintf("%s ", functionName))
+				text = strings.TrimPrefix(text, functionName+" ")
 			}
 			matches := ndcOperationCommentRegex.FindStringSubmatch(text)
 			matchesLen := len(matches)
@@ -852,7 +849,7 @@ func findAndReplaceNativeScalarPackage(input string) (string, string, bool) {
 func evalPackageTypesLocation(moduleName string, filePath string, connectorDir string) (string, error) {
 	matches, err := filepath.Glob(path.Join(filePath, "types", "*.go"))
 	if err == nil && len(matches) > 0 {
-		return fmt.Sprintf("%s/types", moduleName), nil
+		return moduleName + "/types", nil
 	}
 
 	if connectorDir != "" && !strings.HasPrefix(".", connectorDir) {
@@ -861,5 +858,5 @@ func evalPackageTypesLocation(moduleName string, filePath string, connectorDir s
 			return fmt.Sprintf("%s/%s/types", moduleName, connectorDir), nil
 		}
 	}
-	return "", fmt.Errorf("the `types` package where the State struct is in must be placed in root or connector directory, %s", err)
+	return "", fmt.Errorf("the `types` package where the State struct is in must be placed in root or connector directory, %w", err)
 }

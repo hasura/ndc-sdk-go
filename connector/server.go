@@ -3,6 +3,7 @@ package connector
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -21,7 +22,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// ServerOptions presents the configuration object of the connector http server
+// ServerOptions presents the configuration object of the connector http server.
 type ServerOptions struct {
 	OTLPConfig
 	HTTPServerConfig
@@ -31,7 +32,7 @@ type ServerOptions struct {
 	ServiceTokenSecret string
 }
 
-// HTTPServerConfig the configuration of the HTTP server
+// HTTPServerConfig the configuration of the HTTP server.
 type HTTPServerConfig struct {
 	ServerReadTimeout        time.Duration `help:"Maximum duration for reading the entire request, including the body. A zero or negative value means there will be no timeout" env:"HASURA_SERVER_READ_TIMEOUT"`
 	ServerReadHeaderTimeout  time.Duration `help:"Amount of time allowed to read request headers. If zero, the value of ReadTimeout is used" env:"HASURA_SERVER_READ_HEADER_TIMEOUT"`
@@ -57,7 +58,7 @@ type Server[Configuration any, State any] struct {
 	telemetry     *TelemetryState
 }
 
-// NewServer creates a Server instance
+// NewServer creates a Server instance.
 func NewServer[Configuration any, State any](connector Connector[Configuration, State], options *ServerOptions, others ...ServeOption) (*Server[Configuration, State], error) {
 	defaultOptions := defaultServeOptions()
 	for _, opts := range others {
@@ -104,10 +105,9 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 }
 
 func (s *Server[Configuration, State]) withAuth(handler http.HandlerFunc) http.HandlerFunc {
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := GetLogger(r.Context())
-		if s.options.ServiceTokenSecret != "" && r.Header.Get("authorization") != fmt.Sprintf("Bearer %s", s.options.ServiceTokenSecret) {
+		if s.options.ServiceTokenSecret != "" && r.Header.Get("Authorization") != ("Bearer "+s.options.ServiceTokenSecret) {
 			writeJson(w, logger, http.StatusUnauthorized, schema.ErrorResponse{
 				Message: "Unauthorized",
 				Details: map[string]any{
@@ -184,7 +184,6 @@ func (s *Server[Configuration, State]) Query(w http.ResponseWriter, r *http.Requ
 	defer execQuerySpan.End()
 
 	response, err := s.connector.Query(execQueryCtx, s.configuration, s.state, &body)
-
 	if err != nil {
 		status := writeError(w, logger, err)
 		s.telemetry.queryCounter.Add(r.Context(), 1, metric.WithAttributes(
@@ -329,7 +328,7 @@ func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.R
 	s.telemetry.mutationLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(operationAttr))
 }
 
-// the common unmarshal json body method
+// the common unmarshal json body method.
 func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, r *http.Request, counter metric.Int64Counter, body any) error {
 	err := json.NewDecoder(r.Body).Decode(body)
 	if err != nil {
@@ -365,7 +364,7 @@ func (s *Server[Configuration, State]) buildHandler() *http.ServeMux {
 	return router.Build()
 }
 
-// BuildTestServer builds an http test server for testing purpose
+// BuildTestServer builds an http test server for testing purpose.
 func (s *Server[Configuration, State]) BuildTestServer() *httptest.Server {
 	_ = s.telemetry.Shutdown(context.Background())
 	return httptest.NewServer(s.buildHandler())
@@ -406,14 +405,14 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 	go func() {
 		var err error
 		if s.options.ServerTLSCertFile != "" || s.options.ServerTLSKeyFile != "" {
-			s.logger.Info(fmt.Sprintf("Listening server and serving TLS on %s", server.Addr))
+			s.logger.Info("Listening server and serving TLS on " + server.Addr)
 			err = server.ListenAndServeTLS(s.options.ServerTLSCertFile, s.options.ServerTLSKeyFile)
 		} else {
-			s.logger.Info(fmt.Sprintf("Listening server on %s", server.Addr))
+			s.logger.Info("Listening server on " + server.Addr)
 			err = server.ListenAndServe()
 		}
 
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErr <- err
 		}
 	}()

@@ -10,7 +10,7 @@ import (
 	"github.com/alecthomas/kong"
 )
 
-// ServeCommandArguments contains argument flags of the serve command
+// ServeCommandArguments contains argument flags of the serve command.
 type ServeCommandArguments struct {
 	OTLPConfig
 	HTTPServerConfig
@@ -20,23 +20,23 @@ type ServeCommandArguments struct {
 	ServiceTokenSecret string `help:"Service token secret" env:"HASURA_SERVICE_TOKEN_SECRET"`
 }
 
-// ServeCLI is used for CLI argument binding
+// ServeCLI is used for CLI argument binding.
 type ServeCLI struct {
 	LogLevel string                `help:"Log level." env:"HASURA_LOG_LEVEL" enum:"trace,debug,info,warn,error" default:"info"`
 	Serve    ServeCommandArguments `cmd:"" help:"Serve the NDC connector."`
 }
 
-// GetServeCLI returns the inner serve cli
+// GetServeCLI returns the inner serve cli.
 func (cli *ServeCLI) GetServeCLI() *ServeCLI {
 	return cli
 }
 
-// Execute executes the command
+// Execute executes the command.
 func (cli *ServeCLI) Execute(ctx context.Context, command string) error {
 	return fmt.Errorf("unknown command <%s>", command)
 }
 
-// ConnectorCLI abstracts the connector CLI so NDC authors can extend it
+// ConnectorCLI abstracts the connector CLI so NDC authors can extend it.
 type ConnectorCLI interface {
 	GetServeCLI() *ServeCLI
 	Execute(ctx context.Context, command string) error
@@ -45,7 +45,7 @@ type ConnectorCLI interface {
 // Starts the connector.
 // Will read command line arguments or environment variables to determine runtime configuration.
 //
-// This should be the entrypoint of your connector
+// This should be the entrypoint of your connector.
 func Start[Configuration any, State any](connector Connector[Configuration, State], options ...ServeOption) error {
 	var cli ServeCLI
 	return StartCustom(&cli, connector, options...)
@@ -54,7 +54,7 @@ func Start[Configuration any, State any](connector Connector[Configuration, Stat
 // Starts the connector with custom CLI.
 // Will read command line arguments or environment variables to determine runtime configuration.
 //
-// This should be the entrypoint of your connector
+// This should be the entrypoint of your connector.
 func StartCustom[Configuration any, State any](cli ConnectorCLI, connector Connector[Configuration, State], options ...ServeOption) error {
 	cmd := kong.Parse(cli, kong.UsageOnError())
 	serveCLI := cli.GetServeCLI()

@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -46,7 +47,7 @@ const (
 	otlpProtocolHTTPProtobuf otlpProtocol = "http/protobuf"
 )
 
-// defines the type of OpenTelemetry metrics exporter
+// defines the type of OpenTelemetry metrics exporter.
 type otelMetricsExporterType string
 
 const (
@@ -61,7 +62,7 @@ var (
 	failureStatusAttribute  = attribute.String("status", "failure")
 )
 
-// OTLPConfig contains configuration for OpenTelemetry exporter
+// OTLPConfig contains configuration for OpenTelemetry exporter.
 type OTLPConfig struct {
 	ServiceName            string `help:"OpenTelemetry service name." env:"OTEL_SERVICE_NAME"`
 	OtlpEndpoint           string `help:"OpenTelemetry receiver endpoint that is set as default for all types." env:"OTEL_EXPORTER_OTLP_ENDPOINT"`
@@ -82,7 +83,7 @@ type OTLPConfig struct {
 	DisableGoMetrics *bool  `help:"Disable internal Go and process metrics"`
 }
 
-// TelemetryState contains OpenTelemetry exporters and basic connector metrics
+// TelemetryState contains OpenTelemetry exporters and basic connector metrics.
 type TelemetryState struct {
 	*connectorMetrics
 
@@ -113,9 +114,8 @@ func setupOTelSDK(ctx context.Context, config *OTLPConfig, serviceVersion, metri
 	return state, setupConnectorMetrics(state, metricsPrefix)
 }
 
-// SetupOTelExporters set up OpenTelemetry exporters from configuration
+// SetupOTelExporters set up OpenTelemetry exporters from configuration.
 func SetupOTelExporters(ctx context.Context, config *OTLPConfig, serviceVersion, metricsPrefix string, logger *slog.Logger) (*TelemetryState, error) {
-
 	otel.SetLogger(logr.FromSlogHandler(logger.Handler()))
 	tracesEndpoint := utils.GetDefault(config.OtlpTracesEndpoint, config.OtlpEndpoint)
 	metricsEndpoint := utils.GetDefault(config.OtlpMetricsEndpoint, config.OtlpEndpoint)
@@ -131,12 +131,12 @@ func SetupOTelExporters(ctx context.Context, config *OTLPConfig, serviceVersion,
 			utils.GetDefaultPtr(config.OtlpTracesInsecure, config.OtlpInsecure),
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse OTLP traces endpoint: %s", err)
+			return nil, fmt.Errorf("failed to parse OTLP traces endpoint: %w", err)
 		}
 
 		compressorStr, compressorInt, err := parseOTLPCompression(utils.GetDefault(config.OtlpTraceCompression, config.OtlpCompression))
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse OTLP traces compression: %s", err)
+			return nil, fmt.Errorf("failed to parse OTLP traces compression: %w", err)
 		}
 
 		// Set up propagator.
@@ -217,12 +217,12 @@ func SetupOTelExporters(ctx context.Context, config *OTLPConfig, serviceVersion,
 			utils.GetDefaultPtr(config.OtlpMetricsInsecure, config.OtlpInsecure),
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse OTLP metrics endpoint: %s", err)
+			return nil, fmt.Errorf("failed to parse OTLP metrics endpoint: %w", err)
 		}
 
 		compressorStr, compressorInt, err := parseOTLPCompression(utils.GetDefault(config.OtlpMetricsCompression, config.OtlpCompression))
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse OTLP metrics compression: %s", err)
+			return nil, fmt.Errorf("failed to parse OTLP metrics compression: %w", err)
 		}
 
 		if protocol == otlpProtocolGRPC {
@@ -300,7 +300,7 @@ func newPropagator() propagation.TextMapPropagator {
 
 func setupConnectorMetrics(telemetry *TelemetryState, metricsPrefix string) error {
 	if metricsPrefix != "" {
-		metricsPrefix = metricsPrefix + "."
+		metricsPrefix += "."
 	}
 
 	var err error
@@ -308,7 +308,7 @@ func setupConnectorMetrics(telemetry *TelemetryState, metricsPrefix string) erro
 	telemetry.connectorMetrics = &connectorMetrics{}
 
 	telemetry.queryCounter, err = meter.Int64Counter(
-		fmt.Sprintf("%squery.total", metricsPrefix),
+		metricsPrefix+"query.total",
 		metricapi.WithDescription("Total number of query requests"),
 	)
 	if err != nil {
@@ -316,16 +316,15 @@ func setupConnectorMetrics(telemetry *TelemetryState, metricsPrefix string) erro
 	}
 
 	telemetry.mutationCounter, err = meter.Int64Counter(
-		fmt.Sprintf("%smutation.total", metricsPrefix),
+		metricsPrefix+"mutation.total",
 		metricapi.WithDescription("Total number of mutation requests"),
 	)
-
 	if err != nil {
 		return err
 	}
 
 	telemetry.queryExplainCounter, err = meter.Int64Counter(
-		fmt.Sprintf("%squery.explain_total", metricsPrefix),
+		metricsPrefix+"query.explain_total",
 		metricapi.WithDescription("Total number of explain query requests"),
 	)
 	if err != nil {
@@ -333,7 +332,7 @@ func setupConnectorMetrics(telemetry *TelemetryState, metricsPrefix string) erro
 	}
 
 	telemetry.mutationExplainCounter, err = meter.Int64Counter(
-		fmt.Sprintf("%smutation.explain_total", metricsPrefix),
+		metricsPrefix+"mutation.explain_total",
 		metricapi.WithDescription("Total number of explain mutation requests"),
 	)
 	if err != nil {
@@ -341,7 +340,7 @@ func setupConnectorMetrics(telemetry *TelemetryState, metricsPrefix string) erro
 	}
 
 	telemetry.queryLatencyHistogram, err = meter.Float64Histogram(
-		fmt.Sprintf("%squery.total_time", metricsPrefix),
+		metricsPrefix+"query.total_time",
 		metricapi.WithDescription("Total time taken to plan and execute a query, in seconds"),
 	)
 	if err != nil {
@@ -349,7 +348,7 @@ func setupConnectorMetrics(telemetry *TelemetryState, metricsPrefix string) erro
 	}
 
 	telemetry.mutationLatencyHistogram, err = meter.Float64Histogram(
-		fmt.Sprintf("%smutation.total_time", metricsPrefix),
+		metricsPrefix+"mutation.total_time",
 		metricapi.WithDescription("Total time taken to plan and execute a mutation, in seconds"),
 	)
 	if err != nil {
@@ -357,30 +356,29 @@ func setupConnectorMetrics(telemetry *TelemetryState, metricsPrefix string) erro
 	}
 
 	telemetry.queryExplainLatencyHistogram, err = meter.Float64Histogram(
-		fmt.Sprintf("%squery.explain_total_time", metricsPrefix),
+		metricsPrefix+"query.explain_total_time",
 		metricapi.WithDescription("Total time taken to plan and execute an explain query request, in seconds"),
 	)
-
 	if err != nil {
 		return err
 	}
 
 	telemetry.mutationExplainLatencyHistogram, err = meter.Float64Histogram(
-		fmt.Sprintf("%smutation.explain_total_time", metricsPrefix),
+		metricsPrefix+"mutation.explain_total_time",
 		metricapi.WithDescription("Total time taken to plan and execute an explain mutation request, in seconds"),
 	)
 
 	return err
 }
 
-// Tracer is the wrapper of traceapi.Tracer with user visibility on Hasura Console
+// Tracer is the wrapper of traceapi.Tracer with user visibility on Hasura Console.
 type Tracer struct {
 	traceapi.Tracer
 }
 
 var _ traceapi.Tracer = &Tracer{}
 
-// NewTracer creates a new OpenTelemetry tracer
+// NewTracer creates a new OpenTelemetry tracer.
 func NewTracer(name string, opts ...traceapi.TracerOption) *Tracer {
 	return &Tracer{
 		Tracer: otel.Tracer(name, opts...),
@@ -390,13 +388,13 @@ func NewTracer(name string, opts ...traceapi.TracerOption) *Tracer {
 // Start creates a span and a context.Context containing the newly-created span
 // with `internal.visibility: "user"` so that it shows up in the Hasura Console.
 func (t *Tracer) Start(ctx context.Context, spanName string, opts ...traceapi.SpanStartOption) (context.Context, traceapi.Span) {
-	return t.Tracer.Start(ctx, spanName, append(opts, userVisibilityAttribute)...)
+	return t.Tracer.Start(ctx, spanName, append(opts, userVisibilityAttribute)...) //nolint:all
 }
 
 // StartInternal creates a span and a context.Context containing the newly-created span.
-// It won't show up in the Hasura Console
+// It won't show up in the Hasura Console.
 func (t *Tracer) StartInternal(ctx context.Context, spanName string, opts ...traceapi.SpanStartOption) (context.Context, traceapi.Span) {
-	return t.Tracer.Start(ctx, spanName, opts...)
+	return t.Tracer.Start(ctx, spanName, opts...) //nolint:all
 }
 
 func httpStatusAttribute(code int) attribute.KeyValue {
@@ -405,7 +403,7 @@ func httpStatusAttribute(code int) attribute.KeyValue {
 
 func parseOTLPEndpoint(endpoint string, protocol string, insecurePtr *bool) (string, otlpProtocol, bool, error) {
 	if !strings.HasPrefix(endpoint, "http://") && !strings.HasPrefix(endpoint, "https://") {
-		endpoint = fmt.Sprintf("https://%s", endpoint)
+		endpoint = "https://" + endpoint
 	}
 	uri, err := url.Parse(endpoint)
 	if err != nil {
@@ -429,12 +427,12 @@ func parseOTLPEndpoint(endpoint string, protocol string, insecurePtr *bool) (str
 		return host, otlpProtocol(protocol), insecure, nil
 	case "":
 		// auto detect via default OTLP port
-		if uri.Port() == fmt.Sprint(otlpDefaultHTTPPort) {
+		if uri.Port() == strconv.FormatInt(otlpDefaultHTTPPort, 10) {
 			return host, otlpProtocol(protocol), insecure, nil
 		}
 		return host, otlpProtocolGRPC, insecure, nil
 	default:
-		return "", otlpProtocol(""), false, fmt.Errorf("invalid OTLP protocol %s", protocol)
+		return "", otlpProtocol(""), false, errors.New("invalid OTLP protocol " + protocol)
 	}
 }
 
@@ -445,7 +443,7 @@ func parseOTLPCompression(input string) (string, int, error) {
 	case otlpCompressionNone:
 		return otlpCompressionNone, int(otlptracehttp.NoCompression), nil
 	default:
-		return "", 0, fmt.Errorf("invalid OTLP compression type, accept none, gzip only")
+		return "", 0, errors.New("invalid OTLP compression type, accept none, gzip only")
 	}
 }
 
@@ -458,7 +456,7 @@ func parseOTELMetricsExporterType(input string) (otelMetricsExporterType, error)
 	case string(otelMetricsExporterPrometheus):
 		return otelMetricsExporterPrometheus, nil
 	default:
-		return otelMetricsExporterNone, fmt.Errorf("invalid metrics exporter type: %s", input)
+		return otelMetricsExporterNone, errors.New("invalid metrics exporter type: " + input)
 	}
 }
 

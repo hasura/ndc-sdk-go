@@ -83,7 +83,7 @@ func (rcs RawConnectorSchema) writeOperationInfo(builder *strings.Builder, name 
 	builder.WriteString("ResultType: ")
 	retType, err := rcs.writeType(resultType, 0)
 	if err != nil {
-		return fmt.Errorf("failed to render function %s: %s", name, err)
+		return fmt.Errorf("failed to render function %s: %w", name, err)
 	}
 	builder.WriteString(retType)
 	builder.WriteString(",\n")
@@ -103,7 +103,7 @@ func (rcs RawConnectorSchema) writeOperationInfo(builder *strings.Builder, name 
 
 		argType, err := rcs.writeType(argument.Type, 0)
 		if err != nil {
-			return fmt.Errorf("failed to render argument %s of function %s: %s", argKey, name, err)
+			return fmt.Errorf("failed to render argument %s of function %s: %w", argKey, name, err)
 		}
 		builder.WriteString(argType)
 		builder.WriteString(",\n")
@@ -222,7 +222,7 @@ func (rcs RawConnectorSchema) writeObjectType(builder *strings.Builder, key stri
 
 		ft, err := rcs.writeType(field.Type, 0)
 		if err != nil {
-			return fmt.Errorf("%s: %s", key, err)
+			return fmt.Errorf("%s: %w", key, err)
 		}
 		writeIndent(builder, baseIndent+6)
 		builder.WriteString("Type: ")
@@ -266,6 +266,6 @@ func (rcs RawConnectorSchema) writeType(schemaType schema.Type, depth uint) (str
 		}
 		return fmt.Sprintf(`schema.NewNamedType("%s")`, t.Name), nil
 	default:
-		return "", fmt.Errorf("invalid schema type: %s", err)
+		return "", fmt.Errorf("invalid schema type: %w", err)
 	}
 }

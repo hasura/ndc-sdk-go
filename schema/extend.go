@@ -7,11 +7,9 @@ import (
 	"slices"
 )
 
-var (
-	errTypeRequired = errors.New("type field is required")
-)
+var errTypeRequired = errors.New("type field is required")
 
-// ArgumentType represents an argument type enum
+// ArgumentType represents an argument type enum.
 type ArgumentType string
 
 const (
@@ -24,7 +22,7 @@ var enumValues_ArgumentType = []ArgumentType{
 	ArgumentTypeVariable,
 }
 
-// ParseArgumentType parses an argument type from string
+// ParseArgumentType parses an argument type from string.
 func ParseArgumentType(input string) (ArgumentType, error) {
 	result := ArgumentType(input)
 	if !result.IsValid() {
@@ -33,7 +31,7 @@ func ParseArgumentType(input string) (ArgumentType, error) {
 	return result, nil
 }
 
-// IsValid checks if the value is invalid
+// IsValid checks if the value is invalid.
 func (j ArgumentType) IsValid() bool {
 	return slices.Contains(enumValues_ArgumentType, j)
 }
@@ -56,14 +54,14 @@ func (j *ArgumentType) UnmarshalJSON(b []byte) error {
 
 // Argument is provided by reference to a variable or as a literal value
 //
-// TODO: may change Argument to a generic map in the future
+// TODO: may change Argument to a generic map in the future.
 type Argument struct {
 	Type  ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
 	Name  string       `json:"name" yaml:"name" mapstructure:"name"`
 	Value any          `json:"value" yaml:"value" mapstructure:"value"`
 }
 
-// ArgumentEncoder abstracts the interface for Argument
+// ArgumentEncoder abstracts the interface for Argument.
 type ArgumentEncoder interface {
 	Encode() Argument
 }
@@ -96,7 +94,7 @@ func (j *Argument) UnmarshalJSON(b []byte) error {
 
 	argumentType, err := ParseArgumentType(rawArgumentType)
 	if err != nil {
-		return fmt.Errorf("field type in Argument: %s", err)
+		return fmt.Errorf("field type in Argument: %w", err)
 	}
 
 	arg := Argument{
@@ -122,7 +120,7 @@ func (j *Argument) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// AsLiteral converts the instance to ArgumentLiteral
+// AsLiteral converts the instance to ArgumentLiteral.
 func (j Argument) AsLiteral() (*ArgumentLiteral, error) {
 	if j.Type != ArgumentTypeLiteral {
 		return nil, fmt.Errorf("invalid ArgumentLiteral type; expected: %s, got: %s", ArgumentTypeLiteral, j.Type)
@@ -133,7 +131,7 @@ func (j Argument) AsLiteral() (*ArgumentLiteral, error) {
 	}, nil
 }
 
-// AsVariable converts the instance to ArgumentVariable
+// AsVariable converts the instance to ArgumentVariable.
 func (j Argument) AsVariable() (*ArgumentVariable, error) {
 	if j.Type != ArgumentTypeVariable {
 		return nil, fmt.Errorf("invalid ArgumentVariable type; expected: %s, got: %s", ArgumentTypeVariable, j.Type)
@@ -144,13 +142,13 @@ func (j Argument) AsVariable() (*ArgumentVariable, error) {
 	}, nil
 }
 
-// Interface converts the comparison value to its generic interface
+// Interface converts the comparison value to its generic interface.
 func (j Argument) Interface() ArgumentEncoder {
 	result, _ := j.InterfaceT()
 	return result
 }
 
-// InterfaceT converts the comparison value to its generic interface safely with explicit error
+// InterfaceT converts the comparison value to its generic interface safely with explicit error.
 func (j Argument) InterfaceT() (ArgumentEncoder, error) {
 	switch j.Type {
 	case ArgumentTypeLiteral:
@@ -162,13 +160,13 @@ func (j Argument) InterfaceT() (ArgumentEncoder, error) {
 	}
 }
 
-// ArgumentLiteral represents the literal argument
+// ArgumentLiteral represents the literal argument.
 type ArgumentLiteral struct {
 	Type  ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
 	Value any          `json:"value" yaml:"value" mapstructure:"value"`
 }
 
-// NewArgumentLiteral creates an argument with a literal value
+// NewArgumentLiteral creates an argument with a literal value.
 func NewArgumentLiteral(value any) *ArgumentLiteral {
 	return &ArgumentLiteral{
 		Type:  ArgumentTypeLiteral,
@@ -176,7 +174,7 @@ func NewArgumentLiteral(value any) *ArgumentLiteral {
 	}
 }
 
-// Encode converts the instance to raw Field
+// Encode converts the instance to raw Field.
 func (j ArgumentLiteral) Encode() Argument {
 	return Argument{
 		Type:  j.Type,
@@ -184,13 +182,13 @@ func (j ArgumentLiteral) Encode() Argument {
 	}
 }
 
-// ArgumentVariable represents the variable argument
+// ArgumentVariable represents the variable argument.
 type ArgumentVariable struct {
 	Type ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
 	Name string       `json:"name" yaml:"name" mapstructure:"name"`
 }
 
-// NewArgumentVariable creates an argument with a variable name
+// NewArgumentVariable creates an argument with a variable name.
 func NewArgumentVariable(name string) *ArgumentVariable {
 	return &ArgumentVariable{
 		Type: ArgumentTypeVariable,
@@ -198,7 +196,7 @@ func NewArgumentVariable(name string) *ArgumentVariable {
 	}
 }
 
-// Encode converts the instance to raw Field
+// Encode converts the instance to raw Field.
 func (j ArgumentVariable) Encode() Argument {
 	return Argument{
 		Type: j.Type,
@@ -206,7 +204,7 @@ func (j ArgumentVariable) Encode() Argument {
 	}
 }
 
-// RelationshipArgumentType represents a relationship argument type enum
+// RelationshipArgumentType represents a relationship argument type enum.
 type RelationshipArgumentType string
 
 const (
@@ -221,7 +219,7 @@ var enumValues_RelationshipArgumentType = []RelationshipArgumentType{
 	RelationshipArgumentTypeColumn,
 }
 
-// ParseRelationshipArgumentType parses a relationship argument type from string
+// ParseRelationshipArgumentType parses a relationship argument type from string.
 func ParseRelationshipArgumentType(input string) (RelationshipArgumentType, error) {
 	result := RelationshipArgumentType(input)
 	if !result.IsValid() {
@@ -230,7 +228,7 @@ func ParseRelationshipArgumentType(input string) (RelationshipArgumentType, erro
 	return result, nil
 }
 
-// IsValid checks if the value is invalid
+// IsValid checks if the value is invalid.
 func (j RelationshipArgumentType) IsValid() bool {
 	return slices.Contains(enumValues_RelationshipArgumentType, j)
 }
@@ -253,14 +251,14 @@ func (j *RelationshipArgumentType) UnmarshalJSON(b []byte) error {
 
 // RelationshipArgument is provided by reference to a variable or as a literal value
 //
-// TODO: may change RelationshipArgument to a generic map in the future
+// TODO: may change RelationshipArgument to a generic map in the future.
 type RelationshipArgument struct {
 	Type  RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
 	Name  string                   `json:"name" yaml:"name" mapstructure:"name"`
 	Value any                      `json:"value" yaml:"value" mapstructure:"value"`
 }
 
-// RelationshipArgumentEncoder abstracts the interface for RelationshipArgument
+// RelationshipArgumentEncoder abstracts the interface for RelationshipArgument.
 type RelationshipArgumentEncoder interface {
 	Encode() RelationshipArgument
 }
@@ -279,7 +277,7 @@ func (j *RelationshipArgument) UnmarshalJSON(b []byte) error {
 
 	argumentType, err := ParseRelationshipArgumentType(rawArgumentType)
 	if err != nil {
-		return fmt.Errorf("field type in Argument: %s", err)
+		return fmt.Errorf("field type in Argument: %w", err)
 	}
 
 	arg := RelationshipArgument{
@@ -305,7 +303,7 @@ func (j *RelationshipArgument) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// AsLiteral converts the instance to RelationshipArgumentLiteral
+// AsLiteral converts the instance to RelationshipArgumentLiteral.
 func (j RelationshipArgument) AsLiteral() (*RelationshipArgumentLiteral, error) {
 	if j.Type != RelationshipArgumentTypeLiteral {
 		return nil, fmt.Errorf("invalid RelationshipArgumentLiteral type; expected: %s, got: %s", RelationshipArgumentTypeLiteral, j.Type)
@@ -316,7 +314,7 @@ func (j RelationshipArgument) AsLiteral() (*RelationshipArgumentLiteral, error) 
 	}, nil
 }
 
-// AsVariable converts the instance to RelationshipArgumentVariable
+// AsVariable converts the instance to RelationshipArgumentVariable.
 func (j RelationshipArgument) AsVariable() (*RelationshipArgumentVariable, error) {
 	if j.Type != RelationshipArgumentTypeVariable {
 		return nil, fmt.Errorf("invalid RelationshipArgumentVariable type; expected: %s, got: %s", RelationshipArgumentTypeVariable, j.Type)
@@ -327,7 +325,7 @@ func (j RelationshipArgument) AsVariable() (*RelationshipArgumentVariable, error
 	}, nil
 }
 
-// AsColumn converts the instance to RelationshipArgumentColumn
+// AsColumn converts the instance to RelationshipArgumentColumn.
 func (j RelationshipArgument) AsColumn() (*RelationshipArgumentColumn, error) {
 	if j.Type != RelationshipArgumentTypeColumn {
 		return nil, fmt.Errorf("invalid RelationshipArgumentTypeColumn type; expected: %s, got: %s", RelationshipArgumentTypeColumn, j.Type)
@@ -338,13 +336,13 @@ func (j RelationshipArgument) AsColumn() (*RelationshipArgumentColumn, error) {
 	}, nil
 }
 
-// Interface converts the comparison value to its generic interface
+// Interface converts the comparison value to its generic interface.
 func (j RelationshipArgument) Interface() RelationshipArgumentEncoder {
 	result, _ := j.InterfaceT()
 	return result
 }
 
-// InterfaceT converts the comparison value to its generic interface safely with explicit error
+// InterfaceT converts the comparison value to its generic interface safely with explicit error.
 func (j RelationshipArgument) InterfaceT() (RelationshipArgumentEncoder, error) {
 	switch j.Type {
 	case RelationshipArgumentTypeLiteral:
@@ -358,13 +356,13 @@ func (j RelationshipArgument) InterfaceT() (RelationshipArgumentEncoder, error) 
 	}
 }
 
-// RelationshipArgumentLiteral represents the literal relationship argument
+// RelationshipArgumentLiteral represents the literal relationship argument.
 type RelationshipArgumentLiteral struct {
 	Type  RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
 	Value any                      `json:"value" yaml:"value" mapstructure:"value"`
 }
 
-// NewRelationshipArgumentLiteral creates a RelationshipArgumentLiteral instance
+// NewRelationshipArgumentLiteral creates a RelationshipArgumentLiteral instance.
 func NewRelationshipArgumentLiteral(value any) *RelationshipArgumentLiteral {
 	return &RelationshipArgumentLiteral{
 		Type:  RelationshipArgumentTypeLiteral,
@@ -372,7 +370,7 @@ func NewRelationshipArgumentLiteral(value any) *RelationshipArgumentLiteral {
 	}
 }
 
-// Encode converts the instance to raw Field
+// Encode converts the instance to raw Field.
 func (j RelationshipArgumentLiteral) Encode() RelationshipArgument {
 	return RelationshipArgument{
 		Type:  j.Type,
@@ -380,13 +378,13 @@ func (j RelationshipArgumentLiteral) Encode() RelationshipArgument {
 	}
 }
 
-// RelationshipArgumentColumn represents the column relationship argument
+// RelationshipArgumentColumn represents the column relationship argument.
 type RelationshipArgumentColumn struct {
 	Type RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
 	Name string                   `json:"name" yaml:"name" mapstructure:"name"`
 }
 
-// NewRelationshipArgumentColumn creates a RelationshipArgumentColumn instance
+// NewRelationshipArgumentColumn creates a RelationshipArgumentColumn instance.
 func NewRelationshipArgumentColumn(name string) *RelationshipArgumentColumn {
 	return &RelationshipArgumentColumn{
 		Type: RelationshipArgumentTypeLiteral,
@@ -394,7 +392,7 @@ func NewRelationshipArgumentColumn(name string) *RelationshipArgumentColumn {
 	}
 }
 
-// Encode converts the instance to raw Field
+// Encode converts the instance to raw Field.
 func (j RelationshipArgumentColumn) Encode() RelationshipArgument {
 	return RelationshipArgument{
 		Type: j.Type,
@@ -402,13 +400,13 @@ func (j RelationshipArgumentColumn) Encode() RelationshipArgument {
 	}
 }
 
-// RelationshipArgumentVariable represents the variable relationship argument
+// RelationshipArgumentVariable represents the variable relationship argument.
 type RelationshipArgumentVariable struct {
 	Type RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
 	Name string                   `json:"name" yaml:"name" mapstructure:"name"`
 }
 
-// NewRelationshipArgumentVariable creates a RelationshipArgumentVariable instance
+// NewRelationshipArgumentVariable creates a RelationshipArgumentVariable instance.
 func NewRelationshipArgumentVariable(name string) *RelationshipArgumentVariable {
 	return &RelationshipArgumentVariable{
 		Type: RelationshipArgumentTypeVariable,
@@ -416,7 +414,7 @@ func NewRelationshipArgumentVariable(name string) *RelationshipArgumentVariable 
 	}
 }
 
-// Encode converts the instance to raw Field
+// Encode converts the instance to raw Field.
 func (j RelationshipArgumentVariable) Encode() RelationshipArgument {
 	return RelationshipArgument{
 		Type: j.Type,
@@ -424,7 +422,7 @@ func (j RelationshipArgumentVariable) Encode() RelationshipArgument {
 	}
 }
 
-// FieldType represents a field type
+// FieldType represents a field type.
 type FieldType string
 
 const (
@@ -437,7 +435,7 @@ var enumValues_FieldType = []FieldType{
 	FieldTypeRelationship,
 }
 
-// ParseFieldType parses a field type from string
+// ParseFieldType parses a field type from string.
 func ParseFieldType(input string) (FieldType, error) {
 	result := FieldType(input)
 	if !result.IsValid() {
@@ -446,7 +444,7 @@ func ParseFieldType(input string) (FieldType, error) {
 	return result, nil
 }
 
-// IsValid checks if the value is invalid
+// IsValid checks if the value is invalid.
 func (j FieldType) IsValid() bool {
 	return slices.Contains(enumValues_FieldType, j)
 }
@@ -467,7 +465,7 @@ func (j *FieldType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Field represents a field
+// Field represents a field.
 type Field map[string]any
 
 type FieldEncoder interface {
@@ -489,7 +487,7 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 	}
 	err := json.Unmarshal(rawFieldType, &fieldType)
 	if err != nil {
-		return fmt.Errorf("field type in Field: %s", err)
+		return fmt.Errorf("field type in Field: %w", err)
 	}
 
 	results := map[string]any{
@@ -499,9 +497,8 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 	switch fieldType {
 	case FieldTypeColumn:
 		column, err := unmarshalStringFromJsonMap(raw, "column", true)
-
 		if err != nil {
-			return fmt.Errorf("field column in Field: %s", err)
+			return fmt.Errorf("field column in Field: %w", err)
 		}
 
 		results["column"] = column
@@ -511,7 +508,7 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 		rawFields, ok := raw["fields"]
 		if ok && !isNullJSON(rawFields) {
 			if err = json.Unmarshal(rawFields, &fields); err != nil {
-				return fmt.Errorf("field fields in Field: %s", err)
+				return fmt.Errorf("field fields in Field: %w", err)
 			}
 			results["fields"] = fields
 		}
@@ -519,14 +516,14 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 		rawArguments, ok := raw["arguments"]
 		if ok && !isNullJSON(rawArguments) {
 			if err = json.Unmarshal(rawArguments, &arguments); err != nil {
-				return fmt.Errorf("field arguments in Field: %s", err)
+				return fmt.Errorf("field arguments in Field: %w", err)
 			}
 			results["arguments"] = arguments
 		}
 	case FieldTypeRelationship:
 		relationship, err := unmarshalStringFromJsonMap(raw, "relationship", true)
 		if err != nil {
-			return fmt.Errorf("field relationship in Field: %s", err)
+			return fmt.Errorf("field relationship in Field: %w", err)
 		}
 		results["relationship"] = relationship
 
@@ -536,7 +533,7 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 		}
 		var query Query
 		if err = json.Unmarshal(rawQuery, &query); err != nil {
-			return fmt.Errorf("field query in Field: %s", err)
+			return fmt.Errorf("field query in Field: %w", err)
 		}
 		results["query"] = query
 
@@ -547,7 +544,7 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 
 		var arguments map[string]RelationshipArgument
 		if err = json.Unmarshal(rawArguments, &arguments); err != nil {
-			return fmt.Errorf("field arguments in Field: %s", err)
+			return fmt.Errorf("field arguments in Field: %w", err)
 		}
 		results["arguments"] = arguments
 	}
@@ -556,7 +553,7 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Type gets the type enum of the current type
+// Type gets the type enum of the current type.
 func (j Field) Type() (FieldType, error) {
 	t, ok := j["type"]
 	if !ok {
@@ -576,7 +573,7 @@ func (j Field) Type() (FieldType, error) {
 	}
 }
 
-// AsColumn tries to convert the current type to ColumnField
+// AsColumn tries to convert the current type to ColumnField.
 func (j Field) AsColumn() (*ColumnField, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -615,7 +612,7 @@ func (j Field) AsColumn() (*ColumnField, error) {
 	return result, nil
 }
 
-// AsRelationship tries to convert the current type to RelationshipField
+// AsRelationship tries to convert the current type to RelationshipField.
 func (j Field) AsRelationship() (*RelationshipField, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -655,13 +652,13 @@ func (j Field) AsRelationship() (*RelationshipField, error) {
 	}, nil
 }
 
-// Interface converts the comparison value to its generic interface
+// Interface converts the comparison value to its generic interface.
 func (j Field) Interface() FieldEncoder {
 	result, _ := j.InterfaceT()
 	return result
 }
 
-// InterfaceT converts the comparison value to its generic interface safely with explicit error
+// InterfaceT converts the comparison value to its generic interface safely with explicit error.
 func (j Field) InterfaceT() (FieldEncoder, error) {
 	ty, err := j.Type()
 	if err != nil {
@@ -678,7 +675,7 @@ func (j Field) InterfaceT() (FieldEncoder, error) {
 	}
 }
 
-// ColumnField represents a column field
+// ColumnField represents a column field.
 type ColumnField struct {
 	Type FieldType `json:"type" yaml:"type" mapstructure:"type"`
 	// Column name
@@ -691,7 +688,7 @@ type ColumnField struct {
 	Arguments map[string]Argument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"fields"`
 }
 
-// Encode converts the instance to raw Field
+// Encode converts the instance to raw Field.
 func (f ColumnField) Encode() Field {
 	r := Field{
 		"type":   f.Type,
@@ -707,7 +704,7 @@ func (f ColumnField) Encode() Field {
 	return r
 }
 
-// NewColumnField creates a new ColumnField instance
+// NewColumnField creates a new ColumnField instance.
 func NewColumnField(column string, fields NestedFieldEncoder) *ColumnField {
 	var field NestedField
 	if !isNil(fields) {
@@ -720,14 +717,14 @@ func NewColumnField(column string, fields NestedFieldEncoder) *ColumnField {
 	}
 }
 
-// NewColumnFieldWithArguments creates a new ColumnField instance with arguments
+// NewColumnFieldWithArguments creates a new ColumnField instance with arguments.
 func NewColumnFieldWithArguments(column string, fields NestedFieldEncoder, arguments map[string]Argument) *ColumnField {
 	cf := NewColumnField(column, fields)
 	cf.Arguments = arguments
 	return cf
 }
 
-// RelationshipField represents a relationship field
+// RelationshipField represents a relationship field.
 type RelationshipField struct {
 	Type FieldType `json:"type" yaml:"type" mapstructure:"type"`
 	// The relationship query
@@ -738,7 +735,7 @@ type RelationshipField struct {
 	Arguments map[string]RelationshipArgument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 }
 
-// Encode converts the instance to raw Field
+// Encode converts the instance to raw Field.
 func (f RelationshipField) Encode() Field {
 	return Field{
 		"type":         f.Type,
@@ -748,7 +745,7 @@ func (f RelationshipField) Encode() Field {
 	}
 }
 
-// NewRelationshipField creates a new RelationshipField instance
+// NewRelationshipField creates a new RelationshipField instance.
 func NewRelationshipField(query Query, relationship string, arguments map[string]RelationshipArgument) *RelationshipField {
 	return &RelationshipField{
 		Type:         FieldTypeRelationship,
@@ -758,7 +755,7 @@ func NewRelationshipField(query Query, relationship string, arguments map[string
 	}
 }
 
-// ComparisonTargetType represents comparison target enums
+// ComparisonTargetType represents comparison target enums.
 type ComparisonTargetType string
 
 const (
@@ -771,7 +768,7 @@ var enumValues_ComparisonTargetType = []ComparisonTargetType{
 	ComparisonTargetTypeRootCollectionColumn,
 }
 
-// ParseComparisonTargetType parses a comparison target type argument type from string
+// ParseComparisonTargetType parses a comparison target type argument type from string.
 func ParseComparisonTargetType(input string) (ComparisonTargetType, error) {
 	result := ComparisonTargetType(input)
 	if !result.IsValid() {
@@ -781,7 +778,7 @@ func ParseComparisonTargetType(input string) (ComparisonTargetType, error) {
 	return result, nil
 }
 
-// IsValid checks if the value is invalid
+// IsValid checks if the value is invalid.
 func (j ComparisonTargetType) IsValid() bool {
 	return slices.Contains(enumValues_ComparisonTargetType, j)
 }
@@ -802,7 +799,7 @@ func (j *ComparisonTargetType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// ComparisonTarget represents a comparison target object
+// ComparisonTarget represents a comparison target object.
 type ComparisonTarget struct {
 	Type      ComparisonTargetType `json:"type" yaml:"type" mapstructure:"type"`
 	Name      string               `json:"name" yaml:"name" mapstructure:"name"`
@@ -810,7 +807,7 @@ type ComparisonTarget struct {
 	FieldPath []string             `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
 }
 
-// NewComparisonTargetColumn creates a ComparisonTarget with column type
+// NewComparisonTargetColumn creates a ComparisonTarget with column type.
 func NewComparisonTargetColumn(name string, fieldPath []string, path []PathElement) *ComparisonTarget {
 	return &ComparisonTarget{
 		Type:      ComparisonTargetTypeColumn,
@@ -820,7 +817,7 @@ func NewComparisonTargetColumn(name string, fieldPath []string, path []PathEleme
 	}
 }
 
-// NewComparisonTargetRootCollectionColumn creates a ComparisonTarget with root_collection_column type
+// NewComparisonTargetRootCollectionColumn creates a ComparisonTarget with root_collection_column type.
 func NewComparisonTargetRootCollectionColumn(name string, fieldPath []string) *ComparisonTarget {
 	return &ComparisonTarget{
 		Type:      ComparisonTargetTypeRootCollectionColumn,
@@ -829,7 +826,7 @@ func NewComparisonTargetRootCollectionColumn(name string, fieldPath []string) *C
 	}
 }
 
-// ExpressionType represents the filtering expression enums
+// ExpressionType represents the filtering expression enums.
 type ExpressionType string
 
 const (
@@ -850,7 +847,7 @@ var enumValues_ExpressionType = []ExpressionType{
 	ExpressionTypeExists,
 }
 
-// ParseExpressionType parses a comparison target type argument type from string
+// ParseExpressionType parses a comparison target type argument type from string.
 func ParseExpressionType(input string) (ExpressionType, error) {
 	result := ExpressionType(input)
 	if !result.IsValid() {
@@ -860,7 +857,7 @@ func ParseExpressionType(input string) (ExpressionType, error) {
 	return result, nil
 }
 
-// IsValid checks if the value is invalid
+// IsValid checks if the value is invalid.
 func (j ExpressionType) IsValid() bool {
 	return slices.Contains(enumValues_ExpressionType, j)
 }
@@ -881,7 +878,7 @@ func (j *ExpressionType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// ComparisonValueType represents a comparison value type enum
+// ComparisonValueType represents a comparison value type enum.
 type ComparisonValueType string
 
 const (
@@ -896,7 +893,7 @@ var enumValues_ComparisonValueType = []ComparisonValueType{
 	ComparisonValueTypeVariable,
 }
 
-// ParseComparisonValueType parses a comparison value type from string
+// ParseComparisonValueType parses a comparison value type from string.
 func ParseComparisonValueType(input string) (ComparisonValueType, error) {
 	result := ComparisonValueType(input)
 	if !result.IsValid() {
@@ -906,7 +903,7 @@ func ParseComparisonValueType(input string) (ComparisonValueType, error) {
 	return result, nil
 }
 
-// IsValid checks if the value is invalid
+// IsValid checks if the value is invalid.
 func (j ComparisonValueType) IsValid() bool {
 	return slices.Contains(enumValues_ComparisonValueType, j)
 }
@@ -927,7 +924,7 @@ func (j *ComparisonValueType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// ComparisonValue represents a raw comparison value object with validation
+// ComparisonValue represents a raw comparison value object with validation.
 type ComparisonValue map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -944,7 +941,7 @@ func (j *ComparisonValue) UnmarshalJSON(b []byte) error {
 
 	var ty ComparisonValueType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in ComparisonValue: %s", err)
+		return fmt.Errorf("field type in ComparisonValue: %w", err)
 	}
 
 	result := map[string]any{
@@ -958,7 +955,7 @@ func (j *ComparisonValue) UnmarshalJSON(b []byte) error {
 		}
 		var name string
 		if err := json.Unmarshal(rawName, &name); err != nil {
-			return fmt.Errorf("field name in ComparisonValue: %s", err)
+			return fmt.Errorf("field name in ComparisonValue: %w", err)
 		}
 		result["name"] = name
 	case ComparisonValueTypeColumn:
@@ -968,7 +965,7 @@ func (j *ComparisonValue) UnmarshalJSON(b []byte) error {
 		}
 		var column ComparisonTarget
 		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in ComparisonValue: %s", err)
+			return fmt.Errorf("field column in ComparisonValue: %w", err)
 		}
 		result["column"] = column
 	case ComparisonValueTypeScalar:
@@ -978,7 +975,7 @@ func (j *ComparisonValue) UnmarshalJSON(b []byte) error {
 		}
 		var value any
 		if err := json.Unmarshal(rawValue, &value); err != nil {
-			return fmt.Errorf("field value in ComparisonValue: %s", err)
+			return fmt.Errorf("field value in ComparisonValue: %w", err)
 		}
 		result["value"] = value
 	}
@@ -986,7 +983,7 @@ func (j *ComparisonValue) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// GetType gets the type of comparison value
+// GetType gets the type of comparison value.
 func (cv ComparisonValue) Type() (ComparisonValueType, error) {
 	t, ok := cv["type"]
 	if !ok {
@@ -1006,7 +1003,7 @@ func (cv ComparisonValue) Type() (ComparisonValueType, error) {
 	}
 }
 
-// AsScalar tries to convert the comparison value to scalar
+// AsScalar tries to convert the comparison value to scalar.
 func (cv ComparisonValue) AsScalar() (*ComparisonValueScalar, error) {
 	ty, err := cv.Type()
 	if err != nil {
@@ -1027,7 +1024,7 @@ func (cv ComparisonValue) AsScalar() (*ComparisonValueScalar, error) {
 	}, nil
 }
 
-// AsColumn tries to convert the comparison value to column
+// AsColumn tries to convert the comparison value to column.
 func (cv ComparisonValue) AsColumn() (*ComparisonValueColumn, error) {
 	ty, err := cv.Type()
 	if err != nil {
@@ -1052,7 +1049,7 @@ func (cv ComparisonValue) AsColumn() (*ComparisonValueColumn, error) {
 	}, nil
 }
 
-// AsVariable tries to convert the comparison value to column
+// AsVariable tries to convert the comparison value to column.
 func (cv ComparisonValue) AsVariable() (*ComparisonValueVariable, error) {
 	ty, err := cv.Type()
 	if err != nil {
@@ -1072,13 +1069,13 @@ func (cv ComparisonValue) AsVariable() (*ComparisonValueVariable, error) {
 	}, nil
 }
 
-// Interface converts the comparison value to its generic interface
+// Interface converts the comparison value to its generic interface.
 func (cv ComparisonValue) Interface() ComparisonValueEncoder {
 	result, _ := cv.InterfaceT()
 	return result
 }
 
-// InterfaceT converts the comparison value to its generic interface safely with explicit error
+// InterfaceT converts the comparison value to its generic interface safely with explicit error.
 func (cv ComparisonValue) InterfaceT() (ComparisonValueEncoder, error) {
 	ty, err := cv.Type()
 	if err != nil {
@@ -1097,18 +1094,18 @@ func (cv ComparisonValue) InterfaceT() (ComparisonValueEncoder, error) {
 	}
 }
 
-// ComparisonValueEncoder represents a comparison value encoder interface
+// ComparisonValueEncoder represents a comparison value encoder interface.
 type ComparisonValueEncoder interface {
 	Encode() ComparisonValue
 }
 
-// ComparisonValueColumn represents a comparison value with column type
+// ComparisonValueColumn represents a comparison value with column type.
 type ComparisonValueColumn struct {
 	Type   ComparisonValueType `json:"type" yaml:"type" mapstructure:"type"`
 	Column ComparisonTarget    `json:"column" yaml:"column" mapstructure:"column"`
 }
 
-// NewComparisonValueColumn creates a new ComparisonValueColumn instance
+// NewComparisonValueColumn creates a new ComparisonValueColumn instance.
 func NewComparisonValueColumn(column ComparisonTarget) *ComparisonValueColumn {
 	return &ComparisonValueColumn{
 		Type:   ComparisonValueTypeColumn,
@@ -1116,7 +1113,7 @@ func NewComparisonValueColumn(column ComparisonTarget) *ComparisonValueColumn {
 	}
 }
 
-// Encode converts to the raw comparison value
+// Encode converts to the raw comparison value.
 func (cv ComparisonValueColumn) Encode() ComparisonValue {
 	return map[string]any{
 		"type":   cv.Type,
@@ -1124,13 +1121,13 @@ func (cv ComparisonValueColumn) Encode() ComparisonValue {
 	}
 }
 
-// ComparisonValueScalar represents a comparison value with scalar type
+// ComparisonValueScalar represents a comparison value with scalar type.
 type ComparisonValueScalar struct {
 	Type  ComparisonValueType `json:"type" yaml:"type" mapstructure:"type"`
 	Value any                 `json:"value" yaml:"value" mapstructure:"value"`
 }
 
-// NewComparisonValueScalar creates a new ComparisonValueScalar instance
+// NewComparisonValueScalar creates a new ComparisonValueScalar instance.
 func NewComparisonValueScalar(value any) *ComparisonValueScalar {
 	return &ComparisonValueScalar{
 		Type:  ComparisonValueTypeScalar,
@@ -1138,7 +1135,7 @@ func NewComparisonValueScalar(value any) *ComparisonValueScalar {
 	}
 }
 
-// Encode converts to the raw comparison value
+// Encode converts to the raw comparison value.
 func (cv ComparisonValueScalar) Encode() ComparisonValue {
 	return map[string]any{
 		"type":  cv.Type,
@@ -1146,13 +1143,13 @@ func (cv ComparisonValueScalar) Encode() ComparisonValue {
 	}
 }
 
-// ComparisonValueVariable represents a comparison value with variable type
+// ComparisonValueVariable represents a comparison value with variable type.
 type ComparisonValueVariable struct {
 	Type ComparisonValueType `json:"type" yaml:"type" mapstructure:"type"`
 	Name string              `json:"name" yaml:"name" mapstructure:"name"`
 }
 
-// NewComparisonValueVariable creates a new ComparisonValueVariable instance
+// NewComparisonValueVariable creates a new ComparisonValueVariable instance.
 func NewComparisonValueVariable(name string) *ComparisonValueVariable {
 	return &ComparisonValueVariable{
 		Type: ComparisonValueTypeVariable,
@@ -1160,7 +1157,7 @@ func NewComparisonValueVariable(name string) *ComparisonValueVariable {
 	}
 }
 
-// Encode converts to the raw comparison value
+// Encode converts to the raw comparison value.
 func (cv ComparisonValueVariable) Encode() ComparisonValue {
 	return map[string]any{
 		"type": cv.Type,
@@ -1168,7 +1165,7 @@ func (cv ComparisonValueVariable) Encode() ComparisonValue {
 	}
 }
 
-// ExistsInCollectionType represents an exists in collection type enum
+// ExistsInCollectionType represents an exists in collection type enum.
 type ExistsInCollectionType string
 
 const (
@@ -1183,7 +1180,7 @@ var enumValues_ExistsInCollectionType = []ExistsInCollectionType{
 	ExistsInCollectionTypeNestedCollection,
 }
 
-// ParseExistsInCollectionType parses a comparison value type from string
+// ParseExistsInCollectionType parses a comparison value type from string.
 func ParseExistsInCollectionType(input string) (ExistsInCollectionType, error) {
 	result := ExistsInCollectionType(input)
 	if !result.IsValid() {
@@ -1193,7 +1190,7 @@ func ParseExistsInCollectionType(input string) (ExistsInCollectionType, error) {
 	return result, nil
 }
 
-// IsValid checks if the value is invalid
+// IsValid checks if the value is invalid.
 func (j ExistsInCollectionType) IsValid() bool {
 	return slices.Contains(enumValues_ExistsInCollectionType, j)
 }
@@ -1214,7 +1211,7 @@ func (j *ExistsInCollectionType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// ExistsInCollection represents an Exists In Collection object
+// ExistsInCollection represents an Exists In Collection object.
 type ExistsInCollection map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -1231,7 +1228,7 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 
 	var ty ExistsInCollectionType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in ExistsInCollection: %s", err)
+		return fmt.Errorf("field type in ExistsInCollection: %w", err)
 	}
 
 	result := map[string]any{
@@ -1242,7 +1239,7 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 	if ok {
 		var arguments map[string]RelationshipArgument
 		if err := json.Unmarshal(rawArguments, &arguments); err != nil {
-			return fmt.Errorf("field arguments in ExistsInCollection: %s", err)
+			return fmt.Errorf("field arguments in ExistsInCollection: %w", err)
 		}
 		result["arguments"] = arguments
 	} else if ty != ExistsInCollectionTypeNestedCollection {
@@ -1257,7 +1254,7 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 		}
 		var relationship string
 		if err := json.Unmarshal(rawRelationship, &relationship); err != nil {
-			return fmt.Errorf("field name in ExistsInCollection: %s", err)
+			return fmt.Errorf("field name in ExistsInCollection: %w", err)
 		}
 		result["relationship"] = relationship
 	case ExistsInCollectionTypeUnrelated:
@@ -1267,7 +1264,7 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 		}
 		var collection string
 		if err := json.Unmarshal(rawCollection, &collection); err != nil {
-			return fmt.Errorf("field collection in ExistsInCollection: %s", err)
+			return fmt.Errorf("field collection in ExistsInCollection: %w", err)
 		}
 		result["collection"] = collection
 	case ExistsInCollectionTypeNestedCollection:
@@ -1278,7 +1275,7 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 		}
 		var columnName string
 		if err := json.Unmarshal(rawColumnName, &columnName); err != nil {
-			return fmt.Errorf("field column_name in ExistsInCollection: %s", err)
+			return fmt.Errorf("field column_name in ExistsInCollection: %w", err)
 		}
 		result["column_name"] = columnName
 
@@ -1286,7 +1283,7 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 		if ok {
 			var fieldPath []string
 			if err := json.Unmarshal(rawFieldPath, &fieldPath); err != nil {
-				return fmt.Errorf("field field_path in ExistsInCollection: %s", err)
+				return fmt.Errorf("field field_path in ExistsInCollection: %w", err)
 			}
 			result["field_path"] = fieldPath
 		}
@@ -1295,7 +1292,7 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Type gets the type enum of the current type
+// Type gets the type enum of the current type.
 func (j ExistsInCollection) Type() (ExistsInCollectionType, error) {
 	t, ok := j["type"]
 	if !ok {
@@ -1315,7 +1312,7 @@ func (j ExistsInCollection) Type() (ExistsInCollectionType, error) {
 	}
 }
 
-// AsRelated tries to convert the instance to related type
+// AsRelated tries to convert the instance to related type.
 func (j ExistsInCollection) AsRelated() (*ExistsInCollectionRelated, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -1345,7 +1342,7 @@ func (j ExistsInCollection) AsRelated() (*ExistsInCollectionRelated, error) {
 	}, nil
 }
 
-// AsRelated tries to convert the instance to unrelated type
+// AsRelated tries to convert the instance to unrelated type.
 func (j ExistsInCollection) AsUnrelated() (*ExistsInCollectionUnrelated, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -1375,7 +1372,7 @@ func (j ExistsInCollection) AsUnrelated() (*ExistsInCollectionUnrelated, error) 
 	}, nil
 }
 
-// AsNestedCollection tries to convert the instance to nested_collection type
+// AsNestedCollection tries to convert the instance to nested_collection type.
 func (j ExistsInCollection) AsNestedCollection() (*ExistsInCollectionNestedCollection, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -1414,13 +1411,13 @@ func (j ExistsInCollection) AsNestedCollection() (*ExistsInCollectionNestedColle
 	return result, nil
 }
 
-// Interface tries to convert the instance to the ExistsInCollectionEncoder interface
+// Interface tries to convert the instance to the ExistsInCollectionEncoder interface.
 func (j ExistsInCollection) Interface() ExistsInCollectionEncoder {
 	result, _ := j.InterfaceT()
 	return result
 }
 
-// InterfaceT tries to convert the instance to the ExistsInCollectionEncoder interface safely with explicit error
+// InterfaceT tries to convert the instance to the ExistsInCollectionEncoder interface safely with explicit error.
 func (j ExistsInCollection) InterfaceT() (ExistsInCollectionEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -1439,7 +1436,7 @@ func (j ExistsInCollection) InterfaceT() (ExistsInCollectionEncoder, error) {
 	}
 }
 
-// ExistsInCollectionEncoder abstracts the ExistsInCollection serialization interface
+// ExistsInCollectionEncoder abstracts the ExistsInCollection serialization interface.
 type ExistsInCollectionEncoder interface {
 	Encode() ExistsInCollection
 }
@@ -1454,7 +1451,7 @@ type ExistsInCollectionRelated struct {
 	Arguments map[string]RelationshipArgument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 }
 
-// NewExistsInCollectionRelated creates an ExistsInCollectionRelated instance
+// NewExistsInCollectionRelated creates an ExistsInCollectionRelated instance.
 func NewExistsInCollectionRelated(relationship string, arguments map[string]RelationshipArgument) *ExistsInCollectionRelated {
 	return &ExistsInCollectionRelated{
 		Type:         ExistsInCollectionTypeRelated,
@@ -1463,7 +1460,7 @@ func NewExistsInCollectionRelated(relationship string, arguments map[string]Rela
 	}
 }
 
-// Encode converts the instance to its raw type
+// Encode converts the instance to its raw type.
 func (ei ExistsInCollectionRelated) Encode() ExistsInCollection {
 	return ExistsInCollection{
 		"type":         ei.Type,
@@ -1483,7 +1480,7 @@ type ExistsInCollectionUnrelated struct {
 	Arguments map[string]RelationshipArgument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 }
 
-// NewExistsInCollectionUnrelated creates an ExistsInCollectionUnrelated instance
+// NewExistsInCollectionUnrelated creates an ExistsInCollectionUnrelated instance.
 func NewExistsInCollectionUnrelated(collection string, arguments map[string]RelationshipArgument) *ExistsInCollectionUnrelated {
 	return &ExistsInCollectionUnrelated{
 		Type:       ExistsInCollectionTypeUnrelated,
@@ -1492,7 +1489,7 @@ func NewExistsInCollectionUnrelated(collection string, arguments map[string]Rela
 	}
 }
 
-// Encode converts the instance to its raw type
+// Encode converts the instance to its raw type.
 func (ei ExistsInCollectionUnrelated) Encode() ExistsInCollection {
 	return ExistsInCollection{
 		"type":       ei.Type,
@@ -1514,7 +1511,7 @@ type ExistsInCollectionNestedCollection struct {
 	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
 }
 
-// NewExistsInCollectionNestedCollection creates an ExistsInCollectionNestedCollection instance
+// NewExistsInCollectionNestedCollection creates an ExistsInCollectionNestedCollection instance.
 func NewExistsInCollectionNestedCollection(columnName string, arguments map[string]RelationshipArgument, fieldPath []string) *ExistsInCollectionNestedCollection {
 	return &ExistsInCollectionNestedCollection{
 		Type:       ExistsInCollectionTypeNestedCollection,
@@ -1524,7 +1521,7 @@ func NewExistsInCollectionNestedCollection(columnName string, arguments map[stri
 	}
 }
 
-// Encode converts the instance to its raw type
+// Encode converts the instance to its raw type.
 func (ei ExistsInCollectionNestedCollection) Encode() ExistsInCollection {
 	result := ExistsInCollection{
 		"type":        ei.Type,
@@ -1539,7 +1536,7 @@ func (ei ExistsInCollectionNestedCollection) Encode() ExistsInCollection {
 	return result
 }
 
-// Expression represents the query expression object
+// Expression represents the query expression object.
 type Expression map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -1556,7 +1553,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 
 	var ty ExpressionType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in Expression: %s", err)
+		return fmt.Errorf("field type in Expression: %w", err)
 	}
 
 	result := map[string]any{
@@ -1570,7 +1567,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		}
 		var expressions []Expression
 		if err := json.Unmarshal(rawExpressions, &expressions); err != nil {
-			return fmt.Errorf("field expressions in Expression: %s", err)
+			return fmt.Errorf("field expressions in Expression: %w", err)
 		}
 		result["expressions"] = expressions
 	case ExpressionTypeNot:
@@ -1580,7 +1577,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		}
 		var expression Expression
 		if err := json.Unmarshal(rawExpression, &expression); err != nil {
-			return fmt.Errorf("field expression in Expression: %s", err)
+			return fmt.Errorf("field expression in Expression: %w", err)
 		}
 		result["expression"] = expression
 	case ExpressionTypeUnaryComparisonOperator:
@@ -1590,7 +1587,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		}
 		var operator UnaryComparisonOperator
 		if err := json.Unmarshal(rawOperator, &operator); err != nil {
-			return fmt.Errorf("field operator in Expression: %s", err)
+			return fmt.Errorf("field operator in Expression: %w", err)
 		}
 		result["operator"] = operator
 
@@ -1600,7 +1597,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		}
 		var column ComparisonTarget
 		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in Expression: %s", err)
+			return fmt.Errorf("field column in Expression: %w", err)
 		}
 		result["column"] = column
 	case ExpressionTypeBinaryComparisonOperator:
@@ -1610,7 +1607,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		}
 		var operator string
 		if err := json.Unmarshal(rawOperator, &operator); err != nil {
-			return fmt.Errorf("field operator in Expression: %s", err)
+			return fmt.Errorf("field operator in Expression: %w", err)
 		}
 
 		if operator == "" {
@@ -1624,7 +1621,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		}
 		var column ComparisonTarget
 		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in Expression: %s", err)
+			return fmt.Errorf("field column in Expression: %w", err)
 		}
 		result["column"] = column
 
@@ -1634,7 +1631,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		}
 		var value ComparisonValue
 		if err := json.Unmarshal(rawValue, &value); err != nil {
-			return fmt.Errorf("field value in Expression: %s", err)
+			return fmt.Errorf("field value in Expression: %w", err)
 		}
 		result["value"] = value
 	case ExpressionTypeExists:
@@ -1642,7 +1639,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		if ok {
 			var predicate Expression
 			if err := json.Unmarshal(rawPredicate, &predicate); err != nil {
-				return fmt.Errorf("field predicate in Expression: %s", err)
+				return fmt.Errorf("field predicate in Expression: %w", err)
 			}
 			result["predicate"] = predicate
 		}
@@ -1653,7 +1650,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		}
 		var inCollection ExistsInCollection
 		if err := json.Unmarshal(rawInCollection, &inCollection); err != nil {
-			return fmt.Errorf("field in_collection in Expression: %s", err)
+			return fmt.Errorf("field in_collection in Expression: %w", err)
 		}
 		result["in_collection"] = inCollection
 	}
@@ -1661,7 +1658,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Type gets the type enum of the current type
+// Type gets the type enum of the current type.
 func (j Expression) Type() (ExpressionType, error) {
 	t, ok := j["type"]
 	if !ok {
@@ -1681,7 +1678,7 @@ func (j Expression) Type() (ExpressionType, error) {
 	}
 }
 
-// AsAnd tries to convert the instance to and type
+// AsAnd tries to convert the instance to and type.
 func (j Expression) AsAnd() (*ExpressionAnd, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -1706,7 +1703,7 @@ func (j Expression) AsAnd() (*ExpressionAnd, error) {
 	}, nil
 }
 
-// AsOr tries to convert the instance to ExpressionOr instance
+// AsOr tries to convert the instance to ExpressionOr instance.
 func (j Expression) AsOr() (*ExpressionOr, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -1731,7 +1728,7 @@ func (j Expression) AsOr() (*ExpressionOr, error) {
 	}, nil
 }
 
-// AsNot tries to convert the instance to ExpressionNot instance
+// AsNot tries to convert the instance to ExpressionNot instance.
 func (j Expression) AsNot() (*ExpressionNot, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -1756,7 +1753,7 @@ func (j Expression) AsNot() (*ExpressionNot, error) {
 	}, nil
 }
 
-// AsUnaryComparisonOperator tries to convert the instance to ExpressionUnaryComparisonOperator instance
+// AsUnaryComparisonOperator tries to convert the instance to ExpressionUnaryComparisonOperator instance.
 func (j Expression) AsUnaryComparisonOperator() (*ExpressionUnaryComparisonOperator, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -1796,9 +1793,8 @@ func (j Expression) AsUnaryComparisonOperator() (*ExpressionUnaryComparisonOpera
 	}, nil
 }
 
-// AsBinaryComparisonOperator tries to convert the instance to ExpressionBinaryComparisonOperator instance
+// AsBinaryComparisonOperator tries to convert the instance to ExpressionBinaryComparisonOperator instance.
 func (j Expression) AsBinaryComparisonOperator() (*ExpressionBinaryComparisonOperator, error) {
-
 	t, err := j.Type()
 	if err != nil {
 		return nil, err
@@ -1833,7 +1829,7 @@ func (j Expression) AsBinaryComparisonOperator() (*ExpressionBinaryComparisonOpe
 	}, nil
 }
 
-// AsExists tries to convert the instance to ExpressionExists instance
+// AsExists tries to convert the instance to ExpressionExists instance.
 func (j Expression) AsExists() (*ExpressionExists, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -1867,13 +1863,13 @@ func (j Expression) AsExists() (*ExpressionExists, error) {
 	return result, nil
 }
 
-// Interface tries to convert the instance to the ExpressionEncoder interface
+// Interface tries to convert the instance to the ExpressionEncoder interface.
 func (j Expression) Interface() ExpressionEncoder {
 	result, _ := j.InterfaceT()
 	return result
 }
 
-// InterfaceT tries to convert the instance to the ExpressionEncoder interface safely with explicit error
+// InterfaceT tries to convert the instance to the ExpressionEncoder interface safely with explicit error.
 func (j Expression) InterfaceT() (ExpressionEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -1897,7 +1893,7 @@ func (j Expression) InterfaceT() (ExpressionEncoder, error) {
 	}
 }
 
-// ExpressionEncoder abstracts the expression encoder interface
+// ExpressionEncoder abstracts the expression encoder interface.
 type ExpressionEncoder interface {
 	Encode() Expression
 }
@@ -1910,7 +1906,7 @@ type ExpressionAnd struct {
 	Expressions []Expression   `json:"expressions" yaml:"expressions" mapstructure:"expressions"`
 }
 
-// NewExpressionAnd creates an ExpressionAnd instance
+// NewExpressionAnd creates an ExpressionAnd instance.
 func NewExpressionAnd(expressions ...ExpressionEncoder) *ExpressionAnd {
 	exprs := make([]Expression, len(expressions))
 	for i, expr := range expressions {
@@ -1925,7 +1921,7 @@ func NewExpressionAnd(expressions ...ExpressionEncoder) *ExpressionAnd {
 	}
 }
 
-// Encode converts the instance to a raw Expression
+// Encode converts the instance to a raw Expression.
 func (exp ExpressionAnd) Encode() Expression {
 	return Expression{
 		"type":        exp.Type,
@@ -1941,7 +1937,7 @@ type ExpressionOr struct {
 	Expressions []Expression   `json:"expressions" yaml:"expressions" mapstructure:"expressions"`
 }
 
-// NewExpressionOr creates an ExpressionOr instance
+// NewExpressionOr creates an ExpressionOr instance.
 func NewExpressionOr(expressions ...ExpressionEncoder) *ExpressionOr {
 	exprs := make([]Expression, len(expressions))
 	for i, expr := range expressions {
@@ -1956,7 +1952,7 @@ func NewExpressionOr(expressions ...ExpressionEncoder) *ExpressionOr {
 	}
 }
 
-// Encode converts the instance to a raw Expression
+// Encode converts the instance to a raw Expression.
 func (exp ExpressionOr) Encode() Expression {
 	return Expression{
 		"type":        exp.Type,
@@ -1972,7 +1968,7 @@ type ExpressionNot struct {
 	Expression Expression     `json:"expression" yaml:"expression" mapstructure:"expression"`
 }
 
-// NewExpressionNot creates an ExpressionNot instance
+// NewExpressionNot creates an ExpressionNot instance.
 func NewExpressionNot(expression ExpressionEncoder) *ExpressionNot {
 	result := &ExpressionNot{
 		Type: ExpressionTypeNot,
@@ -1983,7 +1979,7 @@ func NewExpressionNot(expression ExpressionEncoder) *ExpressionNot {
 	return result
 }
 
-// Encode converts the instance to a raw Expression
+// Encode converts the instance to a raw Expression.
 func (exp ExpressionNot) Encode() Expression {
 	return Expression{
 		"type":       exp.Type,
@@ -2000,7 +1996,7 @@ type ExpressionUnaryComparisonOperator struct {
 	Column   ComparisonTarget        `json:"column" yaml:"column" mapstructure:"column"`
 }
 
-// NewExpressionUnaryComparisonOperator creates an ExpressionUnaryComparisonOperator instance
+// NewExpressionUnaryComparisonOperator creates an ExpressionUnaryComparisonOperator instance.
 func NewExpressionUnaryComparisonOperator(column ComparisonTarget, operator UnaryComparisonOperator) *ExpressionUnaryComparisonOperator {
 	return &ExpressionUnaryComparisonOperator{
 		Type:     ExpressionTypeUnaryComparisonOperator,
@@ -2009,7 +2005,7 @@ func NewExpressionUnaryComparisonOperator(column ComparisonTarget, operator Unar
 	}
 }
 
-// Encode converts the instance to a raw Expression
+// Encode converts the instance to a raw Expression.
 func (exp ExpressionUnaryComparisonOperator) Encode() Expression {
 	return Expression{
 		"type":     exp.Type,
@@ -2028,7 +2024,7 @@ type ExpressionBinaryComparisonOperator struct {
 	Value    ComparisonValue  `json:"value" yaml:"value" mapstructure:"value"`
 }
 
-// NewExpressionBinaryComparisonOperator creates an ExpressionBinaryComparisonOperator instance
+// NewExpressionBinaryComparisonOperator creates an ExpressionBinaryComparisonOperator instance.
 func NewExpressionBinaryComparisonOperator(column ComparisonTarget, operator string, value ComparisonValueEncoder) *ExpressionBinaryComparisonOperator {
 	result := &ExpressionBinaryComparisonOperator{
 		Type:     ExpressionTypeBinaryComparisonOperator,
@@ -2041,7 +2037,7 @@ func NewExpressionBinaryComparisonOperator(column ComparisonTarget, operator str
 	return result
 }
 
-// Encode converts the instance to a raw Expression
+// Encode converts the instance to a raw Expression.
 func (exp ExpressionBinaryComparisonOperator) Encode() Expression {
 	return Expression{
 		"type":     exp.Type,
@@ -2060,7 +2056,7 @@ type ExpressionExists struct {
 	InCollection ExistsInCollection `json:"in_collection" yaml:"in_collection" mapstructure:"in_collection"`
 }
 
-// NewExpressionExists creates an ExpressionExists instance
+// NewExpressionExists creates an ExpressionExists instance.
 func NewExpressionExists(predicate ExpressionEncoder, inCollection ExistsInCollectionEncoder) *ExpressionExists {
 	result := &ExpressionExists{
 		Type:         ExpressionTypeExists,
@@ -2075,7 +2071,7 @@ func NewExpressionExists(predicate ExpressionEncoder, inCollection ExistsInColle
 	return result
 }
 
-// Encode converts the instance to a raw Expression
+// Encode converts the instance to a raw Expression.
 func (exp ExpressionExists) Encode() Expression {
 	return Expression{
 		"type":          exp.Type,
@@ -2084,16 +2080,16 @@ func (exp ExpressionExists) Encode() Expression {
 	}
 }
 
-// AggregateType represents an aggregate type
+// AggregateType represents an aggregate type.
 type AggregateType string
 
 const (
 	// AggregateTypeColumnCount aggregates count the number of rows with non-null values in the specified columns.
-	// If the distinct flag is set, then the count should only count unique non-null values of those columns,
+	// If the distinct flag is set, then the count should only count unique non-null values of those columns,.
 	AggregateTypeColumnCount AggregateType = "column_count"
-	// AggregateTypeSingleColumn aggregates apply an aggregation function (as defined by the column's scalar type in the schema response) to a column
+	// AggregateTypeSingleColumn aggregates apply an aggregation function (as defined by the column's scalar type in the schema response) to a column.
 	AggregateTypeSingleColumn AggregateType = "single_column"
-	// AggregateTypeStarCount aggregates count all matched rows
+	// AggregateTypeStarCount aggregates count all matched rows.
 	AggregateTypeStarCount AggregateType = "star_count"
 )
 
@@ -2103,7 +2099,7 @@ var enumValues_AggregateType = []AggregateType{
 	AggregateTypeStarCount,
 }
 
-// ParseAggregateType parses an aggregate type argument type from string
+// ParseAggregateType parses an aggregate type argument type from string.
 func ParseAggregateType(input string) (AggregateType, error) {
 	result := AggregateType(input)
 	if !result.IsValid() {
@@ -2113,7 +2109,7 @@ func ParseAggregateType(input string) (AggregateType, error) {
 	return result, nil
 }
 
-// IsValid checks if the value is invalid
+// IsValid checks if the value is invalid.
 func (j AggregateType) IsValid() bool {
 	return slices.Contains(enumValues_AggregateType, j)
 }
@@ -2153,7 +2149,7 @@ func (j *Aggregate) UnmarshalJSON(b []byte) error {
 
 	var ty AggregateType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in Aggregate: %s", err)
+		return fmt.Errorf("field type in Aggregate: %w", err)
 	}
 
 	result := map[string]any{
@@ -2165,7 +2161,7 @@ func (j *Aggregate) UnmarshalJSON(b []byte) error {
 		rawFieldPath, ok := raw["field_path"]
 		if ok {
 			if err := json.Unmarshal(rawFieldPath, &fieldPath); err != nil {
-				return fmt.Errorf("field field_path in Aggregate: %s", err)
+				return fmt.Errorf("field field_path in Aggregate: %w", err)
 			}
 		}
 	}
@@ -2179,7 +2175,7 @@ func (j *Aggregate) UnmarshalJSON(b []byte) error {
 		}
 		var column string
 		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in Aggregate: %s", err)
+			return fmt.Errorf("field column in Aggregate: %w", err)
 		}
 		result["column"] = column
 
@@ -2189,7 +2185,7 @@ func (j *Aggregate) UnmarshalJSON(b []byte) error {
 		}
 		var function string
 		if err := json.Unmarshal(rawFunction, &function); err != nil {
-			return fmt.Errorf("field function in Aggregate: %s", err)
+			return fmt.Errorf("field function in Aggregate: %w", err)
 		}
 		result["function"] = function
 		if fieldPath != nil {
@@ -2202,7 +2198,7 @@ func (j *Aggregate) UnmarshalJSON(b []byte) error {
 		}
 		var column string
 		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in Aggregate: %s", err)
+			return fmt.Errorf("field column in Aggregate: %w", err)
 		}
 		result["column"] = column
 
@@ -2212,7 +2208,7 @@ func (j *Aggregate) UnmarshalJSON(b []byte) error {
 		}
 		var distinct bool
 		if err := json.Unmarshal(rawDistinct, &distinct); err != nil {
-			return fmt.Errorf("field distinct in Aggregate: %s", err)
+			return fmt.Errorf("field distinct in Aggregate: %w", err)
 		}
 		result["distinct"] = distinct
 		if fieldPath != nil {
@@ -2236,7 +2232,7 @@ func (j Aggregate) getFieldPath() ([]string, error) {
 	return fieldPath, nil
 }
 
-// Type gets the type enum of the current type
+// Type gets the type enum of the current type.
 func (j Aggregate) Type() (AggregateType, error) {
 	t, ok := j["type"]
 	if !ok {
@@ -2256,7 +2252,7 @@ func (j Aggregate) Type() (AggregateType, error) {
 	}
 }
 
-// AsStarCount tries to convert the instance to AggregateStarCount type
+// AsStarCount tries to convert the instance to AggregateStarCount type.
 func (j Aggregate) AsStarCount() (*AggregateStarCount, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -2271,7 +2267,7 @@ func (j Aggregate) AsStarCount() (*AggregateStarCount, error) {
 	}, nil
 }
 
-// AsSingleColumn tries to convert the instance to AggregateSingleColumn type
+// AsSingleColumn tries to convert the instance to AggregateSingleColumn type.
 func (j Aggregate) AsSingleColumn() (*AggregateSingleColumn, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -2302,7 +2298,7 @@ func (j Aggregate) AsSingleColumn() (*AggregateSingleColumn, error) {
 	}, nil
 }
 
-// AsColumnCount tries to convert the instance to AggregateColumnCount type
+// AsColumnCount tries to convert the instance to AggregateColumnCount type.
 func (j Aggregate) AsColumnCount() (*AggregateColumnCount, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -2339,13 +2335,13 @@ func (j Aggregate) AsColumnCount() (*AggregateColumnCount, error) {
 	}, nil
 }
 
-// Interface tries to convert the instance to AggregateEncoder interface
+// Interface tries to convert the instance to AggregateEncoder interface.
 func (j Aggregate) Interface() AggregateEncoder {
 	result, _ := j.InterfaceT()
 	return result
 }
 
-// InterfaceT tries to convert the instance to AggregateEncoder interface safely with explicit error
+// InterfaceT tries to convert the instance to AggregateEncoder interface safely with explicit error.
 func (j Aggregate) InterfaceT() (AggregateEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -2364,24 +2360,24 @@ func (j Aggregate) InterfaceT() (AggregateEncoder, error) {
 	}
 }
 
-// AggregateEncoder abstracts the serialization interface for Aggregate
+// AggregateEncoder abstracts the serialization interface for Aggregate.
 type AggregateEncoder interface {
 	Encode() Aggregate
 }
 
-// AggregateStarCount represents an aggregate object which counts all matched rows
+// AggregateStarCount represents an aggregate object which counts all matched rows.
 type AggregateStarCount struct {
 	Type AggregateType `json:"type" mapstructure:"type"`
 }
 
-// Encode converts the instance to raw Aggregate
+// Encode converts the instance to raw Aggregate.
 func (ag AggregateStarCount) Encode() Aggregate {
 	return Aggregate{
 		"type": ag.Type,
 	}
 }
 
-// NewAggregateStarCount creates a new AggregateStarCount instance
+// NewAggregateStarCount creates a new AggregateStarCount instance.
 func NewAggregateStarCount() *AggregateStarCount {
 	return &AggregateStarCount{
 		Type: AggregateTypeStarCount,
@@ -2399,7 +2395,7 @@ type AggregateSingleColumn struct {
 	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
 }
 
-// Encode converts the instance to raw Aggregate
+// Encode converts the instance to raw Aggregate.
 func (ag AggregateSingleColumn) Encode() Aggregate {
 	result := Aggregate{
 		"type":     ag.Type,
@@ -2414,7 +2410,7 @@ func (ag AggregateSingleColumn) Encode() Aggregate {
 	return result
 }
 
-// NewAggregateSingleColumn creates a new AggregateSingleColumn instance
+// NewAggregateSingleColumn creates a new AggregateSingleColumn instance.
 func NewAggregateSingleColumn(column string, function string, fieldPath []string) *AggregateSingleColumn {
 	return &AggregateSingleColumn{
 		Type:      AggregateTypeSingleColumn,
@@ -2436,7 +2432,7 @@ type AggregateColumnCount struct {
 	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
 }
 
-// Encode converts the instance to raw Aggregate
+// Encode converts the instance to raw Aggregate.
 func (ag AggregateColumnCount) Encode() Aggregate {
 	result := Aggregate{
 		"type":     ag.Type,
@@ -2450,7 +2446,7 @@ func (ag AggregateColumnCount) Encode() Aggregate {
 	return result
 }
 
-// NewAggregateColumnCount creates a new AggregateColumnCount instance
+// NewAggregateColumnCount creates a new AggregateColumnCount instance.
 func NewAggregateColumnCount(column string, distinct bool, fieldPath []string) *AggregateColumnCount {
 	return &AggregateColumnCount{
 		Type:      AggregateTypeColumnCount,
@@ -2460,7 +2456,7 @@ func NewAggregateColumnCount(column string, distinct bool, fieldPath []string) *
 	}
 }
 
-// OrderByTargetType represents a ordering target type
+// OrderByTargetType represents a ordering target type.
 type OrderByTargetType string
 
 const (
@@ -2475,7 +2471,7 @@ var enumValues_OrderByTargetType = []OrderByTargetType{
 	OrderByTargetTypeStarCountAggregate,
 }
 
-// ParseOrderByTargetType parses a ordering target type argument type from string
+// ParseOrderByTargetType parses a ordering target type argument type from string.
 func ParseOrderByTargetType(input string) (OrderByTargetType, error) {
 	result := OrderByTargetType(input)
 	if !result.IsValid() {
@@ -2485,7 +2481,7 @@ func ParseOrderByTargetType(input string) (OrderByTargetType, error) {
 	return result, nil
 }
 
-// IsValid checks if the value is invalid
+// IsValid checks if the value is invalid.
 func (j OrderByTargetType) IsValid() bool {
 	return slices.Contains(enumValues_OrderByTargetType, j)
 }
@@ -2525,7 +2521,7 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 
 	var ty OrderByTargetType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in OrderByTarget: %s", err)
+		return fmt.Errorf("field type in OrderByTarget: %w", err)
 	}
 
 	result := map[string]any{
@@ -2538,7 +2534,7 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 	}
 	var pathElem []PathElement
 	if err := json.Unmarshal(rawPath, &pathElem); err != nil {
-		return fmt.Errorf("field path in OrderByTarget: %s", err)
+		return fmt.Errorf("field path in OrderByTarget: %w", err)
 	}
 	result["path"] = pathElem
 
@@ -2547,7 +2543,7 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 		var fieldPath []string
 		if ok {
 			if err := json.Unmarshal(rawFieldPath, &fieldPath); err != nil {
-				return fmt.Errorf("field field_path in OrderByTarget: %s", err)
+				return fmt.Errorf("field field_path in OrderByTarget: %w", err)
 			}
 			result["field_path"] = fieldPath
 		}
@@ -2561,7 +2557,7 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 		}
 		var name string
 		if err := json.Unmarshal(rawName, &name); err != nil {
-			return fmt.Errorf("field name in OrderByTarget: %s", err)
+			return fmt.Errorf("field name in OrderByTarget: %w", err)
 		}
 		result["name"] = name
 
@@ -2572,7 +2568,7 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 		}
 		var column string
 		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in OrderByTarget: %s", err)
+			return fmt.Errorf("field column in OrderByTarget: %w", err)
 		}
 		result["column"] = column
 
@@ -2582,7 +2578,7 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 		}
 		var function string
 		if err := json.Unmarshal(rawFunction, &function); err != nil {
-			return fmt.Errorf("field function in OrderByTarget: %s", err)
+			return fmt.Errorf("field function in OrderByTarget: %w", err)
 		}
 		result["function"] = function
 	case OrderByTargetTypeStarCountAggregate:
@@ -2615,7 +2611,7 @@ func (j OrderByTarget) getPath() ([]PathElement, error) {
 	return p, nil
 }
 
-// Type gets the type enum of the current type
+// Type gets the type enum of the current type.
 func (j OrderByTarget) Type() (OrderByTargetType, error) {
 	t, ok := j["type"]
 	if !ok {
@@ -2635,7 +2631,7 @@ func (j OrderByTarget) Type() (OrderByTargetType, error) {
 	}
 }
 
-// AsColumn tries to convert the instance to OrderByColumn type
+// AsColumn tries to convert the instance to OrderByColumn type.
 func (j OrderByTarget) AsColumn() (*OrderByColumn, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -2665,7 +2661,7 @@ func (j OrderByTarget) AsColumn() (*OrderByColumn, error) {
 	}, nil
 }
 
-// AsSingleColumnAggregate tries to convert the instance to OrderBySingleColumnAggregate type
+// AsSingleColumnAggregate tries to convert the instance to OrderBySingleColumnAggregate type.
 func (j OrderByTarget) AsSingleColumnAggregate() (*OrderBySingleColumnAggregate, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -2703,7 +2699,7 @@ func (j OrderByTarget) AsSingleColumnAggregate() (*OrderBySingleColumnAggregate,
 	}, nil
 }
 
-// AsStarCountAggregate tries to convert the instance to OrderByStarCountAggregate type
+// AsStarCountAggregate tries to convert the instance to OrderByStarCountAggregate type.
 func (j OrderByTarget) AsStarCountAggregate() (*OrderByStarCountAggregate, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -2723,13 +2719,13 @@ func (j OrderByTarget) AsStarCountAggregate() (*OrderByStarCountAggregate, error
 	}, nil
 }
 
-// Interface tries to convert the instance to OrderByTargetEncoder interface
+// Interface tries to convert the instance to OrderByTargetEncoder interface.
 func (j OrderByTarget) Interface() OrderByTargetEncoder {
 	result, _ := j.InterfaceT()
 	return result
 }
 
-// InterfaceT tries to convert the instance to OrderByTargetEncoder interface safely with explicit error
+// InterfaceT tries to convert the instance to OrderByTargetEncoder interface safely with explicit error.
 func (j OrderByTarget) InterfaceT() (OrderByTargetEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -2748,12 +2744,12 @@ func (j OrderByTarget) InterfaceT() (OrderByTargetEncoder, error) {
 	}
 }
 
-// OrderByTargetEncoder abstracts the serialization interface for OrderByTarget
+// OrderByTargetEncoder abstracts the serialization interface for OrderByTarget.
 type OrderByTargetEncoder interface {
 	Encode() OrderByTarget
 }
 
-// OrderByColumn represents an ordering object which compares the value in the selected column
+// OrderByColumn represents an ordering object which compares the value in the selected column.
 type OrderByColumn struct {
 	Type OrderByTargetType `json:"type" yaml:"type" mapstructure:"type"`
 	// The name of the column
@@ -2764,7 +2760,7 @@ type OrderByColumn struct {
 	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
 }
 
-// NewOrderByColumn creates an OrderByColumn instance
+// NewOrderByColumn creates an OrderByColumn instance.
 func NewOrderByColumn(name string, path []PathElement, fieldPath []string) *OrderByColumn {
 	return &OrderByColumn{
 		Type:      OrderByTargetTypeColumn,
@@ -2774,12 +2770,12 @@ func NewOrderByColumn(name string, path []PathElement, fieldPath []string) *Orde
 	}
 }
 
-// NewOrderByColumnName creates an OrderByColumn instance with column name only
+// NewOrderByColumnName creates an OrderByColumn instance with column name only.
 func NewOrderByColumnName(name string) *OrderByColumn {
 	return NewOrderByColumn(name, []PathElement{}, nil)
 }
 
-// Encode converts the instance to raw OrderByTarget
+// Encode converts the instance to raw OrderByTarget.
 func (ob OrderByColumn) Encode() OrderByTarget {
 	result := OrderByTarget{
 		"type": ob.Type,
@@ -2808,7 +2804,7 @@ type OrderBySingleColumnAggregate struct {
 	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
 }
 
-// NewOrderBySingleColumnAggregate creates an OrderBySingleColumnAggregate instance
+// NewOrderBySingleColumnAggregate creates an OrderBySingleColumnAggregate instance.
 func NewOrderBySingleColumnAggregate(column string, function string, path []PathElement, fieldPath []string) *OrderBySingleColumnAggregate {
 	return &OrderBySingleColumnAggregate{
 		Type:      OrderByTargetTypeSingleColumnAggregate,
@@ -2819,7 +2815,7 @@ func NewOrderBySingleColumnAggregate(column string, function string, path []Path
 	}
 }
 
-// Encode converts the instance to raw OrderByTarget
+// Encode converts the instance to raw OrderByTarget.
 func (ob OrderBySingleColumnAggregate) Encode() OrderByTarget {
 	result := OrderByTarget{
 		"type":     ob.Type,
@@ -2843,7 +2839,7 @@ type OrderByStarCountAggregate struct {
 	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
 }
 
-// NewOrderByStarCountAggregate creates an OrderByStarCountAggregate instance
+// NewOrderByStarCountAggregate creates an OrderByStarCountAggregate instance.
 func NewOrderByStarCountAggregate(path []PathElement) *OrderByStarCountAggregate {
 	return &OrderByStarCountAggregate{
 		Type: OrderByTargetTypeStarCountAggregate,
@@ -2851,7 +2847,7 @@ func NewOrderByStarCountAggregate(path []PathElement) *OrderByStarCountAggregate
 	}
 }
 
-// Encode converts the instance to raw OrderByTarget
+// Encode converts the instance to raw OrderByTarget.
 func (ob OrderByStarCountAggregate) Encode() OrderByTarget {
 	return OrderByTarget{
 		"type": ob.Type,
@@ -2859,7 +2855,7 @@ func (ob OrderByStarCountAggregate) Encode() OrderByTarget {
 	}
 }
 
-// ComparisonOperatorDefinitionType represents a binary comparison operator type enum
+// ComparisonOperatorDefinitionType represents a binary comparison operator type enum.
 type ComparisonOperatorDefinitionType string
 
 const (
@@ -2874,7 +2870,7 @@ var enumValues_ComparisonOperatorDefinitionType = []ComparisonOperatorDefinition
 	ComparisonOperatorDefinitionTypeCustom,
 }
 
-// ParseComparisonOperatorDefinitionType parses a type of a comparison operator definition
+// ParseComparisonOperatorDefinitionType parses a type of a comparison operator definition.
 func ParseComparisonOperatorDefinitionType(input string) (ComparisonOperatorDefinitionType, error) {
 	result := ComparisonOperatorDefinitionType(input)
 	if !result.IsValid() {
@@ -2884,7 +2880,7 @@ func ParseComparisonOperatorDefinitionType(input string) (ComparisonOperatorDefi
 	return result, nil
 }
 
-// IsValid checks if the value is invalid
+// IsValid checks if the value is invalid.
 func (j ComparisonOperatorDefinitionType) IsValid() bool {
 	return slices.Contains(enumValues_ComparisonOperatorDefinitionType, j)
 }
@@ -2905,7 +2901,7 @@ func (j *ComparisonOperatorDefinitionType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// ComparisonOperatorDefinition the definition of a comparison operator on a scalar type
+// ComparisonOperatorDefinition the definition of a comparison operator on a scalar type.
 type ComparisonOperatorDefinition map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -2922,7 +2918,7 @@ func (j *ComparisonOperatorDefinition) UnmarshalJSON(b []byte) error {
 
 	var ty ComparisonOperatorDefinitionType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in ComparisonOperatorDefinition: %s", err)
+		return fmt.Errorf("field type in ComparisonOperatorDefinition: %w", err)
 	}
 
 	result := map[string]any{
@@ -2938,7 +2934,7 @@ func (j *ComparisonOperatorDefinition) UnmarshalJSON(b []byte) error {
 		}
 		var argumentType Type
 		if err := json.Unmarshal(rawArgumentType, &argumentType); err != nil {
-			return fmt.Errorf("field argument_type in ComparisonOperatorDefinition: %s", err)
+			return fmt.Errorf("field argument_type in ComparisonOperatorDefinition: %w", err)
 		}
 		result["argument_type"] = argumentType
 	}
@@ -2946,7 +2942,7 @@ func (j *ComparisonOperatorDefinition) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Type gets the type enum of the current type
+// Type gets the type enum of the current type.
 func (j ComparisonOperatorDefinition) Type() (ComparisonOperatorDefinitionType, error) {
 	t, ok := j["type"]
 	if !ok {
@@ -2966,7 +2962,7 @@ func (j ComparisonOperatorDefinition) Type() (ComparisonOperatorDefinitionType, 
 	}
 }
 
-// AsEqual tries to convert the instance to ComparisonOperatorEqual type
+// AsEqual tries to convert the instance to ComparisonOperatorEqual type.
 func (j ComparisonOperatorDefinition) AsEqual() (*ComparisonOperatorEqual, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -2981,7 +2977,7 @@ func (j ComparisonOperatorDefinition) AsEqual() (*ComparisonOperatorEqual, error
 	}, nil
 }
 
-// AsIn tries to convert the instance to ComparisonOperatorIn type
+// AsIn tries to convert the instance to ComparisonOperatorIn type.
 func (j ComparisonOperatorDefinition) AsIn() (*ComparisonOperatorIn, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -2996,7 +2992,7 @@ func (j ComparisonOperatorDefinition) AsIn() (*ComparisonOperatorIn, error) {
 	}, nil
 }
 
-// AsCustom tries to convert the instance to ComparisonOperatorIn type
+// AsCustom tries to convert the instance to ComparisonOperatorIn type.
 func (j ComparisonOperatorDefinition) AsCustom() (*ComparisonOperatorCustom, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -3022,13 +3018,13 @@ func (j ComparisonOperatorDefinition) AsCustom() (*ComparisonOperatorCustom, err
 	}, nil
 }
 
-// Interface tries to convert the instance to ComparisonOperatorDefinitionEncoder interface
+// Interface tries to convert the instance to ComparisonOperatorDefinitionEncoder interface.
 func (j ComparisonOperatorDefinition) Interface() ComparisonOperatorDefinitionEncoder {
 	result, _ := j.InterfaceT()
 	return result
 }
 
-// InterfaceT tries to convert the instance to ComparisonOperatorDefinitionEncoder interface safely with explicit error
+// InterfaceT tries to convert the instance to ComparisonOperatorDefinitionEncoder interface safely with explicit error.
 func (j ComparisonOperatorDefinition) InterfaceT() (ComparisonOperatorDefinitionEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -3047,57 +3043,57 @@ func (j ComparisonOperatorDefinition) InterfaceT() (ComparisonOperatorDefinition
 	}
 }
 
-// ComparisonOperatorDefinitionEncoder abstracts the serialization interface for ComparisonOperatorDefinition
+// ComparisonOperatorDefinitionEncoder abstracts the serialization interface for ComparisonOperatorDefinition.
 type ComparisonOperatorDefinitionEncoder interface {
 	Encode() ComparisonOperatorDefinition
 }
 
-// ComparisonOperatorEqual presents an equal comparison operator
+// ComparisonOperatorEqual presents an equal comparison operator.
 type ComparisonOperatorEqual struct {
 	Type ComparisonOperatorDefinitionType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewComparisonOperatorEqual create a new ComparisonOperatorEqual instance
+// NewComparisonOperatorEqual create a new ComparisonOperatorEqual instance.
 func NewComparisonOperatorEqual() *ComparisonOperatorEqual {
 	return &ComparisonOperatorEqual{
 		Type: ComparisonOperatorDefinitionTypeEqual,
 	}
 }
 
-// Encode converts the instance to raw ComparisonOperatorDefinition
+// Encode converts the instance to raw ComparisonOperatorDefinition.
 func (ob ComparisonOperatorEqual) Encode() ComparisonOperatorDefinition {
 	return ComparisonOperatorDefinition{
 		"type": ob.Type,
 	}
 }
 
-// ComparisonOperatorIn presents an in comparison operator
+// ComparisonOperatorIn presents an in comparison operator.
 type ComparisonOperatorIn struct {
 	Type ComparisonOperatorDefinitionType `json:"type" yaml:"type" mapstructure:"type"`
 }
 
-// NewComparisonOperatorIn create a new ComparisonOperatorIn instance
+// NewComparisonOperatorIn create a new ComparisonOperatorIn instance.
 func NewComparisonOperatorIn() *ComparisonOperatorIn {
 	return &ComparisonOperatorIn{
 		Type: ComparisonOperatorDefinitionTypeIn,
 	}
 }
 
-// Encode converts the instance to raw ComparisonOperatorDefinition
+// Encode converts the instance to raw ComparisonOperatorDefinition.
 func (ob ComparisonOperatorIn) Encode() ComparisonOperatorDefinition {
 	return ComparisonOperatorDefinition{
 		"type": ob.Type,
 	}
 }
 
-// ComparisonOperatorCustom presents a custom comparison operator
+// ComparisonOperatorCustom presents a custom comparison operator.
 type ComparisonOperatorCustom struct {
 	Type ComparisonOperatorDefinitionType `json:"type" yaml:"type" mapstructure:"type"`
 	// The type of the argument to this operator
 	ArgumentType Type `json:"argument_type" yaml:"argument_type" mapstructure:"argument_type"`
 }
 
-// NewComparisonOperatorCustom create a new ComparisonOperatorCustom instance
+// NewComparisonOperatorCustom create a new ComparisonOperatorCustom instance.
 func NewComparisonOperatorCustom(argumentType TypeEncoder) *ComparisonOperatorCustom {
 	return &ComparisonOperatorCustom{
 		Type:         ComparisonOperatorDefinitionTypeCustom,
@@ -3105,7 +3101,7 @@ func NewComparisonOperatorCustom(argumentType TypeEncoder) *ComparisonOperatorCu
 	}
 }
 
-// Encode converts the instance to raw ComparisonOperatorDefinition
+// Encode converts the instance to raw ComparisonOperatorDefinition.
 func (ob ComparisonOperatorCustom) Encode() ComparisonOperatorDefinition {
 	return ComparisonOperatorDefinition{
 		"type":          ob.Type,
@@ -3113,7 +3109,7 @@ func (ob ComparisonOperatorCustom) Encode() ComparisonOperatorDefinition {
 	}
 }
 
-// NestedFieldType represents a nested field type enum
+// NestedFieldType represents a nested field type enum.
 type NestedFieldType string
 
 const (
@@ -3126,7 +3122,7 @@ var enumValues_NestedFieldType = []NestedFieldType{
 	NestedFieldTypeArray,
 }
 
-// ParseNestedFieldType parses the type of nested field
+// ParseNestedFieldType parses the type of nested field.
 func ParseNestedFieldType(input string) (NestedFieldType, error) {
 	result := NestedFieldType(input)
 	if !result.IsValid() {
@@ -3136,7 +3132,7 @@ func ParseNestedFieldType(input string) (NestedFieldType, error) {
 	return result, nil
 }
 
-// IsValid checks if the value is invalid
+// IsValid checks if the value is invalid.
 func (j NestedFieldType) IsValid() bool {
 	return slices.Contains(enumValues_NestedFieldType, j)
 }
@@ -3157,10 +3153,10 @@ func (j *NestedFieldType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// NestedField represents a nested field
+// NestedField represents a nested field.
 type NestedField map[string]any
 
-// IsNil checks if the field is null or empty
+// IsNil checks if the field is null or empty.
 func (j NestedField) IsNil() bool {
 	return len(j) == 0
 }
@@ -3182,7 +3178,7 @@ func (j *NestedField) UnmarshalJSON(b []byte) error {
 
 	var ty NestedFieldType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in NestedField: %s", err)
+		return fmt.Errorf("field type in NestedField: %w", err)
 	}
 
 	result := map[string]any{
@@ -3196,7 +3192,7 @@ func (j *NestedField) UnmarshalJSON(b []byte) error {
 		}
 		var fields map[string]Field
 		if err := json.Unmarshal(rawFields, &fields); err != nil {
-			return fmt.Errorf("field fields in NestedField object: %s", err)
+			return fmt.Errorf("field fields in NestedField object: %w", err)
 		}
 		result["fields"] = fields
 	case NestedFieldTypeArray:
@@ -3206,7 +3202,7 @@ func (j *NestedField) UnmarshalJSON(b []byte) error {
 		}
 		var fields NestedField
 		if err := json.Unmarshal(rawFields, &fields); err != nil {
-			return fmt.Errorf("field fields in NestedField array: %s", err)
+			return fmt.Errorf("field fields in NestedField array: %w", err)
 		}
 		result["fields"] = fields
 	}
@@ -3214,7 +3210,7 @@ func (j *NestedField) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Type gets the type enum of the current type
+// Type gets the type enum of the current type.
 func (j NestedField) Type() (NestedFieldType, error) {
 	t, ok := j["type"]
 	if !ok {
@@ -3234,7 +3230,7 @@ func (j NestedField) Type() (NestedFieldType, error) {
 	}
 }
 
-// AsObject tries to convert the instance to NestedObject type
+// AsObject tries to convert the instance to NestedObject type.
 func (j NestedField) AsObject() (*NestedObject, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -3260,7 +3256,7 @@ func (j NestedField) AsObject() (*NestedObject, error) {
 	}, nil
 }
 
-// AsArray tries to convert the instance to NestedArray type
+// AsArray tries to convert the instance to NestedArray type.
 func (j NestedField) AsArray() (*NestedArray, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -3286,13 +3282,13 @@ func (j NestedField) AsArray() (*NestedArray, error) {
 	}, nil
 }
 
-// Interface tries to convert the instance to NestedFieldEncoder interface
+// Interface tries to convert the instance to NestedFieldEncoder interface.
 func (j NestedField) Interface() NestedFieldEncoder {
 	result, _ := j.InterfaceT()
 	return result
 }
 
-// Interface tries to convert the instance to NestedFieldEncoder interface safely with explicit error
+// Interface tries to convert the instance to NestedFieldEncoder interface safely with explicit error.
 func (j NestedField) InterfaceT() (NestedFieldEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -3309,18 +3305,18 @@ func (j NestedField) InterfaceT() (NestedFieldEncoder, error) {
 	}
 }
 
-// NestedFieldEncoder abstracts the serialization interface for NestedField
+// NestedFieldEncoder abstracts the serialization interface for NestedField.
 type NestedFieldEncoder interface {
 	Encode() NestedField
 }
 
-// NestedObject presents a nested object field
+// NestedObject presents a nested object field.
 type NestedObject struct {
 	Type   NestedFieldType  `json:"type" yaml:"type" mapstructure:"type"`
 	Fields map[string]Field `json:"fields" yaml:"fields" mapstructure:"fields"`
 }
 
-// NewNestedObject create a new NestedObject instance
+// NewNestedObject create a new NestedObject instance.
 func NewNestedObject(fields map[string]FieldEncoder) *NestedObject {
 	fieldMap := make(map[string]Field)
 	for k, v := range fields {
@@ -3332,7 +3328,7 @@ func NewNestedObject(fields map[string]FieldEncoder) *NestedObject {
 	}
 }
 
-// Encode converts the instance to raw NestedField
+// Encode converts the instance to raw NestedField.
 func (ob NestedObject) Encode() NestedField {
 	return NestedField{
 		"type":   ob.Type,
@@ -3340,13 +3336,13 @@ func (ob NestedObject) Encode() NestedField {
 	}
 }
 
-// NestedArray presents a nested array field
+// NestedArray presents a nested array field.
 type NestedArray struct {
 	Type   NestedFieldType `json:"type" yaml:"type" mapstructure:"type"`
 	Fields NestedField     `json:"fields" yaml:"fields" mapstructure:"fields"`
 }
 
-// NewNestedArray create a new NestedArray instance
+// NewNestedArray create a new NestedArray instance.
 func NewNestedArray(fields NestedFieldEncoder) *NestedArray {
 	var nf NestedField
 	if fields != nil {
@@ -3358,7 +3354,7 @@ func NewNestedArray(fields NestedFieldEncoder) *NestedArray {
 	}
 }
 
-// Encode converts the instance to raw NestedField
+// Encode converts the instance to raw NestedField.
 func (ob NestedArray) Encode() NestedField {
 	return NestedField{
 		"type":   ob.Type,

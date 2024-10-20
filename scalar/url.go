@@ -11,12 +11,12 @@ import (
 
 // URL represents a URL string
 //
-// @scalar URL string
+// @scalar URL string.
 type URL struct {
 	*url.URL
 }
 
-// NewURL creates a URL instance
+// NewURL creates a URL instance.
 func NewURL(rawURL string) (*URL, error) {
 	u, err := parseURL(rawURL)
 	if err != nil {
@@ -25,7 +25,7 @@ func NewURL(rawURL string) (*URL, error) {
 	return &URL{u}, nil
 }
 
-// ScalarName get the schema name of the scalar
+// ScalarName get the schema name of the scalar.
 func (j URL) ScalarName() string {
 	return "URL"
 }
@@ -45,7 +45,6 @@ func (u URL) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (u *URL) UnmarshalJSON(b []byte) error {
-
 	var str string
 	if err := json.Unmarshal(b, &str); err != nil {
 		return err

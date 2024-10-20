@@ -9,17 +9,17 @@ import (
 
 // Bytes wraps the scalar implementation for bytes with base64 encoding
 //
-// @scalar Bytes string
+// @scalar Bytes string.
 type Bytes struct {
 	data []byte
 }
 
-// NewBytes create a Bytes instance
+// NewBytes create a Bytes instance.
 func NewBytes(data []byte) *Bytes {
 	return &Bytes{data: data}
 }
 
-// ParseBytes parses bytes from base64 string
+// ParseBytes parses bytes from base64 string.
 func ParseBytes(value string) (*Bytes, error) {
 	bs, err := base64.StdEncoding.DecodeString(value)
 	if err != nil {
@@ -29,7 +29,7 @@ func ParseBytes(value string) (*Bytes, error) {
 	return &Bytes{data: bs}, nil
 }
 
-// ScalarName get the schema name of the scalar
+// ScalarName get the schema name of the scalar.
 func (bs Bytes) ScalarName() string {
 	return "Bytes"
 }
