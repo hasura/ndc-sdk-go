@@ -45,7 +45,6 @@ func (u URL) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (u *URL) UnmarshalJSON(b []byte) error {
-
 	var str string
 	if err := json.Unmarshal(b, &str); err != nil {
 		return err

@@ -12,7 +12,7 @@ func (j *ProcedureInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 	var arguments ProcedureInfoArguments
 	if ok && !isNullJSON(rawArguments) {
 		if err := json.Unmarshal(rawArguments, &arguments); err != nil {
-			return fmt.Errorf("ProcedureInfo.arguments: %s", err)
+			return fmt.Errorf("ProcedureInfo.arguments: %w", err)
 		}
 	}
 
@@ -22,7 +22,7 @@ func (j *ProcedureInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 	}
 	var name string
 	if err := json.Unmarshal(rawName, &name); err != nil {
-		return fmt.Errorf("ProcedureInfo.name: %s", err)
+		return fmt.Errorf("ProcedureInfo.name: %w", err)
 	}
 	if name == "" {
 		return errors.New("ProcedureInfo.name: required")
@@ -32,17 +32,17 @@ func (j *ProcedureInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 	var description *string
 	if ok && !isNullJSON(rawDescription) {
 		if err := json.Unmarshal(rawDescription, &description); err != nil {
-			return fmt.Errorf("ProcedureInfo.description: %s", err)
+			return fmt.Errorf("ProcedureInfo.description: %w", err)
 		}
 	}
 
 	rawResultType, ok := raw["result_type"]
 	if !ok || isNullJSON(rawResultType) {
-		return fmt.Errorf("ProcedureInfo.result_type: required")
+		return errors.New("ProcedureInfo.result_type: required")
 	}
 	var resultType Type
 	if err := json.Unmarshal(rawResultType, &resultType); err != nil {
-		return fmt.Errorf("ProcedureInfo.result_type: %s", err)
+		return fmt.Errorf("ProcedureInfo.result_type: %w", err)
 	}
 
 	*j = ProcedureInfo{
@@ -113,7 +113,7 @@ func (j *MutationOperation) UnmarshalJSON(b []byte) error {
 	}
 	err := json.Unmarshal(rawType, &operationType)
 	if err != nil {
-		return fmt.Errorf("field type in MutationOperation: %s", err)
+		return fmt.Errorf("field type in MutationOperation: %w", err)
 	}
 
 	value := MutationOperation{
@@ -124,7 +124,7 @@ func (j *MutationOperation) UnmarshalJSON(b []byte) error {
 	case MutationOperationProcedure:
 		name, err := unmarshalStringFromJsonMap(raw, "name", true)
 		if err != nil {
-			return fmt.Errorf("field name in MutationOperation: %s", err)
+			return fmt.Errorf("field name in MutationOperation: %w", err)
 		}
 		value.Name = name
 
@@ -139,7 +139,7 @@ func (j *MutationOperation) UnmarshalJSON(b []byte) error {
 		if ok && !isNullJSON(rawFields) {
 			var fields NestedField
 			if err = json.Unmarshal(rawFields, &fields); err != nil {
-				return fmt.Errorf("field fields in MutationOperation: %s", err)
+				return fmt.Errorf("field fields in MutationOperation: %w", err)
 			}
 			value.Fields = fields
 		}
@@ -166,7 +166,7 @@ func (j *MutationOperationResults) UnmarshalJSON(b []byte) error {
 
 	var ty MutationOperationType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in MutationOperationResults: %s", err)
+		return fmt.Errorf("field type in MutationOperationResults: %w", err)
 	}
 
 	result := map[string]any{
@@ -180,7 +180,7 @@ func (j *MutationOperationResults) UnmarshalJSON(b []byte) error {
 		}
 		var procedureResult any
 		if err := json.Unmarshal(rawResult, &procedureResult); err != nil {
-			return fmt.Errorf("field result in MutationOperationResults: %s", err)
+			return fmt.Errorf("field result in MutationOperationResults: %w", err)
 		}
 		result["result"] = procedureResult
 	}

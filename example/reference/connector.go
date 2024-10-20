@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"slices"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/hasura/ndc-sdk-go/connector"
@@ -361,7 +362,7 @@ func (mc *Connector) QueryExplain(ctx context.Context, configuration *Configurat
 	}) && !slices.ContainsFunc(ndcSchema.Collections, func(f schema.CollectionInfo) bool {
 		return f.Name == request.Collection
 	}) {
-		return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid query name: %s", request.Collection), nil)
+		return nil, schema.UnprocessableContentError("invalid query name: "+request.Collection, nil)
 	}
 	return &schema.ExplainResponse{
 		Details: schema.ExplainResponseDetails{},
@@ -376,7 +377,7 @@ func (mc *Connector) MutationExplain(ctx context.Context, configuration *Configu
 	if !slices.ContainsFunc(ndcSchema.Procedures, func(f schema.ProcedureInfo) bool {
 		return f.Name == request.Operations[0].Name
 	}) {
-		return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid mutation name: %s", request.Operations[0].Name), nil)
+		return nil, schema.UnprocessableContentError("invalid mutation name: "+request.Operations[0].Name, nil)
 	}
 
 	return &schema.ExplainResponse{
@@ -385,7 +386,6 @@ func (mc *Connector) MutationExplain(ctx context.Context, configuration *Configu
 }
 
 func (mc *Connector) Query(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (schema.QueryResponse, error) {
-
 	variableSets := request.Variables
 	if variableSets == nil {
 		variableSets = []schema.QueryRequestVariablesElem{make(map[string]any)}
@@ -406,7 +406,6 @@ func (mc *Connector) Query(ctx context.Context, configuration *Configuration, st
 }
 
 func (mc *Connector) Mutation(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
-
 	operationResults := []schema.MutationOperationResults{}
 	for _, operation := range request.Operations {
 		results, err := executeMutationOperation(ctx, state, request.CollectionRelationships, &operation)
@@ -451,7 +450,6 @@ func executeUpsertArticle(
 	fields schema.NestedField,
 	collectionRelationships map[string]schema.Relationship,
 ) (schema.MutationOperationResults, error) {
-
 	var args UpsertArticleArguments
 	if err := json.Unmarshal(arguments, &args); err != nil {
 		return nil, schema.UnprocessableContentError(err.Error(), nil)
@@ -556,7 +554,7 @@ func evalAggregate(aggregate *schema.Aggregate, paginated []map[string]any) (any
 		for _, value := range paginated {
 			v, ok := value[agg.Column]
 			if !ok {
-				return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid column name: %s", agg.Column), nil)
+				return nil, schema.UnprocessableContentError("invalid column name: "+agg.Column, nil)
 			}
 			if v == nil {
 				continue
@@ -576,7 +574,7 @@ func evalAggregate(aggregate *schema.Aggregate, paginated []map[string]any) (any
 		for _, value := range paginated {
 			v, ok := value[agg.Column]
 			if !ok {
-				return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid column name: %s", agg.Column), nil)
+				return nil, schema.UnprocessableContentError("invalid column name: "+agg.Column, nil)
 			}
 			if v == nil {
 				continue
@@ -620,7 +618,7 @@ func evalAggregateFunction(function string, values []any) (*int, error) {
 	case "max":
 		return &intValues[len(intValues)-1], nil
 	default:
-		return nil, schema.UnprocessableContentError(fmt.Sprintf("%s: invalid aggregation function", function), nil)
+		return nil, schema.UnprocessableContentError(function+": invalid aggregation function", nil)
 	}
 }
 
@@ -808,8 +806,9 @@ func compare(v1 any, v2 any) (int, error) {
 	value2 := reflect.ValueOf(v2)
 	kindV2 := value2.Kind()
 
+	errInvalidType := schema.InternalServerError(fmt.Sprintf("cannot compare values with different types: %s <> %s", kindV1, kindV2), nil)
 	if kindV1 != kindV2 {
-		return 0, schema.InternalServerError(fmt.Sprintf("cannot compare values with different types: %s <> %s", kindV1, kindV2), nil)
+		return 0, errInvalidType
 	}
 
 	if kindV1 == reflect.Pointer {
@@ -818,28 +817,53 @@ func compare(v1 any, v2 any) (int, error) {
 
 	switch value1 := v1.(type) {
 	case bool:
-		value2 := v2.(bool)
+		value2, ok := v2.(bool)
+		if !ok {
+			return 0, errInvalidType
+		}
 		return boolToInt(value1) - boolToInt(value2), nil
 	case int:
-		value2 := v2.(int)
+		value2, ok := v2.(int)
+		if !ok {
+			return 0, errInvalidType
+		}
 		return value1 - value2, nil
 	case int8:
-		value2 := v2.(int8)
+		value2, ok := v2.(int8)
+		if !ok {
+			return 0, errInvalidType
+		}
 		return int(value1 - value2), nil
 	case int16:
-		value2 := v2.(int16)
+		value2, ok := v2.(int16)
+		if !ok {
+			return 0, errInvalidType
+		}
 		return int(value1 - value2), nil
 	case int32:
-		value2 := v2.(int32)
+		value2, ok := v2.(int32)
+		if !ok {
+			return 0, errInvalidType
+		}
 		return int(value1 - value2), nil
 	case int64:
-		value2 := v2.(int64)
+		value2, ok := v2.(int64)
+
+		if !ok {
+			return 0, errInvalidType
+		}
 		return int(value1 - value2), nil
 	case string:
-		value2 := v2.(string)
+		value2, ok := v2.(string)
+		if !ok {
+			return 0, errInvalidType
+		}
 		return strings.Compare(value1, value2), nil
 	default:
-		rawV1, _ := json.Marshal(v1)
+		rawV1, err := json.Marshal(v1)
+		if err != nil {
+			return 0, errInvalidType
+		}
 		return 0, schema.InternalServerError(fmt.Sprintf("cannot compare values with type: %s, value: %s", kindV1, string(rawV1)), nil)
 	}
 }
@@ -895,7 +919,7 @@ func evalOrderBySingleColumnAggregate(
 	for _, row := range rows {
 		value, ok := row[column]
 		if !ok {
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid column name: %s", column), nil)
+			return nil, schema.UnprocessableContentError("invalid column name: "+column, nil)
 		}
 		values = append(values, value)
 	}
@@ -922,7 +946,7 @@ func evalOrderByColumn(
 	}
 	value, ok := rows[0][name]
 	if !ok {
-		return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid column name: %s", name), nil)
+		return nil, schema.UnprocessableContentError("invalid column name: "+name, nil)
 	}
 	return value, nil
 }
@@ -938,7 +962,7 @@ func evalInCollection(
 	case *schema.ExistsInCollectionRelated:
 		relationship, ok := collectionRelationships[inCol.Relationship]
 		if !ok {
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid in collection relationship: %s", inCol.Relationship), nil)
+			return nil, schema.UnprocessableContentError("invalid in collection relationship: "+inCol.Relationship, nil)
 		}
 		source := []map[string]any{item}
 		return evalPathElement(collectionRelationships, variables, state, &relationship, inCol.Arguments, source, nil)
@@ -982,7 +1006,6 @@ func evalNestedField(
 	value any,
 	nestedField schema.NestedField,
 ) (any, error) {
-
 	if utils.IsNil(value) {
 		return value, nil
 	}
@@ -1027,7 +1050,7 @@ func evalField(
 	case *schema.ColumnField:
 		value, ok := row[f.Column]
 		if !ok {
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid column name: %s", f.Column), nil)
+			return nil, schema.UnprocessableContentError("invalid column name: "+f.Column, nil)
 		}
 		if len(f.Fields) == 0 {
 			return value, nil
@@ -1036,7 +1059,7 @@ func evalField(
 	case *schema.RelationshipField:
 		relationship, ok := collectionRelationships[f.Relationship]
 		if !ok {
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid relationship name %s", f.Relationship), nil)
+			return nil, schema.UnprocessableContentError("invalid relationship name "+f.Relationship, nil)
 		}
 
 		collection, err := evalPathElement(collectionRelationships, variables, state, &relationship, f.Arguments, []map[string]any{row}, nil)
@@ -1082,7 +1105,6 @@ func evalPathElement(
 	// should consist of all object relationships, and possibly terminated by a
 	// single array relationship, so there should be no double counting.
 	for _, srcRow := range source {
-
 		for argName, arg := range relationship.Arguments {
 			relValue, err := evalRelationshipArgument(variables, srcRow, &arg)
 			if err != nil {
@@ -1092,7 +1114,7 @@ func evalPathElement(
 		}
 		for argName, arg := range arguments {
 			if _, ok := allArguments[argName]; ok {
-				return nil, schema.UnprocessableContentError(fmt.Sprintf("duplicate argument name: %s", argName), nil)
+				return nil, schema.UnprocessableContentError("duplicate argument name: "+argName, nil)
 			}
 			relValue, err := evalRelationshipArgument(variables, srcRow, &arg)
 			if err != nil {
@@ -1137,7 +1159,7 @@ func evalRelationshipArgument(variables map[string]any, row map[string]any, argu
 	case *schema.RelationshipArgumentColumn:
 		value, ok := row[arg.Name]
 		if !ok {
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid column name: %s", arg.Name), nil)
+			return nil, schema.UnprocessableContentError("invalid column name: "+arg.Name, nil)
 		}
 		return value, nil
 	case *schema.RelationshipArgumentLiteral:
@@ -1145,7 +1167,7 @@ func evalRelationshipArgument(variables map[string]any, row map[string]any, argu
 	case *schema.RelationshipArgumentVariable:
 		variable, ok := variables[arg.Name]
 		if !ok {
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid variable name: %s", arg.Name), nil)
+			return nil, schema.UnprocessableContentError("invalid variable name: "+arg.Name, nil)
 		}
 		return variable, nil
 	default:
@@ -1206,7 +1228,7 @@ func getCollectionByName(collectionName string, arguments map[string]any, state 
 		}
 
 		for _, row := range state.Articles {
-			if fmt.Sprint(row.AuthorID) == fmt.Sprint(authorId) {
+			if strconv.Itoa(row.AuthorID) == fmt.Sprint(authorId) {
 				r, err := utils.EncodeObject(row)
 				if err != nil {
 					return nil, err
@@ -1215,7 +1237,7 @@ func getCollectionByName(collectionName string, arguments map[string]any, state 
 			}
 		}
 	default:
-		return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid collection name %s", collectionName), nil)
+		return nil, schema.UnprocessableContentError("invalid collection name "+collectionName, nil)
 	}
 
 	return rows, nil
@@ -1236,11 +1258,11 @@ func evalComparisonValue(
 		return []any{compValue.Value}, nil
 	case *schema.ComparisonValueVariable:
 		if len(variables) == 0 {
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid variable name: %s", compValue.Name), nil)
+			return nil, schema.UnprocessableContentError("invalid variable name: "+compValue.Name, nil)
 		}
 		val, ok := variables[compValue.Name]
 		if !ok {
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid variable name: %s", compValue.Name), nil)
+			return nil, schema.UnprocessableContentError("invalid variable name: "+compValue.Name, nil)
 		}
 		return []any{val}, nil
 	default:
@@ -1268,7 +1290,7 @@ func evalComparisonTarget(
 		for _, row := range rows {
 			value, ok := row[target.Name]
 			if !ok {
-				return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid comparison target column name: %s", target.Name), nil)
+				return nil, schema.UnprocessableContentError("invalid comparison target column name: "+target.Name, nil)
 			}
 			result = append(result, value)
 		}
@@ -1276,7 +1298,7 @@ func evalComparisonTarget(
 	case schema.ComparisonTargetTypeRootCollectionColumn:
 		value, ok := root[target.Name]
 		if !ok {
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid comparison target column name: %s", target.Name), nil)
+			return nil, schema.UnprocessableContentError("invalid comparison target column name: "+target.Name, nil)
 		}
 		return []any{value}, nil
 	default:
@@ -1298,7 +1320,7 @@ func evalPath(
 		relationshipName := pathElem.Relationship
 		relationship, ok := collectionRelationships[relationshipName]
 		if !ok {
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid relationship name in path: %s", relationshipName), nil)
+			return nil, schema.UnprocessableContentError("invalid relationship name in path: "+relationshipName, nil)
 		}
 		result, err = evalPathElement(collectionRelationships, variables, state, &relationship, pathElem.Arguments, result, pathElem.Predicate)
 		if err != nil {
@@ -1390,7 +1412,6 @@ func evalExpression(
 			}
 
 			for _, columnValue := range columnValues {
-
 				columnStr, ok := columnValue.(string)
 				if !ok {
 					return false, schema.UnprocessableContentError(fmt.Sprintf("value of column %s is not a string, got %+v", expression.Column, columnValue), nil)
@@ -1406,7 +1427,7 @@ func evalExpression(
 						return false, schema.UnprocessableContentError(fmt.Sprintf("invalid regular expression: %s", err), nil)
 					}
 
-					if regex.Match([]byte(columnStr)) {
+					if regex.MatchString(columnStr) {
 						return true, nil
 					}
 				}
@@ -1438,7 +1459,7 @@ func evalExpression(
 			}
 			return false, nil
 		default:
-			return false, schema.UnprocessableContentError(fmt.Sprintf("invalid comparison operator: %s", expression.Operator), nil)
+			return false, schema.UnprocessableContentError("invalid comparison operator: "+expression.Operator, nil)
 		}
 	case *schema.ExpressionExists:
 		query := &schema.Query{
@@ -1466,11 +1487,11 @@ func evalColumnMapping(relationship *schema.Relationship, srcRow map[string]any,
 	for srcColumn, targetColumn := range relationship.ColumnMapping {
 		srcValue, ok := srcRow[srcColumn]
 		if !ok {
-			return false, schema.UnprocessableContentError(fmt.Sprintf("source column does not exist: %s", srcColumn), nil)
+			return false, schema.UnprocessableContentError("source column does not exist: "+srcColumn, nil)
 		}
 		targetValue, ok := target[targetColumn]
 		if !ok {
-			return false, schema.UnprocessableContentError(fmt.Sprintf("target column does not exist: %s", targetColumn), nil)
+			return false, schema.UnprocessableContentError("target column does not exist: "+targetColumn, nil)
 		}
 		if srcValue != targetValue {
 			return false, nil

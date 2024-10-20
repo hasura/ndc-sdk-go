@@ -102,7 +102,7 @@ func (rt *router) Build() *http.ServeMux {
 	handleFunc := func(handlers map[string]http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			startTime := time.Now()
-			isDebug := rt.logger.Enabled(context.Background(), slog.LevelDebug)
+			isDebug := rt.logger.Enabled(r.Context(), slog.LevelDebug)
 			requestID := getRequestID(r)
 			requestLogData := map[string]any{
 				"url":            r.URL.String(),
@@ -231,7 +231,7 @@ func (rt *router) Build() *http.ServeMux {
 						}),
 					)
 					span.SetAttributes(attribute.Int("http.response.status_code", http.StatusUnprocessableEntity))
-					span.SetStatus(codes.Error, fmt.Sprintf("invalid content type: %s", contentType))
+					span.SetStatus(codes.Error, "invalid content type: "+contentType)
 					return
 				}
 			}

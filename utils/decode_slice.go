@@ -120,7 +120,7 @@ func GetNullableIntSlice[T int | int8 | int16 | int32 | int64](object map[string
 	}
 	result, err := DecodeNullableIntSlice[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -133,7 +133,7 @@ func GetNullableUintSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[
 	}
 	result, err := DecodeNullableUintSlice[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -146,7 +146,7 @@ func GetNullableFloatSlice[T float32 | float64](object map[string]any, key strin
 	}
 	result, err := DecodeNullableFloatSlice[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -159,7 +159,7 @@ func GetIntSlice[T int | int8 | int16 | int32 | int64](object map[string]any, ke
 	}
 	result, err := DecodeIntSlice[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -172,7 +172,7 @@ func GetUintSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[string]a
 	}
 	result, err := DecodeUintSlice[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -185,7 +185,7 @@ func GetFloatSlice[T float32 | float64](object map[string]any, key string) ([]T,
 	}
 	result, err := DecodeFloatSlice[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -198,7 +198,7 @@ func GetNullableIntPtrSlice[T int | int8 | int16 | int32 | int64](object map[str
 	}
 	result, err := DecodeNullableIntPtrSlice[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -211,7 +211,7 @@ func GetNullableUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](object m
 	}
 	result, err := DecodeNullableUintPtrSlice[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -224,7 +224,7 @@ func GetNullableFloatPtrSlice[T float32 | float64](object map[string]any, key st
 	}
 	result, err := DecodeNullableFloatPtrSlice[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -237,7 +237,7 @@ func GetIntPtrSlice[T int | int8 | int16 | int32 | int64](object map[string]any,
 	}
 	result, err := DecodeIntPtrSlice[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -250,7 +250,7 @@ func GetUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[strin
 	}
 	result, err := DecodeUintPtrSlice[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -263,7 +263,7 @@ func GetFloatPtrSlice[T float32 | float64](object map[string]any, key string) ([
 	}
 	result, err := DecodeFloatPtrSlice[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -288,7 +288,7 @@ func decodeNullableNumberSlice[T int | int8 | int16 | int32 | int64 | uint | uin
 		item := reflectValue.Index(i)
 		result, err := convertFn(item)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert number element at %d: %s", i, err)
+			return nil, fmt.Errorf("failed to convert number element at %d: %w", i, err)
 		}
 		if result == nil {
 			return nil, fmt.Errorf("number element at %d must not be null", i)
@@ -318,7 +318,7 @@ func decodeNullableNumberPtrSlice[T int | int8 | int16 | int32 | int64 | uint | 
 		item := reflectValue.Index(i)
 		result, err := convertFn(item.Interface())
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert number element at %d: %s", i, err)
+			return nil, fmt.Errorf("failed to convert number element at %d: %w", i, err)
 		}
 		results[i] = result
 	}
@@ -344,7 +344,7 @@ func DecodeNullableStringSlice(value any) (*[]string, error) {
 	for i := 0; i < valueLen; i++ {
 		elem, err := DecodeNullableStringReflection(reflectValue.Index(i))
 		if err != nil {
-			return nil, fmt.Errorf("failed to decode string element at %d: %s", i, err)
+			return nil, fmt.Errorf("failed to decode string element at %d: %w", i, err)
 		}
 		if elem == nil {
 			return nil, fmt.Errorf("string element at %d must not be null", i)
@@ -385,7 +385,7 @@ func DecodeNullableStringPtrSlice(value any) (*[]*string, error) {
 	for i := 0; i < valueLen; i++ {
 		elem, err := DecodeNullableStringReflection(reflectValue.Index(i))
 		if err != nil {
-			return nil, fmt.Errorf("failed to decode string element at %d: %s", i, err)
+			return nil, fmt.Errorf("failed to decode string element at %d: %w", i, err)
 		}
 		results[i] = elem
 	}
@@ -412,7 +412,7 @@ func GetStringSlice(object map[string]any, key string) ([]string, error) {
 	}
 	result, err := DecodeStringSlice(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -425,7 +425,7 @@ func GetNullableStringSlice(object map[string]any, key string) (*[]string, error
 	}
 	result, err := DecodeNullableStringSlice(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -438,7 +438,7 @@ func GetStringPtrSlice(object map[string]any, key string) ([]*string, error) {
 	}
 	result, err := DecodeStringPtrSlice(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -451,7 +451,7 @@ func GetNullableStringPtrSlice(object map[string]any, key string) (*[]*string, e
 	}
 	result, err := DecodeNullableStringPtrSlice(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -475,7 +475,7 @@ func DecodeNullableBooleanSlice(value any) (*[]bool, error) {
 	for i := 0; i < valueLen; i++ {
 		elem, err := DecodeNullableBooleanReflection(reflectValue.Index(i))
 		if err != nil {
-			return nil, fmt.Errorf("failed to decode boolean element at %d: %s", i, err)
+			return nil, fmt.Errorf("failed to decode boolean element at %d: %w", i, err)
 		}
 		if elem == nil {
 			return nil, fmt.Errorf("boolean element at %d must not be null", i)
@@ -516,12 +516,11 @@ func DecodeNullableBooleanPtrSlice(value any) (*[]*bool, error) {
 	for i := 0; i < valueLen; i++ {
 		elem, err := DecodeNullableBooleanReflection(reflectValue.Index(i))
 		if err != nil {
-			return nil, fmt.Errorf("failed to decode boolean element at %d: %s", i, err)
+			return nil, fmt.Errorf("failed to decode boolean element at %d: %w", i, err)
 		}
 		results[i] = elem
 	}
 	return &results, nil
-
 }
 
 // DecodeBooleanPtrSlice decodes a boolean pointer slice from an unknown value
@@ -544,7 +543,7 @@ func GetBooleanSlice(object map[string]any, key string) ([]bool, error) {
 	}
 	result, err := DecodeBooleanSlice(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -557,7 +556,7 @@ func GetNullableBooleanSlice(object map[string]any, key string) (*[]bool, error)
 	}
 	result, err := DecodeNullableBooleanSlice(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -570,7 +569,7 @@ func GetBooleanPtrSlice(object map[string]any, key string) ([]*bool, error) {
 	}
 	result, err := DecodeBooleanPtrSlice(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -583,7 +582,7 @@ func GetNullableBooleanPtrSlice(object map[string]any, key string) (*[]*bool, er
 	}
 	result, err := DecodeNullableBooleanPtrSlice(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -619,7 +618,7 @@ func DecodeNullableUUIDSlice(value any) (*[]uuid.UUID, error) {
 		}
 		uid, err := uuid.Parse(*str)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse uuid element at %d: %s", i, err)
+			return nil, fmt.Errorf("failed to parse uuid element at %d: %w", i, err)
 		}
 		results[i] = uid
 	}
@@ -657,7 +656,7 @@ func DecodeNullableUUIDPtrSlice(value any) (*[]*uuid.UUID, error) {
 		}
 		uid, err := uuid.Parse(*str)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse uuid element at %d: %s", i, err)
+			return nil, fmt.Errorf("failed to parse uuid element at %d: %w", i, err)
 		}
 		results[i] = &uid
 	}
@@ -672,7 +671,7 @@ func GetUUIDSlice(object map[string]any, key string) ([]uuid.UUID, error) {
 	}
 	result, err := DecodeUUIDSlice(value)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", key, err)
+		return nil, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -685,7 +684,7 @@ func GetNullableUUIDSlice(object map[string]any, key string) (*[]uuid.UUID, erro
 	}
 	result, err := DecodeNullableUUIDSlice(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -698,7 +697,7 @@ func GetUUIDPtrSlice(object map[string]any, key string) ([]*uuid.UUID, error) {
 	}
 	result, err := DecodeUUIDPtrSlice(value)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", key, err)
+		return nil, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -711,7 +710,7 @@ func GetNullableUUIDPtrSlice(object map[string]any, key string) (*[]*uuid.UUID, 
 	}
 	result, err := DecodeNullableUUIDPtrSlice(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -735,7 +734,7 @@ func DecodeNullableDateTimePtrSlice(value any) (*[]*time.Time, error) {
 	for i := 0; i < valueLen; i++ {
 		elem, err := DecodeNullableDateTime(reflectValue.Index(i).Interface())
 		if err != nil {
-			return nil, fmt.Errorf("failed to decode time.Time element at %d: %s", i, err)
+			return nil, fmt.Errorf("failed to decode time.Time element at %d: %w", i, err)
 		}
 		if elem == nil {
 			continue
@@ -776,7 +775,7 @@ func DecodeNullableDateTimeSlice(value any) (*[]time.Time, error) {
 	for i := 0; i < valueLen; i++ {
 		elem, err := DecodeNullableDateTime(reflectValue.Index(i).Interface())
 		if err != nil {
-			return nil, fmt.Errorf("failed to decode time.Time element at %d: %s", i, err)
+			return nil, fmt.Errorf("failed to decode time.Time element at %d: %w", i, err)
 		}
 		if elem == nil {
 			return nil, fmt.Errorf("time.Time element at %d must not be null", i)
@@ -806,7 +805,7 @@ func GetNullableDateTimeSlice(object map[string]any, key string) (*[]time.Time, 
 	}
 	result, err := DecodeNullableDateTimeSlice(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -819,7 +818,7 @@ func GetDateTimeSlice(object map[string]any, key string) ([]time.Time, error) {
 	}
 	result, err := DecodeDateTimeSlice(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -832,7 +831,7 @@ func GetNullableDateTimePtrSlice(object map[string]any, key string) (*[]*time.Ti
 	}
 	result, err := DecodeNullableDateTimePtrSlice(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -845,7 +844,7 @@ func GetDateTimePtrSlice(object map[string]any, key string) ([]*time.Time, error
 	}
 	result, err := DecodeDateTimePtrSlice(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -867,7 +866,6 @@ func DecodeNullableArbitraryJSONPtrSlice(value any) (*[]*any, error) {
 	valueLen := reflectValue.Len()
 	results := make([]*any, valueLen)
 	for i := 0; i < valueLen; i++ {
-
 		elem, ok := UnwrapPointerFromReflectValue(reflectValue.Index(i))
 		if !ok {
 			continue
@@ -983,7 +981,7 @@ func DecodeNullableRawJSONSlice(value any) (*[]json.RawMessage, error) {
 	for i := 0; i < valueLen; i++ {
 		elem, err := DecodeNullableRawJSON(reflectValue.Index(i).Interface())
 		if err != nil {
-			return nil, fmt.Errorf("failed to decode json.RawMessage element at %d: %s", i, err)
+			return nil, fmt.Errorf("failed to decode json.RawMessage element at %d: %w", i, err)
 		}
 		if elem == nil {
 			return nil, fmt.Errorf("json.RawMessage element at %d must not be null", i)
@@ -1024,12 +1022,11 @@ func DecodeNullableRawJSONPtrSlice(value any) (*[]*json.RawMessage, error) {
 	for i := 0; i < valueLen; i++ {
 		elem, err := DecodeNullableRawJSON(reflectValue.Index(i).Interface())
 		if err != nil {
-			return nil, fmt.Errorf("failed to decode json.RawMessage element at %d: %s", i, err)
+			return nil, fmt.Errorf("failed to decode json.RawMessage element at %d: %w", i, err)
 		}
 		results[i] = elem
 	}
 	return &results, nil
-
 }
 
 // DecodeRawJSONPtrSlice decodes a json.RawMessage pointer slice from object by key

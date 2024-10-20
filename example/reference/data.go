@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"io"
 	"strconv"
 	"strings"
@@ -32,7 +33,7 @@ func readAuthors() ([]Author, error) {
 
 	for {
 		record, err := r.Read()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
@@ -67,7 +68,7 @@ func readArticles() ([]Article, error) {
 
 	for {
 		record, err := r.Read()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {

@@ -64,7 +64,7 @@ func (d Decoder) DecodeObjectValue(target any, object map[string]any, key string
 	}
 	err := d.DecodeValue(target, value)
 	if err != nil {
-		return fmt.Errorf("%s: %s", key, err)
+		return fmt.Errorf("%s: %w", key, err)
 	}
 	return nil
 }
@@ -77,7 +77,7 @@ func (d Decoder) DecodeNullableObjectValue(target any, object map[string]any, ke
 	}
 	err := d.DecodeNullableValue(target, value)
 	if err != nil {
-		return fmt.Errorf("%s: %s", key, err)
+		return fmt.Errorf("%s: %w", key, err)
 	}
 	return nil
 }
@@ -552,7 +552,7 @@ func decodeIntRefection[T int | int8 | int16 | int32 | int64 | uint | uint8 | ui
 			if parseErr != nil {
 				return result, fmt.Errorf("failed to convert integer, got: %+v", inferredValue.Interface())
 			}
-			result = T(newVal)
+			result = newVal
 		default:
 			return result, fmt.Errorf("failed to convert integer, got: %+v", inferredValue.Interface())
 		}
@@ -967,7 +967,7 @@ func GetNullableInt[T int | int8 | int16 | int32 | int64](object map[string]any,
 	}
 	result, err := DecodeNullableInt[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -980,7 +980,7 @@ func GetInt[T int | int8 | int16 | int32 | int64](object map[string]any, key str
 	}
 	result, err := DecodeInt[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -993,7 +993,7 @@ func GetNullableUint[T uint | uint8 | uint16 | uint32 | uint64](object map[strin
 	}
 	result, err := DecodeNullableUint[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -1006,7 +1006,7 @@ func GetUint[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, k
 	}
 	result, err := DecodeUint[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -1019,7 +1019,7 @@ func GetNullableFloat[T float32 | float64](object map[string]any, key string) (*
 	}
 	result, err := DecodeNullableFloat[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -1032,7 +1032,7 @@ func GetFloat[T float32 | float64](object map[string]any, key string) (T, error)
 	}
 	result, err := DecodeFloat[T](value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -1045,7 +1045,7 @@ func GetNullableString(object map[string]any, key string) (*string, error) {
 	}
 	result, err := DecodeNullableString(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -1058,7 +1058,7 @@ func GetString(object map[string]any, key string) (string, error) {
 	}
 	result, err := DecodeString(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -1071,7 +1071,7 @@ func GetNullableBoolean(object map[string]any, key string) (*bool, error) {
 	}
 	result, err := DecodeNullableBoolean(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -1084,7 +1084,7 @@ func GetBoolean(object map[string]any, key string) (bool, error) {
 	}
 	result, err := DecodeBoolean(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -1097,7 +1097,7 @@ func GetNullableDateTime(object map[string]any, key string) (*time.Time, error) 
 	}
 	result, err := DecodeNullableDateTime(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -1110,7 +1110,7 @@ func GetDateTime(object map[string]any, key string) (time.Time, error) {
 	}
 	result, err := DecodeDateTime(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -1123,7 +1123,7 @@ func GetNullableDuration(object map[string]any, key string) (*time.Duration, err
 	}
 	result, err := DecodeNullableDuration(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -1136,7 +1136,7 @@ func GetDuration(object map[string]any, key string) (time.Duration, error) {
 	}
 	result, err := DecodeDuration(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -1200,7 +1200,7 @@ func GetUUID(object map[string]any, key string) (uuid.UUID, error) {
 	}
 	result, err := DecodeUUID(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }
@@ -1213,7 +1213,7 @@ func GetNullableUUID(object map[string]any, key string) (*uuid.UUID, error) {
 	}
 	result, err := DecodeNullableUUID(value)
 	if err != nil {
-		return result, fmt.Errorf("%s: %s", key, err)
+		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
 }

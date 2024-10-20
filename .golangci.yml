@@ -1,0 +1,47 @@
+linters:
+  enable-all: true
+  disable:
+    - containedctx
+    - dupl
+    - err113
+    - lll
+    - gocognit
+    - gocritic
+    - nestif
+    - execinquery
+    - exportloopref
+    - gomnd
+    - funlen
+    - godot
+    - gofumpt
+    - gomoddirectives
+    - depguard
+    - gosec
+    - revive
+    - cyclop
+    - wsl
+    - wrapcheck
+    - varnamelen
+    - nlreturn
+    - exhaustive
+    - exhaustruct
+    - gocyclo
+    - prealloc
+    - ireturn
+    - gochecknoglobals
+    - gocyclo
+    - godox
+    - stylecheck
+    - nilnil
+    - maintidx
+    - mnd
+    - tagliatelle
+    - goconst
+    - noctx
+    - unparam
+    - forbidigo
+    - tagalign
+
+issues:
+  exclude-files:
+    - ".*_test\\.go$"

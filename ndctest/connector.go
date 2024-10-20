@@ -2,7 +2,6 @@ package ndctest
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -47,7 +46,7 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 	}
 
 	// evaluate capabilities
-	res, err := http.Get(fmt.Sprintf("%s/capabilities", httpServer.URL))
+	res, err := http.Get(httpServer.URL + "/capabilities")
 	if err != nil {
 		t.Errorf("expected no error, got %s", err)
 		t.FailNow()
@@ -73,14 +72,14 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 	}
 
 	t.Run("get_health", func(t *testing.T) {
-		res, err := http.Get(fmt.Sprintf("%s/health", httpServer.URL))
+		res, err := http.Get(httpServer.URL + "/health")
 		assert.NilError(t, err)
 		_ = res.Body.Close()
 		assert.Equal(t, res.StatusCode, http.StatusOK)
 	})
 
 	t.Run("get_schema", func(t *testing.T) {
-		res, err := http.Get(fmt.Sprintf("%s/schema", httpServer.URL))
+		res, err := http.Get(httpServer.URL + "/schema")
 		assert.NilError(t, err)
 		defer res.Body.Close()
 		assert.Equal(t, res.StatusCode, http.StatusOK)
@@ -103,28 +102,28 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 	})
 
 	t.Run("get_metrics", func(t *testing.T) {
-		res, err := http.Get(fmt.Sprintf("%s/metrics", httpServer.URL))
+		res, err := http.Get(httpServer.URL + "/metrics")
 		assert.NilError(t, err)
 		_ = res.Body.Close()
 		assert.Equal(t, res.StatusCode, http.StatusOK)
 	})
 
 	t.Run("explain_query_failure", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/query/explain", httpServer.URL), schema.QueryRequest{})
+		res, err := httpPostJSON(httpServer.URL+"/query/explain", schema.QueryRequest{})
 		assert.NilError(t, err)
 		_ = res.Body.Close()
 		assert.Check(t, res.StatusCode >= 400)
 	})
 
 	t.Run("explain_mutation_failure", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/mutation/explain", httpServer.URL), schema.MutationRequest{})
+		res, err := httpPostJSON(httpServer.URL+"/mutation/explain", schema.MutationRequest{})
 		assert.NilError(t, err)
 		_ = res.Body.Close()
 		assert.Check(t, res.StatusCode >= 400)
 	})
 
 	t.Run("query_failure", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/query", httpServer.URL), schema.QueryRequest{
+		res, err := httpPostJSON(httpServer.URL+"/query", schema.QueryRequest{
 			Collection: uuid.NewString(),
 		})
 		assert.NilError(t, err)
@@ -133,7 +132,7 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 	})
 
 	t.Run("mutation_failure", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), schema.MutationRequest{
+		res, err := httpPostJSON(httpServer.URL+"/mutation", schema.MutationRequest{
 			Operations: []schema.MutationOperation{
 				{
 					Type: schema.MutationOperationProcedure,
@@ -147,7 +146,7 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 	})
 
 	t.Run("mutation_invalid_operation_type", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), schema.MutationRequest{
+		res, err := httpPostJSON(httpServer.URL+"/mutation", schema.MutationRequest{
 			Operations: []schema.MutationOperation{
 				{
 					Type: "invalid_type",
@@ -170,9 +169,9 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 		}
 	}
 
-	queryURL := fmt.Sprintf("%s/query", httpServer.URL)
+	queryURL := httpServer.URL + "/query"
 	for _, dir := range queryDirs {
-		t.Run(fmt.Sprintf("query/%s", dir.Name()), func(t *testing.T) {
+		t.Run("query/"+dir.Name(), func(t *testing.T) {
 			snapshotDir := filepath.Join(options.TestDataDir, "query", dir.Name())
 			req, expected := readSnapshot[schema.QueryRequest, schema.QueryResponse](t, snapshotDir, options.SkipResponseValidation)
 			if req == nil {
@@ -207,9 +206,9 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 		}
 	}
 
-	mutationURL := fmt.Sprintf("%s/mutation", httpServer.URL)
+	mutationURL := httpServer.URL + "/mutation"
 	for _, dir := range mutationDirs {
-		t.Run(fmt.Sprintf("mutation/%s", dir.Name()), func(t *testing.T) {
+		t.Run("mutation/"+dir.Name(), func(t *testing.T) {
 			snapshotDir := filepath.Join(options.TestDataDir, "mutation", dir.Name())
 			req, expected := readSnapshot[schema.MutationRequest, schema.MutationResponse](t, snapshotDir, options.SkipResponseValidation)
 			if req == nil {

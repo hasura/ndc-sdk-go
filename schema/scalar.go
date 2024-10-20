@@ -147,7 +147,7 @@ func (j *TypeRepresentation) UnmarshalJSON(b []byte) error {
 
 	var ty TypeRepresentationType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in TypeRepresentation: %s", err)
+		return fmt.Errorf("field type in TypeRepresentation: %w", err)
 	}
 
 	result := map[string]any{
@@ -161,7 +161,7 @@ func (j *TypeRepresentation) UnmarshalJSON(b []byte) error {
 		}
 		var oneOf []string
 		if err := json.Unmarshal(rawOneOf, &oneOf); err != nil {
-			return fmt.Errorf("field one_of in TypeRepresentation: %s", err)
+			return fmt.Errorf("field one_of in TypeRepresentation: %w", err)
 		}
 		if len(oneOf) == 0 {
 			return errors.New("TypeRepresentation requires at least 1 item in one_of field for enum type")

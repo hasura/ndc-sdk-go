@@ -25,7 +25,7 @@ func NewRawSchemaResponse(data []byte) (*RawSchemaResponse, error) {
 	// try to decode the response to ensure type-safe
 	var resp SchemaResponse
 	if err := json.Unmarshal(data, &resp); err != nil {
-		return nil, fmt.Errorf("failed to validate SchemaResponse from raw input: %s", err)
+		return nil, fmt.Errorf("failed to validate SchemaResponse from raw input: %w", err)
 	}
 	return NewRawSchemaResponseUnsafe(data), nil
 }
@@ -62,7 +62,7 @@ func NewRawCapabilitiesResponse(data []byte) (*RawCapabilitiesResponse, error) {
 	// try to decode the response to ensure type-safe
 	var resp CapabilitiesResponse
 	if err := json.Unmarshal(data, &resp); err != nil {
-		return nil, fmt.Errorf("failed to validate CapabilitiesResponse from raw input: %s", err)
+		return nil, fmt.Errorf("failed to validate CapabilitiesResponse from raw input: %w", err)
 	}
 	return NewRawCapabilitiesResponseUnsafe(data), nil
 }

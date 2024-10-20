@@ -96,7 +96,7 @@ func (j *Argument) UnmarshalJSON(b []byte) error {
 
 	argumentType, err := ParseArgumentType(rawArgumentType)
 	if err != nil {
-		return fmt.Errorf("field type in Argument: %s", err)
+		return fmt.Errorf("field type in Argument: %w", err)
 	}
 
 	arg := Argument{
@@ -279,7 +279,7 @@ func (j *RelationshipArgument) UnmarshalJSON(b []byte) error {
 
 	argumentType, err := ParseRelationshipArgumentType(rawArgumentType)
 	if err != nil {
-		return fmt.Errorf("field type in Argument: %s", err)
+		return fmt.Errorf("field type in Argument: %w", err)
 	}
 
 	arg := RelationshipArgument{
@@ -489,7 +489,7 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 	}
 	err := json.Unmarshal(rawFieldType, &fieldType)
 	if err != nil {
-		return fmt.Errorf("field type in Field: %s", err)
+		return fmt.Errorf("field type in Field: %w", err)
 	}
 
 	results := map[string]any{
@@ -501,7 +501,7 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 		column, err := unmarshalStringFromJsonMap(raw, "column", true)
 
 		if err != nil {
-			return fmt.Errorf("field column in Field: %s", err)
+			return fmt.Errorf("field column in Field: %w", err)
 		}
 
 		results["column"] = column
@@ -511,7 +511,7 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 		rawFields, ok := raw["fields"]
 		if ok && !isNullJSON(rawFields) {
 			if err = json.Unmarshal(rawFields, &fields); err != nil {
-				return fmt.Errorf("field fields in Field: %s", err)
+				return fmt.Errorf("field fields in Field: %w", err)
 			}
 			results["fields"] = fields
 		}
@@ -519,14 +519,14 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 		rawArguments, ok := raw["arguments"]
 		if ok && !isNullJSON(rawArguments) {
 			if err = json.Unmarshal(rawArguments, &arguments); err != nil {
-				return fmt.Errorf("field arguments in Field: %s", err)
+				return fmt.Errorf("field arguments in Field: %w", err)
 			}
 			results["arguments"] = arguments
 		}
 	case FieldTypeRelationship:
 		relationship, err := unmarshalStringFromJsonMap(raw, "relationship", true)
 		if err != nil {
-			return fmt.Errorf("field relationship in Field: %s", err)
+			return fmt.Errorf("field relationship in Field: %w", err)
 		}
 		results["relationship"] = relationship
 
@@ -536,7 +536,7 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 		}
 		var query Query
 		if err = json.Unmarshal(rawQuery, &query); err != nil {
-			return fmt.Errorf("field query in Field: %s", err)
+			return fmt.Errorf("field query in Field: %w", err)
 		}
 		results["query"] = query
 
@@ -547,7 +547,7 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 
 		var arguments map[string]RelationshipArgument
 		if err = json.Unmarshal(rawArguments, &arguments); err != nil {
-			return fmt.Errorf("field arguments in Field: %s", err)
+			return fmt.Errorf("field arguments in Field: %w", err)
 		}
 		results["arguments"] = arguments
 	}
@@ -944,7 +944,7 @@ func (j *ComparisonValue) UnmarshalJSON(b []byte) error {
 
 	var ty ComparisonValueType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in ComparisonValue: %s", err)
+		return fmt.Errorf("field type in ComparisonValue: %w", err)
 	}
 
 	result := map[string]any{
@@ -958,7 +958,7 @@ func (j *ComparisonValue) UnmarshalJSON(b []byte) error {
 		}
 		var name string
 		if err := json.Unmarshal(rawName, &name); err != nil {
-			return fmt.Errorf("field name in ComparisonValue: %s", err)
+			return fmt.Errorf("field name in ComparisonValue: %w", err)
 		}
 		result["name"] = name
 	case ComparisonValueTypeColumn:
@@ -968,7 +968,7 @@ func (j *ComparisonValue) UnmarshalJSON(b []byte) error {
 		}
 		var column ComparisonTarget
 		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in ComparisonValue: %s", err)
+			return fmt.Errorf("field column in ComparisonValue: %w", err)
 		}
 		result["column"] = column
 	case ComparisonValueTypeScalar:
@@ -978,7 +978,7 @@ func (j *ComparisonValue) UnmarshalJSON(b []byte) error {
 		}
 		var value any
 		if err := json.Unmarshal(rawValue, &value); err != nil {
-			return fmt.Errorf("field value in ComparisonValue: %s", err)
+			return fmt.Errorf("field value in ComparisonValue: %w", err)
 		}
 		result["value"] = value
 	}
@@ -1231,7 +1231,7 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 
 	var ty ExistsInCollectionType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in ExistsInCollection: %s", err)
+		return fmt.Errorf("field type in ExistsInCollection: %w", err)
 	}
 
 	result := map[string]any{
@@ -1242,7 +1242,7 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 	if ok {
 		var arguments map[string]RelationshipArgument
 		if err := json.Unmarshal(rawArguments, &arguments); err != nil {
-			return fmt.Errorf("field arguments in ExistsInCollection: %s", err)
+			return fmt.Errorf("field arguments in ExistsInCollection: %w", err)
 		}
 		result["arguments"] = arguments
 	} else if ty != ExistsInCollectionTypeNestedCollection {
@@ -1257,7 +1257,7 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 		}
 		var relationship string
 		if err := json.Unmarshal(rawRelationship, &relationship); err != nil {
-			return fmt.Errorf("field name in ExistsInCollection: %s", err)
+			return fmt.Errorf("field name in ExistsInCollection: %w", err)
 		}
 		result["relationship"] = relationship
 	case ExistsInCollectionTypeUnrelated:
@@ -1267,7 +1267,7 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 		}
 		var collection string
 		if err := json.Unmarshal(rawCollection, &collection); err != nil {
-			return fmt.Errorf("field collection in ExistsInCollection: %s", err)
+			return fmt.Errorf("field collection in ExistsInCollection: %w", err)
 		}
 		result["collection"] = collection
 	case ExistsInCollectionTypeNestedCollection:
@@ -1278,7 +1278,7 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 		}
 		var columnName string
 		if err := json.Unmarshal(rawColumnName, &columnName); err != nil {
-			return fmt.Errorf("field column_name in ExistsInCollection: %s", err)
+			return fmt.Errorf("field column_name in ExistsInCollection: %w", err)
 		}
 		result["column_name"] = columnName
 
@@ -1286,7 +1286,7 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 		if ok {
 			var fieldPath []string
 			if err := json.Unmarshal(rawFieldPath, &fieldPath); err != nil {
-				return fmt.Errorf("field field_path in ExistsInCollection: %s", err)
+				return fmt.Errorf("field field_path in ExistsInCollection: %w", err)
 			}
 			result["field_path"] = fieldPath
 		}
@@ -1556,7 +1556,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 
 	var ty ExpressionType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in Expression: %s", err)
+		return fmt.Errorf("field type in Expression: %w", err)
 	}
 
 	result := map[string]any{
@@ -1570,7 +1570,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		}
 		var expressions []Expression
 		if err := json.Unmarshal(rawExpressions, &expressions); err != nil {
-			return fmt.Errorf("field expressions in Expression: %s", err)
+			return fmt.Errorf("field expressions in Expression: %w", err)
 		}
 		result["expressions"] = expressions
 	case ExpressionTypeNot:
@@ -1580,7 +1580,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		}
 		var expression Expression
 		if err := json.Unmarshal(rawExpression, &expression); err != nil {
-			return fmt.Errorf("field expression in Expression: %s", err)
+			return fmt.Errorf("field expression in Expression: %w", err)
 		}
 		result["expression"] = expression
 	case ExpressionTypeUnaryComparisonOperator:
@@ -1590,7 +1590,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		}
 		var operator UnaryComparisonOperator
 		if err := json.Unmarshal(rawOperator, &operator); err != nil {
-			return fmt.Errorf("field operator in Expression: %s", err)
+			return fmt.Errorf("field operator in Expression: %w", err)
 		}
 		result["operator"] = operator
 
@@ -1600,7 +1600,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		}
 		var column ComparisonTarget
 		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in Expression: %s", err)
+			return fmt.Errorf("field column in Expression: %w", err)
 		}
 		result["column"] = column
 	case ExpressionTypeBinaryComparisonOperator:
@@ -1610,7 +1610,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		}
 		var operator string
 		if err := json.Unmarshal(rawOperator, &operator); err != nil {
-			return fmt.Errorf("field operator in Expression: %s", err)
+			return fmt.Errorf("field operator in Expression: %w", err)
 		}
 
 		if operator == "" {
@@ -1624,7 +1624,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		}
 		var column ComparisonTarget
 		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in Expression: %s", err)
+			return fmt.Errorf("field column in Expression: %w", err)
 		}
 		result["column"] = column
 
@@ -1634,7 +1634,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		}
 		var value ComparisonValue
 		if err := json.Unmarshal(rawValue, &value); err != nil {
-			return fmt.Errorf("field value in Expression: %s", err)
+			return fmt.Errorf("field value in Expression: %w", err)
 		}
 		result["value"] = value
 	case ExpressionTypeExists:
@@ -1642,7 +1642,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		if ok {
 			var predicate Expression
 			if err := json.Unmarshal(rawPredicate, &predicate); err != nil {
-				return fmt.Errorf("field predicate in Expression: %s", err)
+				return fmt.Errorf("field predicate in Expression: %w", err)
 			}
 			result["predicate"] = predicate
 		}
@@ -1653,7 +1653,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 		}
 		var inCollection ExistsInCollection
 		if err := json.Unmarshal(rawInCollection, &inCollection); err != nil {
-			return fmt.Errorf("field in_collection in Expression: %s", err)
+			return fmt.Errorf("field in_collection in Expression: %w", err)
 		}
 		result["in_collection"] = inCollection
 	}
@@ -1798,7 +1798,6 @@ func (j Expression) AsUnaryComparisonOperator() (*ExpressionUnaryComparisonOpera
 
 // AsBinaryComparisonOperator tries to convert the instance to ExpressionBinaryComparisonOperator instance
 func (j Expression) AsBinaryComparisonOperator() (*ExpressionBinaryComparisonOperator, error) {
-
 	t, err := j.Type()
 	if err != nil {
 		return nil, err
@@ -2153,7 +2152,7 @@ func (j *Aggregate) UnmarshalJSON(b []byte) error {
 
 	var ty AggregateType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in Aggregate: %s", err)
+		return fmt.Errorf("field type in Aggregate: %w", err)
 	}
 
 	result := map[string]any{
@@ -2165,7 +2164,7 @@ func (j *Aggregate) UnmarshalJSON(b []byte) error {
 		rawFieldPath, ok := raw["field_path"]
 		if ok {
 			if err := json.Unmarshal(rawFieldPath, &fieldPath); err != nil {
-				return fmt.Errorf("field field_path in Aggregate: %s", err)
+				return fmt.Errorf("field field_path in Aggregate: %w", err)
 			}
 		}
 	}
@@ -2179,7 +2178,7 @@ func (j *Aggregate) UnmarshalJSON(b []byte) error {
 		}
 		var column string
 		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in Aggregate: %s", err)
+			return fmt.Errorf("field column in Aggregate: %w", err)
 		}
 		result["column"] = column
 
@@ -2189,7 +2188,7 @@ func (j *Aggregate) UnmarshalJSON(b []byte) error {
 		}
 		var function string
 		if err := json.Unmarshal(rawFunction, &function); err != nil {
-			return fmt.Errorf("field function in Aggregate: %s", err)
+			return fmt.Errorf("field function in Aggregate: %w", err)
 		}
 		result["function"] = function
 		if fieldPath != nil {
@@ -2202,7 +2201,7 @@ func (j *Aggregate) UnmarshalJSON(b []byte) error {
 		}
 		var column string
 		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in Aggregate: %s", err)
+			return fmt.Errorf("field column in Aggregate: %w", err)
 		}
 		result["column"] = column
 
@@ -2212,7 +2211,7 @@ func (j *Aggregate) UnmarshalJSON(b []byte) error {
 		}
 		var distinct bool
 		if err := json.Unmarshal(rawDistinct, &distinct); err != nil {
-			return fmt.Errorf("field distinct in Aggregate: %s", err)
+			return fmt.Errorf("field distinct in Aggregate: %w", err)
 		}
 		result["distinct"] = distinct
 		if fieldPath != nil {
@@ -2525,7 +2524,7 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 
 	var ty OrderByTargetType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in OrderByTarget: %s", err)
+		return fmt.Errorf("field type in OrderByTarget: %w", err)
 	}
 
 	result := map[string]any{
@@ -2538,7 +2537,7 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 	}
 	var pathElem []PathElement
 	if err := json.Unmarshal(rawPath, &pathElem); err != nil {
-		return fmt.Errorf("field path in OrderByTarget: %s", err)
+		return fmt.Errorf("field path in OrderByTarget: %w", err)
 	}
 	result["path"] = pathElem
 
@@ -2547,7 +2546,7 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 		var fieldPath []string
 		if ok {
 			if err := json.Unmarshal(rawFieldPath, &fieldPath); err != nil {
-				return fmt.Errorf("field field_path in OrderByTarget: %s", err)
+				return fmt.Errorf("field field_path in OrderByTarget: %w", err)
 			}
 			result["field_path"] = fieldPath
 		}
@@ -2561,7 +2560,7 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 		}
 		var name string
 		if err := json.Unmarshal(rawName, &name); err != nil {
-			return fmt.Errorf("field name in OrderByTarget: %s", err)
+			return fmt.Errorf("field name in OrderByTarget: %w", err)
 		}
 		result["name"] = name
 
@@ -2572,7 +2571,7 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 		}
 		var column string
 		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in OrderByTarget: %s", err)
+			return fmt.Errorf("field column in OrderByTarget: %w", err)
 		}
 		result["column"] = column
 
@@ -2582,7 +2581,7 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 		}
 		var function string
 		if err := json.Unmarshal(rawFunction, &function); err != nil {
-			return fmt.Errorf("field function in OrderByTarget: %s", err)
+			return fmt.Errorf("field function in OrderByTarget: %w", err)
 		}
 		result["function"] = function
 	case OrderByTargetTypeStarCountAggregate:
@@ -2922,7 +2921,7 @@ func (j *ComparisonOperatorDefinition) UnmarshalJSON(b []byte) error {
 
 	var ty ComparisonOperatorDefinitionType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in ComparisonOperatorDefinition: %s", err)
+		return fmt.Errorf("field type in ComparisonOperatorDefinition: %w", err)
 	}
 
 	result := map[string]any{
@@ -2938,7 +2937,7 @@ func (j *ComparisonOperatorDefinition) UnmarshalJSON(b []byte) error {
 		}
 		var argumentType Type
 		if err := json.Unmarshal(rawArgumentType, &argumentType); err != nil {
-			return fmt.Errorf("field argument_type in ComparisonOperatorDefinition: %s", err)
+			return fmt.Errorf("field argument_type in ComparisonOperatorDefinition: %w", err)
 		}
 		result["argument_type"] = argumentType
 	}
@@ -3182,7 +3181,7 @@ func (j *NestedField) UnmarshalJSON(b []byte) error {
 
 	var ty NestedFieldType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in NestedField: %s", err)
+		return fmt.Errorf("field type in NestedField: %w", err)
 	}
 
 	result := map[string]any{
@@ -3196,7 +3195,7 @@ func (j *NestedField) UnmarshalJSON(b []byte) error {
 		}
 		var fields map[string]Field
 		if err := json.Unmarshal(rawFields, &fields); err != nil {
-			return fmt.Errorf("field fields in NestedField object: %s", err)
+			return fmt.Errorf("field fields in NestedField object: %w", err)
 		}
 		result["fields"] = fields
 	case NestedFieldTypeArray:
@@ -3206,7 +3205,7 @@ func (j *NestedField) UnmarshalJSON(b []byte) error {
 		}
 		var fields NestedField
 		if err := json.Unmarshal(rawFields, &fields); err != nil {
-			return fmt.Errorf("field fields in NestedField array: %s", err)
+			return fmt.Errorf("field fields in NestedField array: %w", err)
 		}
 		result["fields"] = fields
 	}

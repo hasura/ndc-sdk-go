@@ -37,7 +37,6 @@ func getStringValueByKey(collection map[string]any, key string) string {
 }
 
 func unmarshalStringFromJsonMap(collection map[string]json.RawMessage, key string, required bool) (string, error) {
-
 	emptyFn := func() (string, error) {
 		if !required {
 			return "", nil

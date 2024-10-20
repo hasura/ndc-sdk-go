@@ -76,7 +76,7 @@ func (j *Type) UnmarshalJSON(b []byte) error {
 
 	var ty TypeEnum
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in Type: %s", err)
+		return fmt.Errorf("field type in Type: %w", err)
 	}
 
 	result := map[string]any{
@@ -90,10 +90,10 @@ func (j *Type) UnmarshalJSON(b []byte) error {
 		}
 		var name string
 		if err := json.Unmarshal(rawName, &name); err != nil {
-			return fmt.Errorf("field name in Type: %s", err)
+			return fmt.Errorf("field name in Type: %w", err)
 		}
 		if name == "" {
-			return fmt.Errorf("field name in Type: required")
+			return errors.New("field name in Type: required")
 		}
 		result["name"] = name
 	case TypeNullable:
@@ -103,7 +103,7 @@ func (j *Type) UnmarshalJSON(b []byte) error {
 		}
 		var underlyingType Type
 		if err := json.Unmarshal(rawUnderlyingType, &underlyingType); err != nil {
-			return fmt.Errorf("field underlying_type in Type: %s", err)
+			return fmt.Errorf("field underlying_type in Type: %w", err)
 		}
 		result["underlying_type"] = underlyingType
 	case TypeArray:
@@ -113,7 +113,7 @@ func (j *Type) UnmarshalJSON(b []byte) error {
 		}
 		var elementType Type
 		if err := json.Unmarshal(rawElementType, &elementType); err != nil {
-			return fmt.Errorf("field element_type in Type: %s", err)
+			return fmt.Errorf("field element_type in Type: %w", err)
 		}
 		result["element_type"] = elementType
 	case TypePredicate:
@@ -123,10 +123,10 @@ func (j *Type) UnmarshalJSON(b []byte) error {
 		}
 		var objectTypeName string
 		if err := json.Unmarshal(rawName, &objectTypeName); err != nil {
-			return fmt.Errorf("field object_type_name in Type: %s", err)
+			return fmt.Errorf("field object_type_name in Type: %w", err)
 		}
 		if objectTypeName == "" {
-			return fmt.Errorf("field object_type_name in Type: required")
+			return errors.New("field object_type_name in Type: required")
 		}
 		result["object_type_name"] = objectTypeName
 	}

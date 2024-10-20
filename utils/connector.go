@@ -211,7 +211,7 @@ func ResolveArgumentVariables(arguments map[string]schema.Argument, variables ma
 					Message: "failed to resolve argument",
 					Details: map[string]any{
 						"reason": fmt.Sprintf("variable %s not found", arg.Name),
-						"path":   fmt.Sprintf(".%s", key),
+						"path":   "." + key,
 					},
 				}
 			}
@@ -221,7 +221,7 @@ func ResolveArgumentVariables(arguments map[string]schema.Argument, variables ma
 				Message: "failed to resolve argument",
 				Details: map[string]any{
 					"reason": err.Error(),
-					"path":   fmt.Sprintf(".%s", key),
+					"path":   "." + key,
 				},
 			}
 		}

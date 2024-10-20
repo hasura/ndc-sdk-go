@@ -3,6 +3,7 @@ package connector
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -104,10 +105,9 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 }
 
 func (s *Server[Configuration, State]) withAuth(handler http.HandlerFunc) http.HandlerFunc {
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := GetLogger(r.Context())
-		if s.options.ServiceTokenSecret != "" && r.Header.Get("authorization") != fmt.Sprintf("Bearer %s", s.options.ServiceTokenSecret) {
+		if s.options.ServiceTokenSecret != "" && r.Header.Get("Authorization") != ("Bearer "+s.options.ServiceTokenSecret) {
 			writeJson(w, logger, http.StatusUnauthorized, schema.ErrorResponse{
 				Message: "Unauthorized",
 				Details: map[string]any{
@@ -406,14 +406,14 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 	go func() {
 		var err error
 		if s.options.ServerTLSCertFile != "" || s.options.ServerTLSKeyFile != "" {
-			s.logger.Info(fmt.Sprintf("Listening server and serving TLS on %s", server.Addr))
+			s.logger.Info("Listening server and serving TLS on " + server.Addr)
 			err = server.ListenAndServeTLS(s.options.ServerTLSCertFile, s.options.ServerTLSKeyFile)
 		} else {
-			s.logger.Info(fmt.Sprintf("Listening server on %s", server.Addr))
+			s.logger.Info("Listening server on " + server.Addr)
 			err = server.ListenAndServe()
 		}
 
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErr <- err
 		}
 	}()

@@ -12,7 +12,10 @@ func JSONAttribute(key string, data any) attribute.KeyValue {
 	case json.RawMessage:
 		return attribute.String(key, string(d))
 	default:
-		jsonBytes, _ := json.Marshal(data)
+		jsonBytes, err := json.Marshal(data)
+		if err != nil {
+			return attribute.String(key, err.Error())
+		}
 		return attribute.String(key, string(jsonBytes))
 	}
 }

@@ -25,7 +25,7 @@ func (j *FunctionInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 	var arguments FunctionInfoArguments
 	if ok && !isNullJSON(rawArguments) {
 		if err := json.Unmarshal(rawArguments, &arguments); err != nil {
-			return fmt.Errorf("FunctionInfo.arguments: %s", err)
+			return fmt.Errorf("FunctionInfo.arguments: %w", err)
 		}
 	}
 
@@ -35,7 +35,7 @@ func (j *FunctionInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 	}
 	var name string
 	if err := json.Unmarshal(rawName, &name); err != nil {
-		return fmt.Errorf("FunctionInfo.name: %s", err)
+		return fmt.Errorf("FunctionInfo.name: %w", err)
 	}
 	if name == "" {
 		return errors.New("FunctionInfo.name: required")
@@ -45,17 +45,17 @@ func (j *FunctionInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 	var description *string
 	if ok && !isNullJSON(rawDescription) {
 		if err := json.Unmarshal(rawDescription, &description); err != nil {
-			return fmt.Errorf("FunctionInfo.description: %s", err)
+			return fmt.Errorf("FunctionInfo.description: %w", err)
 		}
 	}
 
 	rawResultType, ok := raw["result_type"]
 	if !ok || isNullJSON(rawResultType) {
-		return fmt.Errorf("FunctionInfo.result_type: required")
+		return errors.New("FunctionInfo.result_type: required")
 	}
 	var resultType Type
 	if err := json.Unmarshal(rawResultType, &resultType); err != nil {
-		return fmt.Errorf("FunctionInfo.result_type: %s", err)
+		return fmt.Errorf("FunctionInfo.result_type: %w", err)
 	}
 
 	*j = FunctionInfo{

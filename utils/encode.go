@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -104,9 +105,9 @@ func encodeField(input reflect.Value) (any, bool) {
 	case reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Float32, reflect.Float64, reflect.String:
 		return input.Interface(), true
 	case reflect.Int64:
-		return fmt.Sprintf("%d", input.Int()), true
+		return strconv.FormatInt(input.Int(), 10), true
 	case reflect.Uint64:
-		return fmt.Sprintf("%d", input.Uint()), true
+		return strconv.FormatUint(input.Uint(), 10), true
 	case reflect.Struct:
 		inputType := input.Type()
 		switch inputType.PkgPath() {
@@ -134,9 +135,9 @@ func encodeField(input reflect.Value) (any, bool) {
 	case reflect.Pointer:
 		return encodeField(input.Elem())
 	case reflect.Array, reflect.Slice:
-		len := input.Len()
+		valueLength := input.Len()
 		var result []any
-		for i := 0; i < len; i++ {
+		for i := 0; i < valueLength; i++ {
 			item, ok := encodeField(input.Index(i))
 			if ok {
 				result = append(result, item)
@@ -189,10 +190,10 @@ func encodeObjects(input any, fieldPath string) ([]map[string]any, error) {
 			},
 		}
 	}
-	len := inputValue.Len()
-	results := make([]map[string]any, len)
+	valueLength := inputValue.Len()
+	results := make([]map[string]any, valueLength)
 
-	for i := 0; i < len; i++ {
+	for i := 0; i < valueLength; i++ {
 		item, err := encodeObject(inputValue.Index(i).Interface(), fieldPath)
 		if err != nil {
 			return nil, err
