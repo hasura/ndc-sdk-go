@@ -328,21 +328,31 @@ func (sp *SchemaParser) parseArgumentTypes(ty types.Type, argumentFor *Operation
 		}
 		return result, nil
 	case *types.Named:
-		arguments, err := sp.parseArgumentTypes(inferredType.Obj().Type().Underlying(), argumentFor, append(fieldPaths, inferredType.Obj().Name()))
-		if err != nil {
-			return nil, err
-		}
 
 		typeObj := inferredType.Obj()
 		typeInfo := &TypeInfo{
 			Name:       typeObj.Name(),
 			SchemaName: typeObj.Name(),
+			TypeAST:    typeObj.Type().Underlying(),
 		}
 		pkg := typeObj.Pkg()
 		if pkg != nil {
 			typeInfo.PackagePath = pkg.Path()
 			typeInfo.PackageName = pkg.Name()
 		}
+
+		typeParams := inferredType.TypeParams()
+		if typeParams != nil && typeParams.Len() > 0 {
+			// unwrap the generic type parameters such as Foo[T]
+			parseTypeParameters(typeInfo, inferredType.String())
+			typeInfo.TypeAST = inferredType.Underlying()
+		}
+
+		arguments, err := sp.parseArgumentTypes(typeInfo.TypeAST, argumentFor, append(fieldPaths, typeObj.Name()))
+		if err != nil {
+			return nil, err
+		}
+
 		arguments.Type = typeInfo
 		return arguments, nil
 	default:
@@ -392,14 +402,8 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 		}
 		objFields := ObjectInfo{
 			IsAnonymous: isAnonymous,
-			Type: &TypeInfo{
-				Name:        rootType.Name,
-				SchemaName:  rootType.SchemaName,
-				PackagePath: rootType.PackagePath,
-				PackageName: rootType.PackageName,
-				TypeAST:     inferredType,
-			},
-			Fields: map[string]ObjectField{},
+			Type:        rootType,
+			Fields:      map[string]ObjectField{},
 		}
 		// temporarily add the object type to raw schema to avoid infinite loop
 		sp.rawSchema.ObjectSchemas[rootType.SchemaName] = objType
@@ -452,6 +456,7 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 			TypeAST:    innerType.Type(),
 			Schema:     schema.NewNamedType(innerType.Name()),
 		}
+
 		if rootType != nil {
 			typeInfo.Embedded = rootType.Embedded
 		}
@@ -547,6 +552,15 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 			typeInfo.SchemaName = fieldNameRegex.ReplaceAllString(strings.Join([]string{typeInfo.Name, packagePath}, ""), "_")
 			typeInfo.Schema = schema.NewNamedType(typeInfo.SchemaName)
 		}
+
+		typeParams := inferredType.TypeParams()
+		if typeParams != nil && typeParams.Len() > 0 {
+			// unwrap the generic type parameters such as Foo[T]
+			parseTypeParameters(typeInfo, inferredType.String())
+			typeInfo.TypeAST = inferredType.Underlying()
+			return sp.parseType(typeInfo, inferredType.Underlying(), fieldPaths, false, argumentFor)
+		}
+
 		return sp.parseType(typeInfo, innerType.Type().Underlying(), append(fieldPaths, innerType.Name()), false, argumentFor)
 	case *types.Basic:
 		var scalarName ScalarName
@@ -859,4 +873,31 @@ func evalPackageTypesLocation(moduleName string, filePath string, connectorDir s
 		}
 	}
 	return "", fmt.Errorf("the `types` package where the State struct is in must be placed in root or connector directory, %w", err)
+}
+
+func parseTypeParameters(rootType *TypeInfo, input string) {
+	paramsString := strings.TrimRight(strings.TrimLeft(strings.TrimPrefix(input, rootType.PackagePath+"."+rootType.Name), "["), "]")
+	rawParams := strings.Split(paramsString, ",")
+
+	for _, param := range rawParams {
+		param = strings.TrimSpace(param)
+		if param == "" {
+			continue
+		}
+		typeInfo := TypeInfo{}
+
+		parts := strings.Split(param, ".")
+		partsLen := len(parts)
+		if partsLen == 1 {
+			typeInfo.Name = parts[0]
+		} else {
+			typeInfo.PackagePath = strings.Join(parts[0:partsLen-1], ".")
+			packageParts := strings.Split(typeInfo.PackagePath, "/")
+			typeInfo.PackageName = packageParts[len(packageParts)-1]
+			typeInfo.Name = parts[partsLen-1]
+		}
+		rootType.SchemaName += "_" + typeInfo.Name
+		rootType.TypeParameters = append(rootType.TypeParameters, typeInfo)
+	}
+	rootType.Schema = schema.NewNamedType(rootType.SchemaName)
 }

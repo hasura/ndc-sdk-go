@@ -19,6 +19,7 @@ type TypeKind string
 // TypeInfo represents the serialization information of a type
 type TypeInfo struct {
 	Name                 string
+	TypeParameters       []TypeInfo
 	SchemaName           string
 	Description          *string
 	PackagePath          string
@@ -41,13 +42,36 @@ func (ti *TypeInfo) IsArray() bool {
 	return isArrayFragments(ti.TypeFragments)
 }
 
+// CanMethod checks whether generating decoding methods for this type
+func (ti *TypeInfo) CanMethod() bool {
+	for _, param := range ti.TypeParameters {
+		if param.PackagePath != "" && param.PackagePath != ti.PackagePath {
+			return false
+		}
+	}
+	return true
+}
+
 // GetArgumentName returns the argument name
 func (ti *TypeInfo) GetArgumentName(packagePath string) string {
-	if packagePath == ti.PackagePath {
-		return ti.Name
+	name := ti.Name
+	if ti.PackagePath != "" && packagePath != ti.PackagePath {
+		name = fmt.Sprintf("%s.%s", ti.PackageName, ti.Name)
 	}
 
-	return fmt.Sprintf("%s.%s", ti.PackageName, ti.Name)
+	paramLen := len(ti.TypeParameters)
+	if paramLen > 0 {
+		name += "["
+		for i, param := range ti.TypeParameters {
+			name += param.GetArgumentName(packagePath)
+			if i < paramLen-1 {
+				name += ", "
+			}
+		}
+		name += "]"
+	}
+
+	return name
 }
 
 // String implements the fmt.Stringer interface

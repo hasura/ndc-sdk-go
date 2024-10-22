@@ -1,0 +1,71 @@
+{
+  "arguments": {
+    "headers": {
+      "type": "literal",
+      "value": {
+        "foo": "bar"
+      }
+    },
+    "input": {
+      "type": "literal",
+      "value": {
+        "id": "a7118c3d-3d8e-433d-8a58-cd5ca7422b60",
+        "num": 1702317549
+      }
+    },
+    "other": {
+      "type": "literal",
+      "value": {
+        "value": 1602892532
+      }
+    }
+  },
+  "collection": "getGenericWithoutDecodingMethod",
+  "collection_relationships": {},
+  "query": {
+    "fields": {
+      "__value": {
+        "column": "__value",
+        "fields": {
+          "fields": {
+            "Response": {
+              "column": "Response",
+              "fields": {
+                "fields": {
+                  "error": {
+                    "column": "error",
+                    "type": "column"
+                  },
+                  "foo": {
+                    "column": "foo",
+                    "type": "column"
+                  },
+                  "id": {
+                    "column": "id",
+                    "type": "column"
+                  },
+                  "num": {
+                    "column": "num",
+                    "type": "column"
+                  },
+                  "text": {
+                    "column": "text",
+                    "type": "column"
+                  }
+                },
+                "type": "object"
+              },
+              "type": "column"
+            },
+            "headers": {
+              "column": "headers",
+              "type": "column"
+            }
+          },
+          "type": "object"
+        },
+        "type": "column"
+      }
+    }
+  }
+}

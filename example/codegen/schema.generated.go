@@ -110,6 +110,56 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 				},
 			},
+			"GetCustomHeadersInput": schema.ObjectType{
+				Fields: schema.ObjectTypeFields{
+					"id": schema.ObjectField{
+						Type: schema.NewNamedType("UUID").Encode(),
+					},
+					"num": schema.ObjectField{
+						Type: schema.NewNamedType("Int32").Encode(),
+					},
+				},
+			},
+			"GetCustomHeadersOther": schema.ObjectType{
+				Fields: schema.ObjectTypeFields{
+					"value": schema.ObjectField{
+						Type: schema.NewNamedType("Int32").Encode(),
+					},
+				},
+			},
+			"GetCustomHeadersOther_int": schema.ObjectType{
+				Fields: schema.ObjectTypeFields{
+					"value": schema.ObjectField{
+						Type: schema.NewNamedType("Int32").Encode(),
+					},
+				},
+			},
+			"GetCustomHeadersResult": schema.ObjectType{
+				Fields: schema.ObjectTypeFields{
+					"Response": schema.ObjectField{
+						Type: schema.NewNamedType("HelloResult").Encode(),
+					},
+					"headers": schema.ObjectField{
+						Type: schema.NewNamedType("JSON").Encode(),
+					},
+					"other": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther")).Encode(),
+					},
+				},
+			},
+			"GetCustomHeadersResult_HelloResult_int64": schema.ObjectType{
+				Fields: schema.ObjectTypeFields{
+					"Response": schema.ObjectField{
+						Type: schema.NewNamedType("HelloResult").Encode(),
+					},
+					"headers": schema.ObjectField{
+						Type: schema.NewNamedType("JSON").Encode(),
+					},
+					"other": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther")).Encode(),
+					},
+				},
+			},
 			"GetTypesArguments": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
 					"ArrayBigInt": schema.ObjectField{
@@ -609,6 +659,36 @@ func GetConnectorSchema() *schema.SchemaResponse {
 				Description: toPtr("return an scalar boolean"),
 				ResultType:  schema.NewNamedType("Boolean").Encode(),
 				Arguments:   map[string]schema.ArgumentInfo{},
+			},
+			{
+				Name:       "getCustomHeaders",
+				ResultType: schema.NewNamedType("GetCustomHeadersResult_HelloResult_int64").Encode(),
+				Arguments: map[string]schema.ArgumentInfo{
+					"headers": {
+						Type: schema.NewNamedType("JSON").Encode(),
+					},
+					"input": {
+						Type: schema.NewNullableType(schema.NewNamedType("BaseAuthor")).Encode(),
+					},
+					"other": {
+						Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther_int")).Encode(),
+					},
+				},
+			},
+			{
+				Name:       "getGenericWithoutDecodingMethod",
+				ResultType: schema.NewNamedType("GetCustomHeadersResult").Encode(),
+				Arguments: map[string]schema.ArgumentInfo{
+					"headers": {
+						Type: schema.NewNamedType("JSON").Encode(),
+					},
+					"input": {
+						Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersInput")).Encode(),
+					},
+					"other": {
+						Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther")).Encode(),
+					},
+				},
 			},
 			{
 				Name:       "getTypes",

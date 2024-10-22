@@ -12,6 +12,39 @@
     },
     {
       "arguments": {
+        "headers": {
+          "type": {
+            "name": "JSON",
+            "type": "named"
+          }
+        },
+        "input": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "BaseAuthor",
+              "type": "named"
+            }
+          }
+        },
+        "other": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "GetCustomHeadersOther_int",
+              "type": "named"
+            }
+          }
+        }
+      },
+      "name": "getCustomHeaders",
+      "result_type": {
+        "name": "GetCustomHeadersResult_HelloResult_int64",
+        "type": "named"
+      }
+    },
+    {
+      "arguments": {
         "ArrayBigInt": {
           "type": {
             "element_type": {
@@ -1451,6 +1484,16 @@
         }
       }
     },
+    "BaseAuthor": {
+      "fields": {
+        "name": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    },
     "CreateArticleArgumentsAuthor": {
       "fields": {
         "created_at": {
@@ -1520,6 +1563,76 @@
           "type": {
             "name": "String",
             "type": "named"
+          }
+        }
+      }
+    },
+    "GetCustomHeadersOther": {
+      "fields": {
+        "value": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "GetCustomHeadersOther_int": {
+      "fields": {
+        "value": {
+          "type": {
+            "name": "Int32",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "GetCustomHeadersResult": {
+      "fields": {
+        "Response": {
+          "type": {
+            "name": "HelloResult",
+            "type": "named"
+          }
+        },
+        "headers": {
+          "type": {
+            "name": "JSON",
+            "type": "named"
+          }
+        },
+        "other": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "GetCustomHeadersOther",
+              "type": "named"
+            }
+          }
+        }
+      }
+    },
+    "GetCustomHeadersResult_HelloResult_int64": {
+      "fields": {
+        "Response": {
+          "type": {
+            "name": "HelloResult",
+            "type": "named"
+          }
+        },
+        "headers": {
+          "type": {
+            "name": "JSON",
+            "type": "named"
+          }
+        },
+        "other": {
+          "type": {
+            "type": "nullable",
+            "underlying_type": {
+              "name": "GetCustomHeadersOther",
+              "type": "named"
+            }
           }
         }
       }
@@ -3165,10 +3278,7 @@
       "aggregate_functions": {},
       "comparison_operators": {},
       "representation": {
-        "one_of": [
-          "foo",
-          "bar"
-        ],
+        "one_of": ["foo", "bar"],
         "type": "enum"
       }
     },

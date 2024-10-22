@@ -149,10 +149,9 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 
 		var argumentParamStr string
 		if fn.ArgumentsType != nil {
-			argName := fn.ArgumentsType.Name
+			argName := fn.ArgumentsType.GetArgumentName(chb.Builder.packagePath)
 			if fn.ArgumentsType.PackagePath != "" && fn.ArgumentsType.PackagePath != chb.Builder.packagePath {
 				chb.Builder.imports[fn.ArgumentsType.PackagePath] = ""
-				argName = fmt.Sprintf("%s.%s", fn.ArgumentsType.PackageName, fn.ArgumentsType.Name)
 			}
 
 			argumentStr := fmt.Sprintf(`
@@ -259,10 +258,9 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 
 		var argumentParamStr string
 		if fn.ArgumentsType != nil {
-			argName := fn.ArgumentsType.Name
+			argName := fn.ArgumentsType.GetArgumentName(chb.Builder.packagePath)
 			if fn.ArgumentsType.PackagePath != "" && fn.ArgumentsType.PackagePath != chb.Builder.packagePath {
 				chb.Builder.imports[fn.ArgumentsType.PackagePath] = ""
-				argName = fmt.Sprintf("%s.%s", fn.ArgumentsType.PackageName, fn.ArgumentsType.Name)
 			}
 
 			argumentStr := fmt.Sprintf(`
