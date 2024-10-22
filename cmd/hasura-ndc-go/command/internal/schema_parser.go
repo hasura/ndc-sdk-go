@@ -302,7 +302,6 @@ func (sp *SchemaParser) parseArgumentTypes(ty types.Type, argumentFor *Operation
 				}
 			}
 			typeInfo.Embedded = fieldVar.Embedded()
-
 			fieldType, err := sp.parseType(typeInfo, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false, argumentFor)
 			if err != nil {
 				return nil, err
@@ -312,13 +311,14 @@ func (sp *SchemaParser) parseArgumentTypes(ty types.Type, argumentFor *Operation
 				fieldType.TypeAST = fieldVar.Type()
 			}
 			if !fieldType.IsScalar && argumentFor != nil && *argumentFor == OperationFunction {
-				object, ok := sp.rawSchema.Objects[fieldType.String()]
+				object, ok := sp.rawSchema.Objects[fieldType.GetArgumentName(fieldType.PackagePath)]
 				if ok {
 					sp.rawSchema.setFunctionArgument(object)
+				} else {
+					sp.rawSchema.setFunctionArgument(ObjectInfo{
+						Type: fieldType,
+					})
 				}
-				sp.rawSchema.setFunctionArgument(ObjectInfo{
-					Type: fieldType,
-				})
 			}
 
 			result.Fields[fieldName] = ObjectField{
@@ -438,7 +438,7 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 				Type: fieldType,
 			}
 		}
-		sp.rawSchema.ObjectSchemas[rootType.Name] = objType
+		sp.rawSchema.ObjectSchemas[rootType.SchemaName] = objType
 		sp.rawSchema.Objects[rootType.String()] = objFields
 
 		return rootType, nil
@@ -464,6 +464,13 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 			typeInfo.PackageName = innerPkg.Name()
 			typeInfo.PackagePath = innerPkg.Path()
 			typeInfo.TypeFragments = []string{innerType.Name()}
+			typeParams := inferredType.TypeParams()
+			if typeParams != nil && typeParams.Len() > 0 {
+				// unwrap the generic type parameters such as Foo[T]
+				parseTypeParameters(typeInfo, inferredType.String())
+				typeInfo.TypeAST = inferredType.Underlying()
+			}
+
 			if _, ok := sp.rawSchema.Objects[typeInfo.String()]; ok {
 				return typeInfo, nil
 			}
@@ -471,6 +478,7 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 			if err := sp.parseTypeInfoFromComments(typeInfo, innerType.Parent()); err != nil {
 				return nil, err
 			}
+
 			var scalarName ScalarName
 			scalarSchema := schema.NewScalarType()
 
@@ -546,22 +554,14 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 			return typeInfo, nil
 		}
 
-		if _, ok := sp.rawSchema.ObjectSchemas[typeInfo.Name]; ok {
+		if _, ok := sp.rawSchema.ObjectSchemas[typeInfo.SchemaName]; ok {
 			// the object schema exists, rename to format <name>_<package_name>
 			packagePath := strings.TrimPrefix(typeInfo.PackagePath, sp.moduleName)
 			typeInfo.SchemaName = fieldNameRegex.ReplaceAllString(strings.Join([]string{typeInfo.Name, packagePath}, ""), "_")
 			typeInfo.Schema = schema.NewNamedType(typeInfo.SchemaName)
 		}
 
-		typeParams := inferredType.TypeParams()
-		if typeParams != nil && typeParams.Len() > 0 {
-			// unwrap the generic type parameters such as Foo[T]
-			parseTypeParameters(typeInfo, inferredType.String())
-			typeInfo.TypeAST = inferredType.Underlying()
-			return sp.parseType(typeInfo, inferredType.Underlying(), fieldPaths, false, argumentFor)
-		}
-
-		return sp.parseType(typeInfo, innerType.Type().Underlying(), append(fieldPaths, innerType.Name()), false, argumentFor)
+		return sp.parseType(typeInfo, typeInfo.TypeAST.Underlying(), append(fieldPaths, innerType.Name()), false, argumentFor)
 	case *types.Basic:
 		var scalarName ScalarName
 		switch inferredType.Kind() {

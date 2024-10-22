@@ -1567,16 +1567,6 @@
         }
       }
     },
-    "GetCustomHeadersOther": {
-      "fields": {
-        "value": {
-          "type": {
-            "name": "Int32",
-            "type": "named"
-          }
-        }
-      }
-    },
     "GetCustomHeadersOther_int": {
       "fields": {
         "value": {
@@ -1587,27 +1577,12 @@
         }
       }
     },
-    "GetCustomHeadersResult": {
+    "GetCustomHeadersOther_int64": {
       "fields": {
-        "Response": {
+        "value": {
           "type": {
-            "name": "HelloResult",
+            "name": "Int64",
             "type": "named"
-          }
-        },
-        "headers": {
-          "type": {
-            "name": "JSON",
-            "type": "named"
-          }
-        },
-        "other": {
-          "type": {
-            "type": "nullable",
-            "underlying_type": {
-              "name": "GetCustomHeadersOther",
-              "type": "named"
-            }
           }
         }
       }
@@ -1630,7 +1605,7 @@
           "type": {
             "type": "nullable",
             "underlying_type": {
-              "name": "GetCustomHeadersOther",
+              "name": "GetCustomHeadersOther_int64",
               "type": "named"
             }
           }

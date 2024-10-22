@@ -44,12 +44,7 @@ func (ti *TypeInfo) IsArray() bool {
 
 // CanMethod checks whether generating decoding methods for this type
 func (ti *TypeInfo) CanMethod() bool {
-	for _, param := range ti.TypeParameters {
-		if param.PackagePath != "" && param.PackagePath != ti.PackagePath {
-			return false
-		}
-	}
-	return true
+	return len(ti.TypeParameters) == 0
 }
 
 // GetArgumentName returns the argument name
@@ -76,7 +71,7 @@ func (ti *TypeInfo) GetArgumentName(packagePath string) string {
 
 // String implements the fmt.Stringer interface
 func (ti *TypeInfo) String() string {
-	return fmt.Sprintf("%s.%s", ti.PackagePath, ti.Name)
+	return ti.GetArgumentName(ti.PackagePath)
 }
 
 func isNullableFragment(fragment string) bool {

@@ -59,36 +59,6 @@ func (j *GetAuthorArguments) FromValue(input map[string]any) error {
 	return nil
 }
 
-// FromValue decodes values from map
-func (j *GetCustomHeadersArguments[BaseAuthor, int]) FromValue(input map[string]any) error {
-	var err error
-	err = connector_Decoder.DecodeObjectValue(&j.Headers, input, "headers")
-	if err != nil {
-		return err
-	}
-	j.Input = new(BaseAuthor)
-	err = connector_Decoder.DecodeNullableObjectValue(j.Input, input, "input")
-	if err != nil {
-		return err
-	}
-	j.Other = new(GetCustomHeadersOther[int])
-	err = connector_Decoder.DecodeNullableObjectValue(j.Other, input, "other")
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// FromValue decodes values from map
-func (j *GetCustomHeadersOther[int]) FromValue(input map[string]any) error {
-	var err error
-	j.Value, err = utils.GetInt[int](input, "value")
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // ToMap encodes the struct to a value map
 func (j BaseAuthor) ToMap() map[string]any {
 	r := make(map[string]any)
@@ -144,26 +114,6 @@ func (j GetAuthorResult) ToMap() map[string]any {
 		r = utils.MergeMap(r, (*j.CreateAuthorResult).ToMap())
 	}
 	r["disabled"] = j.Disabled
-
-	return r
-}
-
-// ToMap encodes the struct to a value map
-func (j GetCustomHeadersOther[int]) ToMap() map[string]any {
-	r := make(map[string]any)
-	r["value"] = j.Value
-
-	return r
-}
-
-// ToMap encodes the struct to a value map
-func (j GetCustomHeadersResult[HelloResult, int64]) ToMap() map[string]any {
-	r := make(map[string]any)
-	r["Response"] = j.Response
-	r["headers"] = j.Headers
-	if j.Other != nil {
-		r["other"] = (*j.Other)
-	}
 
 	return r
 }
@@ -304,7 +254,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			})
 		}
 		var args GetCustomHeadersArguments[BaseAuthor, int]
-		if parseErr := args.FromValue(rawArgs); parseErr != nil {
+		if parseErr := connector_Decoder.DecodeObject(&args, rawArgs); parseErr != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
 				"cause": parseErr.Error(),
 			})
@@ -336,7 +286,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			})
 		}
 		var args GetCustomHeadersArguments[arguments.GetCustomHeadersInput, int]
-		if parseErr := args.FromValue(rawArgs); parseErr != nil {
+		if parseErr := connector_Decoder.DecodeObject(&args, rawArgs); parseErr != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
 				"cause": parseErr.Error(),
 			})

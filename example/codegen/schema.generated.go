@@ -92,16 +92,12 @@ func GetConnectorSchema() *schema.SchemaResponse {
 			},
 			"GetAuthorResult": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
-					"id": schema.ObjectField{
-						Type: schema.NewNamedType("Int32").Encode(),
+					"created_at": schema.ObjectField{
+						Type: schema.NewNamedType("TimestampTZ").Encode(),
 					},
-					"name": schema.ObjectField{
-						Type: schema.NewNamedType("String").Encode(),
+					"disabled": schema.ObjectField{
+						Type: schema.NewNamedType("Boolean").Encode(),
 					},
-				},
-			},
-			"GetAuthorResult_types": schema.ObjectType{
-				Fields: schema.ObjectTypeFields{
 					"id": schema.ObjectField{
 						Type: schema.NewNamedType("Int32").Encode(),
 					},
@@ -120,13 +116,6 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 				},
 			},
-			"GetCustomHeadersOther": schema.ObjectType{
-				Fields: schema.ObjectTypeFields{
-					"value": schema.ObjectField{
-						Type: schema.NewNamedType("Int32").Encode(),
-					},
-				},
-			},
 			"GetCustomHeadersOther_int": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
 					"value": schema.ObjectField{
@@ -134,16 +123,10 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 				},
 			},
-			"GetCustomHeadersResult": schema.ObjectType{
+			"GetCustomHeadersOther_int64": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
-					"Response": schema.ObjectField{
-						Type: schema.NewNamedType("HelloResult").Encode(),
-					},
-					"headers": schema.ObjectField{
-						Type: schema.NewNamedType("JSON").Encode(),
-					},
-					"other": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther")).Encode(),
+					"value": schema.ObjectField{
+						Type: schema.NewNamedType("Int64").Encode(),
 					},
 				},
 			},
@@ -156,7 +139,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("JSON").Encode(),
 					},
 					"other": schema.ObjectField{
-						Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther")).Encode(),
+						Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther_int64")).Encode(),
 					},
 				},
 			},
@@ -644,7 +627,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 			},
 			{
 				Name:       "getAuthor2",
-				ResultType: schema.NewNamedType("GetAuthorResult_types").Encode(),
+				ResultType: schema.NewNamedType("GetAuthorResult").Encode(),
 				Arguments: map[string]schema.ArgumentInfo{
 					"id": {
 						Type: schema.NewNamedType("String").Encode(),
@@ -677,7 +660,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 			},
 			{
 				Name:       "getGenericWithoutDecodingMethod",
-				ResultType: schema.NewNamedType("GetCustomHeadersResult").Encode(),
+				ResultType: schema.NewNamedType("GetCustomHeadersResult_HelloResult_int64").Encode(),
 				Arguments: map[string]schema.ArgumentInfo{
 					"headers": {
 						Type: schema.NewNamedType("JSON").Encode(),
@@ -686,7 +669,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersInput")).Encode(),
 					},
 					"other": {
-						Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther")).Encode(),
+						Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther_int")).Encode(),
 					},
 				},
 			},

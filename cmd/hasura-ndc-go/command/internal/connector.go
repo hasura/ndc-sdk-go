@@ -276,7 +276,7 @@ func (cg *connectorGenerator) genObjectMethods() error {
 
 	for _, objectName := range objectKeys {
 		object := cg.rawSchema.Objects[objectName]
-		if object.IsAnonymous || !strings.HasPrefix(object.Type.PackagePath, cg.moduleName) {
+		if object.IsAnonymous || !object.Type.CanMethod() || !strings.HasPrefix(object.Type.PackagePath, cg.moduleName) {
 			continue
 		}
 		sb := cg.getOrCreateTypeBuilder(object.Type.PackagePath)

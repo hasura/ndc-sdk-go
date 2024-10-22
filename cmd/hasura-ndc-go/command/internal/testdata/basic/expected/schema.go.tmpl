@@ -75,13 +75,6 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
         },
       },
-      "GetCustomHeadersOther": schema.ObjectType{
-        Fields: schema.ObjectTypeFields{
-          "value": schema.ObjectField{
-            Type: schema.NewNamedType("Int32").Encode(),
-          },
-        },
-      },
       "GetCustomHeadersOther_int": schema.ObjectType{
         Fields: schema.ObjectTypeFields{
           "value": schema.ObjectField{
@@ -89,16 +82,10 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
         },
       },
-      "GetCustomHeadersResult": schema.ObjectType{
+      "GetCustomHeadersOther_int64": schema.ObjectType{
         Fields: schema.ObjectTypeFields{
-          "Response": schema.ObjectField{
-            Type: schema.NewNamedType("HelloResult").Encode(),
-          },
-          "headers": schema.ObjectField{
-            Type: schema.NewNamedType("JSON").Encode(),
-          },
-          "other": schema.ObjectField{
-            Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther")).Encode(),
+          "value": schema.ObjectField{
+            Type: schema.NewNamedType("Int64").Encode(),
           },
         },
       },
@@ -111,7 +98,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
             Type: schema.NewNamedType("JSON").Encode(),
           },
           "other": schema.ObjectField{
-            Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther")).Encode(),
+            Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther_int64")).Encode(),
           },
         },
       },
