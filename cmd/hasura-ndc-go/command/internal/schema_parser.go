@@ -31,12 +31,12 @@ type SchemaParser struct {
 	namingStyle  OperationNamingStyle
 }
 
-// GetCurrentPackage gets the current evaluating package
+// GetCurrentPackage gets the current evaluating package.
 func (sp SchemaParser) GetCurrentPackage() *packages.Package {
 	return sp.packages[sp.packageIndex]
 }
 
-// FindPackageByPath finds the package by package path
+// FindPackageByPath finds the package by package path.
 func (sp SchemaParser) FindPackageByPath(input string) *packages.Package {
 	for _, p := range sp.packages {
 		if p.ID == input {
@@ -155,7 +155,7 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 	return rawSchema, nil
 }
 
-// parse raw connector schema from Go code
+// parse raw connector schema from Go code.
 func (sp *SchemaParser) parseRawConnectorSchema(pkg *types.Package) error {
 	for _, name := range pkg.Scope().Names() {
 		_, task := trace.NewTask(sp.context, fmt.Sprintf("parse_%s_schema_%s", sp.GetCurrentPackage().Name, name))
@@ -251,7 +251,7 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 			}
 		}
 
-		resultType, err := sp.parseType(nil, resultTuple.At(0).Type(), []string{}, false, nil)
+		resultType, err := sp.parseType(nil, resultTuple.At(0).Type(), []string{}, nil)
 		if err != nil {
 			return err
 		}
@@ -302,7 +302,7 @@ func (sp *SchemaParser) parseArgumentTypes(ty types.Type, argumentFor *Operation
 				}
 			}
 			typeInfo.Embedded = fieldVar.Embedded()
-			fieldType, err := sp.parseType(typeInfo, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false, argumentFor)
+			fieldType, err := sp.parseType(typeInfo, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), argumentFor)
 			if err != nil {
 				return nil, err
 			}
@@ -360,13 +360,10 @@ func (sp *SchemaParser) parseArgumentTypes(ty types.Type, argumentFor *Operation
 	}
 }
 
-func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths []string, skipNullable bool, argumentFor *OperationKind) (*TypeInfo, error) {
+func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths []string, argumentFor *OperationKind) (*TypeInfo, error) {
 	switch inferredType := ty.(type) {
 	case *types.Pointer:
-		if skipNullable {
-			return sp.parseType(rootType, inferredType.Elem(), fieldPaths, false, argumentFor)
-		}
-		innerType, err := sp.parseType(rootType, inferredType.Elem(), fieldPaths, false, argumentFor)
+		innerType, err := sp.parseType(rootType, inferredType.Elem(), fieldPaths, argumentFor)
 		if err != nil {
 			return nil, err
 		}
@@ -413,7 +410,7 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 			fieldVar := inferredType.Field(i)
 			fieldTag := inferredType.Tag(i)
 
-			fieldType, err := sp.parseType(nil, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), false, argumentFor)
+			fieldType, err := sp.parseType(nil, fieldVar.Type(), append(fieldPaths, fieldVar.Name()), argumentFor)
 			if err != nil {
 				return nil, err
 			}
@@ -561,7 +558,7 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 			typeInfo.Schema = schema.NewNamedType(typeInfo.SchemaName)
 		}
 
-		return sp.parseType(typeInfo, typeInfo.TypeAST.Underlying(), append(fieldPaths, innerType.Name()), false, argumentFor)
+		return sp.parseType(typeInfo, typeInfo.TypeAST.Underlying(), append(fieldPaths, innerType.Name()), argumentFor)
 	case *types.Basic:
 		var scalarName ScalarName
 		switch inferredType.Kind() {
@@ -606,7 +603,7 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 
 		return rootType, nil
 	case *types.Array:
-		innerType, err := sp.parseType(nil, inferredType.Elem(), fieldPaths, false, argumentFor)
+		innerType, err := sp.parseType(nil, inferredType.Elem(), fieldPaths, argumentFor)
 		if err != nil {
 			return nil, err
 		}
@@ -614,7 +611,7 @@ func (sp *SchemaParser) parseType(rootType *TypeInfo, ty types.Type, fieldPaths 
 		innerType.Schema = schema.NewArrayType(innerType.Schema)
 		return innerType, nil
 	case *types.Slice:
-		innerType, err := sp.parseType(nil, inferredType.Elem(), fieldPaths, false, argumentFor)
+		innerType, err := sp.parseType(nil, inferredType.Elem(), fieldPaths, argumentFor)
 		if err != nil {
 			return nil, err
 		}
@@ -738,7 +735,7 @@ func (sp *SchemaParser) parseTypeInfoFromComments(typeInfo *TypeInfo, scope *typ
 	return nil
 }
 
-// format operation name with style
+// format operation name with style.
 func (sp SchemaParser) formatOperationName(name string) string {
 	switch sp.namingStyle {
 	case StyleSnakeCase:
@@ -831,7 +828,7 @@ func findCommentsFromPos(pkg *packages.Package, scope *types.Scope, name string)
 }
 
 // get field name by json tag
-// return the struct field name if not exist
+// return the struct field name if not exist.
 func getFieldNameOrTag(name string, tag string) string {
 	if tag == "" {
 		return name
@@ -849,15 +846,6 @@ func getFieldNameOrTag(name string, tag string) string {
 	}
 
 	return jsonTag.Name
-}
-
-func findAndReplaceNativeScalarPackage(input string) (string, string, bool) {
-	for alias, pkg := range nativeScalarPackages {
-		if pkg.Pattern.MatchString(input) {
-			return pkg.PackageName, strings.ReplaceAll(input, pkg.PackageName, alias), true
-		}
-	}
-	return "", "", false
 }
 
 func evalPackageTypesLocation(moduleName string, filePath string, connectorDir string) (string, error) {

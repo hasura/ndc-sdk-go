@@ -126,37 +126,15 @@ var defaultScalarTypes = map[ScalarName]schema.ScalarType{
 	},
 }
 
-var ndcOperationNameRegex = regexp.MustCompile(`^(Function|Procedure)([A-Z][A-Za-z0-9]*)$`)
-var ndcOperationCommentRegex = regexp.MustCompile(`^@(function|procedure)(\s+([A-Za-z]\w*))?`)
-var ndcScalarNameRegex = regexp.MustCompile(`^Scalar([A-Z]\w*)$`)
-var ndcScalarCommentRegex = regexp.MustCompile(`^@scalar(\s+(\w+))?(\s+([a-z]+))?$`)
-var ndcEnumCommentRegex = regexp.MustCompile(`^@enum\s+([\w-.,!@#$%^&*()+=~\s\t]+)$`)
-
-type nativeScalarPackageConfig struct {
-	PackageName string
-	Pattern     *regexp.Regexp
-}
+var (
+	ndcOperationNameRegex    = regexp.MustCompile(`^(Function|Procedure)([A-Z][A-Za-z0-9]*)$`)
+	ndcOperationCommentRegex = regexp.MustCompile(`^@(function|procedure)(\s+([A-Za-z]\w*))?`)
+	ndcScalarNameRegex       = regexp.MustCompile(`^Scalar([A-Z]\w*)$`)
+	ndcScalarCommentRegex    = regexp.MustCompile(`^@scalar(\s+(\w+))?(\s+([a-z]+))?$`)
+	ndcEnumCommentRegex      = regexp.MustCompile(`^@enum\s+([\w-.,!@#$%^&*()+=~\s\t]+)$`)
+)
 
 var fieldNameRegex = regexp.MustCompile(`[^\w]`)
-
-var nativeScalarPackages map[string]nativeScalarPackageConfig = map[string]nativeScalarPackageConfig{
-	"scalar": {
-		PackageName: "github.com/hasura/ndc-sdk-go/scalar",
-		Pattern:     regexp.MustCompile(`^(\[\]|\*)*github\.com\/hasura\/ndc-sdk-go\/scalar\.`),
-	},
-	"json": {
-		PackageName: "encoding/json",
-		Pattern:     regexp.MustCompile(`^(\[\]|\*)*encoding\/json\.`),
-	},
-	"uuid": {
-		PackageName: "github.com/google/uuid",
-		Pattern:     regexp.MustCompile(`^(\[\]|\*)*github\.com\/google\/uuid\.`),
-	},
-	"time": {
-		PackageName: "time",
-		Pattern:     regexp.MustCompile(`^(\[\]|\*)*time\.`),
-	},
-}
 
 const textBlockErrorCheck = `
     if err != nil {

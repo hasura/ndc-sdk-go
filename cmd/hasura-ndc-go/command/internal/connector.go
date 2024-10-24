@@ -20,7 +20,7 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-// ConnectorGenerationArguments represent input arguments of the ConnectorGenerator
+// ConnectorGenerationArguments represent input arguments of the ConnectorGenerator.
 type ConnectorGenerationArguments struct {
 	Path         string   `help:"The path of the root directory where the go.mod file is present" short:"p" env:"HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH" default:"."`
 	ConnectorDir string   `help:"The directory where the connector.go file is placed" default:"."`
@@ -40,12 +40,12 @@ type connectorTypeBuilder struct {
 	procedures  []ProcedureInfo
 }
 
-// SetImport sets an import package into the import list
+// SetImport sets an import package into the import list.
 func (ctb *connectorTypeBuilder) SetImport(value string, alias string) {
 	ctb.imports[value] = alias
 }
 
-// String renders generated Go types and methods
+// String renders generated Go types and methods.
 func (ctb connectorTypeBuilder) String() string {
 	var bs strings.Builder
 	writeFileHeader(&bs, ctb.packageName)
@@ -79,7 +79,7 @@ type connectorGenerator struct {
 	procedureHandlers []string
 }
 
-// ParseAndGenerateConnector parses and generate connector codes
+// ParseAndGenerateConnector parses and generate connector codes.
 func ParseAndGenerateConnector(args ConnectorGenerationArguments, moduleName string) error {
 	if args.Trace != "" {
 		w, err := os.Create(args.Trace)
@@ -162,7 +162,7 @@ func (cg *connectorGenerator) generateConnector(name string) error {
 	}
 
 	schemaPath := path.Join(cg.basePath, cg.connectorDir, schemaOutputFile)
-	if err := os.WriteFile(schemaPath, schemaBytes, 0644); err != nil {
+	if err := os.WriteFile(schemaPath, schemaBytes, 0o644); err != nil {
 		return err
 	}
 
@@ -235,7 +235,7 @@ func (cg *connectorGenerator) renderOperationHandlers(values []string) string {
 	return sb.String()
 }
 
-// generate encoding and decoding methods for schema types
+// generate encoding and decoding methods for schema types.
 func (cg *connectorGenerator) genTypeMethods() error {
 	cg.genFunctionArgumentConstructors()
 	if err := cg.genObjectMethods(); err != nil {
@@ -259,7 +259,7 @@ func (cg *connectorGenerator) genTypeMethods() error {
 			Str("module_name", cg.moduleName).
 			Msg(schemaPath)
 
-		if err := os.WriteFile(schemaPath, []byte(builder.String()), 0644); err != nil {
+		if err := os.WriteFile(schemaPath, []byte(builder.String()), 0o644); err != nil {
 			return err
 		}
 	}
@@ -356,7 +356,7 @@ func (cg *connectorGenerator) genToMapProperty(sb *connectorTypeBuilder, field *
 	return selector
 }
 
-// generate Scalar implementation for custom scalar types
+// generate Scalar implementation for custom scalar types.
 func (cg *connectorGenerator) genCustomScalarMethods() error {
 	if len(cg.rawSchema.CustomScalars) == 0 {
 		return nil
@@ -678,8 +678,6 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 
 	default:
 		if ty.IsNullable() {
-			// typeName := strings.TrimLeft(typeName, "*")
-			// pkgName, tyName, ok := findAndReplaceNativeScalarPackage(typeName)
 			pkgName := ty.PackagePath
 			tyName := buildTypeNameFromFragments(ty.TypeFragments[1:], ty, sb.packagePath)
 

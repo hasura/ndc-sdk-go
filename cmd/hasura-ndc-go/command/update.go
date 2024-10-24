@@ -8,10 +8,10 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// UpdateArguments represent input arguments of the `update` command
+// UpdateArguments represent input arguments of the `update` command.
 type UpdateArguments internal.ConnectorGenerationArguments
 
-// UpdateConnectorSchema updates connector schema
+// UpdateConnectorSchema updates connector schema.
 func UpdateConnectorSchema(args UpdateArguments, start time.Time) {
 	log.Info().
 		Str("path", args.Path).

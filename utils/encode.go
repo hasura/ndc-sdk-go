@@ -17,7 +17,7 @@ type MapEncoder interface {
 
 // EncodeObject encodes an unknown type to a map[string]any, using json tag to convert object keys.
 func EncodeObject(input any) (map[string]any, error) {
-	if IsNil(input) {
+	if input == nil {
 		return nil, nil
 	}
 	return encodeObject(input, "")
