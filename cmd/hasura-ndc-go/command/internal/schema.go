@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"go/types"
 
 	"github.com/hasura/ndc-sdk-go/schema"
@@ -51,7 +50,7 @@ func (ti *TypeInfo) CanMethod() bool {
 func (ti *TypeInfo) GetArgumentName(packagePath string) string {
 	name := ti.Name
 	if ti.PackagePath != "" && packagePath != ti.PackagePath {
-		name = fmt.Sprintf("%s.%s", ti.PackageName, ti.Name)
+		name = ti.PackageName + "." + ti.Name
 	}
 
 	paramLen := len(ti.TypeParameters)

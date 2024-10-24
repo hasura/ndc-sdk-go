@@ -209,7 +209,7 @@ func (cg *connectorGenerator) genConnectorCodeFromTemplate(w io.Writer, packageN
 	return connectorTemplate.Execute(w, map[string]any{
 		"Imports":          strings.Join(importLines, "\n"),
 		"PackageName":      packageName,
-		"StateArgument":    cg.rawSchema.StateType.GetArgumentName(""),
+		"StateArgument":    cg.rawSchema.StateType.String(),
 		"SchemaFormat":     cg.schemaFormat,
 		"QueryHandlers":    cg.renderOperationHandlers(cg.functionHandlers),
 		"MutationHandlers": cg.renderOperationHandlers(cg.procedureHandlers),
@@ -284,7 +284,7 @@ func (cg *connectorGenerator) genObjectMethods() error {
 // ToMap encodes the struct to a value map
 func (j %s) ToMap() map[string]any {
   r := make(map[string]any)
-`, object.Type.GetArgumentName(object.Type.PackagePath)))
+`, object.Type.String()))
 		cg.genObjectToMap(sb, &object, "j", "r")
 		sb.builder.WriteString(`
 	return r
@@ -476,7 +476,7 @@ func (cg *connectorGenerator) writeObjectFromValue(info *ObjectInfo) {
 	sb.builder.WriteString(`
 // FromValue decodes values from map
 func (j *`)
-	sb.builder.WriteString(info.Type.GetArgumentName(info.Type.PackagePath))
+	sb.builder.WriteString(info.Type.String())
 	sb.builder.WriteString(`) FromValue(input map[string]any) error {
   var err error
 `)

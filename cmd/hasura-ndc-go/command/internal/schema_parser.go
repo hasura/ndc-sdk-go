@@ -311,7 +311,7 @@ func (sp *SchemaParser) parseArgumentTypes(ty types.Type, argumentFor *Operation
 				fieldType.TypeAST = fieldVar.Type()
 			}
 			if !fieldType.IsScalar && argumentFor != nil && *argumentFor == OperationFunction {
-				object, ok := sp.rawSchema.Objects[fieldType.GetArgumentName(fieldType.PackagePath)]
+				object, ok := sp.rawSchema.Objects[fieldType.String()]
 				if ok {
 					sp.rawSchema.setFunctionArgument(object)
 				} else {
