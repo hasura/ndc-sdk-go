@@ -20,7 +20,7 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-// ConnectorGenerationArguments represent input arguments of the ConnectorGenerator
+// ConnectorGenerationArguments represent input arguments of the ConnectorGenerator.
 type ConnectorGenerationArguments struct {
 	Path         string   `help:"The path of the root directory where the go.mod file is present" short:"p" env:"HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH" default:"."`
 	ConnectorDir string   `help:"The directory where the connector.go file is placed" default:"."`
@@ -40,12 +40,12 @@ type connectorTypeBuilder struct {
 	procedures  []ProcedureInfo
 }
 
-// SetImport sets an import package into the import list
+// SetImport sets an import package into the import list.
 func (ctb *connectorTypeBuilder) SetImport(value string, alias string) {
 	ctb.imports[value] = alias
 }
 
-// String renders generated Go types and methods
+// String renders generated Go types and methods.
 func (ctb connectorTypeBuilder) String() string {
 	var bs strings.Builder
 	writeFileHeader(&bs, ctb.packageName)
@@ -79,7 +79,7 @@ type connectorGenerator struct {
 	procedureHandlers []string
 }
 
-// ParseAndGenerateConnector parses and generate connector codes
+// ParseAndGenerateConnector parses and generate connector codes.
 func ParseAndGenerateConnector(args ConnectorGenerationArguments, moduleName string) error {
 	if args.Trace != "" {
 		w, err := os.Create(args.Trace)
@@ -162,7 +162,7 @@ func (cg *connectorGenerator) generateConnector(name string) error {
 	}
 
 	schemaPath := path.Join(cg.basePath, cg.connectorDir, schemaOutputFile)
-	if err := os.WriteFile(schemaPath, schemaBytes, 0644); err != nil {
+	if err := os.WriteFile(schemaPath, schemaBytes, 0o644); err != nil {
 		return err
 	}
 
@@ -209,7 +209,7 @@ func (cg *connectorGenerator) genConnectorCodeFromTemplate(w io.Writer, packageN
 	return connectorTemplate.Execute(w, map[string]any{
 		"Imports":          strings.Join(importLines, "\n"),
 		"PackageName":      packageName,
-		"StateArgument":    cg.rawSchema.StateType.GetArgumentName(""),
+		"StateArgument":    cg.rawSchema.StateType.String(),
 		"SchemaFormat":     cg.schemaFormat,
 		"QueryHandlers":    cg.renderOperationHandlers(cg.functionHandlers),
 		"MutationHandlers": cg.renderOperationHandlers(cg.procedureHandlers),
@@ -235,7 +235,7 @@ func (cg *connectorGenerator) renderOperationHandlers(values []string) string {
 	return sb.String()
 }
 
-// generate encoding and decoding methods for schema types
+// generate encoding and decoding methods for schema types.
 func (cg *connectorGenerator) genTypeMethods() error {
 	cg.genFunctionArgumentConstructors()
 	if err := cg.genObjectMethods(); err != nil {
@@ -259,7 +259,7 @@ func (cg *connectorGenerator) genTypeMethods() error {
 			Str("module_name", cg.moduleName).
 			Msg(schemaPath)
 
-		if err := os.WriteFile(schemaPath, []byte(builder.String()), 0644); err != nil {
+		if err := os.WriteFile(schemaPath, []byte(builder.String()), 0o644); err != nil {
 			return err
 		}
 	}
@@ -276,7 +276,7 @@ func (cg *connectorGenerator) genObjectMethods() error {
 
 	for _, objectName := range objectKeys {
 		object := cg.rawSchema.Objects[objectName]
-		if object.IsAnonymous || !strings.HasPrefix(object.Type.PackagePath, cg.moduleName) {
+		if object.IsAnonymous || !object.Type.CanMethod() || !strings.HasPrefix(object.Type.PackagePath, cg.moduleName) {
 			continue
 		}
 		sb := cg.getOrCreateTypeBuilder(object.Type.PackagePath)
@@ -284,7 +284,7 @@ func (cg *connectorGenerator) genObjectMethods() error {
 // ToMap encodes the struct to a value map
 func (j %s) ToMap() map[string]any {
   r := make(map[string]any)
-`, object.Type.Name))
+`, object.Type.String()))
 		cg.genObjectToMap(sb, &object, "j", "r")
 		sb.builder.WriteString(`
 	return r
@@ -333,7 +333,7 @@ func (cg *connectorGenerator) genToMapProperty(sb *connectorTypeBuilder, field *
 	if isAnonymous {
 		innerObject, ok := cg.rawSchema.Objects[ty.String()]
 		if !ok {
-			tyName := buildTypeNameFromFragments(ty.TypeFragments, ty.PackagePath, sb.packagePath)
+			tyName := buildTypeNameFromFragments(ty.TypeFragments, ty, sb.packagePath)
 			innerObject, ok = cg.rawSchema.Objects[tyName]
 			if !ok {
 				return selector
@@ -356,7 +356,7 @@ func (cg *connectorGenerator) genToMapProperty(sb *connectorTypeBuilder, field *
 	return selector
 }
 
-// generate Scalar implementation for custom scalar types
+// generate Scalar implementation for custom scalar types.
 func (cg *connectorGenerator) genCustomScalarMethods() error {
 	if len(cg.rawSchema.CustomScalars) == 0 {
 		return nil
@@ -468,7 +468,7 @@ func (cg *connectorGenerator) genFunctionArgumentConstructors() {
 }
 
 func (cg *connectorGenerator) writeObjectFromValue(info *ObjectInfo) {
-	if len(info.Fields) == 0 || info.Type == nil || info.IsAnonymous {
+	if len(info.Fields) == 0 || info.Type == nil || !info.Type.CanMethod() || info.IsAnonymous {
 		return
 	}
 
@@ -476,7 +476,7 @@ func (cg *connectorGenerator) writeObjectFromValue(info *ObjectInfo) {
 	sb.builder.WriteString(`
 // FromValue decodes values from map
 func (j *`)
-	sb.builder.WriteString(info.Type.Name)
+	sb.builder.WriteString(info.Type.String())
 	sb.builder.WriteString(`) FromValue(input map[string]any) error {
   var err error
 `)
@@ -678,12 +678,9 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 
 	default:
 		if ty.IsNullable() {
-			typeName := strings.TrimLeft(typeName, "*")
-			pkgName, tyName, ok := findAndReplaceNativeScalarPackage(typeName)
-			if !ok && len(ty.TypeFragments) > 0 {
-				pkgName = ty.PackagePath
-				tyName = buildTypeNameFromFragments(ty.TypeFragments[1:], ty.PackagePath, sb.packagePath)
-			}
+			pkgName := ty.PackagePath
+			tyName := buildTypeNameFromFragments(ty.TypeFragments[1:], ty, sb.packagePath)
+
 			if pkgName != "" && pkgName != sb.packagePath {
 				sb.imports[pkgName] = ""
 			}
@@ -718,29 +715,26 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 	sb.builder.WriteString(textBlockErrorCheck)
 }
 
-func buildTypeNameFromFragments(items []string, typePackagePath string, currentPackagePath string) string {
-	results := make([]string, len(items))
-	for i, item := range items {
+func buildTypeNameFromFragments(items []string, ti *TypeInfo, currentPackagePath string) string {
+	var results string
+	for _, item := range items {
 		if item == "*" || item == "[]" {
-			results[i] = item
+			results += item
 			continue
 		}
-		results[i] = buildTypeWithAlias(item, typePackagePath, currentPackagePath)
+		results += buildTypeWithAlias(item, ti, currentPackagePath)
 	}
 
-	return strings.Join(results, "")
+	return results
 }
 
-func buildTypeWithAlias(name string, typePackagePath string, currentPackagePath string) string {
-	if typePackagePath == "" || typePackagePath == currentPackagePath ||
+func buildTypeWithAlias(name string, ti *TypeInfo, currentPackagePath string) string {
+	if ti.Name == "" ||
 		// do not add alias to anonymous struct
 		strings.HasPrefix(name, "struct{") {
 		return name
 	}
-
-	parts := strings.Split(typePackagePath, "/")
-	alias := parts[len(parts)-1]
-	return fmt.Sprintf("%s.%s", alias, name)
+	return ti.GetArgumentName(currentPackagePath)
 }
 
 func formatLocalFieldName(input string, others ...string) string {

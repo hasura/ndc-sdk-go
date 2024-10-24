@@ -1,0 +1,21 @@
+[
+  {
+    "rows": [
+      {
+        "__value": {
+          "Response": {
+            "error": null,
+            "foo": "",
+            "id": "a7118c3d-3d8e-433d-8a58-cd5ca7422b60",
+            "num": 1702317549,
+            "text": ""
+          },
+          "headers": {
+            "X-Test-ResponseHeader": "I set this in the code",
+            "foo": "bar"
+          }
+        }
+      }
+    ]
+  }
+]

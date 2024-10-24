@@ -11,6 +11,10 @@ import (
 	"strings"
 )
 
+const (
+	keyValueLength = 2
+)
+
 // GetDefault returns the value or default one if value is empty.
 func GetDefault[T comparable](value T, defaultValue T) T {
 	var empty T
@@ -160,7 +164,7 @@ func ParseIntMapFromString(input string) (map[string]int, error) {
 	rawItems := strings.Split(input, ";")
 	for _, rawItem := range rawItems {
 		keyValue := strings.Split(rawItem, "=")
-		if len(keyValue) != 2 {
+		if len(keyValue) != keyValueLength {
 			return nil, fmt.Errorf("invalid int map string %s, expected <key1>=<value1>;<key2>=<value2>", input)
 		}
 		value, err := strconv.ParseInt(keyValue[1], 10, 32)

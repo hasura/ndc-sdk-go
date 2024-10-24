@@ -149,15 +149,21 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 
 		var argumentParamStr string
 		if fn.ArgumentsType != nil {
-			argName := fn.ArgumentsType.Name
+			argName := fn.ArgumentsType.GetArgumentName(chb.Builder.packagePath)
 			if fn.ArgumentsType.PackagePath != "" && fn.ArgumentsType.PackagePath != chb.Builder.packagePath {
 				chb.Builder.imports[fn.ArgumentsType.PackagePath] = ""
-				argName = fmt.Sprintf("%s.%s", fn.ArgumentsType.PackageName, fn.ArgumentsType.Name)
 			}
 
-			argumentStr := fmt.Sprintf(`
-		var args %s
-		if parseErr := args.FromValue(rawArgs); parseErr != nil {
+			sb.WriteString(`
+		var args `)
+			sb.WriteString(argName)
+			sb.WriteString("\n    if parseErr := ")
+			if fn.ArgumentsType.CanMethod() {
+				sb.WriteString("args.FromValue(rawArgs)")
+			} else {
+				sb.WriteString("connector_Decoder.DecodeObject(&args, rawArgs)")
+			}
+			sb.WriteString(`; parseErr != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
 				"cause": parseErr.Error(),
 			})
@@ -165,8 +171,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 		
 		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
 			"arguments": args,
-		})`, argName)
-			sb.WriteString(argumentStr)
+		})`)
 			argumentParamStr = ", &args"
 		}
 
@@ -259,10 +264,9 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 
 		var argumentParamStr string
 		if fn.ArgumentsType != nil {
-			argName := fn.ArgumentsType.Name
+			argName := fn.ArgumentsType.GetArgumentName(chb.Builder.packagePath)
 			if fn.ArgumentsType.PackagePath != "" && fn.ArgumentsType.PackagePath != chb.Builder.packagePath {
 				chb.Builder.imports[fn.ArgumentsType.PackagePath] = ""
-				argName = fmt.Sprintf("%s.%s", fn.ArgumentsType.PackageName, fn.ArgumentsType.Name)
 			}
 
 			argumentStr := fmt.Sprintf(`

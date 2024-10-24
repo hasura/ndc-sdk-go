@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"go/types"
 
 	"github.com/hasura/ndc-sdk-go/schema"
@@ -16,9 +15,10 @@ const (
 
 type TypeKind string
 
-// TypeInfo represents the serialization information of a type
+// TypeInfo represents the serialization information of a type.
 type TypeInfo struct {
 	Name                 string
+	TypeParameters       []TypeInfo
 	SchemaName           string
 	Description          *string
 	PackagePath          string
@@ -31,28 +31,46 @@ type TypeInfo struct {
 	Schema               schema.TypeEncoder
 }
 
-// IsNullable checks if the current type is nullable
+// IsNullable checks if the current type is nullable.
 func (ti *TypeInfo) IsNullable() bool {
 	return isNullableFragments(ti.TypeFragments)
 }
 
-// IsArray checks if the current type is an array
+// IsArray checks if the current type is an array.
 func (ti *TypeInfo) IsArray() bool {
 	return isArrayFragments(ti.TypeFragments)
 }
 
-// GetArgumentName returns the argument name
-func (ti *TypeInfo) GetArgumentName(packagePath string) string {
-	if packagePath == ti.PackagePath {
-		return ti.Name
-	}
-
-	return fmt.Sprintf("%s.%s", ti.PackageName, ti.Name)
+// CanMethod checks whether generating decoding methods for this type.
+func (ti *TypeInfo) CanMethod() bool {
+	return len(ti.TypeParameters) == 0
 }
 
-// String implements the fmt.Stringer interface
+// GetArgumentName returns the argument name.
+func (ti *TypeInfo) GetArgumentName(packagePath string) string {
+	name := ti.Name
+	if ti.PackagePath != "" && packagePath != ti.PackagePath {
+		name = ti.PackageName + "." + ti.Name
+	}
+
+	paramLen := len(ti.TypeParameters)
+	if paramLen > 0 {
+		name += "["
+		for i, param := range ti.TypeParameters {
+			name += param.GetArgumentName(packagePath)
+			if i < paramLen-1 {
+				name += ", "
+			}
+		}
+		name += "]"
+	}
+
+	return name
+}
+
+// String implements the fmt.Stringer interface.
 func (ti *TypeInfo) String() string {
-	return fmt.Sprintf("%s.%s", ti.PackagePath, ti.Name)
+	return ti.GetArgumentName(ti.PackagePath)
 }
 
 func isNullableFragment(fragment string) bool {
@@ -71,14 +89,14 @@ func isArrayFragments(fragments []string) bool {
 	return len(fragments) > 0 && isArrayFragment(fragments[0])
 }
 
-// ObjectField represents the serialization information of an object field
+// ObjectField represents the serialization information of an object field.
 type ObjectField struct {
 	Name        string
 	Description *string
 	Type        *TypeInfo
 }
 
-// ObjectInfo represents the serialization information of an object type
+// ObjectInfo represents the serialization information of an object type.
 type ObjectInfo struct {
 	IsAnonymous bool
 	Type        *TypeInfo
@@ -86,7 +104,7 @@ type ObjectInfo struct {
 }
 
 // FunctionInfo represents a readable Go function info
-// which can convert to a NDC function or procedure schema
+// which can convert to a NDC function or procedure schema.
 type OperationInfo struct {
 	Kind          OperationKind
 	Name          string
@@ -100,10 +118,10 @@ type OperationInfo struct {
 }
 
 // FunctionInfo represents a readable Go function info
-// which can convert to a NDC function schema
+// which can convert to a NDC function schema.
 type FunctionInfo OperationInfo
 
-// Schema returns a NDC function schema
+// Schema returns a NDC function schema.
 func (op FunctionInfo) Schema() schema.FunctionInfo {
 	result := schema.FunctionInfo{
 		Name:        op.Name,
@@ -115,10 +133,10 @@ func (op FunctionInfo) Schema() schema.FunctionInfo {
 }
 
 // ProcedureInfo represents a readable Go function info
-// which can convert to a NDC procedure schema
+// which can convert to a NDC procedure schema.
 type ProcedureInfo FunctionInfo
 
-// Schema returns a NDC procedure schema
+// Schema returns a NDC procedure schema.
 func (op ProcedureInfo) Schema() schema.ProcedureInfo {
 	result := schema.ProcedureInfo{
 		Name:        op.Name,
@@ -130,7 +148,7 @@ func (op ProcedureInfo) Schema() schema.ProcedureInfo {
 }
 
 // RawConnectorSchema represents a readable Go schema object
-// which can encode to NDC schema
+// which can encode to NDC schema.
 type RawConnectorSchema struct {
 	StateType         *TypeInfo
 	Imports           map[string]bool
@@ -143,7 +161,7 @@ type RawConnectorSchema struct {
 	Procedures        []ProcedureInfo
 }
 
-// NewRawConnectorSchema creates an empty RawConnectorSchema instance
+// NewRawConnectorSchema creates an empty RawConnectorSchema instance.
 func NewRawConnectorSchema() *RawConnectorSchema {
 	return &RawConnectorSchema{
 		Imports:           make(map[string]bool),
@@ -157,7 +175,7 @@ func NewRawConnectorSchema() *RawConnectorSchema {
 	}
 }
 
-// Schema converts to a NDC schema
+// Schema converts to a NDC schema.
 func (rcs RawConnectorSchema) Schema() *schema.SchemaResponse {
 	result := &schema.SchemaResponse{
 		ScalarTypes: rcs.ScalarSchemas,

@@ -60,7 +60,7 @@ func main() {
 			log.Fatal().Err(err).Msg("failed to generate test snapshots")
 		}
 	case "version":
-		_, _ = fmt.Print(version.BuildVersion)
+		_, _ = fmt.Fprint(os.Stderr, version.BuildVersion)
 	default:
 		log.Fatal().Msgf("unknown command <%s>", cmd.Command())
 	}

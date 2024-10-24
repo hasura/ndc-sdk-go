@@ -13,6 +13,20 @@ import (
 var connector_Decoder = utils.NewDecoder()
 
 // FromValue decodes values from map
+func (j *GetCustomHeadersInput) FromValue(input map[string]any) error {
+	var err error
+	j.ID, err = utils.GetUUID(input, "id")
+	if err != nil {
+		return err
+	}
+	j.Num, err = utils.GetInt[int](input, "num")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// FromValue decodes values from map
 func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	var err error
 	err = connector_Decoder.DecodeObjectValue(&j.ArrayBigInt, input, "ArrayBigInt")
@@ -601,6 +615,15 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 		return err
 	}
 	return nil
+}
+
+// ToMap encodes the struct to a value map
+func (j GetCustomHeadersInput) ToMap() map[string]any {
+	r := make(map[string]any)
+	r["id"] = j.ID
+	r["num"] = j.Num
+
+	return r
 }
 
 // ToMap encodes the struct to a value map

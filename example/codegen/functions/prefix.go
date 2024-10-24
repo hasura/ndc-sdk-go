@@ -121,3 +121,56 @@ func FunctionGetAuthor2(ctx context.Context, state *types.State, arguments *GetA
 		Name: arguments.Name,
 	}, nil
 }
+
+// generate schema and methods for generic types
+type GetCustomHeadersArguments[T any, S int | int8 | int16 | int32 | int64] struct {
+	Headers map[string]string         `json:"headers"`
+	Input   *T                        `json:"input"`
+	Other   *GetCustomHeadersOther[S] `json:"other"`
+}
+
+type GetCustomHeadersOther[T int | int8 | int16 | int32 | int64] struct {
+	Value T `json:"value"`
+}
+
+type GetCustomHeadersResult[T any, O int | int8 | int16 | int32 | int64] struct {
+	Headers  map[string]string `json:"headers"`
+	Response T
+	Other    *GetCustomHeadersOther[O] `json:"other"`
+}
+
+func FunctionGetCustomHeaders(ctx context.Context, state *types.State, arguments *GetCustomHeadersArguments[BaseAuthor, int]) (GetCustomHeadersResult[HelloResult, int64], error) {
+	if arguments.Headers == nil {
+		arguments.Headers = make(map[string]string)
+	}
+	arguments.Headers["X-Test-ResponseHeader"] = "I set this in the code"
+	result := HelloResult{}
+	if arguments.Input != nil {
+		result.Text = types.Text(arguments.Input.Name)
+	}
+	if arguments.Other != nil {
+		result.Num = arguments.Other.Value
+	}
+	return GetCustomHeadersResult[HelloResult, int64]{
+		Headers:  arguments.Headers,
+		Response: result,
+	}, nil
+}
+
+// the generic type's method doesn't allow type parameters from other packages
+// so the FromValue method isn't generated
+func FunctionGetGenericWithoutDecodingMethod(ctx context.Context, state *types.State, arguments *GetCustomHeadersArguments[arguments.GetCustomHeadersInput, int]) (GetCustomHeadersResult[HelloResult, int64], error) {
+	if arguments.Headers == nil {
+		arguments.Headers = make(map[string]string)
+	}
+	arguments.Headers["X-Test-ResponseHeader"] = "I set this in the code"
+	result := HelloResult{}
+	if arguments.Input != nil {
+		result.ID = arguments.Input.ID
+		result.Num = arguments.Input.Num
+	}
+	return GetCustomHeadersResult[HelloResult, int64]{
+		Headers:  arguments.Headers,
+		Response: result,
+	}, nil
+}

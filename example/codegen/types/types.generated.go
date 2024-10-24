@@ -52,15 +52,6 @@ func (j Author) ToMap() map[string]any {
 	return r
 }
 
-// ToMap encodes the struct to a value map
-func (j GetAuthorResult) ToMap() map[string]any {
-	r := make(map[string]any)
-	r["id"] = j.ID
-	r["name"] = j.Name
-
-	return r
-}
-
 // ScalarName get the schema name of the scalar
 func (j AuthorStatus) ScalarName() string {
 	return "AuthorStatus"

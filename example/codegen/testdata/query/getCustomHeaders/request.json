@@ -1,0 +1,70 @@
+{
+  "arguments": {
+    "headers": {
+      "type": "literal",
+      "value": {
+        "foo": "bar"
+      }
+    },
+    "input": {
+      "type": "literal",
+      "value": {
+        "name": "oK022ZdXnL"
+      }
+    },
+    "other": {
+      "type": "literal",
+      "value": {
+        "value": 2054689251
+      }
+    }
+  },
+  "collection": "getCustomHeaders",
+  "collection_relationships": {},
+  "query": {
+    "fields": {
+      "__value": {
+        "column": "__value",
+        "fields": {
+          "fields": {
+            "Response": {
+              "column": "Response",
+              "fields": {
+                "fields": {
+                  "error": {
+                    "column": "error",
+                    "type": "column"
+                  },
+                  "foo": {
+                    "column": "foo",
+                    "type": "column"
+                  },
+                  "id": {
+                    "column": "id",
+                    "type": "column"
+                  },
+                  "num": {
+                    "column": "num",
+                    "type": "column"
+                  },
+                  "text": {
+                    "column": "text",
+                    "type": "column"
+                  }
+                },
+                "type": "object"
+              },
+              "type": "column"
+            },
+            "headers": {
+              "column": "headers",
+              "type": "column"
+            }
+          },
+          "type": "object"
+        },
+        "type": "column"
+      }
+    }
+  }
+}

@@ -203,7 +203,7 @@ func (rt *router) Build() *http.ServeMux {
 					slog.Duration("latency", time.Since(startTime)),
 					slog.Any("request", requestLogData),
 					slog.Any("response", map[string]any{
-						"status": 404,
+						"status": http.StatusNotFound,
 					}),
 				)
 
@@ -226,7 +226,7 @@ func (rt *router) Build() *http.ServeMux {
 						slog.Duration("latency", time.Since(startTime)),
 						slog.Any("request", requestLogData),
 						slog.Any("response", map[string]any{
-							"status": 422,
+							"status": http.StatusUnprocessableEntity,
 							"body":   err,
 						}),
 					)
@@ -255,7 +255,7 @@ func (rt *router) Build() *http.ServeMux {
 			}
 			setSpanHeadersAttributes(span, "http.response.header", w.Header(), isDebug)
 
-			if writer.statusCode >= 400 {
+			if writer.statusCode >= http.StatusBadRequest {
 				logger.Error(
 					http.StatusText(writer.statusCode),
 					slog.Duration("latency", time.Since(startTime)),

@@ -20,7 +20,7 @@ const (
 	alphaDigits   = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
-// GenRandomScalarValue generates random scalar value depending on its representation type
+// GenRandomScalarValue generates random scalar value depending on its representation type.
 func GenRandomScalarValue(random *rand.Rand, name string, scalar *schema.ScalarType) any {
 	baseTime := time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
 
@@ -60,7 +60,7 @@ func GenRandomScalarValue(random *rand.Rand, name string, scalar *schema.ScalarT
 	}
 }
 
-// GenRandomString generate random string with fixed length
+// GenRandomString generate random string with fixed length.
 func GenRandomString(src *rand.Rand, n int) string {
 	sb := strings.Builder{}
 	sb.Grow(n)

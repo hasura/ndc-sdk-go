@@ -16,7 +16,7 @@ import (
 	"github.com/hasura/ndc-sdk-go/schema"
 )
 
-// GenTestSnapshotArguments represents arguments for test snapshot generation
+// GenTestSnapshotArguments represents arguments for test snapshot generation.
 type GenTestSnapshotArguments struct {
 	Schema   string                     `help:"NDC schema file path. Use either endpoint or schema path"`
 	Endpoint string                     `help:"The endpoint of the connector. Use either endpoint or schema path"`
@@ -27,14 +27,14 @@ type GenTestSnapshotArguments struct {
 	Strategy internal.WriteFileStrategy `help:"Decide the strategy to do when the snapshot file exists. Accept: none, override" enum:"none,override" default:"none"`
 }
 
-// genTestSnapshotsCommand
+// genTestSnapshotsCommand.
 type genTestSnapshotsCommand struct {
 	args   *GenTestSnapshotArguments
 	schema schema.SchemaResponse
 	random *rand.Rand
 }
 
-// GenTestSnapshots generates test snapshots from NDC schema
+// GenTestSnapshots generates test snapshots from NDC schema.
 func GenTestSnapshots(args *GenTestSnapshotArguments) error {
 	seed := time.Now().UnixNano()
 	random := rand.New(rand.NewSource(seed))
@@ -138,7 +138,7 @@ func (cmd *genTestSnapshotsCommand) genFunction(fn *schema.FunctionInfo) error {
 	}
 
 	snapshotDir := path.Join(cmd.args.Dir, "query", queryReq.Collection)
-	if err := os.MkdirAll(snapshotDir, 0755); err != nil {
+	if err := os.MkdirAll(snapshotDir, 0o755); err != nil {
 		return err
 	}
 
@@ -197,7 +197,7 @@ func (cmd *genTestSnapshotsCommand) genProcedure(proc *schema.ProcedureInfo) err
 	}
 
 	snapshotDir := path.Join(cmd.args.Dir, "mutation", proc.Name)
-	if err := os.MkdirAll(snapshotDir, 0755); err != nil {
+	if err := os.MkdirAll(snapshotDir, 0o755); err != nil {
 		return err
 	}
 

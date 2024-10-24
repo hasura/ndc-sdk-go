@@ -245,6 +245,70 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 		}
 		return FunctionGetBool(ctx, state)
 
+	case "getCustomHeaders":
+
+		selection, err := queryFields.AsObject()
+		if err != nil {
+			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
+				"cause": err.Error(),
+			})
+		}
+		var args GetCustomHeadersArguments[BaseAuthor, int]
+		if parseErr := connector_Decoder.DecodeObject(&args, rawArgs); parseErr != nil {
+			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
+				"cause": parseErr.Error(),
+			})
+		}
+
+		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
+			"arguments": args,
+		})
+		rawResult, err := FunctionGetCustomHeaders(ctx, state, &args)
+		if err != nil {
+			return nil, err
+		}
+
+		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})
+		result, err := utils.EvalNestedColumnObject(selection, rawResult)
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
+
+	case "getGenericWithoutDecodingMethod":
+
+		selection, err := queryFields.AsObject()
+		if err != nil {
+			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
+				"cause": err.Error(),
+			})
+		}
+		var args GetCustomHeadersArguments[arguments.GetCustomHeadersInput, int]
+		if parseErr := connector_Decoder.DecodeObject(&args, rawArgs); parseErr != nil {
+			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
+				"cause": parseErr.Error(),
+			})
+		}
+
+		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
+			"arguments": args,
+		})
+		rawResult, err := FunctionGetGenericWithoutDecodingMethod(ctx, state, &args)
+		if err != nil {
+			return nil, err
+		}
+
+		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})
+		result, err := utils.EvalNestedColumnObject(selection, rawResult)
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
+
 	case "getTypes":
 
 		selection, err := queryFields.AsObject()
@@ -344,7 +408,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 	}
 }
 
-var enumValues_FunctionName = []string{"getAuthor", "getAuthor2", "getBool", "getTypes", "hello", "getArticles"}
+var enumValues_FunctionName = []string{"getAuthor", "getAuthor2", "getBool", "getCustomHeaders", "getGenericWithoutDecodingMethod", "getTypes", "hello", "getArticles"}
 
 // MutationExists check if the mutation name exists
 func (dch DataConnectorHandler) MutationExists(name string) bool {
