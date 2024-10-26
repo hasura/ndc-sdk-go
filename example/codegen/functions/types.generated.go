@@ -189,6 +189,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			"arguments": args,
 		})
 		rawResult, err := FunctionGetAuthor(ctx, state, &args)
+
 		if err != nil {
 			return nil, err
 		}
@@ -196,7 +197,6 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 		if rawResult == nil {
 			return nil, nil
 		}
-
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
 		})
@@ -225,6 +225,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			"arguments": args,
 		})
 		rawResult, err := FunctionGetAuthor2(ctx, state, &args)
+
 		if err != nil {
 			return nil, err
 		}
@@ -245,6 +246,72 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 		}
 		return FunctionGetBool(ctx, state)
 
+	case "getCustomHeaders":
+
+		selection, err := queryFields.AsObject()
+		if err != nil {
+			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
+				"cause": err.Error(),
+			})
+		}
+		var args GetCustomHeadersArguments[BaseAuthor, int]
+		if parseErr := connector_Decoder.DecodeObject(&args, rawArgs); parseErr != nil {
+			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
+				"cause": parseErr.Error(),
+			})
+		}
+
+		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
+			"arguments": args,
+		})
+		rawResult, err := FunctionGetCustomHeaders(ctx, state, &args)
+
+		if err != nil {
+			return nil, err
+		}
+
+		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})
+		result, err := utils.EvalNestedColumnObject(selection, rawResult)
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
+
+	case "getGenericWithoutDecodingMethod":
+
+		selection, err := queryFields.AsObject()
+		if err != nil {
+			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
+				"cause": err.Error(),
+			})
+		}
+		var args GetCustomHeadersArguments[arguments.GetCustomHeadersInput, int]
+		if parseErr := connector_Decoder.DecodeObject(&args, rawArgs); parseErr != nil {
+			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
+				"cause": parseErr.Error(),
+			})
+		}
+
+		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
+			"arguments": args,
+		})
+		rawResult, err := FunctionGetGenericWithoutDecodingMethod(ctx, state, &args)
+
+		if err != nil {
+			return nil, err
+		}
+
+		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})
+		result, err := utils.EvalNestedColumnObject(selection, rawResult)
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
+
 	case "getTypes":
 
 		selection, err := queryFields.AsObject()
@@ -264,6 +331,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			"arguments": args,
 		})
 		rawResult, err := FunctionGetTypes(ctx, state, &args)
+
 		if err != nil {
 			return nil, err
 		}
@@ -271,7 +339,6 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 		if rawResult == nil {
 			return nil, nil
 		}
-
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
 		})
@@ -290,6 +357,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			})
 		}
 		rawResult, err := FunctionHello(ctx, state)
+
 		if err != nil {
 			return nil, err
 		}
@@ -297,7 +365,6 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 		if rawResult == nil {
 			return nil, nil
 		}
-
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
 		})
@@ -326,6 +393,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			"arguments": args,
 		})
 		rawResult, err := GetArticles(ctx, state, &args)
+
 		if err != nil {
 			return nil, err
 		}
@@ -344,7 +412,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 	}
 }
 
-var enumValues_FunctionName = []string{"getAuthor", "getAuthor2", "getBool", "getTypes", "hello", "getArticles"}
+var enumValues_FunctionName = []string{"getAuthor", "getAuthor2", "getBool", "getCustomHeaders", "getGenericWithoutDecodingMethod", "getTypes", "hello", "getArticles"}
 
 // MutationExists check if the mutation name exists
 func (dch DataConnectorHandler) MutationExists(name string) bool {
@@ -378,6 +446,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
 		if err != nil {
 			return nil, err
 		}
+
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
 		})
@@ -395,6 +464,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
 		}
 		span.AddEvent("execute_procedure")
 		result, err := Increase(ctx, state)
+
 		if err != nil {
 			return nil, err
 		}
@@ -422,7 +492,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
 		}
 
 		if rawResult == nil {
-			return nil, nil
+			return schema.NewProcedureResult(nil).Encode(), nil
 		}
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
@@ -454,10 +524,45 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
 		if err != nil {
 			return nil, err
 		}
+
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
 		})
 		result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)
+
+		if err != nil {
+			return nil, err
+		}
+		return schema.NewProcedureResult(result).Encode(), nil
+
+	case "doCustomHeaders":
+
+		selection, err := operation.Fields.AsObject()
+		if err != nil {
+			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
+				"cause": err.Error(),
+			})
+		}
+		var args GetCustomHeadersArguments[*[]BaseAuthor, int]
+		if err := json.Unmarshal(operation.Arguments, &args); err != nil {
+			return nil, schema.UnprocessableContentError("failed to decode arguments", map[string]any{
+				"cause": err.Error(),
+			})
+		}
+		span.AddEvent("execute_procedure")
+		rawResult, err := ProcedureDoCustomHeaders(ctx, state, &args)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if rawResult == nil {
+			return schema.NewProcedureResult(nil).Encode(), nil
+		}
+		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})
+		result, err := utils.EvalNestedColumnObject(selection, rawResult)
 
 		if err != nil {
 			return nil, err
@@ -469,7 +574,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
 	}
 }
 
-var enumValues_ProcedureName = []string{"create_article", "increase", "createAuthor", "createAuthors"}
+var enumValues_ProcedureName = []string{"create_article", "increase", "createAuthor", "createAuthors", "doCustomHeaders"}
 
 func connector_addSpanEvent(span trace.Span, logger *slog.Logger, name string, data map[string]any, options ...trace.EventOption) {
 	logger.Debug(name, slog.Any("data", data))

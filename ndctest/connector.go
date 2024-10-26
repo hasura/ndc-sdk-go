@@ -112,14 +112,14 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 		res, err := httpPostJSON(httpServer.URL+"/query/explain", schema.QueryRequest{})
 		assert.NilError(t, err)
 		_ = res.Body.Close()
-		assert.Check(t, res.StatusCode >= 400)
+		assert.Check(t, res.StatusCode >= http.StatusBadRequest)
 	})
 
 	t.Run("explain_mutation_failure", func(t *testing.T) {
 		res, err := httpPostJSON(httpServer.URL+"/mutation/explain", schema.MutationRequest{})
 		assert.NilError(t, err)
 		_ = res.Body.Close()
-		assert.Check(t, res.StatusCode >= 400)
+		assert.Check(t, res.StatusCode >= http.StatusBadRequest)
 	})
 
 	t.Run("query_failure", func(t *testing.T) {
@@ -128,7 +128,7 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 		})
 		assert.NilError(t, err)
 		_ = res.Body.Close()
-		assert.Check(t, res.StatusCode >= 400)
+		assert.Check(t, res.StatusCode >= http.StatusBadRequest)
 	})
 
 	t.Run("mutation_failure", func(t *testing.T) {
@@ -142,7 +142,7 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 		})
 		assert.NilError(t, err)
 		_ = res.Body.Close()
-		assert.Check(t, res.StatusCode >= 400)
+		assert.Check(t, res.StatusCode >= http.StatusBadRequest)
 	})
 
 	t.Run("mutation_invalid_operation_type", func(t *testing.T) {
@@ -155,7 +155,7 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 		})
 		assert.NilError(t, err)
 		_ = res.Body.Close()
-		assert.Check(t, res.StatusCode >= 400)
+		assert.Check(t, res.StatusCode >= http.StatusBadRequest)
 	})
 
 	// replay query tests

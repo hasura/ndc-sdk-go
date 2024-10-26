@@ -551,18 +551,33 @@ func decodeIntRefection[T int | int8 | int16 | int32 | int64 | uint | uint8 | ui
 			result = T(inferredValue.Uint())
 		case reflect.Float32, reflect.Float64:
 			result = T(inferredValue.Float())
-		case reflect.Interface, reflect.String:
+		case reflect.String:
 			newVal, parseErr := convertFn(inferredValue.Interface())
 			if parseErr != nil {
-				return result, fmt.Errorf("failed to convert integer, got: %+v", inferredValue.Interface())
+				return result, fmt.Errorf("failed to convert integer, got %+v: %w", inferredValue.Interface(), parseErr)
+			}
+			result = newVal
+		case reflect.Interface:
+			newVal, parseErr := parseFloat[T](inferredValue.Interface())
+			if parseErr != nil {
+				return result, fmt.Errorf("failed to convert integer, got %+v: %w", inferredValue.Interface(), parseErr)
 			}
 			result = newVal
 		default:
-			return result, fmt.Errorf("failed to convert integer, got: %+v", inferredValue.Interface())
+			return result, fmt.Errorf("failed to convert integer, got: <%s> %+v", inferredValue.Kind(), inferredValue.Interface())
 		}
 
 		return result, nil
 	}
+}
+
+func parseFloat[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](v any) (T, error) {
+	rawResult, err := strconv.ParseFloat(fmt.Sprint(v), 64)
+	if err != nil {
+		var result T
+		return result, err
+	}
+	return T(rawResult), nil
 }
 
 func convertInt[T int | int8 | int16 | int32 | int64](v any) (T, error) {

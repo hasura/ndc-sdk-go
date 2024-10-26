@@ -408,7 +408,7 @@ func (mc *Connector) Query(ctx context.Context, configuration *Configuration, st
 func (mc *Connector) Mutation(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
 	operationResults := []schema.MutationOperationResults{}
 	for _, operation := range request.Operations {
-		results, err := executeMutationOperation(ctx, state, request.CollectionRelationships, &operation)
+		results, err := executeMutationOperation(ctx, state, request.CollectionRelationships, operation)
 		if err != nil {
 			return nil, err
 		}
@@ -420,20 +420,20 @@ func (mc *Connector) Mutation(ctx context.Context, configuration *Configuration,
 	}, nil
 }
 
-func executeMutationOperation(ctx context.Context, state *State, collectionRelationship schema.MutationRequestCollectionRelationships, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
+func executeMutationOperation(ctx context.Context, state *State, collectionRelationship schema.MutationRequestCollectionRelationships, operation schema.MutationOperation) (schema.MutationOperationResults, error) {
 	switch operation.Type {
 	case schema.MutationOperationProcedure:
 		return executeProcedure(ctx, state, collectionRelationship, operation)
+	default:
+		return nil, schema.NotSupportedError(fmt.Sprintf("unsupported operation type: %s", operation.Type), nil)
 	}
-
-	return nil, schema.NotSupportedError(fmt.Sprintf("unsupported operation type: %s", operation.Type), nil)
 }
 
 type UpsertArticleArguments struct {
 	Article Article `json:"article"`
 }
 
-func executeProcedure(_ context.Context, state *State, collectionRelationships schema.MutationRequestCollectionRelationships, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
+func executeProcedure(_ context.Context, state *State, collectionRelationships schema.MutationRequestCollectionRelationships, operation schema.MutationOperation) (schema.MutationOperationResults, error) {
 	switch operation.Name {
 	case "upsert_article":
 		return executeUpsertArticle(state, operation.Arguments, operation.Fields, collectionRelationships)
@@ -467,7 +467,7 @@ func executeUpsertArticle(
 	} else {
 		for i, article := range state.Articles {
 			if article.ID == args.Article.ID {
-				oldRow = &article
+				oldRow = utils.ToPtr(article)
 				state.Articles[i] = args.Article
 				break
 			}
@@ -545,7 +545,7 @@ func executeQueryWithVariables(
 	return executeQuery(collectionRelationships, variables, state, query, nil, coll, false)
 }
 
-func evalAggregate(aggregate *schema.Aggregate, paginated []map[string]any) (any, error) {
+func evalAggregate(aggregate schema.Aggregate, paginated []map[string]any) (any, error) {
 	switch agg := aggregate.Interface().(type) {
 	case *schema.AggregateStarCount:
 		return len(paginated), nil
@@ -658,7 +658,7 @@ func executeQuery(
 	aggregates := make(map[string]any)
 
 	for aggKey, aggregate := range query.Aggregates {
-		aggValue, err := evalAggregate(&aggregate, paginated)
+		aggValue, err := evalAggregate(aggregate, paginated)
 		if err != nil {
 			return nil, err
 		}
@@ -754,11 +754,11 @@ func evalOrderBy(
 ) (int, error) {
 	ordering := 0
 	for _, orderElem := range orderBy.Elements {
-		v1, err := evalOrderByElement(collectionRelationships, variables, state, &orderElem, t1)
+		v1, err := evalOrderByElement(collectionRelationships, variables, state, orderElem, t1)
 		if err != nil {
 			return 0, err
 		}
-		v2, err := evalOrderByElement(collectionRelationships, variables, state, &orderElem, t2)
+		v2, err := evalOrderByElement(collectionRelationships, variables, state, orderElem, t2)
 		if err != nil {
 			return 0, err
 		}
@@ -872,7 +872,7 @@ func evalOrderByElement(
 	collectionRelationships map[string]schema.Relationship,
 	variables map[string]any,
 	state *State,
-	element *schema.OrderByElement,
+	element schema.OrderByElement,
 	item map[string]any,
 ) (any, error) {
 	switch target := element.Target.Interface().(type) {
@@ -969,7 +969,7 @@ func evalInCollection(
 	case *schema.ExistsInCollectionUnrelated:
 		arguments := make(map[string]any)
 		for key, relArg := range inCol.Arguments {
-			argValue, err := evalRelationshipArgument(variables, item, &relArg)
+			argValue, err := evalRelationshipArgument(variables, item, relArg)
 			if err != nil {
 				return nil, err
 			}
@@ -1106,7 +1106,7 @@ func evalPathElement(
 	// single array relationship, so there should be no double counting.
 	for _, srcRow := range source {
 		for argName, arg := range relationship.Arguments {
-			relValue, err := evalRelationshipArgument(variables, srcRow, &arg)
+			relValue, err := evalRelationshipArgument(variables, srcRow, arg)
 			if err != nil {
 				return nil, err
 			}
@@ -1116,7 +1116,7 @@ func evalPathElement(
 			if _, ok := allArguments[argName]; ok {
 				return nil, schema.UnprocessableContentError("duplicate argument name: "+argName, nil)
 			}
-			relValue, err := evalRelationshipArgument(variables, srcRow, &arg)
+			relValue, err := evalRelationshipArgument(variables, srcRow, arg)
 			if err != nil {
 				return nil, err
 			}
@@ -1153,7 +1153,7 @@ func evalPathElement(
 	return matchingRows, nil
 }
 
-func evalRelationshipArgument(variables map[string]any, row map[string]any, argument *schema.RelationshipArgument) (any, error) {
+func evalRelationshipArgument(variables map[string]any, row map[string]any, argument schema.RelationshipArgument) (any, error) {
 	argT, err := argument.InterfaceT()
 	switch arg := argT.(type) {
 	case *schema.RelationshipArgumentColumn:

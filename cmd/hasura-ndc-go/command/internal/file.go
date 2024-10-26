@@ -7,7 +7,7 @@ import (
 	"slices"
 )
 
-// Decide the strategy to do when the written file exists
+// Decide the strategy to do when the written file exists.
 type WriteFileStrategy string
 
 const (
@@ -20,7 +20,7 @@ var enumValues_WriteFileStrategy = []WriteFileStrategy{
 	WriteFileStrategyOverride,
 }
 
-// ParseWriteFileStrategy parses a WriteFileStrategy enum from string
+// ParseWriteFileStrategy parses a WriteFileStrategy enum from string.
 func ParseWriteFileStrategy(input string) (WriteFileStrategy, error) {
 	result := WriteFileStrategy(input)
 	if !slices.Contains(enumValues_WriteFileStrategy, result) {
@@ -30,7 +30,7 @@ func ParseWriteFileStrategy(input string) (WriteFileStrategy, error) {
 	return result, nil
 }
 
-// WritePrettyFileJSON writes JSON data with indent
+// WritePrettyFileJSON writes JSON data with indent.
 func WritePrettyFileJSON(fileName string, data any, strategy WriteFileStrategy) error {
 	if _, err := os.Stat(fileName); err == nil {
 		switch strategy {
@@ -43,5 +43,5 @@ func WritePrettyFileJSON(fileName string, data any, strategy WriteFileStrategy) 
 		return err
 	}
 
-	return os.WriteFile(fileName, rawBytes, 0644)
+	return os.WriteFile(fileName, rawBytes, 0o644)
 }

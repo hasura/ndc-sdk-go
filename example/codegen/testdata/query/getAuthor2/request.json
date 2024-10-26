@@ -1,0 +1,35 @@
+{
+  "arguments": {
+    "id": {
+      "type": "literal",
+      "value": "gbNx9flWfo"
+    },
+    "name": {
+      "type": "literal",
+      "value": "9zrdERozy4"
+    }
+  },
+  "collection": "getAuthor2",
+  "collection_relationships": {},
+  "query": {
+    "fields": {
+      "__value": {
+        "column": "__value",
+        "fields": {
+          "fields": {
+            "id": {
+              "column": "id",
+              "type": "column"
+            },
+            "name": {
+              "column": "name",
+              "type": "column"
+            }
+          },
+          "type": "object"
+        },
+        "type": "column"
+      }
+    }
+  }
+}

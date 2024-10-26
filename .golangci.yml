@@ -6,14 +6,10 @@ linters:
     - err113
     - lll
     - gocognit
-    - gocritic
+    - godot
     - nestif
-    - execinquery
-    - exportloopref
     - gomnd
     - funlen
-    - godot
-    - gofumpt
     - gomoddirectives
     - depguard
     - gosec
@@ -29,20 +25,16 @@ linters:
     - prealloc
     - ireturn
     - gochecknoglobals
-    - gocyclo
     - godox
     - stylecheck
     - nilnil
     - maintidx
     - mnd
     - tagliatelle
-    - goconst
     - noctx
-    - unparam
-    - forbidigo
     - tagalign
     - gochecknoinits
-
+    - execinquery
 issues:
   exclude-files:
     - ".*_test\\.go$"

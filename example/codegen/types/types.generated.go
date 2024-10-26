@@ -31,7 +31,7 @@ func (j *Author) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.Tags, input, "tags")
+	j.Tags, err = utils.GetStringSlice(input, "tags")
 	if err != nil {
 		return err
 	}
@@ -48,15 +48,6 @@ func (j Author) ToMap() map[string]any {
 	r["id"] = j.ID
 	r["status"] = j.Status
 	r["tags"] = j.Tags
-
-	return r
-}
-
-// ToMap encodes the struct to a value map
-func (j GetAuthorResult) ToMap() map[string]any {
-	r := make(map[string]any)
-	r["id"] = j.ID
-	r["name"] = j.Name
 
 	return r
 }

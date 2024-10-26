@@ -10,7 +10,6 @@ import (
 	"os"
 	"path"
 	"runtime/trace"
-	"slices"
 	"strings"
 
 	"github.com/hasura/ndc-sdk-go/schema"
@@ -20,7 +19,7 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-// ConnectorGenerationArguments represent input arguments of the ConnectorGenerator
+// ConnectorGenerationArguments represent input arguments of the ConnectorGenerator.
 type ConnectorGenerationArguments struct {
 	Path         string   `help:"The path of the root directory where the go.mod file is present" short:"p" env:"HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH" default:"."`
 	ConnectorDir string   `help:"The directory where the connector.go file is placed" default:"."`
@@ -40,12 +39,12 @@ type connectorTypeBuilder struct {
 	procedures  []ProcedureInfo
 }
 
-// SetImport sets an import package into the import list
+// SetImport sets an import package into the import list.
 func (ctb *connectorTypeBuilder) SetImport(value string, alias string) {
 	ctb.imports[value] = alias
 }
 
-// String renders generated Go types and methods
+// String renders generated Go types and methods.
 func (ctb connectorTypeBuilder) String() string {
 	var bs strings.Builder
 	writeFileHeader(&bs, ctb.packageName)
@@ -55,7 +54,7 @@ func (ctb connectorTypeBuilder) String() string {
 		for _, pkg := range sortedImports {
 			alias := ctb.imports[pkg]
 			if alias != "" {
-				alias = alias + " "
+				alias += " "
 			}
 			bs.WriteString(fmt.Sprintf("  %s\"%s\"\n", alias, pkg))
 		}
@@ -79,7 +78,7 @@ type connectorGenerator struct {
 	procedureHandlers []string
 }
 
-// ParseAndGenerateConnector parses and generate connector codes
+// ParseAndGenerateConnector parses and generate connector codes.
 func ParseAndGenerateConnector(args ConnectorGenerationArguments, moduleName string) error {
 	if args.Trace != "" {
 		w, err := os.Create(args.Trace)
@@ -162,7 +161,7 @@ func (cg *connectorGenerator) generateConnector(name string) error {
 	}
 
 	schemaPath := path.Join(cg.basePath, cg.connectorDir, schemaOutputFile)
-	if err := os.WriteFile(schemaPath, schemaBytes, 0644); err != nil {
+	if err := os.WriteFile(schemaPath, schemaBytes, 0o644); err != nil {
 		return err
 	}
 
@@ -235,7 +234,7 @@ func (cg *connectorGenerator) renderOperationHandlers(values []string) string {
 	return sb.String()
 }
 
-// generate encoding and decoding methods for schema types
+// generate encoding and decoding methods for schema types.
 func (cg *connectorGenerator) genTypeMethods() error {
 	cg.genFunctionArgumentConstructors()
 	if err := cg.genObjectMethods(); err != nil {
@@ -259,7 +258,7 @@ func (cg *connectorGenerator) genTypeMethods() error {
 			Str("module_name", cg.moduleName).
 			Msg(schemaPath)
 
-		if err := os.WriteFile(schemaPath, []byte(builder.String()), 0644); err != nil {
+		if err := os.WriteFile(schemaPath, []byte(builder.String()), 0o644); err != nil {
 			return err
 		}
 	}
@@ -276,7 +275,7 @@ func (cg *connectorGenerator) genObjectMethods() error {
 
 	for _, objectName := range objectKeys {
 		object := cg.rawSchema.Objects[objectName]
-		if object.IsAnonymous || !strings.HasPrefix(object.Type.PackagePath, cg.moduleName) {
+		if object.Type.IsAnonymous || !object.Type.CanMethod() || !strings.HasPrefix(object.Type.PackagePath, cg.moduleName) {
 			continue
 		}
 		sb := cg.getOrCreateTypeBuilder(object.Type.PackagePath)
@@ -284,8 +283,8 @@ func (cg *connectorGenerator) genObjectMethods() error {
 // ToMap encodes the struct to a value map
 func (j %s) ToMap() map[string]any {
   r := make(map[string]any)
-`, object.Type.Name))
-		cg.genObjectToMap(sb, &object, "j", "r")
+`, object.Type.String()))
+		cg.writeObjectToMap(sb, &object, "j", "r")
 		sb.builder.WriteString(`
 	return r
 }`)
@@ -294,107 +293,109 @@ func (j %s) ToMap() map[string]any {
 	return nil
 }
 
-func (cg *connectorGenerator) genObjectToMap(sb *connectorTypeBuilder, object *ObjectInfo, selector string, name string) {
+func (cg *connectorGenerator) writeObjectToMap(sb *connectorTypeBuilder, object *ObjectInfo, selector string, name string) {
 	fieldKeys := utils.GetSortedKeys(object.Fields)
 	for _, fieldKey := range fieldKeys {
 		field := object.Fields[fieldKey]
 		fieldSelector := fmt.Sprintf("%s.%s", selector, field.Name)
 		fieldAssigner := fmt.Sprintf("%s[\"%s\"]", name, fieldKey)
-		cg.genToMapProperty(sb, &field, fieldSelector, fieldAssigner, field.Type, field.Type.TypeFragments)
+		if cg.rawSchema.GetScalarFromType(field.Type) != nil {
+			sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", fieldAssigner, fieldSelector))
+			continue
+		}
+
+		cg.writeToMapProperty(sb, &field, fieldSelector, fieldAssigner, field.Type)
 	}
 }
 
-func (cg *connectorGenerator) genToMapProperty(sb *connectorTypeBuilder, field *ObjectField, selector string, assigner string, ty *TypeInfo, fragments []string) string {
-	if ty.IsScalar {
-		sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, selector))
-		return selector
-	}
-
-	if isNullableFragments(fragments) {
-		childFragments := fragments[1:]
+func (cg *connectorGenerator) writeToMapProperty(sb *connectorTypeBuilder, field *Field, selector string, assigner string, ty Type) string {
+	switch t := ty.(type) {
+	case *NullableType:
 		sb.builder.WriteString(fmt.Sprintf("  if %s != nil {\n", selector))
-		propName := cg.genToMapProperty(sb, field, fmt.Sprintf("(*%s)", selector), assigner, ty, childFragments)
+		propName := cg.writeToMapProperty(sb, field, fmt.Sprintf("(*%s)", selector), assigner, t.UnderlyingType)
 		sb.builder.WriteString("  }\n")
 		return propName
-	}
-
-	if isArrayFragments(fragments) {
+	case *ArrayType:
 		varName := formatLocalFieldName(selector)
 		valueName := varName + "_v"
 		sb.builder.WriteString(fmt.Sprintf("  %s := make([]any, len(%s))\n", varName, selector))
 		sb.builder.WriteString(fmt.Sprintf("  for i, %s := range %s {\n", valueName, selector))
-		cg.genToMapProperty(sb, field, valueName, varName+"[i]", ty, fragments[1:])
+		cg.writeToMapProperty(sb, field, valueName, varName+"[i]", t.ElementType)
 		sb.builder.WriteString("  }\n")
 		sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, varName))
 		return varName
-	}
-
-	isAnonymous := strings.HasPrefix(strings.Join(fragments, ""), "struct{")
-	if isAnonymous {
-		innerObject, ok := cg.rawSchema.Objects[ty.String()]
-		if !ok {
-			tyName := buildTypeNameFromFragments(ty.TypeFragments, ty.PackagePath, sb.packagePath)
-			innerObject, ok = cg.rawSchema.Objects[tyName]
+	case *NamedType:
+		innerObject, ok := cg.rawSchema.Objects[t.Name]
+		if t.NativeType.IsAnonymous {
 			if !ok {
 				return selector
 			}
+
+			// anonymous struct
+			varName := formatLocalFieldName(selector, "obj")
+			sb.builder.WriteString(fmt.Sprintf("  %s := make(map[string]any)\n", varName))
+			cg.writeObjectToMap(sb, &innerObject, selector, varName)
+			sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, varName))
+			return varName
 		}
 
-		// anonymous struct
-		varName := formatLocalFieldName(selector, "obj")
-		sb.builder.WriteString(fmt.Sprintf("  %s := make(map[string]any)\n", varName))
-		cg.genObjectToMap(sb, &innerObject, selector, varName)
-		sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, varName))
-		return varName
-	}
-	if !field.Type.Embedded {
-		sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, selector))
-		return selector
-	}
+		if !field.Embedded {
+			sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, selector))
+			return selector
+		}
 
-	sb.builder.WriteString(fmt.Sprintf("  r = utils.MergeMap(r, %s.ToMap())\n", selector))
-	return selector
+		sb.builder.WriteString(fmt.Sprintf("  r = utils.MergeMap(r, %s.ToMap())\n", selector))
+		return selector
+	default:
+		panic(fmt.Errorf("failed to write the ToMap method; invalid type: %s", ty))
+	}
 }
 
-// generate Scalar implementation for custom scalar types
+// generate Scalar implementation for custom scalar types.
 func (cg *connectorGenerator) genCustomScalarMethods() error {
-	if len(cg.rawSchema.CustomScalars) == 0 {
+	if len(cg.rawSchema.Scalars) == 0 {
 		return nil
 	}
 
-	scalarKeys := utils.GetSortedKeys(cg.rawSchema.CustomScalars)
+	scalarKeys := utils.GetSortedKeys(cg.rawSchema.Scalars)
 
 	for _, scalarKey := range scalarKeys {
-		scalar := cg.rawSchema.CustomScalars[scalarKey]
-		sb := cg.getOrCreateTypeBuilder(scalar.PackagePath)
-		sb.builder.WriteString(fmt.Sprintf(`
+		scalar := cg.rawSchema.Scalars[scalarKey]
+		if scalar.NativeType == nil || scalar.NativeType.TypeAST == nil {
+			continue
+		}
+		sb := cg.getOrCreateTypeBuilder(scalar.NativeType.PackagePath)
+		sb.builder.WriteString(`
 // ScalarName get the schema name of the scalar
-func (j %s) ScalarName() string {
-  return "%s"
+func (j `)
+		sb.builder.WriteString(scalar.NativeType.Name)
+		sb.builder.WriteString(`) ScalarName() string {
+  return "`)
+		sb.builder.WriteString(scalar.NativeType.SchemaName)
+		sb.builder.WriteString(`"
 }
-`, scalar.Name, scalar.SchemaName))
+`)
 		// generate enum and parsers if exist
-		if scalar.ScalarRepresentation != nil {
-			switch scalarRep := scalar.ScalarRepresentation.Interface().(type) {
-			case *schema.TypeRepresentationEnum:
-				sb.imports["errors"] = ""
-				sb.imports["encoding/json"] = ""
-				sb.imports["slices"] = ""
+		switch scalarRep := scalar.Schema.Representation.Interface().(type) {
+		case *schema.TypeRepresentationEnum:
+			sb.imports["errors"] = ""
+			sb.imports["encoding/json"] = ""
+			sb.imports["slices"] = ""
 
-				sb.builder.WriteString("const (\n")
-				pascalName := strcase.ToCamel(scalar.Name)
-				enumConstants := make([]string, len(scalarRep.OneOf))
-				for i, enum := range scalarRep.OneOf {
-					enumConst := fmt.Sprintf("%s%s", pascalName, strcase.ToCamel(enum))
-					enumConstants[i] = enumConst
-					sb.builder.WriteString(fmt.Sprintf("  %s %s = \"%s\"\n", enumConst, scalar.Name, enum))
-				}
-				sb.builder.WriteString(fmt.Sprintf(`)
+			sb.builder.WriteString("const (\n")
+			pascalName := strcase.ToCamel(scalar.NativeType.Name)
+			enumConstants := make([]string, len(scalarRep.OneOf))
+			for i, enum := range scalarRep.OneOf {
+				enumConst := fmt.Sprintf("%s%s", pascalName, strcase.ToCamel(enum))
+				enumConstants[i] = enumConst
+				sb.builder.WriteString(fmt.Sprintf("  %s %s = \"%s\"\n", enumConst, scalarKey, enum))
+			}
+			sb.builder.WriteString(fmt.Sprintf(`)
 
 var enumValues_%s = []%s{%s}
-`, pascalName, scalar.Name, strings.Join(enumConstants, ", ")))
+`, pascalName, scalarKey, strings.Join(enumConstants, ", ")))
 
-				sb.builder.WriteString(fmt.Sprintf(`
+			sb.builder.WriteString(fmt.Sprintf(`
 // Parse%s parses a %s enum from string
 func Parse%s(input string) (%s, error) {
 	result := %s(input)
@@ -443,10 +444,10 @@ func (s *%s) FromValue(value any) error {
 	*s = result
 	return nil
 }
-`, pascalName, scalar.Name, pascalName, scalar.Name, scalar.Name, pascalName, scalar.Name, scalar.Name, strings.Join(enumConstants, ", "),
-					scalar.Name, pascalName, scalar.Name, pascalName, scalar.Name, pascalName,
-				))
-			}
+`, pascalName, scalarKey, pascalName, scalarKey, scalarKey, pascalName, scalarKey, scalarKey, strings.Join(enumConstants, ", "),
+				scalarKey, pascalName, scalarKey, pascalName, scalarKey, pascalName,
+			))
+		default:
 		}
 	}
 
@@ -468,7 +469,7 @@ func (cg *connectorGenerator) genFunctionArgumentConstructors() {
 }
 
 func (cg *connectorGenerator) writeObjectFromValue(info *ObjectInfo) {
-	if len(info.Fields) == 0 || info.Type == nil || info.IsAnonymous {
+	if len(info.Fields) == 0 || info.Type == nil || !info.Type.CanMethod() || info.Type.IsAnonymous {
 		return
 	}
 
@@ -476,14 +477,14 @@ func (cg *connectorGenerator) writeObjectFromValue(info *ObjectInfo) {
 	sb.builder.WriteString(`
 // FromValue decodes values from map
 func (j *`)
-	sb.builder.WriteString(info.Type.Name)
+	sb.builder.WriteString(info.Type.String())
 	sb.builder.WriteString(`) FromValue(input map[string]any) error {
   var err error
 `)
 	argumentKeys := utils.GetSortedKeys(info.Fields)
 	for _, key := range argumentKeys {
 		arg := info.Fields[key]
-		cg.genGetTypeValueDecoder(sb, arg.Type, key, arg.Name)
+		cg.writeGetTypeValueDecoder(sb, &arg, key)
 	}
 	sb.builder.WriteString("  return nil\n}")
 }
@@ -538,161 +539,121 @@ func (cg *connectorGenerator) genConnectorHandlers() {
 	}
 }
 
-func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, ty *TypeInfo, key string, fieldName string) {
-	typeName := ty.TypeAST.String()
+func (cg *connectorGenerator) writeGetTypeValueDecoder(sb *connectorTypeBuilder, field *Field, key string) {
+	ty := field.Type
+	fieldName := field.Name
+	typeName := ty.String()
+	fullTypeName := ty.FullName()
 	if strings.Contains(typeName, "complex64") || strings.Contains(typeName, "complex128") || strings.Contains(typeName, "time.Duration") {
 		panic(fmt.Errorf("unsupported type: %s", typeName))
 	}
 
-	fullTypeName := strings.Join(ty.TypeFragments, "")
-	switch typeName {
+	switch fullTypeName {
 	case "bool":
-		funcName := "GetBoolean"
-		if fullTypeName == "[]bool" {
-			funcName = "GetBooleanSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetBoolean(input, "%s")`, fieldName, key))
+	case "[]bool":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetBooleanSlice(input, "%s")`, fieldName, key))
 	case "*bool":
-		funcName := "GetNullableBoolean"
-		if fullTypeName == "[]*bool" {
-			funcName = "GetBooleanPtrSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableBoolean(input, "%s")`, fieldName, key))
+	case "[]*bool":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetBooleanPtrSlice(input, "%s")`, fieldName, key))
 	case "*[]*bool":
 		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableBooleanPtrSlice(input, "%s")`, fieldName, key))
 	case "string":
-		funcName := "GetString"
-		if fullTypeName == "[]string" {
-			funcName = "GetStringSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetString(input, "%s")`, fieldName, key))
+	case "[]string":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetStringSlice(input, "%s")`, fieldName, key))
 	case "*string":
-		funcName := "GetNullableString"
-		if fullTypeName == "[]*string" {
-			funcName = "GetStringPtrSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableString(input, "%s")`, fieldName, key))
+	case "[]*string":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetStringPtrSlice(input, "%s")`, fieldName, key))
 	case "*[]*string":
 		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableStringPtrSlice(input, "%s")`, fieldName, key))
 	case "int", "int8", "int16", "int32", "int64", "rune", "byte":
-		funcName := "GetInt"
-		if slices.Contains([]string{"[]int", "[]int8", "[]int16", "[]int32", "[]int64", "[]rune", "[]byte"}, fullTypeName) {
-			funcName = "GetIntSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s[%s](input, "%s")`, fieldName, funcName, typeName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetInt[%s](input, "%s")`, fieldName, typeName, key))
+	case "[]int", "[]int8", "[]int16", "[]int32", "[]int64", "[]rune", "[]byte":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetIntSlice[%s](input, "%s")`, fieldName, typeName[2:], key))
 	case "uint", "uint8", "uint16", "uint32", "uint64":
-		funcName := "GetUint"
-		if slices.Contains([]string{"[]uint", "[]uint8", "[]uint16", "[]uint32", "[]uint64"}, fullTypeName) {
-			funcName = "GetUintSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s[%s](input, "%s")`, fieldName, funcName, typeName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUint[%s](input, "%s")`, fieldName, typeName, key))
+	case "[]uint", "[]uint8", "[]uint16", "[]uint32", "[]uint64":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUintSlice[%s](input, "%s")`, fieldName, typeName[2:], key))
 	case "*int", "*int8", "*int16", "*int32", "*int64", "*rune", "*byte":
-		funcName := "GetNullableInt"
-		if slices.Contains([]string{"[]*int", "[]*int8", "[]*int16", "[]*int32", "[]*int64", "[]*rune", "[]*byte"}, fullTypeName) {
-			funcName = "GetIntPtrSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s[%s](input, "%s")`, fieldName, funcName, strings.TrimPrefix(typeName, "*"), key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableInt[%s](input, "%s")`, fieldName, typeName[1:], key))
+	case "[]*int", "[]*int8", "[]*int16", "[]*int32", "[]*int64", "[]*rune", "[]*byte":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetIntPtrSlice[%s](input, "%s")`, fieldName, typeName[3:], key))
 	case "*uint", "*uint8", "*uint16", "*uint32", "*uint64":
-		funcName := "GetNullableUint"
-		if slices.Contains([]string{"[]*uint", "[]*uint8", "[]*uint16", "[]*uint32", "[]*uint64"}, fullTypeName) {
-			funcName = "GetUintPtrSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s[%s](input, "%s")`, fieldName, funcName, strings.TrimPrefix(typeName, "*"), key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUint[%s](input, "%s")`, fieldName, typeName[1:], key))
+	case "[]*uint", "[]*uint8", "[]*uint16", "[]*uint32", "[]*uint64":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUintPtrSlice[%s](input, "%s")`, fieldName, typeName[3:], key))
 	case "*[]*int", "*[]*int8", "*[]*int16", "*[]*int32", "*[]*int64", "*[]*rune", "*[]*byte":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableIntPtrSlice[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*[]*"), key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableIntPtrSlice[%s](input, "%s")`, fieldName, typeName[4:], key))
 	case "*[]*uint", "*[]*uint8", "*[]*uint16", "*[]*uint32", "*[]*uint64":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUintPtrSlice[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*[]*"), key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUintPtrSlice[%s](input, "%s")`, fieldName, typeName[4:], key))
 	case "float32", "float64":
-		funcName := "GetFloat"
-		if slices.Contains([]string{"[]float32", "[]float64"}, fullTypeName) {
-			funcName = "GetFloatSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s[%s](input, "%s")`, fieldName, funcName, typeName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetFloat[%s](input, "%s")`, fieldName, typeName, key))
+	case "[]float32", "[]float64":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetFloatSlice[%s](input, "%s")`, fieldName, typeName[2:], key))
 	case "*float32", "*float64":
-		funcName := "GetNullableFloat"
-		if slices.Contains([]string{"[]*float32", "[]*float64"}, fullTypeName) {
-			funcName = "GetFloatPtrSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s[%s](input, "%s")`, fieldName, funcName, strings.TrimPrefix(typeName, "*"), key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableFloat[%s](input, "%s")`, fieldName, typeName[1:], key))
+	case "[]*float32", "[]*float64":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetFloatPtrSlice[%s](input, "%s")`, fieldName, typeName[3:], key))
 	case "*[]*float32", "*[]*float64":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableFloatPtrSlice[%s](input, "%s")`, fieldName, strings.TrimPrefix(typeName, "*[]*"), key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableFloatPtrSlice[%s](input, "%s")`, fieldName, typeName[4:], key))
 	case "time.Time":
-		funcName := "GetDateTime"
-		if fullTypeName == "[]Time" {
-			funcName = "GetDateTimeSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTime(input, "%s")`, fieldName, key))
+	case "[]time.Time":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTimeSlice(input, "%s")`, fieldName, key))
 	case "*time.Time":
-		funcName := "GetNullableDateTime"
-		if fullTypeName == "[]*Time" {
-			funcName = "GetDateTimePtrSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableDateTime(input, "%s")`, fieldName, key))
+	case "[]*time.Time":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTimePtrSlice(input, "%s")`, fieldName, key))
 	case "*[]*time.Time":
 		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableDateTimePtrSlice(input, "%s")`, fieldName, key))
 	case "github.com/google/uuid.UUID":
-		funcName := "GetUUID"
-		if fullTypeName == "[]UUID" {
-			funcName = "GetUUIDSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUUID(input, "%s")`, fieldName, key))
+	case "[]github.com/google/uuid.UUID":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUUIDSlice(input, "%s")`, fieldName, key))
 	case "*github.com/google/uuid.UUID":
-		funcName := "GetNullableUUID"
-		if fullTypeName == "[]*UUID" {
-			funcName = "GetUUIDPtrSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUUID(input, "%s")`, fieldName, key))
+	case "[]*github.com/google/uuid.UUID":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUUIDPtrSlice(input, "%s")`, fieldName, key))
 	case "*[]*github.com/google/uuid.UUID":
 		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUUIDPtrSlice(input, "%s")`, fieldName, key))
 	case "encoding/json.RawMessage":
-		funcName := "GetRawJSON"
-		if fullTypeName == "[]RawMessage" {
-			funcName = "GetRawJSONSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
-
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetRawJSON(input, "%s")`, fieldName, key))
+	case "[]encoding/json.RawMessage":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetRawJSONSlice(input, "%s")`, fieldName, key))
 	case "*encoding/json.RawMessage":
-		funcName := "GetNullableRawJSON"
-		if fullTypeName == "[]*RawMessage" {
-			funcName = "GetRawJSONPtrSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableRawJSON(input, "%s")`, fieldName, key))
+	case "[]*encoding/json.RawMessage":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetRawJSONPtrSlice(input, "%s")`, fieldName, key))
 	case "*[]*encoding/json.RawMessage":
 		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableRawJSONPtrSlice(input, "%s")`, fieldName, key))
 	case "any", "interface{}":
-		funcName := "GetArbitraryJSON"
-		if slices.Contains([]string{"[]any", "[]interface{}"}, fullTypeName) {
-			funcName = "GetArbitraryJSONSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
-
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetArbitraryJSON(input, "%s")`, fieldName, key))
+	case "[]any", "[]interface{}":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetArbitraryJSONSlice(input, "%s")`, fieldName, key))
 	case "*any", "*interface{}":
-		funcName := "GetNullableArbitraryJSON"
-		if slices.Contains([]string{"[]*any", "[]*interface{}"}, fullTypeName) {
-			funcName = "GetArbitraryJSONPtrSlice"
-		}
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.%s(input, "%s")`, fieldName, funcName, key))
-
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableArbitraryJSON(input, "%s")`, fieldName, key))
+	case "[]*any", "[]*interface{}":
+		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetArbitraryJSONPtrSlice(input, "%s")`, fieldName, key))
 	case "*[]*any", "*[]*interface{}":
 		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableArbitraryJSONPtrSlice(input, "%s")`, fieldName, key))
-
 	default:
-		if ty.IsNullable() {
-			typeName := strings.TrimLeft(typeName, "*")
-			pkgName, tyName, ok := findAndReplaceNativeScalarPackage(typeName)
-			if !ok && len(ty.TypeFragments) > 0 {
-				pkgName = ty.PackagePath
-				tyName = buildTypeNameFromFragments(ty.TypeFragments[1:], ty.PackagePath, sb.packagePath)
-			}
-			if pkgName != "" && pkgName != sb.packagePath {
-				sb.imports[pkgName] = ""
+		switch t := ty.(type) {
+		case *NullableType:
+			packagePaths := getTypePackagePaths(t.UnderlyingType, sb.packagePath)
+			tyName := getTypeArgumentName(t.UnderlyingType, sb.packagePath, false)
+
+			for _, pkgPath := range packagePaths {
+				sb.imports[pkgPath] = ""
 			}
 			sb.builder.WriteString("  j.")
 			sb.builder.WriteString(fieldName)
 			sb.builder.WriteString(" = new(")
 			sb.builder.WriteString(tyName)
 			sb.builder.WriteString(")\n  err = connector_Decoder.")
-			if ty.Embedded {
+			if field.Embedded {
 				sb.builder.WriteString("DecodeObject(j.")
 				sb.builder.WriteString(fieldName)
 				sb.builder.WriteString(", input)")
@@ -703,44 +664,21 @@ func (cg *connectorGenerator) genGetTypeValueDecoder(sb *connectorTypeBuilder, t
 				sb.builder.WriteString(key)
 				sb.builder.WriteString(`")`)
 			}
-		} else if ty.Embedded {
-			sb.builder.WriteString("  err = connector_Decoder.DecodeObject(&j.")
-			sb.builder.WriteString(fieldName)
-			sb.builder.WriteString(", input)")
-		} else {
-			sb.builder.WriteString("  err = connector_Decoder.DecodeObjectValue(&j.")
-			sb.builder.WriteString(fieldName)
-			sb.builder.WriteString(`, input, "`)
-			sb.builder.WriteString(key)
-			sb.builder.WriteString(`")`)
+		default:
+			if field.Embedded {
+				sb.builder.WriteString("  err = connector_Decoder.DecodeObject(&j.")
+				sb.builder.WriteString(fieldName)
+				sb.builder.WriteString(", input)")
+			} else {
+				sb.builder.WriteString("  err = connector_Decoder.DecodeObjectValue(&j.")
+				sb.builder.WriteString(fieldName)
+				sb.builder.WriteString(`, input, "`)
+				sb.builder.WriteString(key)
+				sb.builder.WriteString(`")`)
+			}
 		}
 	}
 	sb.builder.WriteString(textBlockErrorCheck)
-}
-
-func buildTypeNameFromFragments(items []string, typePackagePath string, currentPackagePath string) string {
-	results := make([]string, len(items))
-	for i, item := range items {
-		if item == "*" || item == "[]" {
-			results[i] = item
-			continue
-		}
-		results[i] = buildTypeWithAlias(item, typePackagePath, currentPackagePath)
-	}
-
-	return strings.Join(results, "")
-}
-
-func buildTypeWithAlias(name string, typePackagePath string, currentPackagePath string) string {
-	if typePackagePath == "" || typePackagePath == currentPackagePath ||
-		// do not add alias to anonymous struct
-		strings.HasPrefix(name, "struct{") {
-		return name
-	}
-
-	parts := strings.Split(typePackagePath, "/")
-	alias := parts[len(parts)-1]
-	return fmt.Sprintf("%s.%s", alias, name)
 }
 
 func formatLocalFieldName(input string, others ...string) string {

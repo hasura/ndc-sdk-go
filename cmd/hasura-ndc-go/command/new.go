@@ -24,7 +24,7 @@ const (
 	templateNewPath = "internal/templates/new"
 )
 
-// NewArguments input arguments for the new command
+// NewArguments input arguments for the new command.
 type NewArguments struct {
 	Name    string `help:"Name of the connector." short:"n" required:""`
 	Module  string `help:"Module name of the connector" short:"m" required:""`
@@ -32,7 +32,7 @@ type NewArguments struct {
 	Output  string `help:"The location where source codes will be generated" short:"o" default:""`
 }
 
-// GenerateNewProject generates a new project boilerplate
+// GenerateNewProject generates a new project boilerplate.
 func GenerateNewProject(args *NewArguments, silent bool) error {
 	srcPath := args.Output
 	if srcPath == "" {
@@ -42,7 +42,7 @@ func GenerateNewProject(args *NewArguments, silent bool) error {
 		}
 		srcPath = path.Join(p, args.Name)
 	}
-	if err := os.MkdirAll(srcPath, 0755); err != nil {
+	if err := os.MkdirAll(srcPath, 0o755); err != nil {
 		return err
 	}
 
@@ -98,7 +98,7 @@ func generateNewProjectFiles(args *NewArguments, srcPath string) error {
 
 		targetPath := path.Join(srcPath, strings.TrimPrefix(filePath, templateNewPath+"/"))
 		if d.IsDir() {
-			return os.Mkdir(targetPath, 0755)
+			return os.Mkdir(targetPath, 0o755)
 		}
 
 		fileTemplate, err := template.ParseFS(initTemplateFS, filePath)

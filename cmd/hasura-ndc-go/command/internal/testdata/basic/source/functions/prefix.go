@@ -241,3 +241,48 @@ type GetTypesArguments struct {
 func FunctionGetTypes(ctx context.Context, state *types.State, arguments *GetTypesArguments) (*GetTypesArguments, error) {
 	return arguments, nil
 }
+
+type BaseAuthor struct {
+	Name string `json:"name"`
+}
+
+// generate schema and methods for generic types
+type GetCustomHeadersArguments[T any, S int | int8 | int16 | int32 | int64] struct {
+	Headers map[string]string         `json:"headers"`
+	Input   *T                        `json:"input"`
+	Other   *GetCustomHeadersOther[S] `json:"other"`
+}
+
+type GetCustomHeadersOther[T int | int8 | int16 | int32 | int64] struct {
+	Value T `json:"value"`
+}
+
+type GetCustomHeadersResult[T any, O int | int8 | int16 | int32 | int64] struct {
+	Headers  map[string]string `json:"headers"`
+	Response T
+	Other    *GetCustomHeadersOther[O] `json:"other"`
+}
+
+func FunctionGetCustomHeaders(ctx context.Context, state *types.State, arguments *GetCustomHeadersArguments[BaseAuthor, int]) (GetCustomHeadersResult[HelloResult, int64], error) {
+	if arguments.Headers == nil {
+		arguments.Headers = make(map[string]string)
+	}
+	arguments.Headers["X-Test-ResponseHeader"] = "I set this in the code"
+	result := HelloResult{}
+	if arguments.Input != nil {
+		result.Text = types.Text(arguments.Input.Name)
+	}
+	return GetCustomHeadersResult[HelloResult, int64]{
+		Headers:  arguments.Headers,
+		Response: result,
+	}, nil
+}
+
+// type CustomHeadersResult[T any] struct {
+// 	Headers  map[string]string `json:"headers"`
+// 	Response T
+// }
+
+// func ProcedureDoCustomHeaders(ctx context.Context, state *types.State, arguments *GetCustomHeadersArguments[*[]BaseAuthor, int]) (*CustomHeadersResult[[]*BaseAuthor], error) {
+// 	return &CustomHeadersResult[[]*BaseAuthor]{}, nil
+// }

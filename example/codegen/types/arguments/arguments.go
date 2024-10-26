@@ -164,3 +164,8 @@ type GetTypesArguments struct {
 	Bytes      scalar.Bytes
 	BytesPtr   *scalar.Bytes
 }
+
+type GetCustomHeadersInput struct {
+	ID  uuid.UUID `json:"id"`
+	Num int       `json:"num"`
+}

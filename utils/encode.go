@@ -17,7 +17,7 @@ type MapEncoder interface {
 
 // EncodeObject encodes an unknown type to a map[string]any, using json tag to convert object keys.
 func EncodeObject(input any) (map[string]any, error) {
-	if IsNil(input) {
+	if input == nil {
 		return nil, nil
 	}
 	return encodeObject(input, "")
@@ -83,6 +83,15 @@ func encodeObject(input any, fieldPath string) (map[string]any, error) {
 			return encodeObject(v.Interface(), fieldPath)
 		case reflect.Struct:
 			return encodeStruct(inputValue), nil
+		case reflect.Map:
+			result := make(map[string]any)
+			iter := inputValue.MapRange()
+			for iter.Next() {
+				k := iter.Key()
+				v := iter.Value()
+				result[fmt.Sprint(k.Interface())] = v.Interface()
+			}
+			return result, nil
 		default:
 			return nil, &schema.ErrorResponse{
 				Message: "cannot encode object",
@@ -102,7 +111,7 @@ func encodeField(input reflect.Value) (any, bool) {
 	switch input.Kind() {
 	case reflect.Complex64, reflect.Complex128:
 		return nil, false
-	case reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Float32, reflect.Float64, reflect.String:
+	case reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Float32, reflect.Float64, reflect.String, reflect.Map:
 		return input.Interface(), true
 	case reflect.Int64:
 		return strconv.FormatInt(input.Int(), 10), true
@@ -115,6 +124,8 @@ func encodeField(input reflect.Value) (any, bool) {
 			switch inputType.Name() {
 			case "Time":
 				return input.Interface(), true
+			default:
+				return nil, false
 			}
 		default:
 			toMap := input.MethodByName("ToMap")

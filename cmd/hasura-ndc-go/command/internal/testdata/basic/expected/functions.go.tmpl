@@ -31,6 +31,15 @@ func (j *Author) FromValue(input map[string]any) error {
   return nil
 }
 // FromValue decodes values from map
+func (j *BaseAuthor) FromValue(input map[string]any) error {
+  var err error
+  j.Name, err = utils.GetString(input, "name")
+    if err != nil {
+		  return err
+    }
+  return nil
+}
+// FromValue decodes values from map
 func (j *GetArticlesArguments) FromValue(input map[string]any) error {
   var err error
   j.Limit, err = utils.GetFloat[float64](input, "Limit")
@@ -628,6 +637,13 @@ func (j Author) ToMap() map[string]any {
 	return r
 }
 // ToMap encodes the struct to a value map
+func (j BaseAuthor) ToMap() map[string]any {
+  r := make(map[string]any)
+  r["name"] = j.Name
+
+	return r
+}
+// ToMap encodes the struct to a value map
 func (j CreateArticleResult) ToMap() map[string]any {
   r := make(map[string]any)
   j_Authors := make([]any, len(j.Authors))
@@ -955,6 +971,38 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 		}
     return FunctionGetBool(ctx, state)
 
+  case "getCustomHeaders":
+
+		selection, err := queryFields.AsObject()
+		if err != nil {
+			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
+				"cause": err.Error(),
+			})
+		}
+		var args GetCustomHeadersArguments[BaseAuthor, int]
+    if parseErr := connector_Decoder.DecodeObject(&args, rawArgs); parseErr != nil {
+			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
+				"cause": parseErr.Error(),
+			})
+		}
+		
+		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
+			"arguments": args,
+		})
+    rawResult, err := FunctionGetCustomHeaders(ctx, state, &args)
+    if err != nil {
+      return nil, err
+    }
+
+		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})
+    result, err := utils.EvalNestedColumnObject(selection, rawResult)
+    if err != nil {
+      return nil, err
+    }
+    return result, nil
+
   case "getTypes":
 
 		selection, err := queryFields.AsObject()
@@ -964,7 +1012,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			})
 		}
 		var args GetTypesArguments
-		if parseErr := args.FromValue(rawArgs); parseErr != nil {
+    if parseErr := args.FromValue(rawArgs); parseErr != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
 				"cause": parseErr.Error(),
 			})
@@ -1026,7 +1074,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			})
 		}
 		var args GetArticlesArguments
-		if parseErr := args.FromValue(rawArgs); parseErr != nil {
+    if parseErr := args.FromValue(rawArgs); parseErr != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
 				"cause": parseErr.Error(),
 			})
@@ -1053,7 +1101,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 		return nil, utils.ErrHandlerNotfound
 	}
 }
-var enumValues_FunctionName = []string{"getBool", "getTypes", "hello", "getArticles"}
+var enumValues_FunctionName = []string{"getBool", "getCustomHeaders", "getTypes", "hello", "getArticles"}
 // MutationExists check if the mutation name exists
 func (dch DataConnectorHandler) MutationExists(name string) bool {
 	return slices.Contains(enumValues_ProcedureName, name)
@@ -1088,7 +1136,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
     }
 
     if rawResult == nil {
-      return nil, nil
+      return schema.NewProcedureResult(nil).Encode(), nil
     }
     connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
@@ -1134,7 +1182,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
     }
 
     if rawResult == nil {
-      return nil, nil
+      return schema.NewProcedureResult(nil).Encode(), nil
     }
     connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,

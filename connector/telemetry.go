@@ -34,10 +34,11 @@ import (
 )
 
 const (
-	otlpDefaultGRPCPort = 4317
-	otlpDefaultHTTPPort = 4318
-	otlpCompressionNone = "none"
-	otlpCompressionGzip = "gzip"
+	otlpDefaultGRPCPort        = 4317
+	otlpDefaultHTTPPort        = 4318
+	otlpCompressionNone        = "none"
+	otlpCompressionGzip        = "gzip"
+	defaultBatchTimeoutSeconds = 5
 )
 
 type otlpProtocol string
@@ -176,7 +177,7 @@ func SetupOTelExporters(ctx context.Context, config *OTLPConfig, serviceVersion,
 
 		traceProvider = trace.NewTracerProvider(
 			trace.WithResource(res),
-			trace.WithBatcher(traceExporter, trace.WithBatchTimeout(5*time.Second)),
+			trace.WithBatcher(traceExporter, trace.WithBatchTimeout(defaultBatchTimeoutSeconds*time.Second)),
 		)
 	} else {
 		traceProvider = trace.NewTracerProvider(trace.WithResource(res))
