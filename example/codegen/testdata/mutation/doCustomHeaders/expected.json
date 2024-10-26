@@ -1,0 +1,14 @@
+{
+  "operation_results": [
+    {
+      "result": {
+        "Response": [{ "name": "TNOmSy50nE" }],
+        "headers": {
+          "foo": "bar",
+          "X-Test-ResponseHeader": "I set this in the code"
+        }
+      },
+      "type": "procedure"
+    }
+  ]
+}

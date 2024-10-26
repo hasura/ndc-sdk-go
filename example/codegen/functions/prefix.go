@@ -174,3 +174,23 @@ func FunctionGetGenericWithoutDecodingMethod(ctx context.Context, state *types.S
 		Response: result,
 	}, nil
 }
+
+func ProcedureDoCustomHeaders(ctx context.Context, state *types.State, arguments *GetCustomHeadersArguments[*[]BaseAuthor, int]) (*types.CustomHeadersResult[[]*BaseAuthor], error) {
+	resp := []*BaseAuthor{}
+	if arguments.Input != nil && *arguments.Input != nil {
+		for _, v := range **arguments.Input {
+			resp = append(resp, &v)
+		}
+	}
+	result := &types.CustomHeadersResult[[]*BaseAuthor]{
+		Headers:  arguments.Headers,
+		Response: resp,
+	}
+
+	if result.Headers == nil {
+		result.Headers = map[string]string{}
+	}
+	result.Headers["X-Test-ResponseHeader"] = "I set this in the code"
+
+	return result, nil
+}

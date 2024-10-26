@@ -34,13 +34,15 @@ func GenRandomScalarValue(random *rand.Rand, name string, scalar *schema.ScalarT
 	case *schema.TypeRepresentationInt32:
 		return random.Intn(math.MaxInt32)
 	case *schema.TypeRepresentationInt64:
-		return strconv.FormatInt(random.Int63n(math.MaxInt64), 10)
+		return random.Int63n(math.MaxInt64)
 	case *schema.TypeRepresentationFloat32:
 		return random.Float32() * (10 ^ 4)
 	case *schema.TypeRepresentationFloat64:
 		return random.Float64() * (10 ^ 8)
 	case *schema.TypeRepresentationString:
 		return GenRandomString(random, 10)
+	case *schema.TypeRepresentationBigInteger:
+		return strconv.FormatInt(random.Int63n(math.MaxInt64), 10)
 	case *schema.TypeRepresentationBigDecimal:
 		return fmt.Sprintf("%.2f", random.Float64()*(10^8))
 	case *schema.TypeRepresentationDate:

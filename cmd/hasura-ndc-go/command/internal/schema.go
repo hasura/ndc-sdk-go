@@ -22,7 +22,7 @@ type Scalar struct {
 type Type interface {
 	Kind() schema.TypeEnum
 	Schema() schema.TypeEncoder
-	SchemaName() string
+	SchemaName(isAbsolute bool) string
 	FullName() string
 	String() string
 }
@@ -41,8 +41,13 @@ func (t *NullableType) Kind() schema.TypeEnum {
 	return schema.TypeNullable
 }
 
-func (t NullableType) SchemaName() string {
-	return t.UnderlyingType.SchemaName()
+func (t NullableType) SchemaName(isAbsolute bool) string {
+	var result string
+	if isAbsolute {
+		result = "nullable_"
+	}
+	result += t.UnderlyingType.SchemaName(isAbsolute)
+	return result
 }
 
 func (t *NullableType) Schema() schema.TypeEncoder {
@@ -78,8 +83,13 @@ func (t *ArrayType) Schema() schema.TypeEncoder {
 	return schema.NewArrayType(t.ElementType.Schema())
 }
 
-func (t ArrayType) SchemaName() string {
-	return t.ElementType.SchemaName()
+func (t ArrayType) SchemaName(isAbsolute bool) string {
+	var result string
+	if isAbsolute {
+		result = "array_"
+	}
+	result += t.ElementType.SchemaName(isAbsolute)
+	return result
 }
 
 func (t ArrayType) FullName() string {
@@ -109,7 +119,7 @@ func (t *NamedType) Schema() schema.TypeEncoder {
 	return schema.NewNamedType(t.Name)
 }
 
-func (t NamedType) SchemaName() string {
+func (t NamedType) SchemaName(_ bool) string {
 	return t.Name
 }
 

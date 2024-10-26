@@ -55,3 +55,8 @@ type GetAuthorResult struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
+
+type CustomHeadersResult[T any] struct {
+	Headers  map[string]string `json:"headers"`
+	Response T
+}

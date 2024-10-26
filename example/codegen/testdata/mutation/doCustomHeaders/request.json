@@ -1,0 +1,47 @@
+{
+  "collection_relationships": {},
+  "operations": [
+    {
+      "type": "procedure",
+      "name": "doCustomHeaders",
+      "arguments": {
+        "headers": {
+          "foo": "bar"
+        },
+        "input": [
+          {
+            "name": "TNOmSy50nE"
+          }
+        ],
+        "other": {
+          "value": 406452153
+        }
+      },
+      "fields": {
+        "fields": {
+          "Response": {
+            "column": "Response",
+            "fields": {
+              "fields": {
+                "fields": {
+                  "name": {
+                    "column": "name",
+                    "type": "column"
+                  }
+                },
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "type": "column"
+          },
+          "headers": {
+            "column": "headers",
+            "type": "column"
+          }
+        },
+        "type": "object"
+      }
+    }
+  ]
+}

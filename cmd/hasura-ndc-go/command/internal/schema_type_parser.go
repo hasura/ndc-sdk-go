@@ -73,7 +73,7 @@ func (tp *TypeParser) parseArgumentTypes(ty types.Type, fieldPaths []string) (*O
 
 			fieldName := getFieldNameOrTag(fieldVar.Name(), fieldTag)
 			result.Fields[fieldName] = *field
-			embeddedObject, ok := tp.schemaParser.rawSchema.Objects[field.Type.SchemaName()]
+			embeddedObject, ok := tp.schemaParser.rawSchema.Objects[field.Type.SchemaName(false)]
 			if field.Embedded && ok {
 				// flatten embedded object fields to the parent object
 				for k, of := range embeddedObject.SchemaFields {
@@ -161,7 +161,7 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 				return nil, err
 			}
 			fieldKey := getFieldNameOrTag(fieldVar.Name(), fieldTag)
-			embeddedObject, ok := tp.schemaParser.rawSchema.Objects[field.Type.SchemaName()]
+			embeddedObject, ok := tp.schemaParser.rawSchema.Objects[field.Type.SchemaName(false)]
 			if field.Embedded && ok {
 				// flatten embedded object fields to the parent object
 				for k, of := range embeddedObject.SchemaFields {
@@ -476,8 +476,8 @@ func (tp *TypeParser) parseTypeInfoFromComments(typeInfo *TypeInfo, scope *types
 }
 
 func parseTypeParameters(rootType *TypeInfo, input string) error {
-	paramsString := strings.TrimRight(strings.TrimLeft(strings.TrimPrefix(input, rootType.PackagePath+"."+rootType.Name), "["), "]")
-	rawParams := strings.Split(paramsString, ",")
+	paramsString := strings.TrimPrefix(input, rootType.PackagePath+"."+rootType.Name)
+	rawParams := strings.Split(paramsString[1:len(paramsString)-1], ",")
 
 	for _, param := range rawParams {
 		param = strings.TrimSpace(param)
@@ -489,10 +489,9 @@ func parseTypeParameters(rootType *TypeInfo, input string) error {
 			return err
 		}
 
-		rootType.SchemaName += "_" + ty.SchemaName()
+		rootType.SchemaName += "_" + ty.SchemaName(true)
 		rootType.TypeParameters = append(rootType.TypeParameters, ty)
 	}
-
 	return nil
 }
 

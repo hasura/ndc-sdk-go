@@ -80,6 +80,16 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 				},
 			},
+			"CustomHeadersResult_array_nullable_BaseAuthor": schema.ObjectType{
+				Fields: schema.ObjectTypeFields{
+					"Response": schema.ObjectField{
+						Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("BaseAuthor"))).Encode(),
+					},
+					"headers": schema.ObjectField{
+						Type: schema.NewNamedType("JSON").Encode(),
+					},
+				},
+			},
 			"GetArticlesResult": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
 					"Name": schema.ObjectField{
@@ -1147,6 +1157,21 @@ func GetConnectorSchema() *schema.SchemaResponse {
 				Arguments: map[string]schema.ArgumentInfo{
 					"Authors": {
 						Type: schema.NewArrayType(schema.NewNamedType("CreateAuthorArguments")).Encode(),
+					},
+				},
+			},
+			{
+				Name:       "doCustomHeaders",
+				ResultType: schema.NewNullableType(schema.NewNamedType("CustomHeadersResult_array_nullable_BaseAuthor")).Encode(),
+				Arguments: map[string]schema.ArgumentInfo{
+					"headers": {
+						Type: schema.NewNamedType("JSON").Encode(),
+					},
+					"input": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("BaseAuthor"))).Encode(),
+					},
+					"other": {
+						Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther_int")).Encode(),
 					},
 				},
 			},

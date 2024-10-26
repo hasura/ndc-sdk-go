@@ -240,6 +240,7 @@ func (rcs RawConnectorSchema) writeObjectType(builder *strings.Builder, objectTy
 }
 
 func (rcs RawConnectorSchema) writeType(schemaType schema.Type, depth uint) (string, error) {
+	result := "schema."
 	ty, err := schemaType.InterfaceT()
 	switch t := ty.(type) {
 	case *schema.ArrayType:
@@ -247,25 +248,21 @@ func (rcs RawConnectorSchema) writeType(schemaType schema.Type, depth uint) (str
 		if err != nil {
 			return "", err
 		}
-		if depth == 0 {
-			return fmt.Sprintf("schema.NewArrayType(%s).Encode()", nested), nil
-		}
-		return fmt.Sprintf("schema.NewArrayType(%s)", nested), nil
+		result += fmt.Sprintf("NewArrayType(%s)", nested)
 	case *schema.NullableType:
 		nested, err := rcs.writeType(t.UnderlyingType, depth+1)
 		if err != nil {
 			return "", err
 		}
-		if depth == 0 {
-			return fmt.Sprintf("schema.NewNullableType(%s).Encode()", nested), nil
-		}
-		return fmt.Sprintf("schema.NewNullableType(%s)", nested), nil
+		result += fmt.Sprintf("NewNullableType(%s)", nested)
 	case *schema.NamedType:
-		if depth == 0 {
-			return fmt.Sprintf(`schema.NewNamedType("%s").Encode()`, t.Name), nil
-		}
-		return fmt.Sprintf(`schema.NewNamedType("%s")`, t.Name), nil
+		result += fmt.Sprintf(`NewNamedType("%s")`, t.Name)
 	default:
 		return "", fmt.Errorf("invalid schema type: %w", err)
 	}
+
+	if depth == 0 {
+		result += ".Encode()"
+	}
+	return result, nil
 }

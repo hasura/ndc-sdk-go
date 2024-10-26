@@ -535,12 +535,46 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
 		}
 		return schema.NewProcedureResult(result).Encode(), nil
 
+	case "doCustomHeaders":
+
+		selection, err := operation.Fields.AsObject()
+		if err != nil {
+			return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
+				"cause": err.Error(),
+			})
+		}
+		var args GetCustomHeadersArguments[*[]BaseAuthor, int]
+		if err := json.Unmarshal(operation.Arguments, &args); err != nil {
+			return nil, schema.UnprocessableContentError("failed to decode arguments", map[string]any{
+				"cause": err.Error(),
+			})
+		}
+		span.AddEvent("execute_procedure")
+		rawResult, err := ProcedureDoCustomHeaders(ctx, state, &args)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if rawResult == nil {
+			return schema.NewProcedureResult(nil).Encode(), nil
+		}
+		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+			"raw_result": rawResult,
+		})
+		result, err := utils.EvalNestedColumnObject(selection, rawResult)
+
+		if err != nil {
+			return nil, err
+		}
+		return schema.NewProcedureResult(result).Encode(), nil
+
 	default:
 		return nil, utils.ErrHandlerNotfound
 	}
 }
 
-var enumValues_ProcedureName = []string{"create_article", "increase", "createAuthor", "createAuthors"}
+var enumValues_ProcedureName = []string{"create_article", "increase", "createAuthor", "createAuthors", "doCustomHeaders"}
 
 func connector_addSpanEvent(span trace.Span, logger *slog.Logger, name string, data map[string]any, options ...trace.EventOption) {
 	logger.Debug(name, slog.Any("data", data))
