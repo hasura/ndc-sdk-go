@@ -431,9 +431,9 @@ func TestDecodeInt(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Equal(t, int64(vUint64), *ptr)
 
-		var vAny any = float64(1.1)
+		var vAny any = "failure"
 		_, err = DecodeNullableInt[int64](&vAny)
-		assert.ErrorContains(t, err, "failed to convert integer, got: 1.1")
+		assert.ErrorContains(t, err, "failed to convert integer, got failure")
 
 		var vFn any = func() {}
 		_, err = DecodeNullableInt[int64](&vFn)
@@ -447,7 +447,7 @@ func TestDecodeInt(t *testing.T) {
 
 	t.Run("decode_invalid_type", func(t *testing.T) {
 		_, err := DecodeInt[rune]("failure")
-		assert.ErrorContains(t, err, "failed to convert integer, got: failure")
+		assert.ErrorContains(t, err, "failed to convert integer, got failure")
 	})
 }
 
