@@ -153,8 +153,7 @@ func (j *TypeRepresentation) UnmarshalJSON(b []byte) error {
 	result := map[string]any{
 		"type": ty,
 	}
-	switch ty {
-	case TypeRepresentationTypeEnum:
+	if ty == TypeRepresentationTypeEnum {
 		rawOneOf, ok := raw["one_of"]
 		if !ok {
 			return errors.New("field one_of in TypeRepresentation is required for enum type")
@@ -168,6 +167,7 @@ func (j *TypeRepresentation) UnmarshalJSON(b []byte) error {
 		}
 		result["one_of"] = oneOf
 	}
+
 	*j = result
 	return nil
 }

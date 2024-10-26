@@ -39,7 +39,7 @@ func httpPostJSON(url string, body any) (*http.Response, error) {
 		return nil, err
 	}
 
-	return http.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
+	return http.DefaultClient.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
 }
 
 func readSnapshot[R any, E any](t *testing.T, dir string, skipResponseValidation bool) (*R, *E) {

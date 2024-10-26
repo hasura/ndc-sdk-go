@@ -54,7 +54,7 @@ func (ctb connectorTypeBuilder) String() string {
 		for _, pkg := range sortedImports {
 			alias := ctb.imports[pkg]
 			if alias != "" {
-				alias = alias + " "
+				alias += " "
 			}
 			bs.WriteString(fmt.Sprintf("  %s\"%s\"\n", alias, pkg))
 		}
@@ -447,6 +447,7 @@ func (s *%s) FromValue(value any) error {
 `, pascalName, scalarKey, pascalName, scalarKey, scalarKey, pascalName, scalarKey, scalarKey, strings.Join(enumConstants, ", "),
 				scalarKey, pascalName, scalarKey, pascalName, scalarKey, pascalName,
 			))
+		default:
 		}
 	}
 

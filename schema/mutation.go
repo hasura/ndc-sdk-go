@@ -143,6 +143,8 @@ func (j *MutationOperation) UnmarshalJSON(b []byte) error {
 			}
 			value.Fields = fields
 		}
+	default:
+		return fmt.Errorf("invalid mutation operation type: %s", value.Type)
 	}
 
 	*j = value
@@ -183,6 +185,8 @@ func (j *MutationOperationResults) UnmarshalJSON(b []byte) error {
 			return fmt.Errorf("field result in MutationOperationResults: %w", err)
 		}
 		result["result"] = procedureResult
+	default:
+		return fmt.Errorf("invalid mutation operation type: %s", ty)
 	}
 	*j = result
 	return nil

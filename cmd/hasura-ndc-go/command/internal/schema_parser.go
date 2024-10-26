@@ -251,6 +251,7 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 		case OperationFunction:
 			sp.rawSchema.Functions = append(sp.rawSchema.Functions, FunctionInfo(*opInfo))
 		}
+	default:
 	}
 	return nil
 }
@@ -389,7 +390,7 @@ func evalPackageTypesLocation(moduleName string, filePath string, connectorDir s
 		return moduleName + "/types", nil
 	}
 
-	if connectorDir != "" && !strings.HasPrefix(".", connectorDir) {
+	if connectorDir != "" && !strings.HasPrefix(connectorDir, ".") {
 		matches, err = filepath.Glob(path.Join(filePath, connectorDir, "types", "*.go"))
 		if err == nil && len(matches) > 0 {
 			return fmt.Sprintf("%s/%s/types", moduleName, connectorDir), nil

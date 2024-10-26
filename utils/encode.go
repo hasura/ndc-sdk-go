@@ -124,6 +124,8 @@ func encodeField(input reflect.Value) (any, bool) {
 			switch inputType.Name() {
 			case "Time":
 				return input.Interface(), true
+			default:
+				return nil, false
 			}
 		default:
 			toMap := input.MethodByName("ToMap")

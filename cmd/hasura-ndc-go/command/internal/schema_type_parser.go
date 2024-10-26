@@ -258,6 +258,8 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 				}
 			case "Duration":
 				return nil, errUnsupportedTypeDuration
+			default:
+				return nil, fmt.Errorf("unsupported type %s.%s", innerPkg.Path(), innerType.Name())
 			}
 		case "encoding/json":
 			switch innerType.Name() {
@@ -266,6 +268,8 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 				scalarType = &Scalar{
 					Schema: defaultScalarTypes[ScalarRawJSON],
 				}
+			default:
+				return nil, fmt.Errorf("unsupported type %s.%s", innerPkg.Path(), innerType.Name())
 			}
 		case "github.com/google/uuid":
 			switch innerType.Name() {
@@ -274,6 +278,8 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 				scalarType = &Scalar{
 					Schema: defaultScalarTypes[ScalarUUID],
 				}
+			default:
+				return nil, fmt.Errorf("unsupported type %s.%s", innerPkg.Path(), innerType.Name())
 			}
 		case "github.com/hasura/ndc-sdk-go/scalar":
 			switch innerType.Name() {

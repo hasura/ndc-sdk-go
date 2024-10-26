@@ -450,7 +450,8 @@ func createPrometheusServer(port uint) *http.Server {
 	mux.Handle("/metrics", promhttp.Handler())
 
 	return &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
-		Handler: mux,
+		Addr:              fmt.Sprintf(":%d", port),
+		Handler:           mux,
+		ReadHeaderTimeout: 30 * time.Second,
 	}
 }
