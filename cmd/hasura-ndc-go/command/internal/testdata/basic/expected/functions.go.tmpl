@@ -1136,7 +1136,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
     }
 
     if rawResult == nil {
-      return nil, nil
+      return schema.NewProcedureResult(nil).Encode(), nil
     }
     connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
@@ -1182,7 +1182,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
     }
 
     if rawResult == nil {
-      return nil, nil
+      return schema.NewProcedureResult(nil).Encode(), nil
     }
     connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,

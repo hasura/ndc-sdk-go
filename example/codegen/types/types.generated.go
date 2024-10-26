@@ -31,7 +31,7 @@ func (j *Author) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.Tags, input, "tags")
+	j.Tags, err = utils.GetStringSlice(input, "tags")
 	if err != nil {
 		return err
 	}

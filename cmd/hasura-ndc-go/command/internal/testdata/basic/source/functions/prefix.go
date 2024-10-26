@@ -277,3 +277,12 @@ func FunctionGetCustomHeaders(ctx context.Context, state *types.State, arguments
 		Response: result,
 	}, nil
 }
+
+// type CustomHeadersResult[T any] struct {
+// 	Headers  map[string]string `json:"headers"`
+// 	Response T
+// }
+
+// func ProcedureDoCustomHeaders(ctx context.Context, state *types.State, arguments *GetCustomHeadersArguments[*[]BaseAuthor, int]) (*CustomHeadersResult[[]*BaseAuthor], error) {
+// 	return &CustomHeadersResult[[]*BaseAuthor]{}, nil
+// }

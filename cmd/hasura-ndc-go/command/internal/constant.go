@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"regexp"
 
 	"github.com/hasura/ndc-sdk-go/schema"
@@ -31,6 +32,7 @@ const (
 	// Note: we don't recommend to use this scalar for function arguments
 	// because the decoder will re-encode the value to []byte that isn't performance-wise.
 	ScalarRawJSON ScalarName = "RawJSON"
+	ScalarURL     ScalarName = "URL"
 )
 
 var defaultScalarTypes = map[ScalarName]schema.ScalarType{
@@ -124,6 +126,11 @@ var defaultScalarTypes = map[ScalarName]schema.ScalarType{
 		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 		Representation:      schema.NewTypeRepresentationJSON().Encode(),
 	},
+	ScalarURL: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationString().Encode(),
+	},
 }
 
 var (
@@ -147,3 +154,8 @@ const textBlockErrorCheck2 = `
       return nil, err
     }
 `
+
+var (
+	errUnsupportedTypeDuration = errors.New("unsupported type time.Duration. Create a scalar type wrapper with FromValue method to decode the any value")
+	errMustUseEnumTag          = errors.New("use @enum tag with values instead")
+)

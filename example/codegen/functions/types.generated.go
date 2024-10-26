@@ -189,6 +189,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			"arguments": args,
 		})
 		rawResult, err := FunctionGetAuthor(ctx, state, &args)
+
 		if err != nil {
 			return nil, err
 		}
@@ -196,7 +197,6 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 		if rawResult == nil {
 			return nil, nil
 		}
-
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
 		})
@@ -225,6 +225,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			"arguments": args,
 		})
 		rawResult, err := FunctionGetAuthor2(ctx, state, &args)
+
 		if err != nil {
 			return nil, err
 		}
@@ -264,6 +265,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			"arguments": args,
 		})
 		rawResult, err := FunctionGetCustomHeaders(ctx, state, &args)
+
 		if err != nil {
 			return nil, err
 		}
@@ -296,6 +298,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			"arguments": args,
 		})
 		rawResult, err := FunctionGetGenericWithoutDecodingMethod(ctx, state, &args)
+
 		if err != nil {
 			return nil, err
 		}
@@ -328,6 +331,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			"arguments": args,
 		})
 		rawResult, err := FunctionGetTypes(ctx, state, &args)
+
 		if err != nil {
 			return nil, err
 		}
@@ -335,7 +339,6 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 		if rawResult == nil {
 			return nil, nil
 		}
-
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
 		})
@@ -354,6 +357,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			})
 		}
 		rawResult, err := FunctionHello(ctx, state)
+
 		if err != nil {
 			return nil, err
 		}
@@ -361,7 +365,6 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 		if rawResult == nil {
 			return nil, nil
 		}
-
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
 		})
@@ -390,6 +393,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			"arguments": args,
 		})
 		rawResult, err := GetArticles(ctx, state, &args)
+
 		if err != nil {
 			return nil, err
 		}
@@ -442,6 +446,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
 		if err != nil {
 			return nil, err
 		}
+
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
 		})
@@ -459,6 +464,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
 		}
 		span.AddEvent("execute_procedure")
 		result, err := Increase(ctx, state)
+
 		if err != nil {
 			return nil, err
 		}
@@ -486,7 +492,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
 		}
 
 		if rawResult == nil {
-			return nil, nil
+			return schema.NewProcedureResult(nil).Encode(), nil
 		}
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
@@ -518,6 +524,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
 		if err != nil {
 			return nil, err
 		}
+
 		connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
 			"raw_result": rawResult,
 		})
