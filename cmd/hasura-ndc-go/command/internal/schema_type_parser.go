@@ -323,7 +323,10 @@ func (tp *TypeParser) parseStructType(objectInfo *ObjectInfo, inferredType *type
 	for i := 0; i < inferredType.NumFields(); i++ {
 		fieldVar := inferredType.Field(i)
 		fieldTag := inferredType.Tag(i)
-
+		fieldKey, jsonOption := getFieldNameOrTag(fieldVar.Name(), fieldTag)
+		if jsonOption == jsonIgnore {
+			continue
+		}
 		fieldParser := NewTypeParser(tp.schemaParser, &Field{
 			Name:     fieldVar.Name(),
 			Embedded: fieldVar.Embedded(),
@@ -332,7 +335,6 @@ func (tp *TypeParser) parseStructType(objectInfo *ObjectInfo, inferredType *type
 		if err != nil {
 			return err
 		}
-		fieldKey, nullable := getFieldNameOrTag(fieldVar.Name(), fieldTag)
 		embeddedObject, ok := tp.schemaParser.rawSchema.Objects[field.Type.SchemaName(false)]
 		if field.Embedded && ok {
 			// flatten embedded object fields to the parent object
@@ -341,7 +343,7 @@ func (tp *TypeParser) parseStructType(objectInfo *ObjectInfo, inferredType *type
 			}
 		} else {
 			fieldSchema := field.Type.Schema()
-			if nullable && field.Type.Kind() != schema.TypeNullable {
+			if jsonOption == jsonOmitEmpty && field.Type.Kind() != schema.TypeNullable {
 				fieldSchema = schema.NewNullableType(fieldSchema)
 			}
 			objectInfo.SchemaFields[fieldKey] = schema.ObjectField{
@@ -519,27 +521,34 @@ func parseTypeFromString(input string) (Type, error) {
 	return NewNamedType(typeInfo.Name, typeInfo), nil
 }
 
+const (
+	jsonOmitEmpty = "omitempty"
+	jsonIgnore    = "-"
+)
+
 // get field name by json tag
 // return the struct field name if not exist.
-func getFieldNameOrTag(name string, tag string) (string, bool) {
+func getFieldNameOrTag(name string, tag string) (string, string) {
 	if tag == "" {
-		return name, false
+		return name, ""
 	}
 	tags, err := structtag.Parse(tag)
 	if err != nil {
 		log.Warn().Err(err).Msgf("failed to parse tag of struct field: %s", name)
-		return name, false
+		return name, ""
 	}
 
 	jsonTag, err := tags.Get("json")
 	if err != nil {
 		log.Warn().Err(err).Msgf("json tag does not exist in struct field: %s", name)
-		return name, false
+		return name, ""
 	}
-
+	if jsonTag.Value() == "-" {
+		return name, jsonIgnore
+	}
 	nameParts := strings.Split(jsonTag.Value(), ",")
 	if len(nameParts) == 1 {
-		return jsonTag.Name, false
+		return jsonTag.Name, ""
 	}
-	return nameParts[0], nameParts[1] == "omitempty"
+	return nameParts[0], nameParts[1]
 }

@@ -295,6 +295,8 @@ type GetTypesArguments struct {
 	ArrayBigIntPtrEmpty  []*scalar.BigInt   `json:"array_bigint_ptr_empty,omitempty"`
 	ArrayTimeEmpty       []time.Time        `json:"array_time_empty,omitempty"`
 	ArrayTimePtrEmpty    []*time.Time       `json:"array_time_ptr_empty,omitempty"`
+
+	IgnoredField string `json:"-"`
 }
 
 func FunctionGetTypes(ctx context.Context, state *types.State, arguments *GetTypesArguments) (*GetTypesArguments, error) {
