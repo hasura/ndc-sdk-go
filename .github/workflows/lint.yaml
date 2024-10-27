@@ -3,8 +3,6 @@ name: Lint
 on:
   workflow_call:
   push:
-    branches:
-      - "*"
     paths:
       - "**.go"
       - "go.mod"
@@ -16,8 +14,6 @@ jobs:
   lint:
     name: Run Go lint
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
