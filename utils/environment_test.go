@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -52,6 +53,14 @@ func TestEnvString(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("json_decode", func(t *testing.T) {
+		var ev EnvString
+		assert.NilError(t, json.Unmarshal([]byte(`{"env": "SOME_FOO"}`), &ev))
+		result, err := ev.Get()
+		assert.NilError(t, err)
+		assert.Equal(t, "bar", result)
+	})
 }
 
 func TestEnvBool(t *testing.T) {
@@ -112,6 +121,14 @@ func TestEnvBool(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("json_decode", func(t *testing.T) {
+		var ev EnvBool
+		assert.NilError(t, json.Unmarshal([]byte(`{"env": "SOME_FOO"}`), &ev))
+		result, err := ev.Get()
+		assert.NilError(t, err)
+		assert.Equal(t, true, result)
+	})
 }
 
 func TestEnvInt(t *testing.T) {
@@ -172,6 +189,14 @@ func TestEnvInt(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("json_decode", func(t *testing.T) {
+		var ev EnvInt
+		assert.NilError(t, json.Unmarshal([]byte(`{"env": "SOME_FOO"}`), &ev))
+		result, err := ev.Get()
+		assert.NilError(t, err)
+		assert.Equal(t, int64(10), result)
+	})
 }
 
 func TestEnvFloat(t *testing.T) {
@@ -232,6 +257,14 @@ func TestEnvFloat(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("json_decode", func(t *testing.T) {
+		var ev EnvFloat
+		assert.NilError(t, json.Unmarshal([]byte(`{"env": "SOME_FOO"}`), &ev))
+		result, err := ev.Get()
+		assert.NilError(t, err)
+		assert.Equal(t, float64(10.5), result)
+	})
 }
 
 func TestEnvMapBool(t *testing.T) {
@@ -286,6 +319,17 @@ func TestEnvMapBool(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("json_decode", func(t *testing.T) {
+		var ev EnvMapBool
+		assert.NilError(t, json.Unmarshal([]byte(`{"env": "SOME_FOO"}`), &ev))
+		result, err := ev.Get()
+		assert.NilError(t, err)
+		assert.DeepEqual(t, map[string]bool{
+			"foo": true,
+			"bar": false,
+		}, result)
+	})
 }
 
 func TestEnvMapInt(t *testing.T) {
@@ -340,6 +384,17 @@ func TestEnvMapInt(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("json_decode", func(t *testing.T) {
+		var ev EnvMapInt
+		assert.NilError(t, json.Unmarshal([]byte(`{"env": "SOME_FOO"}`), &ev))
+		result, err := ev.Get()
+		assert.NilError(t, err)
+		assert.DeepEqual(t, map[string]int64{
+			"foo": 2,
+			"bar": 3,
+		}, result)
+	})
 }
 
 func TestEnvMapFloat(t *testing.T) {
@@ -397,6 +452,17 @@ func TestEnvMapFloat(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("json_decode", func(t *testing.T) {
+		var ev EnvMapFloat
+		assert.NilError(t, json.Unmarshal([]byte(`{"env": "SOME_FOO"}`), &ev))
+		result, err := ev.Get()
+		assert.NilError(t, err)
+		assert.DeepEqual(t, map[string]float64{
+			"foo": 2.2,
+			"bar": 3.3,
+		}, result)
+	})
 }
 
 func TestEnvMapString(t *testing.T) {
@@ -451,4 +517,15 @@ func TestEnvMapString(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("json_decode", func(t *testing.T) {
+		var ev EnvMapString
+		assert.NilError(t, json.Unmarshal([]byte(`{"env": "SOME_FOO"}`), &ev))
+		result, err := ev.Get()
+		assert.NilError(t, err)
+		assert.DeepEqual(t, map[string]string{
+			"foo": "2.2",
+			"bar": "3.3",
+		}, result)
+	})
 }
