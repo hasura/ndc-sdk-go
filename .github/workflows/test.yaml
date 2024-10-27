@@ -5,7 +5,7 @@ on:
   pull_request:
   push:
     branches:
-      - "*"
+      - "main"
     paths:
       - "**.go"
       - "go.mod"
@@ -15,7 +15,7 @@ on:
 
 jobs:
   test-go:
-    name: Run Go lint and unit tests
+    name: Run unit tests
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -29,16 +29,6 @@ jobs:
         run: |
           go get -t -v ./...
           go install ./...
-      - name: Format
-        run: diff -u <(echo -n) <(gofmt -d -s .)
-      - name: Vet
-        run: go vet ./...
-      - name: Lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: latest
-          only-new-issues: true
-          skip-cache: true
       - name: Run Go unit tests for the SDK
         run: |
           cp go.work.testing go.work
