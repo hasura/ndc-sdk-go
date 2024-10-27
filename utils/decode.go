@@ -98,7 +98,7 @@ func (d Decoder) DecodeValue(target any, value any) error {
 // fallback to mapstructure decoder.
 func (d Decoder) DecodeNullableValue(target any, value any) error {
 	err := d.decodeValue(target, value)
-	if err != nil && err != errValueRequired {
+	if err != nil && !errors.Is(err, errValueRequired) {
 		return err
 	}
 	return nil
