@@ -15,7 +15,7 @@ on:
 
 jobs:
   test-go:
-    name: Run Go lint and unit tests
+    name: Run unit tests
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write

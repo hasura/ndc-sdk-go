@@ -14,7 +14,7 @@ on:
 
 jobs:
   lint:
-    name: Run Go lint and unit tests
+    name: Run Go lint
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
