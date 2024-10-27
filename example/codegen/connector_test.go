@@ -280,7 +280,7 @@ func TestQueryGetTypes(t *testing.T) {
 						"value": {
 							"id": "1",
 							"duration": 10,
-							"tags": [],
+							"tags": null,
 							"created_at": "2024-03-05T05:00:00Z"
 						}
 					},

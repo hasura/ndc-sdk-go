@@ -614,6 +614,246 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	err = connector_Decoder.DecodeNullableObjectValue(&j.ArrayBigIntEmpty, input, "array_bigint_empty")
+	if err != nil {
+		return err
+	}
+	err = connector_Decoder.DecodeNullableObjectValue(&j.ArrayBigIntPtrEmpty, input, "array_bigint_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayBoolEmpty, err = utils.GetBooleanSliceDefault(input, "array_bool_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayBoolPtrEmpty, err = utils.GetBooleanPtrSliceDefault(input, "array_bool_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayFloat32Empty, err = utils.GetFloatSliceDefault[float32](input, "array_float32_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayFloat32PtrEmpty, err = utils.GetFloatPtrSliceDefault[float32](input, "array_float32_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayFloat64Empty, err = utils.GetFloatSliceDefault[float64](input, "array_float64_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayFloat64PtrEmpty, err = utils.GetFloatPtrSliceDefault[float64](input, "array_float64_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt16Empty, err = utils.GetIntSliceDefault[int16](input, "array_int16_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt16PtrEmpty, err = utils.GetIntPtrSliceDefault[int16](input, "array_int16_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt32Empty, err = utils.GetIntSliceDefault[int32](input, "array_int32_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt32PtrEmpty, err = utils.GetIntPtrSliceDefault[int32](input, "array_int32_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt64Empty, err = utils.GetIntSliceDefault[int64](input, "array_int64_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt64PtrEmpty, err = utils.GetIntPtrSliceDefault[int64](input, "array_int64_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt8Empty, err = utils.GetIntSliceDefault[int8](input, "array_int8_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt8PtrEmpty, err = utils.GetIntPtrSliceDefault[int8](input, "array_int8_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayIntEmpty, err = utils.GetIntSliceDefault[int](input, "array_int_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayIntPtrEmpty, err = utils.GetIntPtrSliceDefault[int](input, "array_int_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayJSONEmpty, err = utils.GetArbitraryJSONSliceDefault(input, "array_json_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayJSONPtrEmpty, err = utils.GetArbitraryJSONPtrSliceDefault(input, "array_json_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayRawJSONEmpty, err = utils.GetRawJSONSliceDefault(input, "array_raw_json_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayRawJSONPtrEmpty, err = utils.GetRawJSONPtrSliceDefault(input, "array_raw_json_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayStringEmpty, err = utils.GetStringSliceDefault(input, "array_string_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayStringPtrEmpty, err = utils.GetStringPtrSliceDefault(input, "array_string_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayTimeEmpty, err = utils.GetDateTimeSliceDefault(input, "array_time_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayTimePtrEmpty, err = utils.GetDateTimePtrSliceDefault(input, "array_time_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint16Empty, err = utils.GetUintSliceDefault[uint16](input, "array_uint16_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint16PtrEmpty, err = utils.GetUintPtrSliceDefault[uint16](input, "array_uint16_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint32Empty, err = utils.GetUintSliceDefault[uint32](input, "array_uint32_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint32PtrEmpty, err = utils.GetUintPtrSliceDefault[uint32](input, "array_uint32_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint64Empty, err = utils.GetUintSliceDefault[uint64](input, "array_uint64_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint64PtrEmpty, err = utils.GetUintPtrSliceDefault[uint64](input, "array_uint64_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint8Empty, err = utils.GetUintSliceDefault[uint8](input, "array_uint8_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint8PtrEmpty, err = utils.GetUintPtrSliceDefault[uint8](input, "array_uint8_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUintEmpty, err = utils.GetUintSliceDefault[uint](input, "array_uint_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUintPtrEmpty, err = utils.GetUintPtrSliceDefault[uint](input, "array_uint_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUUIDEmpty, err = utils.GetUUIDSliceDefault(input, "array_uuid_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUUIDPtrEmpty, err = utils.GetUUIDPtrSliceDefault(input, "array_uuid_ptr_empty")
+	if err != nil {
+		return err
+	}
+	err = connector_Decoder.DecodeNullableObjectValue(&j.BigIntEmpty, input, "bigint_empty")
+	if err != nil {
+		return err
+	}
+	j.BoolEmpty, err = utils.GetBooleanDefault(input, "bool_empty")
+	if err != nil {
+		return err
+	}
+	err = connector_Decoder.DecodeNullableObjectValue(&j.CustomScalarEmpty, input, "custom_scalar_empty")
+	if err != nil {
+		return err
+	}
+	err = connector_Decoder.DecodeNullableObjectValue(&j.DateEmpty, input, "date_empty")
+	if err != nil {
+		return err
+	}
+	err = connector_Decoder.DecodeNullableObjectValue(&j.EnumEmpty, input, "enum_empty")
+	if err != nil {
+		return err
+	}
+	j.Float32Empty, err = utils.GetFloatDefault[float32](input, "float32_empty")
+	if err != nil {
+		return err
+	}
+	j.Float64Empty, err = utils.GetFloatDefault[float64](input, "float64_empty")
+	if err != nil {
+		return err
+	}
+	j.Int16Empty, err = utils.GetIntDefault[int16](input, "int16_empty")
+	if err != nil {
+		return err
+	}
+	j.Int32Empty, err = utils.GetIntDefault[int32](input, "int32_empty")
+	if err != nil {
+		return err
+	}
+	j.Int64Empty, err = utils.GetIntDefault[int64](input, "int64_empty")
+	if err != nil {
+		return err
+	}
+	j.Int8Empty, err = utils.GetIntDefault[int8](input, "int8_empty")
+	if err != nil {
+		return err
+	}
+	j.IntEmpty, err = utils.GetIntDefault[int](input, "int_empty")
+	if err != nil {
+		return err
+	}
+	j.StringEmpty, err = utils.GetStringDefault(input, "string_empty")
+	if err != nil {
+		return err
+	}
+	err = connector_Decoder.DecodeNullableObjectValue(&j.TextEmpty, input, "text_empty")
+	if err != nil {
+		return err
+	}
+	j.TimeEmpty, err = utils.GetDateTimeDefault(input, "time_empty")
+	if err != nil {
+		return err
+	}
+	j.Uint16Empty, err = utils.GetUintDefault[uint16](input, "uint16_empty")
+	if err != nil {
+		return err
+	}
+	j.Uint32Empty, err = utils.GetUintDefault[uint32](input, "uint32_empty")
+	if err != nil {
+		return err
+	}
+	j.Uint64Empty, err = utils.GetUintDefault[uint64](input, "uint64_empty")
+	if err != nil {
+		return err
+	}
+	j.Uint8Empty, err = utils.GetUintDefault[uint8](input, "uint8_empty")
+	if err != nil {
+		return err
+	}
+	j.UintEmpty, err = utils.GetUintDefault[uint](input, "uint_empty")
+	if err != nil {
+		return err
+	}
+	err = connector_Decoder.DecodeNullableObjectValue(&j.URLEmpty, input, "url_empty")
+	if err != nil {
+		return err
+	}
+	j.UUIDEmpty, err = utils.GetUUIDDefault(input, "uuid_empty")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -800,6 +1040,66 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["Uint8"] = j.Uint8
 	r["Uint8Ptr"] = j.Uint8Ptr
 	r["UintPtr"] = j.UintPtr
+	r["array_bigint_empty"] = j.ArrayBigIntEmpty
+	r["array_bigint_ptr_empty"] = j.ArrayBigIntPtrEmpty
+	r["array_bool_empty"] = j.ArrayBoolEmpty
+	r["array_bool_ptr_empty"] = j.ArrayBoolPtrEmpty
+	r["array_float32_empty"] = j.ArrayFloat32Empty
+	r["array_float32_ptr_empty"] = j.ArrayFloat32PtrEmpty
+	r["array_float64_empty"] = j.ArrayFloat64Empty
+	r["array_float64_ptr_empty"] = j.ArrayFloat64PtrEmpty
+	r["array_int16_empty"] = j.ArrayInt16Empty
+	r["array_int16_ptr_empty"] = j.ArrayInt16PtrEmpty
+	r["array_int32_empty"] = j.ArrayInt32Empty
+	r["array_int32_ptr_empty"] = j.ArrayInt32PtrEmpty
+	r["array_int64_empty"] = j.ArrayInt64Empty
+	r["array_int64_ptr_empty"] = j.ArrayInt64PtrEmpty
+	r["array_int8_empty"] = j.ArrayInt8Empty
+	r["array_int8_ptr_empty"] = j.ArrayInt8PtrEmpty
+	r["array_int_empty"] = j.ArrayIntEmpty
+	r["array_int_ptr_empty"] = j.ArrayIntPtrEmpty
+	r["array_json_empty"] = j.ArrayJSONEmpty
+	r["array_json_ptr_empty"] = j.ArrayJSONPtrEmpty
+	r["array_raw_json_empty"] = j.ArrayRawJSONEmpty
+	r["array_raw_json_ptr_empty"] = j.ArrayRawJSONPtrEmpty
+	r["array_string_empty"] = j.ArrayStringEmpty
+	r["array_string_ptr_empty"] = j.ArrayStringPtrEmpty
+	r["array_time_empty"] = j.ArrayTimeEmpty
+	r["array_time_ptr_empty"] = j.ArrayTimePtrEmpty
+	r["array_uint16_empty"] = j.ArrayUint16Empty
+	r["array_uint16_ptr_empty"] = j.ArrayUint16PtrEmpty
+	r["array_uint32_empty"] = j.ArrayUint32Empty
+	r["array_uint32_ptr_empty"] = j.ArrayUint32PtrEmpty
+	r["array_uint64_empty"] = j.ArrayUint64Empty
+	r["array_uint64_ptr_empty"] = j.ArrayUint64PtrEmpty
+	r["array_uint8_empty"] = j.ArrayUint8Empty
+	r["array_uint8_ptr_empty"] = j.ArrayUint8PtrEmpty
+	r["array_uint_empty"] = j.ArrayUintEmpty
+	r["array_uint_ptr_empty"] = j.ArrayUintPtrEmpty
+	r["array_uuid_empty"] = j.ArrayUUIDEmpty
+	r["array_uuid_ptr_empty"] = j.ArrayUUIDPtrEmpty
+	r["bigint_empty"] = j.BigIntEmpty
+	r["bool_empty"] = j.BoolEmpty
+	r["custom_scalar_empty"] = j.CustomScalarEmpty
+	r["date_empty"] = j.DateEmpty
+	r["enum_empty"] = j.EnumEmpty
+	r["float32_empty"] = j.Float32Empty
+	r["float64_empty"] = j.Float64Empty
+	r["int16_empty"] = j.Int16Empty
+	r["int32_empty"] = j.Int32Empty
+	r["int64_empty"] = j.Int64Empty
+	r["int8_empty"] = j.Int8Empty
+	r["int_empty"] = j.IntEmpty
+	r["string_empty"] = j.StringEmpty
+	r["text_empty"] = j.TextEmpty
+	r["time_empty"] = j.TimeEmpty
+	r["uint16_empty"] = j.Uint16Empty
+	r["uint32_empty"] = j.Uint32Empty
+	r["uint64_empty"] = j.Uint64Empty
+	r["uint8_empty"] = j.Uint8Empty
+	r["uint_empty"] = j.UintEmpty
+	r["url_empty"] = j.URLEmpty
+	r["uuid_empty"] = j.UUIDEmpty
 
 	return r
 }

@@ -45,3 +45,21 @@ func writeIndent(builder *strings.Builder, num int) {
 		_, _ = builder.WriteRune(' ')
 	}
 }
+
+func writeErrorCheck(sb *strings.Builder, paramCount int, indent int) {
+	sb.WriteRune('\n')
+	writeIndent(sb, indent)
+	sb.WriteString("if err != nil {\n")
+	writeIndent(sb, indent)
+	sb.WriteString("  return ")
+	for i := 0; i < paramCount; i++ {
+		if i == paramCount-1 {
+			sb.WriteString("err")
+		} else {
+			sb.WriteString("nil, ")
+		}
+	}
+	sb.WriteRune('\n')
+	writeIndent(sb, indent)
+	sb.WriteString("}\n")
+}

@@ -14,7 +14,6 @@ import (
 	"runtime/trace"
 	"strings"
 
-	"github.com/fatih/structtag"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/iancoleman/strcase"
 	"github.com/rs/zerolog/log"
@@ -361,27 +360,6 @@ func findCommentsFromPos(pkg *packages.Package, scope *types.Scope, name string)
 		}
 	}
 	return nil
-}
-
-// get field name by json tag
-// return the struct field name if not exist.
-func getFieldNameOrTag(name string, tag string) string {
-	if tag == "" {
-		return name
-	}
-	tags, err := structtag.Parse(tag)
-	if err != nil {
-		log.Warn().Err(err).Msgf("failed to parse tag of struct field: %s", name)
-		return name
-	}
-
-	jsonTag, err := tags.Get("json")
-	if err != nil {
-		log.Warn().Err(err).Msgf("json tag does not exist in struct field: %s", name)
-		return name
-	}
-
-	return jsonTag.Name
 }
 
 func evalPackageTypesLocation(moduleName string, filePath string, connectorDir string) (string, error) {
