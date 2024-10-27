@@ -168,6 +168,11 @@ the schema will be:
 }
 ```
 
+JSON tag options are also supported:
+
+- `omitempty`: if this option is set, the field schema will be nullable even if the field type isn't a pointer.
+- `-`: the object field is ignored.
+
 #### Arguments
 
 Arguments must be defined as struct types. The generator automatically infers argument types in functions to generate schemas and Encoder and Decoder methods. Value fields are treated as required and pointer fields are optional.

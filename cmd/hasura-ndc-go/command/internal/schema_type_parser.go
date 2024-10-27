@@ -526,8 +526,8 @@ const (
 	jsonIgnore    = "-"
 )
 
-// get field name by json tag
-// return the struct field name if not exist.
+// Get field name and options by json tag.
+// Return the struct field name if not exist.
 func getFieldNameOrTag(name string, tag string) (string, string) {
 	if tag == "" {
 		return name, ""

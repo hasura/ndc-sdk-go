@@ -186,6 +186,10 @@ type GetTypesArguments struct {
 	BigIntEmpty       scalar.BigInt     `json:"bigint_empty,omitempty"`
 	DateEmpty         scalar.Date       `json:"date_empty,omitempty"`
 	URLEmpty          scalar.URL        `json:"url_empty,omitempty"`
+	MapEmpty          map[string]any    `json:"map_empty,omitempty"`
+	ArrayMapEmpty     []map[string]any  `json:"array_map_empty,omitempty"`
+	JSONEmpty         any               `json:"any_empty,omitempty"`
+	RawJSONEmpty      json.RawMessage   `json:"raw_json_empty,omitempty"`
 
 	ArrayBoolEmpty       []bool             `json:"array_bool_empty,omitempty"`
 	ArrayStringEmpty     []string           `json:"array_string_empty,omitempty"`

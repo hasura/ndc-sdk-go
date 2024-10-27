@@ -614,6 +614,10 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	j.JSONEmpty, err = utils.GetArbitraryJSONDefault(input, "any_empty")
+	if err != nil {
+		return err
+	}
 	err = connector_Decoder.DecodeNullableObjectValue(&j.ArrayBigIntEmpty, input, "array_bigint_empty")
 	if err != nil {
 		return err
@@ -691,6 +695,10 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 		return err
 	}
 	j.ArrayJSONPtrEmpty, err = utils.GetArbitraryJSONPtrSliceDefault(input, "array_json_ptr_empty")
+	if err != nil {
+		return err
+	}
+	err = connector_Decoder.DecodeNullableObjectValue(&j.ArrayMapEmpty, input, "array_map_empty")
 	if err != nil {
 		return err
 	}
@@ -811,6 +819,14 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 		return err
 	}
 	j.IntEmpty, err = utils.GetIntDefault[int](input, "int_empty")
+	if err != nil {
+		return err
+	}
+	err = connector_Decoder.DecodeNullableObjectValue(&j.MapEmpty, input, "map_empty")
+	if err != nil {
+		return err
+	}
+	j.RawJSONEmpty, err = utils.GetRawJSONDefault(input, "raw_json_empty")
 	if err != nil {
 		return err
 	}
@@ -1040,6 +1056,7 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["Uint8"] = j.Uint8
 	r["Uint8Ptr"] = j.Uint8Ptr
 	r["UintPtr"] = j.UintPtr
+	r["any_empty"] = j.JSONEmpty
 	r["array_bigint_empty"] = j.ArrayBigIntEmpty
 	r["array_bigint_ptr_empty"] = j.ArrayBigIntPtrEmpty
 	r["array_bool_empty"] = j.ArrayBoolEmpty
@@ -1060,6 +1077,7 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["array_int_ptr_empty"] = j.ArrayIntPtrEmpty
 	r["array_json_empty"] = j.ArrayJSONEmpty
 	r["array_json_ptr_empty"] = j.ArrayJSONPtrEmpty
+	r["array_map_empty"] = j.ArrayMapEmpty
 	r["array_raw_json_empty"] = j.ArrayRawJSONEmpty
 	r["array_raw_json_ptr_empty"] = j.ArrayRawJSONPtrEmpty
 	r["array_string_empty"] = j.ArrayStringEmpty
@@ -1090,6 +1108,8 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["int64_empty"] = j.Int64Empty
 	r["int8_empty"] = j.Int8Empty
 	r["int_empty"] = j.IntEmpty
+	r["map_empty"] = j.MapEmpty
+	r["raw_json_empty"] = j.RawJSONEmpty
 	r["string_empty"] = j.StringEmpty
 	r["text_empty"] = j.TextEmpty
 	r["time_empty"] = j.TimeEmpty

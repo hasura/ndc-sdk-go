@@ -566,6 +566,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					"UintPtr": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
 					},
+					"any_empty": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
+					},
 					"array_bigint_empty": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("BigInt"))).Encode(),
 					},
@@ -625,6 +628,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 					"array_json_ptr_empty": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("JSON")))).Encode(),
+					},
+					"array_map_empty": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("JSON"))).Encode(),
 					},
 					"array_raw_json_empty": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("RawJSON"))).Encode(),
@@ -715,6 +721,12 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 					"int_empty": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+					},
+					"map_empty": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
+					},
+					"raw_json_empty": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("RawJSON")).Encode(),
 					},
 					"string_empty": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewNamedType("String")).Encode(),
@@ -1278,6 +1290,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					"UintPtr": {
 						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
 					},
+					"any_empty": {
+						Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
+					},
 					"array_bigint_empty": {
 						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("BigInt"))).Encode(),
 					},
@@ -1337,6 +1352,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 					"array_json_ptr_empty": {
 						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("JSON")))).Encode(),
+					},
+					"array_map_empty": {
+						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("JSON"))).Encode(),
 					},
 					"array_raw_json_empty": {
 						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("RawJSON"))).Encode(),
@@ -1427,6 +1445,12 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 					"int_empty": {
 						Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+					},
+					"map_empty": {
+						Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
+					},
+					"raw_json_empty": {
+						Type: schema.NewNullableType(schema.NewNamedType("RawJSON")).Encode(),
 					},
 					"string_empty": {
 						Type: schema.NewNullableType(schema.NewNamedType("String")).Encode(),
