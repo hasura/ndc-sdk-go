@@ -153,11 +153,11 @@ func MergeMap[K comparable, V any](dest map[K]V, src map[K]V) map[K]V {
 	return result
 }
 
-// ParseIntMapFromString parses an integer map from a string with format:
+// ParseStringMapFromString parses a string map from a string with format:
 //
 //	<key1>=<value1>;<key2>=<value2>
-func ParseIntMapFromString(input string) (map[string]int, error) {
-	result := make(map[string]int)
+func ParseStringMapFromString(input string) (map[string]string, error) {
+	result := make(map[string]string)
 	if input == "" {
 		return result, nil
 	}
@@ -167,11 +167,77 @@ func ParseIntMapFromString(input string) (map[string]int, error) {
 		if len(keyValue) != keyValueLength {
 			return nil, fmt.Errorf("invalid int map string %s, expected <key1>=<value1>;<key2>=<value2>", input)
 		}
-		value, err := strconv.ParseInt(keyValue[1], 10, 32)
+		result[keyValue[0]] = keyValue[1]
+	}
+
+	return result, nil
+}
+
+// ParseIntMapFromString parses an integer map from a string with format:
+//
+//	<key1>=<value1>;<key2>=<value2>
+func ParseIntMapFromString(input string) (map[string]int, error) {
+	return ParseIntegerMapFromString[int](input)
+}
+
+// ParseIntegerMapFromString parses an integer map from a string with format:
+//
+//	<key1>=<value1>;<key2>=<value2>
+func ParseIntegerMapFromString[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](input string) (map[string]T, error) {
+	rawValues, err := ParseStringMapFromString(input)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]T)
+	for key, value := range rawValues {
+		v, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
-			return nil, fmt.Errorf("invalid integer value %s in item %s", keyValue[1], rawItem)
+			return nil, fmt.Errorf("invalid integer value %s in item %s", value, key)
 		}
-		result[keyValue[0]] = int(value)
+		result[key] = T(v)
+	}
+
+	return result, nil
+}
+
+// ParseFloatMapFromString parses a float map from a string with format:
+//
+//	<key1>=<value1>;<key2>=<value2>
+func ParseFloatMapFromString[T float32 | float64](input string) (map[string]T, error) {
+	rawValues, err := ParseStringMapFromString(input)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]T)
+	for key, value := range rawValues {
+		v, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid float value %s in item %s", value, key)
+		}
+		result[key] = T(v)
+	}
+
+	return result, nil
+}
+
+// ParseBoolMapFromString parses a bool map from a string with format:
+//
+//	<key1>=<value1>;<key2>=<value2>
+func ParseBoolMapFromString(input string) (map[string]bool, error) {
+	rawValues, err := ParseStringMapFromString(input)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]bool)
+	for key, value := range rawValues {
+		v, err := strconv.ParseBool(value)
+		if err != nil {
+			return nil, fmt.Errorf("invalid bool value %s in item %s", value, key)
+		}
+		result[key] = v
 	}
 
 	return result, nil
