@@ -286,7 +286,7 @@ func (j %s) ToMap() map[string]any {
 `, object.Type.String()))
 		cg.writeObjectToMap(sb, &object, "j", "r")
 		sb.builder.WriteString(`
-	return r
+  return r
 }`)
 	}
 
@@ -398,51 +398,51 @@ var enumValues_%s = []%s{%s}
 			sb.builder.WriteString(fmt.Sprintf(`
 // Parse%s parses a %s enum from string
 func Parse%s(input string) (%s, error) {
-	result := %s(input)
-	if !slices.Contains(enumValues_%s, result) {
-		return %s(""), errors.New("failed to parse %s, expect one of %s")
-	}
+  result := %s(input)
+  if !slices.Contains(enumValues_%s, result) {
+    return %s(""), errors.New("failed to parse %s, expect one of %s")
+  }
 
-	return result, nil
+  return result, nil
 }
 
 // IsValid checks if the value is invalid
 func (j %s) IsValid() bool {
-	return slices.Contains(enumValues_%s, j)
+  return slices.Contains(enumValues_%s, j)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *%s) UnmarshalJSON(b []byte) error {
-	var rawValue string
-	if err := json.Unmarshal(b, &rawValue); err != nil {
-		return err
-	}
+  var rawValue string
+  if err := json.Unmarshal(b, &rawValue); err != nil {
+    return err
+  }
 
-	value, err := Parse%s(rawValue)
-	if err != nil {
-		return err
-	}
+  value, err := Parse%s(rawValue)
+  if err != nil {
+    return err
+  }
 
-	*j = value
-	return nil
+  *j = value
+  return nil
 }
 
 // FromValue decodes the scalar from an unknown value
 func (s *%s) FromValue(value any) error {
-	valueStr, err := utils.DecodeNullableString(value)
-	if err != nil {
-		return err
-	}
-	if valueStr == nil {
-		return nil
-	}
-	result, err := Parse%s(*valueStr)
-	if err != nil {
-		return err
-	}
+  valueStr, err := utils.DecodeNullableString(value)
+  if err != nil {
+    return err
+  }
+  if valueStr == nil {
+    return nil
+  }
+  result, err := Parse%s(*valueStr)
+  if err != nil {
+    return err
+  }
 
-	*s = result
-	return nil
+  *s = result
+  return nil
 }
 `, pascalName, scalarKey, pascalName, scalarKey, scalarKey, pascalName, scalarKey, scalarKey, strings.Join(enumConstants, ", "),
 				scalarKey, pascalName, scalarKey, pascalName, scalarKey, pascalName,
@@ -484,7 +484,9 @@ func (j *`)
 	argumentKeys := utils.GetSortedKeys(info.Fields)
 	for _, key := range argumentKeys {
 		arg := info.Fields[key]
-		cg.writeGetTypeValueDecoder(sb, &arg, key)
+		schemaField := info.SchemaFields[key]
+
+		cg.writeGetTypeValueDecoder(sb, &arg, schemaField, key)
 	}
 	sb.builder.WriteString("  return nil\n}")
 }
@@ -539,7 +541,7 @@ func (cg *connectorGenerator) genConnectorHandlers() {
 	}
 }
 
-func (cg *connectorGenerator) writeGetTypeValueDecoder(sb *connectorTypeBuilder, field *Field, key string) {
+func (cg *connectorGenerator) writeGetTypeValueDecoder(sb *connectorTypeBuilder, field *Field, objectField schema.ObjectField, key string) {
 	ty := field.Type
 	fieldName := field.Name
 	typeName := ty.String()
@@ -550,95 +552,95 @@ func (cg *connectorGenerator) writeGetTypeValueDecoder(sb *connectorTypeBuilder,
 
 	switch fullTypeName {
 	case "bool":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetBoolean(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetBoolean", "", key, objectField, false)
 	case "[]bool":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetBooleanSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetBooleanSlice", "", key, objectField, false)
 	case "*bool":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableBoolean(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableBoolean", "", key, objectField, true)
 	case "[]*bool":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetBooleanPtrSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetBooleanPtrSlice", "", key, objectField, false)
 	case "*[]*bool":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableBooleanPtrSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableBooleanPtrSlice", "", key, objectField, true)
 	case "string":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetString(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetString", "", key, objectField, false)
 	case "[]string":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetStringSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetStringSlice", "", key, objectField, false)
 	case "*string":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableString(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableString", "", key, objectField, true)
 	case "[]*string":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetStringPtrSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetStringPtrSlice", "", key, objectField, false)
 	case "*[]*string":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableStringPtrSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableStringPtrSlice", "", key, objectField, true)
 	case "int", "int8", "int16", "int32", "int64", "rune", "byte":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetInt[%s](input, "%s")`, fieldName, typeName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetInt", typeName, key, objectField, false)
 	case "[]int", "[]int8", "[]int16", "[]int32", "[]int64", "[]rune", "[]byte":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetIntSlice[%s](input, "%s")`, fieldName, typeName[2:], key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetIntSlice", typeName[2:], key, objectField, false)
 	case "uint", "uint8", "uint16", "uint32", "uint64":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUint[%s](input, "%s")`, fieldName, typeName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetUint", typeName, key, objectField, false)
 	case "[]uint", "[]uint8", "[]uint16", "[]uint32", "[]uint64":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUintSlice[%s](input, "%s")`, fieldName, typeName[2:], key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetUintSlice", typeName[2:], key, objectField, false)
 	case "*int", "*int8", "*int16", "*int32", "*int64", "*rune", "*byte":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableInt[%s](input, "%s")`, fieldName, typeName[1:], key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableInt", typeName[1:], key, objectField, true)
 	case "[]*int", "[]*int8", "[]*int16", "[]*int32", "[]*int64", "[]*rune", "[]*byte":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetIntPtrSlice[%s](input, "%s")`, fieldName, typeName[3:], key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetIntPtrSlice", typeName[3:], key, objectField, false)
 	case "*uint", "*uint8", "*uint16", "*uint32", "*uint64":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUint[%s](input, "%s")`, fieldName, typeName[1:], key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableUint", typeName[1:], key, objectField, true)
 	case "[]*uint", "[]*uint8", "[]*uint16", "[]*uint32", "[]*uint64":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUintPtrSlice[%s](input, "%s")`, fieldName, typeName[3:], key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetUintPtrSlice", typeName[3:], key, objectField, false)
 	case "*[]*int", "*[]*int8", "*[]*int16", "*[]*int32", "*[]*int64", "*[]*rune", "*[]*byte":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableIntPtrSlice[%s](input, "%s")`, fieldName, typeName[4:], key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableIntPtrSlice", typeName[4:], key, objectField, true)
 	case "*[]*uint", "*[]*uint8", "*[]*uint16", "*[]*uint32", "*[]*uint64":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUintPtrSlice[%s](input, "%s")`, fieldName, typeName[4:], key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableUintPtrSlice", typeName[4:], key, objectField, true)
 	case "float32", "float64":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetFloat[%s](input, "%s")`, fieldName, typeName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetFloat", typeName, key, objectField, false)
 	case "[]float32", "[]float64":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetFloatSlice[%s](input, "%s")`, fieldName, typeName[2:], key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetFloatSlice", typeName[2:], key, objectField, false)
 	case "*float32", "*float64":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableFloat[%s](input, "%s")`, fieldName, typeName[1:], key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableFloat", typeName[1:], key, objectField, true)
 	case "[]*float32", "[]*float64":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetFloatPtrSlice[%s](input, "%s")`, fieldName, typeName[3:], key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetFloatPtrSlice", typeName[3:], key, objectField, false)
 	case "*[]*float32", "*[]*float64":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableFloatPtrSlice[%s](input, "%s")`, fieldName, typeName[4:], key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableFloatPtrSlice", typeName[4:], key, objectField, true)
 	case "time.Time":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTime(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetDateTime", "", key, objectField, false)
 	case "[]time.Time":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTimeSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetDateTimeSlice", "", key, objectField, false)
 	case "*time.Time":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableDateTime(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableDateTime", "", key, objectField, true)
 	case "[]*time.Time":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetDateTimePtrSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetDateTimePtrSlice", "", key, objectField, false)
 	case "*[]*time.Time":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableDateTimePtrSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableDateTimePtrSlice", "", key, objectField, true)
 	case "github.com/google/uuid.UUID":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUUID(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetUUID", "", key, objectField, false)
 	case "[]github.com/google/uuid.UUID":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUUIDSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetUUIDSlice", "", key, objectField, false)
 	case "*github.com/google/uuid.UUID":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUUID(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableUUID", "", key, objectField, true)
 	case "[]*github.com/google/uuid.UUID":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetUUIDPtrSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetUUIDPtrSlice", "", key, objectField, false)
 	case "*[]*github.com/google/uuid.UUID":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableUUIDPtrSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableUUIDPtrSlice", "", key, objectField, true)
 	case "encoding/json.RawMessage":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetRawJSON(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetRawJSON", "", key, objectField, false)
 	case "[]encoding/json.RawMessage":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetRawJSONSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetRawJSONSlice", "", key, objectField, false)
 	case "*encoding/json.RawMessage":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableRawJSON(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableRawJSON", "", key, objectField, true)
 	case "[]*encoding/json.RawMessage":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetRawJSONPtrSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetRawJSONPtrSlice", "", key, objectField, false)
 	case "*[]*encoding/json.RawMessage":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableRawJSONPtrSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableRawJSONPtrSlice", "", key, objectField, true)
 	case "any", "interface{}":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetArbitraryJSON(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetArbitraryJSON", "", key, objectField, false)
 	case "[]any", "[]interface{}":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetArbitraryJSONSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetArbitraryJSONSlice", "", key, objectField, false)
 	case "*any", "*interface{}":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableArbitraryJSON(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableArbitraryJSON", "", key, objectField, true)
 	case "[]*any", "[]*interface{}":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetArbitraryJSONPtrSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetArbitraryJSONPtrSlice", "", key, objectField, false)
 	case "*[]*any", "*[]*interface{}":
-		sb.builder.WriteString(fmt.Sprintf(`  j.%s, err = utils.GetNullableArbitraryJSONPtrSlice(input, "%s")`, fieldName, key))
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableArbitraryJSONPtrSlice", "", key, objectField, true)
 	default:
 		switch t := ty.(type) {
 		case *NullableType:
@@ -665,12 +667,24 @@ func (cg *connectorGenerator) writeGetTypeValueDecoder(sb *connectorTypeBuilder,
 				sb.builder.WriteString(`")`)
 			}
 		default:
+			var canEmpty bool
+			if len(objectField.Type) > 0 {
+				if typeEnum, err := objectField.Type.Type(); err == nil && typeEnum == schema.TypeNullable {
+					canEmpty = true
+				}
+			}
 			if field.Embedded {
 				sb.builder.WriteString("  err = connector_Decoder.DecodeObject(&j.")
 				sb.builder.WriteString(fieldName)
 				sb.builder.WriteString(", input)")
 			} else {
-				sb.builder.WriteString("  err = connector_Decoder.DecodeObjectValue(&j.")
+				sb.builder.WriteString("  err = connector_Decoder.")
+				if canEmpty {
+					sb.builder.WriteString("DecodeNullableObjectValue")
+				} else {
+					sb.builder.WriteString("DecodeObjectValue")
+				}
+				sb.builder.WriteString("(&j.")
 				sb.builder.WriteString(fieldName)
 				sb.builder.WriteString(`, input, "`)
 				sb.builder.WriteString(key)
@@ -678,7 +692,27 @@ func (cg *connectorGenerator) writeGetTypeValueDecoder(sb *connectorTypeBuilder,
 			}
 		}
 	}
-	sb.builder.WriteString(textBlockErrorCheck)
+	writeErrorCheck(sb.builder, 1, 2)
+}
+
+func (cg *connectorGenerator) writeScalarDecodeValue(sb *connectorTypeBuilder, fieldName, functionName, typeParam, key string, objectField schema.ObjectField, isNullable bool) {
+	sb.builder.WriteString("  j.")
+	sb.builder.WriteString(fieldName)
+	sb.builder.WriteString(", err = utils.")
+	sb.builder.WriteString(functionName)
+	if !isNullable && len(objectField.Type) > 0 {
+		if typeEnum, err := objectField.Type.Type(); err == nil && typeEnum == schema.TypeNullable {
+			sb.builder.WriteString("Default")
+		}
+	}
+	if typeParam != "" {
+		sb.builder.WriteRune('[')
+		sb.builder.WriteString(typeParam)
+		sb.builder.WriteRune(']')
+	}
+	sb.builder.WriteString(`(input, "`)
+	sb.builder.WriteString(key)
+	sb.builder.WriteString(`")`)
 }
 
 func formatLocalFieldName(input string, others ...string) string {

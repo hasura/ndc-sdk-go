@@ -40,11 +40,11 @@ type DataConnectorHandler struct{}
 	chb.writeQuery(bs.builder)
 	chb.writeMutation(bs.builder)
 
-	bs.builder.WriteString(`		
+	bs.builder.WriteString(`    
 func connector_addSpanEvent(span trace.Span, logger *slog.Logger, name string, data map[string]any, options ...trace.EventOption) {
-	logger.Debug(name, slog.Any("data", data))
-	attrs := utils.DebugJSONAttributes(data, utils.IsDebug(logger))
-	span.AddEvent(name, append(options, trace.WithAttributes(attrs...))...)
+  logger.Debug(name, slog.Any("data", data))
+  attrs := utils.DebugJSONAttributes(data, utils.IsDebug(logger))
+  span.AddEvent(name, append(options, trace.WithAttributes(attrs...))...)
 }`)
 }
 
@@ -78,7 +78,7 @@ func (chb connectorHandlerBuilder) writeQuery(sb *strings.Builder) {
 	_, _ = sb.WriteString(`
 // QueryExists check if the query name exists
 func (dch DataConnectorHandler) QueryExists(name string) bool {
-	return slices.Contains(`)
+  return slices.Contains(`)
 	_, _ = sb.WriteString(functionEnumsName)
 	_, _ = sb.WriteString(`, name)
 }`)
@@ -87,35 +87,35 @@ func (dch DataConnectorHandler) QueryExists(name string) bool {
 func (dch DataConnectorHandler) Query(ctx context.Context, state *`)
 	_, _ = sb.WriteString(stateArgument)
 	_, _ = sb.WriteString(`, request *schema.QueryRequest, rawArgs map[string]any) (*schema.RowSet, error) {
-	if !dch.QueryExists(request.Collection) {
-		return nil, utils.ErrHandlerNotfound
-	}
-	queryFields, err := utils.EvalFunctionSelectionFieldValue(request)
-	if err != nil {
-		return nil, schema.UnprocessableContentError(err.Error(), nil)
-	}
+  if !dch.QueryExists(request.Collection) {
+    return nil, utils.ErrHandlerNotfound
+  }
+  queryFields, err := utils.EvalFunctionSelectionFieldValue(request)
+  if err != nil {
+    return nil, schema.UnprocessableContentError(err.Error(), nil)
+  }
 
-	result, err := dch.execQuery(ctx, state, request, queryFields, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	
-	return &schema.RowSet{
-		Aggregates: schema.RowSetAggregates{},
-		Rows: []map[string]any{
-			{
-				"__value": result,
-			},
-		},
-	}, nil
+  result, err := dch.execQuery(ctx, state, request, queryFields, rawArgs)
+  if err != nil {
+    return nil, err
+  }
+  
+  return &schema.RowSet{
+    Aggregates: schema.RowSetAggregates{},
+    Rows: []map[string]any{
+      {
+        "__value": result,
+      },
+    },
+  }, nil
 }
-	
+  
 func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 	_, _ = sb.WriteString(stateArgument)
 	_, _ = sb.WriteString(`, request *schema.QueryRequest, queryFields schema.NestedField, rawArgs map[string]any) (any, error) {
-	span := trace.SpanFromContext(ctx)
-	logger := connector.GetLogger(ctx)
-	switch request.Collection {`)
+  span := trace.SpanFromContext(ctx)
+  logger := connector.GetLogger(ctx)
+  switch request.Collection {`)
 
 	functionKeys := make([]string, len(chb.Functions))
 	for i, fn := range chb.Functions {
@@ -132,7 +132,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 			}
 
 			sb.WriteString(`
-		var args `)
+    var args `)
 			sb.WriteString(argName)
 			sb.WriteString("\n    if parseErr := ")
 			if fn.ArgumentsType.CanMethod() {
@@ -141,14 +141,14 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 				sb.WriteString("connector_Decoder.DecodeObject(&args, rawArgs)")
 			}
 			sb.WriteString(`; parseErr != nil {
-			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
-				"cause": parseErr.Error(),
-			})
-		}
-		
-		connector_addSpanEvent(span, logger, "execute_function", map[string]any{
-			"arguments": args,
-		})`)
+      return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
+        "cause": parseErr.Error(),
+      })
+    }
+    
+    connector_addSpanEvent(span, logger, "execute_function", map[string]any{
+      "arguments": args,
+    })`)
 			argumentParamStr = ", &args"
 		}
 
@@ -156,7 +156,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 		case *ArrayType:
 			chb.writeOperationResult(sb, fn.OriginName, OperationFunction, argumentParamStr, isNullable)
 			sb.WriteString("\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)")
-			sb.WriteString(textBlockErrorCheck2)
+			writeErrorCheck(sb, 2, 4)
 			sb.WriteString("    return result, nil\n")
 		case *NamedType:
 			if _, ok := chb.RawSchema.Scalars[t.NativeType.SchemaName]; ok {
@@ -164,16 +164,16 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 			} else {
 				chb.writeOperationResult(sb, fn.OriginName, OperationFunction, argumentParamStr, isNullable)
 				sb.WriteString("\n    result, err := utils.EvalNestedColumnObject(selection, rawResult)")
-				sb.WriteString(textBlockErrorCheck2)
+				writeErrorCheck(sb, 2, 4)
 				sb.WriteString("    return result, nil\n")
 			}
 		}
 	}
 
 	_, _ = sb.WriteString(`
-	default:
-		return nil, utils.ErrHandlerNotfound
-	}
+  default:
+    return nil, utils.ErrHandlerNotfound
+  }
 }
 `)
 	chb.writeOperationNameEnums(sb, functionEnumsName, functionKeys)
@@ -189,7 +189,7 @@ func (chb connectorHandlerBuilder) writeMutation(sb *strings.Builder) {
 	_, _ = sb.WriteString(`
 // MutationExists check if the mutation name exists
 func (dch DataConnectorHandler) MutationExists(name string) bool {
-	return slices.Contains(`)
+  return slices.Contains(`)
 	_, _ = sb.WriteString(procedureEnumsName)
 	_, _ = sb.WriteString(`, name)
 }`)
@@ -198,13 +198,13 @@ func (dch DataConnectorHandler) MutationExists(name string) bool {
 func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 	_, _ = sb.WriteString(stateArgument)
 	_, _ = sb.WriteString(`, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
-	span := trace.SpanFromContext(ctx)	
-	logger := connector.GetLogger(ctx)
-	connector_addSpanEvent(span, logger, "validate_request", map[string]any{
-		"operations_name": operation.Name,
-	})
-	
-	switch operation.Name {`)
+  span := trace.SpanFromContext(ctx)  
+  logger := connector.GetLogger(ctx)
+  connector_addSpanEvent(span, logger, "validate_request", map[string]any{
+    "operations_name": operation.Name,
+  })
+  
+  switch operation.Name {`)
 
 	procedureKeys := make([]string, len(chb.Procedures))
 	for i, fn := range chb.Procedures {
@@ -237,23 +237,23 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 		case *ArrayType:
 			chb.writeOperationResult(sb, fn.OriginName, OperationProcedure, argumentParamStr, isNullable)
 			sb.WriteString("\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)\n")
-			sb.WriteString(textBlockErrorCheck2)
+			writeErrorCheck(sb, 2, 4)
 		case *NamedType:
 			if _, ok := chb.RawSchema.Scalars[t.NativeType.SchemaName]; ok {
 				chb.writeOperationExecution(sb, fn.OriginName, argumentParamStr, "result")
 			} else {
 				chb.writeOperationResult(sb, fn.OriginName, OperationProcedure, argumentParamStr, isNullable)
 				sb.WriteString("\n    result, err := utils.EvalNestedColumnObject(selection, rawResult)\n")
-				sb.WriteString(textBlockErrorCheck2)
+				writeErrorCheck(sb, 2, 4)
 			}
 		}
 		sb.WriteString("    return schema.NewProcedureResult(result).Encode(), nil\n")
 	}
 
 	_, _ = sb.WriteString(`
-	default:
-		return nil, utils.ErrHandlerNotfound
-	}
+  default:
+    return nil, utils.ErrHandlerNotfound
+  }
 }
 `)
 	chb.writeOperationNameEnums(sb, procedureEnumsName, procedureKeys)
@@ -269,29 +269,29 @@ func (chb connectorHandlerBuilder) writeOperationValidation(sb *strings.Builder,
 		sb.WriteString("\n    selection, err := ")
 		sb.WriteString(selector)
 		sb.WriteString(`.AsArray()
-		if err != nil {
-			return nil, schema.UnprocessableContentError("the selection field type must be array", map[string]any{
-				"cause": err.Error(),
-			})
-		}`)
+    if err != nil {
+      return nil, schema.UnprocessableContentError("the selection field type must be array", map[string]any{
+        "cause": err.Error(),
+      })
+    }`)
 	case *NamedType:
 		if _, ok := chb.RawSchema.Scalars[t.NativeType.SchemaName]; ok {
 			sb.WriteString("\n      if len(")
 			sb.WriteString(selector)
 			sb.WriteString(`) > 0 {
-					return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
-				}`)
+          return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
+        }`)
 			return
 		}
 
-		sb.WriteString("\n      selection, err := ")
+		sb.WriteString("\n    selection, err := ")
 		sb.WriteString(selector)
 		sb.WriteString(`.AsObject()
-			if err != nil {
-				return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
-					"cause": err.Error(),
-				})
-			}`)
+    if err != nil {
+      return nil, schema.UnprocessableContentError("the selection field type must be object", map[string]any{
+        "cause": err.Error(),
+      })
+    }`)
 	}
 }
 
@@ -303,7 +303,7 @@ func (chb connectorHandlerBuilder) writeOperationExecution(sb *strings.Builder, 
 	sb.WriteString("(ctx, state")
 	sb.WriteString(argumentParamStr)
 	sb.WriteString(")\n")
-	sb.WriteString(textBlockErrorCheck2)
+	writeErrorCheck(sb, 2, 4)
 }
 
 func (chb connectorHandlerBuilder) writeOperationResult(sb *strings.Builder, operationName string, operationKind OperationKind, argumentParamStr string, isNullable bool) {
@@ -319,6 +319,6 @@ func (chb connectorHandlerBuilder) writeOperationResult(sb *strings.Builder, ope
 	}
 	sb.WriteString(`
     connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
-	    "raw_result": rawResult,
+      "raw_result": rawResult,
     })`)
 }

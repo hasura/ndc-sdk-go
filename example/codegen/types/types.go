@@ -46,7 +46,7 @@ type AuthorStatus string
 type Author struct {
 	ID        string        `json:"id"`
 	CreatedAt time.Time     `json:"created_at"`
-	Tags      []string      `json:"tags"`
+	Tags      []string      `json:"tags,omitempty"`
 	Status    *AuthorStatus `json:"status"`
 	Author    *Author       `json:"author"`
 }
@@ -57,6 +57,6 @@ type GetAuthorResult struct {
 }
 
 type CustomHeadersResult[T any] struct {
-	Headers  map[string]string `json:"headers"`
+	Headers  map[string]string `json:"headers,omitempty"`
 	Response T
 }

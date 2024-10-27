@@ -134,26 +134,13 @@ var defaultScalarTypes = map[ScalarName]schema.ScalarType{
 }
 
 var (
+	fieldNameRegex           = regexp.MustCompile(`[^\w]`)
 	ndcOperationNameRegex    = regexp.MustCompile(`^(Function|Procedure)([A-Z][A-Za-z0-9]*)$`)
 	ndcOperationCommentRegex = regexp.MustCompile(`^@(function|procedure)(\s+([A-Za-z]\w*))?`)
 	ndcScalarNameRegex       = regexp.MustCompile(`^Scalar([A-Z]\w*)$`)
 	ndcScalarCommentRegex    = regexp.MustCompile(`^@scalar(\s+(\w+))?(\s+([a-z]+))?$`)
 	ndcEnumCommentRegex      = regexp.MustCompile(`^@enum\s+([\w-.,!@#$%^&*()+=~\s\t]+)$`)
 )
-
-var fieldNameRegex = regexp.MustCompile(`[^\w]`)
-
-const textBlockErrorCheck = `
-    if err != nil {
-		  return err
-    }
-`
-
-const textBlockErrorCheck2 = `
-    if err != nil {
-      return nil, err
-    }
-`
 
 var (
 	errUnsupportedTypeDuration = errors.New("unsupported type time.Duration. Create a scalar type wrapper with FromValue method to decode the any value")

@@ -25,8 +25,10 @@ type (
 )
 
 var (
-	errIntRequired  = errors.New("the Int value must not be null")
-	errUintRequired = errors.New("the Uint value must not be null")
+	errIntRequired         = errors.New("the Int value must not be null")
+	errUintRequired        = errors.New("the Uint value must not be null")
+	errValueTargetRequired = errors.New("the decoded target must be a pointer and not null")
+	errValueRequired       = errors.New("the value must not be null")
 )
 
 // ValueDecoder abstracts a type with the FromValue method to decode any value.
@@ -89,27 +91,25 @@ func (d Decoder) DecodeNullableObjectValue(target any, object map[string]any, ke
 // DecodeValue tries to convert and set an unknown value into the target, the value must not be null
 // fallback to mapstructure decoder.
 func (d Decoder) DecodeValue(target any, value any) error {
-	if IsNil(value) {
-		return errors.New("the value must not be null")
-	}
 	return d.decodeValue(target, value)
 }
 
 // DecodeNullableValue tries to convert and set an unknown value into the target,
 // fallback to mapstructure decoder.
 func (d Decoder) DecodeNullableValue(target any, value any) error {
-	if IsNil(value) {
-		return nil
+	err := d.decodeValue(target, value)
+	if err != nil && !errors.Is(err, errValueRequired) {
+		return err
 	}
-	return d.decodeValue(target, value)
+	return nil
 }
 
 func (d Decoder) decodeValue(target any, value any) error {
 	if IsNil(target) {
-		return errors.New("the decoded target must be not null")
+		return errValueTargetRequired
 	}
 	if IsNil(value) {
-		return nil
+		return errValueRequired
 	}
 
 	switch t := target.(type) {
@@ -978,6 +978,21 @@ func GetArbitraryJSON(object map[string]any, key string) (any, error) {
 	return value, nil
 }
 
+// GetArbitraryJSONDefault get an arbitrary json value from object by key.
+// Return nil if the value does not exist
+func GetArbitraryJSONDefault(object map[string]any, key string) (any, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+
+	value, ok = UnwrapPointerFromAny(value)
+	if !ok {
+		return nil, nil
+	}
+	return value, nil
+}
+
 // GetNullableInt get an integer pointer from object by key.
 func GetNullableInt[T int | int8 | int16 | int32 | int64](object map[string]any, key string) (*T, error) {
 	value, ok := GetAny(object, key)
@@ -985,6 +1000,24 @@ func GetNullableInt[T int | int8 | int16 | int32 | int64](object map[string]any,
 		return nil, nil
 	}
 	result, err := DecodeNullableInt[T](value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %w", key, err)
+	}
+	return result, nil
+}
+
+// GetIntDefault get an integer value from object by key.
+// Returns 0 if the field is null.
+func GetIntDefault[T int | int8 | int16 | int32 | int64](object map[string]any, key string) (T, error) {
+	value, ok := GetAny(object, key)
+	if !ok || value == nil {
+		return 0, nil
+	}
+	reflectValue, notNull := UnwrapPointerFromAnyToReflectValue(value)
+	if !notNull {
+		return 0, nil
+	}
+	result, err := DecodeIntReflection[T](reflectValue)
 	if err != nil {
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
@@ -1030,6 +1063,24 @@ func GetUint[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, k
 	return result, nil
 }
 
+// GetUintDefault gets an unsigned integer value from object by key.
+// Returns 0 if the field is null.
+func GetUintDefault[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (T, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return 0, nil
+	}
+	reflectValue, notNull := UnwrapPointerFromAnyToReflectValue(value)
+	if !notNull {
+		return 0, nil
+	}
+	result, err := DecodeUintReflection[T](reflectValue)
+	if err != nil {
+		return result, fmt.Errorf("%s: %w", key, err)
+	}
+	return result, nil
+}
+
 // GetNullableFloat get a float pointer from object by key.
 func GetNullableFloat[T float32 | float64](object map[string]any, key string) (*T, error) {
 	value, ok := GetAny(object, key)
@@ -1050,6 +1101,24 @@ func GetFloat[T float32 | float64](object map[string]any, key string) (T, error)
 		return 0, fmt.Errorf("field `%s` is required", key)
 	}
 	result, err := DecodeFloat[T](value)
+	if err != nil {
+		return result, fmt.Errorf("%s: %w", key, err)
+	}
+	return result, nil
+}
+
+// GetFloatDefault get a float value from object by key.
+// Returns 0 if the field is null.
+func GetFloatDefault[T float32 | float64](object map[string]any, key string) (T, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return 0, nil
+	}
+	reflectValue, notNull := UnwrapPointerFromAnyToReflectValue(value)
+	if !notNull {
+		return 0, nil
+	}
+	result, err := DecodeFloatReflection[T](reflectValue)
 	if err != nil {
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
@@ -1082,6 +1151,23 @@ func GetString(object map[string]any, key string) (string, error) {
 	return result, nil
 }
 
+// GetStringDefault get a string value from object by key.
+// Returns an empty string if the value is null
+func GetStringDefault(object map[string]any, key string) (string, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return "", nil
+	}
+	result, err := DecodeNullableStringReflection(reflect.ValueOf(value))
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return "", nil
+	}
+	return *result, nil
+}
+
 // GetNullableBoolean get a bool pointer from object by key.
 func GetNullableBoolean(object map[string]any, key string) (*bool, error) {
 	value, ok := GetAny(object, key)
@@ -1106,6 +1192,21 @@ func GetBoolean(object map[string]any, key string) (bool, error) {
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
+}
+
+// GetBooleanDefault get a bool value from object by key.
+// Returns false if the value is null
+func GetBooleanDefault(object map[string]any, key string) (bool, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return false, nil
+	}
+
+	result, err := DecodeNullableBoolean(value)
+	if err != nil {
+		return false, fmt.Errorf("%s: %w", key, err)
+	}
+	return result != nil && *result, nil
 }
 
 // GetNullableDateTime get a time.Time pointer from object by key.
@@ -1134,6 +1235,23 @@ func GetDateTime(object map[string]any, key string) (time.Time, error) {
 	return result, nil
 }
 
+// GetDateTimeDefault get a time.Time value from object by key.
+// Returns the empty time if the value is empty.
+func GetDateTimeDefault(object map[string]any, key string) (time.Time, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return time.Time{}, nil
+	}
+	result, err := DecodeNullableDateTime(value)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return time.Time{}, nil
+	}
+	return *result, nil
+}
+
 // GetNullableDuration get a time.Duration pointer from object by key.
 func GetNullableDuration(object map[string]any, key string) (*time.Duration, error) {
 	value, ok := GetAny(object, key)
@@ -1158,6 +1276,23 @@ func GetDuration(object map[string]any, key string) (time.Duration, error) {
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
+}
+
+// GetDurationDefault get a time.Duration value from object by key.
+// Returns 0 if the value is null.
+func GetDurationDefault(object map[string]any, key string) (time.Duration, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return 0, nil
+	}
+	result, err := DecodeNullableDuration(value)
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return 0, nil
+	}
+	return *result, nil
 }
 
 // DecodeUUID decodes UUID from string.
@@ -1237,15 +1372,35 @@ func GetNullableUUID(object map[string]any, key string) (*uuid.UUID, error) {
 	return result, nil
 }
 
+// GetUUIDDefault get an UUID value from object by key.
+// Returns uuid.Nil if the value is null
+func GetUUIDDefault(object map[string]any, key string) (uuid.UUID, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return uuid.Nil, nil
+	}
+	result, err := DecodeNullableUUID(value)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return uuid.Nil, nil
+	}
+	return *result, nil
+}
+
 // GetRawJSON get a raw json.RawMessage value from object by key.
 func GetRawJSON(object map[string]any, key string) (json.RawMessage, error) {
 	value, ok := GetAny(object, key)
-	if !ok || IsNil(value) {
+	if !ok {
 		return nil, fmt.Errorf("field %s is required", key)
 	}
 	result, err := DecodeNullableRawJSON(value)
 	if err != nil {
 		return nil, err
+	}
+	if result == nil {
+		return nil, fmt.Errorf("field %s must not be null", key)
 	}
 	return *result, nil
 }
@@ -1279,6 +1434,23 @@ func GetNullableRawJSON(object map[string]any, key string) (*json.RawMessage, er
 		return nil, nil
 	}
 	return DecodeNullableRawJSON(value)
+}
+
+// GetRawJSONDefault get a raw json.RawMessage value from object by key.
+// Returns nil if the value is empty
+func GetRawJSONDefault(object map[string]any, key string) (json.RawMessage, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := DecodeNullableRawJSON(value)
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
 }
 
 func decodeAnyValue(target any, value any, decodeHook mapstructure.DecodeHookFunc) error {

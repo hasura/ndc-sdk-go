@@ -164,6 +164,22 @@ func GetIntSlice[T int | int8 | int16 | int32 | int64](object map[string]any, ke
 	return result, nil
 }
 
+// GetIntSliceDefault get an integer slice from object by key.
+func GetIntSliceDefault[T int | int8 | int16 | int32 | int64](object map[string]any, key string) ([]T, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := DecodeNullableIntSlice[T](value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
+}
+
 // GetUintSlice get an unsigned integer slice from object by key.
 func GetUintSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) ([]T, error) {
 	value, ok := GetAny(object, key)
@@ -177,6 +193,22 @@ func GetUintSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[string]a
 	return result, nil
 }
 
+// GetUintSliceDefault get an unsigned integer slice from object by key.
+func GetUintSliceDefault[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) ([]T, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := DecodeNullableUintSlice[T](value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
+}
+
 // GetFloatSlice get a float slice from object by key.
 func GetFloatSlice[T float32 | float64](object map[string]any, key string) ([]T, error) {
 	value, ok := GetAny(object, key)
@@ -188,6 +220,22 @@ func GetFloatSlice[T float32 | float64](object map[string]any, key string) ([]T,
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
+}
+
+// GetFloatSliceDefault get a float slice from object by key.
+func GetFloatSliceDefault[T float32 | float64](object map[string]any, key string) ([]T, error) {
+	value, ok := GetAny(object, key)
+	if !ok || value == nil {
+		return nil, nil
+	}
+	result, err := DecodeNullableFloatSlice[T](value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
 }
 
 // GetNullableIntPtrSlice get an integer pointer slice from object by key.
@@ -242,6 +290,22 @@ func GetIntPtrSlice[T int | int8 | int16 | int32 | int64](object map[string]any,
 	return result, nil
 }
 
+// GetIntPtrSliceDefault get an integer slice from object by key.
+func GetIntPtrSliceDefault[T int | int8 | int16 | int32 | int64](object map[string]any, key string) ([]*T, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := DecodeNullableIntPtrSlice[T](value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
+}
+
 // GetUintPtrSlice get an unsigned integer slice from object by key.
 func GetUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) ([]*T, error) {
 	value, ok := GetAny(object, key)
@@ -255,6 +319,22 @@ func GetUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[strin
 	return result, nil
 }
 
+// GetUintPtrSliceDefault get an unsigned integer slice from object by key.
+func GetUintPtrSliceDefault[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) ([]*T, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := DecodeNullableUintPtrSlice[T](value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
+}
+
 // GetFloatPtrSlice get a float slice from object by key.
 func GetFloatPtrSlice[T float32 | float64](object map[string]any, key string) ([]*T, error) {
 	value, ok := GetAny(object, key)
@@ -266,6 +346,22 @@ func GetFloatPtrSlice[T float32 | float64](object map[string]any, key string) ([
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
+}
+
+// GetFloatPtrSliceDefault get a float slice from object by key.
+func GetFloatPtrSliceDefault[T float32 | float64](object map[string]any, key string) ([]*T, error) {
+	value, ok := GetAny(object, key)
+	if !ok || value == nil {
+		return nil, nil
+	}
+	result, err := DecodeNullableFloatPtrSlice[T](value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
 }
 
 // decodeNullableNumberSlice tries to convert an unknown value to a number slice.
@@ -417,6 +513,22 @@ func GetStringSlice(object map[string]any, key string) ([]string, error) {
 	return result, nil
 }
 
+// GetStringSliceDefault get a string slice value from object by key.
+func GetStringSliceDefault(object map[string]any, key string) ([]string, error) {
+	value, ok := GetAny(object, key)
+	if !ok || value == nil {
+		return nil, nil
+	}
+	result, err := DecodeNullableStringSlice(value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
+}
+
 // GetNullableStringSlice get a string pointer slice from object by key.
 func GetNullableStringSlice(object map[string]any, key string) (*[]string, error) {
 	value, ok := GetAny(object, key)
@@ -441,6 +553,22 @@ func GetStringPtrSlice(object map[string]any, key string) ([]*string, error) {
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
+}
+
+// GetStringPtrSliceDefault get a string pointer slice value from object by key.
+func GetStringPtrSliceDefault(object map[string]any, key string) ([]*string, error) {
+	value, ok := GetAny(object, key)
+	if !ok || value == nil {
+		return nil, nil
+	}
+	result, err := DecodeNullableStringPtrSlice(value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
 }
 
 // GetNullableStringPtrSlice get a nullable string pointer slice from object by key.
@@ -548,6 +676,22 @@ func GetBooleanSlice(object map[string]any, key string) ([]bool, error) {
 	return result, nil
 }
 
+// GetBooleanSliceDefault get a boolean slice value from object by key.
+func GetBooleanSliceDefault(object map[string]any, key string) ([]bool, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := DecodeNullableBooleanSlice(value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
+}
+
 // GetNullableBooleanSlice get a nullable boolean slice from object by key.
 func GetNullableBooleanSlice(object map[string]any, key string) (*[]bool, error) {
 	value, ok := GetAny(object, key)
@@ -572,6 +716,22 @@ func GetBooleanPtrSlice(object map[string]any, key string) ([]*bool, error) {
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
+}
+
+// GetBooleanPtrSliceDefault get a boolean pointer slice value from object by key.
+func GetBooleanPtrSliceDefault(object map[string]any, key string) ([]*bool, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := DecodeNullableBooleanPtrSlice(value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
 }
 
 // GetNullableBooleanPtrSlice get a nullable boolean slice from object by key.
@@ -676,6 +836,22 @@ func GetUUIDSlice(object map[string]any, key string) ([]uuid.UUID, error) {
 	return result, nil
 }
 
+// GetUUIDSliceDefault get an UUID slice from object by key.
+func GetUUIDSliceDefault(object map[string]any, key string) ([]uuid.UUID, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := DecodeNullableUUIDSlice(value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
+}
+
 // GetNullableUUIDSlice get an UUID pointer slice from object by key.
 func GetNullableUUIDSlice(object map[string]any, key string) (*[]uuid.UUID, error) {
 	value, ok := GetAny(object, key)
@@ -700,6 +876,22 @@ func GetUUIDPtrSlice(object map[string]any, key string) ([]*uuid.UUID, error) {
 		return nil, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
+}
+
+// GetUUIDPtrSliceDefault get an UUID slice from object by key.
+func GetUUIDPtrSliceDefault(object map[string]any, key string) ([]*uuid.UUID, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := DecodeNullableUUIDPtrSlice(value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
 }
 
 // GetNullableUUIDPtrSlice get an UUID pointer slice from object by key.
@@ -823,6 +1015,22 @@ func GetDateTimeSlice(object map[string]any, key string) ([]time.Time, error) {
 	return result, nil
 }
 
+// GetDateTimeSliceDefault get a time.Time slice from object by key.
+func GetDateTimeSliceDefault(object map[string]any, key string) ([]time.Time, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := DecodeNullableDateTimeSlice(value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
+}
+
 // GetNullableDateTimePtrSlice get a nullable time.Time pointer slice from object by key.
 func GetNullableDateTimePtrSlice(object map[string]any, key string) (*[]*time.Time, error) {
 	value, ok := GetAny(object, key)
@@ -847,6 +1055,22 @@ func GetDateTimePtrSlice(object map[string]any, key string) ([]*time.Time, error
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
 	return result, nil
+}
+
+// GetDateTimePtrSliceDefault get a time.Time pointer slice from object by key.
+func GetDateTimePtrSliceDefault(object map[string]any, key string) ([]*time.Time, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := DecodeNullableDateTimePtrSlice(value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
 }
 
 // DecodeNullableArbitraryJSONPtrSlice decodes a nullable arbitrary json pointer slice from object by key.
@@ -944,6 +1168,22 @@ func GetArbitraryJSONPtrSlice(object map[string]any, key string) ([]*any, error)
 	return DecodeArbitraryJSONPtrSlice(value)
 }
 
+// GetArbitraryJSONPtrSliceDefault get an arbitrary json pointer slice from object by key.
+func GetArbitraryJSONPtrSliceDefault(object map[string]any, key string) ([]*any, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := DecodeNullableArbitraryJSONPtrSlice(value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
+}
+
 // GetNullableArbitraryJSONSlice get a nullable arbitrary json slice from object by key.
 func GetNullableArbitraryJSONSlice(object map[string]any, key string) (*[]any, error) {
 	value, ok := GetAny(object, key)
@@ -953,13 +1193,29 @@ func GetNullableArbitraryJSONSlice(object map[string]any, key string) (*[]any, e
 	return DecodeNullableArbitraryJSONSlice(value)
 }
 
-// GetArbitraryJSON get an arbitrary json slice from object by key.
+// GetArbitraryJSONSlice get an arbitrary json slice from object by key.
 func GetArbitraryJSONSlice(object map[string]any, key string) ([]any, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, fmt.Errorf("field `%s` is required", key)
 	}
 	return DecodeArbitraryJSONSlice(value)
+}
+
+// GetArbitraryJSONSliceDefault get an arbitrary json slice from object by key.
+func GetArbitraryJSONSliceDefault(object map[string]any, key string) ([]any, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := DecodeNullableArbitraryJSONSlice(value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
 }
 
 // DecodeNullableRawJSONSlice decodes a nullable json.RawMessage slice from object by key.
@@ -1059,6 +1315,22 @@ func GetRawJSONSlice(object map[string]any, key string) ([]json.RawMessage, erro
 	return DecodeRawJSONSlice(value)
 }
 
+// GetRawJSONSliceDefault get a raw json.RawMessage slice from object by key.
+func GetRawJSONSliceDefault(object map[string]any, key string) ([]json.RawMessage, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+	result, err := DecodeNullableRawJSONSlice(value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
+}
+
 // GetNullableRawJSONPtrSlice get a nullable json.RawMessage pointer slice from object by key.
 func GetNullableRawJSONPtrSlice(object map[string]any, key string) (*[]*json.RawMessage, error) {
 	value, ok := GetAny(object, key)
@@ -1075,4 +1347,21 @@ func GetRawJSONPtrSlice(object map[string]any, key string) ([]*json.RawMessage, 
 		return nil, fmt.Errorf("field %s is required", key)
 	}
 	return DecodeRawJSONPtrSlice(value)
+}
+
+// GetRawJSONPtrSliceDefault get a json.RawMessage pointer slice from object by key.
+func GetRawJSONPtrSliceDefault(object map[string]any, key string) ([]*json.RawMessage, error) {
+	value, ok := GetAny(object, key)
+	if !ok {
+		return nil, nil
+	}
+
+	result, err := DecodeNullableRawJSONPtrSlice(value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if result == nil {
+		return nil, nil
+	}
+	return *result, nil
 }

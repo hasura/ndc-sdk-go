@@ -6,7 +6,9 @@ import (
 	"go/types"
 	"strings"
 
+	"github.com/fatih/structtag"
 	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/rs/zerolog/log"
 )
 
 type TypeParser struct {
@@ -49,41 +51,8 @@ func (tp *TypeParser) parseArgumentTypes(ty types.Type, fieldPaths []string) (*O
 			Fields:       map[string]Field{},
 			SchemaFields: schema.ObjectTypeFields{},
 		}
-		for i := 0; i < inferredType.NumFields(); i++ {
-			fieldVar := inferredType.Field(i)
-			fieldTag := inferredType.Tag(i)
-			fieldPackage := fieldVar.Pkg()
-
-			fieldParser := NewTypeParser(tp.schemaParser, &Field{
-				Name:     fieldVar.Name(),
-				Embedded: fieldVar.Embedded(),
-			}, fieldVar.Type(), tp.argumentFor)
-
-			if fieldPackage != nil {
-				fieldParser.typeInfo = &TypeInfo{
-					PackageName: fieldPackage.Name(),
-					PackagePath: fieldPackage.Path(),
-				}
-			}
-
-			field, err := fieldParser.Parse(append(fieldPaths, fieldVar.Name()))
-			if err != nil {
-				return nil, err
-			}
-
-			fieldName := getFieldNameOrTag(fieldVar.Name(), fieldTag)
-			result.Fields[fieldName] = *field
-			embeddedObject, ok := tp.schemaParser.rawSchema.Objects[field.Type.SchemaName(false)]
-			if field.Embedded && ok {
-				// flatten embedded object fields to the parent object
-				for k, of := range embeddedObject.SchemaFields {
-					result.SchemaFields[k] = of
-				}
-			} else {
-				result.SchemaFields[fieldName] = schema.ObjectField{
-					Type: field.Type.Schema().Encode(),
-				}
-			}
+		if err := tp.parseStructType(result, inferredType, fieldPaths); err != nil {
+			return nil, err
 		}
 		return result, nil
 	case *types.Named:
@@ -148,31 +117,8 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 		// temporarily add the object type to raw schema to avoid infinite loop
 		tp.schemaParser.rawSchema.Objects[typeInfo.SchemaName] = objFields
 
-		for i := 0; i < inferredType.NumFields(); i++ {
-			fieldVar := inferredType.Field(i)
-			fieldTag := inferredType.Tag(i)
-
-			fieldParser := NewTypeParser(tp.schemaParser, &Field{
-				Name:     fieldVar.Name(),
-				Embedded: fieldVar.Embedded(),
-			}, fieldVar.Type(), tp.argumentFor)
-			field, err := fieldParser.Parse(append(fieldPaths, fieldVar.Name()))
-			if err != nil {
-				return nil, err
-			}
-			fieldKey := getFieldNameOrTag(fieldVar.Name(), fieldTag)
-			embeddedObject, ok := tp.schemaParser.rawSchema.Objects[field.Type.SchemaName(false)]
-			if field.Embedded && ok {
-				// flatten embedded object fields to the parent object
-				for k, of := range embeddedObject.SchemaFields {
-					objFields.SchemaFields[k] = of
-				}
-			} else {
-				objFields.SchemaFields[fieldKey] = schema.ObjectField{
-					Type: field.Type.Schema().Encode(),
-				}
-			}
-			objFields.Fields[fieldKey] = *field
+		if err := tp.parseStructType(&objFields, inferredType, fieldPaths); err != nil {
+			return nil, err
 		}
 		tp.schemaParser.rawSchema.Objects[typeInfo.SchemaName] = objFields
 
@@ -373,6 +319,43 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 	}
 }
 
+func (tp *TypeParser) parseStructType(objectInfo *ObjectInfo, inferredType *types.Struct, fieldPaths []string) error {
+	for i := 0; i < inferredType.NumFields(); i++ {
+		fieldVar := inferredType.Field(i)
+		fieldTag := inferredType.Tag(i)
+		fieldKey, jsonOption := getFieldNameOrTag(fieldVar.Name(), fieldTag)
+		if jsonOption == jsonIgnore {
+			continue
+		}
+		fieldParser := NewTypeParser(tp.schemaParser, &Field{
+			Name:     fieldVar.Name(),
+			Embedded: fieldVar.Embedded(),
+		}, fieldVar.Type(), tp.argumentFor)
+		field, err := fieldParser.Parse(append(fieldPaths, fieldVar.Name()))
+		if err != nil {
+			return err
+		}
+		embeddedObject, ok := tp.schemaParser.rawSchema.Objects[field.Type.SchemaName(false)]
+		if field.Embedded && ok {
+			// flatten embedded object fields to the parent object
+			for k, of := range embeddedObject.SchemaFields {
+				objectInfo.SchemaFields[k] = of
+			}
+		} else {
+			fieldSchema := field.Type.Schema()
+			if jsonOption == jsonOmitEmpty && field.Type.Kind() != schema.TypeNullable {
+				fieldSchema = schema.NewNullableType(fieldSchema)
+			}
+			objectInfo.SchemaFields[fieldKey] = schema.ObjectField{
+				Type: fieldSchema.Encode(),
+			}
+		}
+		objectInfo.Fields[fieldKey] = *field
+	}
+
+	return nil
+}
+
 func (tp *TypeParser) parseSliceType(ty types.Type, fieldPaths []string) (Type, error) {
 	innerType, err := tp.parseType(ty, fieldPaths)
 	if err != nil {
@@ -536,4 +519,36 @@ func parseTypeFromString(input string) (Type, error) {
 	typeInfo.Name = parts[partsLen-1]
 
 	return NewNamedType(typeInfo.Name, typeInfo), nil
+}
+
+const (
+	jsonOmitEmpty = "omitempty"
+	jsonIgnore    = "-"
+)
+
+// Get field name and options by json tag.
+// Return the struct field name if not exist.
+func getFieldNameOrTag(name string, tag string) (string, string) {
+	if tag == "" {
+		return name, ""
+	}
+	tags, err := structtag.Parse(tag)
+	if err != nil {
+		log.Warn().Err(err).Msgf("failed to parse tag of struct field: %s", name)
+		return name, ""
+	}
+
+	jsonTag, err := tags.Get("json")
+	if err != nil {
+		log.Warn().Err(err).Msgf("json tag does not exist in struct field: %s", name)
+		return name, ""
+	}
+	if jsonTag.Value() == "-" {
+		return name, jsonIgnore
+	}
+	nameParts := strings.Split(jsonTag.Value(), ",")
+	if len(nameParts) == 1 {
+		return jsonTag.Name, ""
+	}
+	return nameParts[0], nameParts[1]
 }
