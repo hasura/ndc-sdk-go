@@ -76,7 +76,7 @@ func TestParseIntMapFromString(t *testing.T) {
 		},
 		{
 			Input:    "a=c;b=2",
-			ErrorMsg: "invalid integer value c in item a=c",
+			ErrorMsg: "invalid integer value c in item a",
 		},
 	}
 
