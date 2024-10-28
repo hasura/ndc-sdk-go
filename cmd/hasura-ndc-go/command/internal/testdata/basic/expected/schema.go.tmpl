@@ -7,14 +7,14 @@ import (
 
 
 func toPtr[V any](value V) *V {
-	return &value
+  return &value
 }
 
 // GetConnectorSchema gets the generated connector schema
 func GetConnectorSchema() *schema.SchemaResponse {
-	return &schema.SchemaResponse{
-		Collections: []schema.CollectionInfo{},
-		ObjectTypes: schema.SchemaResponseObjectTypes{
+  return &schema.SchemaResponse{
+    Collections: []schema.CollectionInfo{},
+    ObjectTypes: schema.SchemaResponseObjectTypes{
       "Author": schema.ObjectType{
         Fields: schema.ObjectTypeFields{
           "created_at": schema.ObjectField{
@@ -263,6 +263,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
           "CustomScalarPtr": schema.ObjectField{
             Type: schema.NewNullableType(schema.NewNamedType("CommentString")).Encode(),
+          },
+          "Duration": schema.ObjectField{
+            Type: schema.NewNamedType("Duration").Encode(),
           },
           "Enum": schema.ObjectField{
             Type: schema.NewNamedType("SomeEnum").Encode(),
@@ -748,17 +751,17 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
         },
       },
-		},
-		Functions: []schema.FunctionInfo{
-			{
-				Name: "getBool",
-      	Description: toPtr("return an scalar boolean"),
+    },
+    Functions: []schema.FunctionInfo{
+      {
+        Name: "getBool",
+        Description: toPtr("return an scalar boolean"),
         ResultType: schema.NewNamedType("Boolean").Encode(),
         Arguments: map[string]schema.ArgumentInfo{
         },
       },
-			{
-				Name: "getCustomHeaders",
+      {
+        Name: "getCustomHeaders",
         ResultType: schema.NewNamedType("GetCustomHeadersResult_HelloResult_int64").Encode(),
         Arguments: map[string]schema.ArgumentInfo{
           "headers": {
@@ -772,8 +775,8 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
         },
       },
-			{
-				Name: "getTypes",
+      {
+        Name: "getTypes",
         ResultType: schema.NewNullableType(schema.NewNamedType("GetTypesArguments")).Encode(),
         Arguments: map[string]schema.ArgumentInfo{
           "ArrayBigInt": {
@@ -925,6 +928,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
           "CustomScalarPtr": {
             Type: schema.NewNullableType(schema.NewNamedType("CommentString")).Encode(),
+          },
+          "Duration": {
+            Type: schema.NewNamedType("Duration").Encode(),
           },
           "Enum": {
             Type: schema.NewNamedType("SomeEnum").Encode(),
@@ -1357,16 +1363,16 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
         },
       },
-			{
-				Name: "hello",
-      	Description: toPtr("sends a hello message"),
+      {
+        Name: "hello",
+        Description: toPtr("sends a hello message"),
         ResultType: schema.NewNullableType(schema.NewNamedType("HelloResult")).Encode(),
         Arguments: map[string]schema.ArgumentInfo{
         },
       },
-			{
-				Name: "getArticles",
-      	Description: toPtr("GetArticles"),
+      {
+        Name: "getArticles",
+        Description: toPtr("GetArticles"),
         ResultType: schema.NewArrayType(schema.NewNamedType("GetArticlesResult")).Encode(),
         Arguments: map[string]schema.ArgumentInfo{
           "Limit": {
@@ -1374,11 +1380,11 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
         },
       },
-		},
-		Procedures: []schema.ProcedureInfo{
-			{
-				Name: "create_article",
-      	Description: toPtr("CreateArticle"),
+    },
+    Procedures: []schema.ProcedureInfo{
+      {
+        Name: "create_article",
+        Description: toPtr("CreateArticle"),
         ResultType: schema.NewNullableType(schema.NewNamedType("CreateArticleResult")).Encode(),
         Arguments: map[string]schema.ArgumentInfo{
           "author": {
@@ -1386,16 +1392,16 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
         },
       },
-			{
-				Name: "increase",
-      	Description: toPtr("Increase"),
+      {
+        Name: "increase",
+        Description: toPtr("Increase"),
         ResultType: schema.NewNamedType("Int32").Encode(),
         Arguments: map[string]schema.ArgumentInfo{
         },
       },
-			{
-				Name: "createAuthor",
-      	Description: toPtr("creates an author"),
+      {
+        Name: "createAuthor",
+        Description: toPtr("creates an author"),
         ResultType: schema.NewNullableType(schema.NewNamedType("CreateAuthorResult")).Encode(),
         Arguments: map[string]schema.ArgumentInfo{
           "name": {
@@ -1403,9 +1409,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
         },
       },
-			{
-				Name: "createAuthors",
-      	Description: toPtr("creates a list of authors"),
+      {
+        Name: "createAuthors",
+        Description: toPtr("creates a list of authors"),
         ResultType: schema.NewArrayType(schema.NewNamedType("CreateAuthorResult")).Encode(),
         Arguments: map[string]schema.ArgumentInfo{
           "names": {
@@ -1413,8 +1419,8 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
         },
       },
-			{
-				Name: "doCustomHeaders",
+      {
+        Name: "doCustomHeaders",
         ResultType: schema.NewNullableType(schema.NewNamedType("CustomHeadersResult_array_nullable_BaseAuthor")).Encode(),
         Arguments: map[string]schema.ArgumentInfo{
           "headers": {
@@ -1428,103 +1434,108 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
         },
       },
-		},
-		ScalarTypes: schema.SchemaResponseScalarTypes{
+    },
+    ScalarTypes: schema.SchemaResponseScalarTypes{
       "BigInt": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationBigInteger().Encode(),
-    	},
+      },
       "Boolean": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationBoolean().Encode(),
-    	},
+      },
       "Bytes": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationBytes().Encode(),
-    	},
+      },
       "CommentString": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationJSON().Encode(),
-    	},
+      },
       "Date": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationDate().Encode(),
-    	},
+      },
+      "Duration": schema.ScalarType{
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        Representation:      schema.NewTypeRepresentationJSON().Encode(),
+      },
       "Float32": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationFloat32().Encode(),
-    	},
+      },
       "Float64": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationFloat64().Encode(),
-    	},
+      },
       "Foo": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationJSON().Encode(),
-    	},
+      },
       "Int16": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationInt16().Encode(),
-    	},
+      },
       "Int32": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationInt32().Encode(),
-    	},
+      },
       "Int64": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationInt64().Encode(),
-    	},
+      },
       "Int8": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationInt8().Encode(),
-    	},
+      },
       "JSON": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationJSON().Encode(),
-    	},
+      },
       "RawJSON": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationJSON().Encode(),
-    	},
+      },
       "SomeEnum": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationEnum([]string{"foo", "bar"}).Encode(),
-    	},
+      },
       "String": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationString().Encode(),
-    	},
+      },
       "TimestampTZ": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationTimestampTZ().Encode(),
-    	},
+      },
       "URL": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationString().Encode(),
-    	},
+      },
       "UUID": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationUUID().Encode(),
-    	},
-  	},
-	}
+      },
+    },
+  }
 }

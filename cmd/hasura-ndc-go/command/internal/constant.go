@@ -22,6 +22,7 @@ const (
 	ScalarBigDecimal  ScalarName = "BigDecimal"
 	ScalarUUID        ScalarName = "UUID"
 	ScalarDate        ScalarName = "Date"
+	ScalarDuration    ScalarName = "Duration"
 	ScalarTimestamp   ScalarName = "Timestamp"
 	ScalarTimestampTZ ScalarName = "TimestampTZ"
 	ScalarGeography   ScalarName = "Geography"
@@ -96,6 +97,11 @@ var defaultScalarTypes = map[ScalarName]schema.ScalarType{
 		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 		Representation:      schema.NewTypeRepresentationDate().Encode(),
 	},
+	ScalarDuration: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationJSON().Encode(),
+	},
 	ScalarTimestamp: {
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
 		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
@@ -143,6 +149,6 @@ var (
 )
 
 var (
-	errUnsupportedTypeDuration = errors.New("unsupported type time.Duration. Create a scalar type wrapper with FromValue method to decode the any value")
+	errUnsupportedTypeDuration = errors.New("unsupported time.Duration. Use github.com/hasura/ndc-sdk-go/scalar.Duration instead")
 	errMustUseEnumTag          = errors.New("use @enum tag with values instead")
 )

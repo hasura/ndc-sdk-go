@@ -245,6 +245,10 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	err = connector_Decoder.DecodeObjectValue(&j.Duration, input, "Duration")
+	if err != nil {
+		return err
+	}
 	err = connector_Decoder.DecodeObjectValue(&j.Enum, input, "Enum")
 	if err != nil {
 		return err
@@ -951,6 +955,7 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["CustomScalarPtr"] = j.CustomScalarPtr
 	r["Date"] = j.Date
 	r["DatePtr"] = j.DatePtr
+	r["Duration"] = j.Duration
 	r["Enum"] = j.Enum
 	r["EnumPtr"] = j.EnumPtr
 	r["Float32"] = j.Float32

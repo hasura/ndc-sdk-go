@@ -105,6 +105,7 @@ type GetTypesArguments struct {
 	Enum         SomeEnum
 	BigInt       scalar.BigInt
 	URL          scalar.URL
+	Duration     scalar.Duration
 
 	UUIDPtr         *uuid.UUID
 	BoolPtr         *bool

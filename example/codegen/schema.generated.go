@@ -311,6 +311,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					"DatePtr": schema.ObjectField{
 						Type: schema.NewNullableType(schema.NewNamedType("Date")).Encode(),
 					},
+					"Duration": schema.ObjectField{
+						Type: schema.NewNamedType("Duration").Encode(),
+					},
 					"Enum": schema.ObjectField{
 						Type: schema.NewNamedType("SomeEnum").Encode(),
 					},
@@ -1035,6 +1038,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					"DatePtr": {
 						Type: schema.NewNullableType(schema.NewNamedType("Date")).Encode(),
 					},
+					"Duration": {
+						Type: schema.NewNamedType("Duration").Encode(),
+					},
 					"Enum": {
 						Type: schema.NewNamedType("SomeEnum").Encode(),
 					},
@@ -1590,6 +1596,11 @@ func GetConnectorSchema() *schema.SchemaResponse {
 				AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
 				ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 				Representation:      schema.NewTypeRepresentationDate().Encode(),
+			},
+			"Duration": schema.ScalarType{
+				AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+				ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+				Representation:      schema.NewTypeRepresentationJSON().Encode(),
 			},
 			"Float32": schema.ScalarType{
 				AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},

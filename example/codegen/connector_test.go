@@ -160,6 +160,10 @@ func TestQueryGetTypes(t *testing.T) {
 						"type": "literal",
 						"value": "https://example.com"
 					},
+					"Duration": {
+						"type": "literal",
+						"value": "1m"
+					},
 					"UUIDPtr": {
 						"type": "literal",
 						"value": "b085b0b9-007c-440e-9661-0d8f2de98a5b"
@@ -804,6 +808,10 @@ func TestQueryGetTypes(t *testing.T) {
 										"column": "URL",
 										"type": "column"
 									},
+									"Duration": {
+										"column": "Duration",
+										"type": "column"
+									},
 									"NamedArray": {
 										"column": "NamedArray",
 										"fields": {
@@ -1352,6 +1360,7 @@ func TestQueryGetTypes(t *testing.T) {
 				Enum:         types.SomeEnumFoo,
 				BigInt:       10000,
 				Date:         *scalar.NewDate(2024, 04, 02),
+				Duration:     scalar.NewDuration(time.Minute),
 				URL: func() scalar.URL {
 					r, _ := scalar.NewURL("https://example.com")
 					return *r
