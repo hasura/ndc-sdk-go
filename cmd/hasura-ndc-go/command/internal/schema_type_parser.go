@@ -34,6 +34,9 @@ func (tp *TypeParser) Parse(fieldPaths []string) (*Field, error) {
 	if err != nil {
 		return nil, err
 	}
+	if ty == nil {
+		return nil, nil
+	}
 	tp.field.Type = ty
 	return tp.field, nil
 }
@@ -314,6 +317,8 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 		})
 
 		return NewNamedType(string(ScalarJSON), typeInfo), nil
+	case *types.Chan, *types.Signature, *types.Tuple, *types.Union:
+		return nil, nil
 	default:
 		return nil, fmt.Errorf("unsupported type: %s", ty.String())
 	}
@@ -322,6 +327,10 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 func (tp *TypeParser) parseStructType(objectInfo *ObjectInfo, inferredType *types.Struct, fieldPaths []string) error {
 	for i := 0; i < inferredType.NumFields(); i++ {
 		fieldVar := inferredType.Field(i)
+		if !fieldVar.Exported() {
+			continue
+		}
+
 		fieldTag := inferredType.Tag(i)
 		fieldKey, jsonOption := getFieldNameOrTag(fieldVar.Name(), fieldTag)
 		if jsonOption == jsonIgnore {
@@ -330,10 +339,14 @@ func (tp *TypeParser) parseStructType(objectInfo *ObjectInfo, inferredType *type
 		fieldParser := NewTypeParser(tp.schemaParser, &Field{
 			Name:     fieldVar.Name(),
 			Embedded: fieldVar.Embedded(),
+			TypeAST:  fieldVar.Type(),
 		}, fieldVar.Type(), tp.argumentFor)
 		field, err := fieldParser.Parse(append(fieldPaths, fieldVar.Name()))
 		if err != nil {
 			return err
+		}
+		if field == nil {
+			continue
 		}
 		embeddedObject, ok := tp.schemaParser.rawSchema.Objects[field.Type.SchemaName(false)]
 		if field.Embedded && ok {
@@ -466,7 +479,13 @@ func (tp *TypeParser) parseTypeInfoFromComments(typeInfo *TypeInfo, scope *types
 
 func parseTypeParameters(rootType *TypeInfo, input string) error {
 	paramsString := strings.TrimPrefix(input, rootType.PackagePath+"."+rootType.Name)
-	rawParams := strings.Split(paramsString[1:len(paramsString)-1], ",")
+	if paramsString[0] == '[' {
+		paramsString = paramsString[1:]
+	}
+	if paramsString[len(paramsString)-1] == ']' {
+		paramsString = paramsString[:len(paramsString)-1]
+	}
+	rawParams := strings.Split(paramsString, ",")
 
 	for _, param := range rawParams {
 		param = strings.TrimSpace(param)

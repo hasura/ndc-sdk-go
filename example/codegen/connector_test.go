@@ -1388,8 +1388,9 @@ func TestQueryGetTypes(t *testing.T) {
 				BigIntPtr:       utils.ToPtr(scalar.BigInt(20000)),
 				DatePtr:         scalar.NewDate(2024, 04, 03),
 				Object: struct {
-					ID        uuid.UUID `json:"id"`
-					CreatedAt time.Time `json:"created_at"`
+					ID           uuid.UUID                               `json:"id"`
+					CreatedAt    time.Time                               `json:"created_at"`
+					GenericField types.CustomHeadersResult[types.Author] `json:"generic_field,omitempty"`
 				}{
 					ID:        uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5c"),
 					CreatedAt: time.Date(2024, 3, 5, 6, 0, 0, 0, time.UTC),

@@ -146,6 +146,7 @@ var (
 	ndcScalarNameRegex       = regexp.MustCompile(`^Scalar([A-Z]\w*)$`)
 	ndcScalarCommentRegex    = regexp.MustCompile(`^@scalar(\s+(\w+))?(\s+([a-z]+))?$`)
 	ndcEnumCommentRegex      = regexp.MustCompile(`^@enum\s+([\w-.,!@#$%^&*()+=~\s\t]+)$`)
+	packagePathRegex         = regexp.MustCompile(`(([\w-\.]+/)+[a-z]+)\.`)
 )
 
 var (

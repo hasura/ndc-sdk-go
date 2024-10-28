@@ -135,8 +135,9 @@ type GetTypesArguments struct {
 	PtrArrayTimePtr    *[]*time.Time
 
 	Object struct {
-		ID        uuid.UUID `json:"id"`
-		CreatedAt time.Time `json:"created_at"`
+		ID           uuid.UUID                               `json:"id"`
+		CreatedAt    time.Time                               `json:"created_at"`
+		GenericField types.CustomHeadersResult[types.Author] `json:"generic_field,omitempty"`
 	}
 	ObjectPtr *struct {
 		Long int
@@ -230,6 +231,9 @@ type GetTypesArguments struct {
 	ArrayBigIntPtrEmpty  []*scalar.BigInt   `json:"array_bigint_ptr_empty,omitempty"`
 	ArrayTimeEmpty       []time.Time        `json:"array_time_empty,omitempty"`
 	ArrayTimePtrEmpty    []*time.Time       `json:"array_time_ptr_empty,omitempty"`
+
+	privateField string
+	someFunc     func()
 }
 
 type GetCustomHeadersInput struct {

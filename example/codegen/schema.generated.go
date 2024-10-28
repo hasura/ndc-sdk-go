@@ -80,6 +80,16 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 				},
 			},
+			"CustomHeadersResult_Author": schema.ObjectType{
+				Fields: schema.ObjectTypeFields{
+					"Response": schema.ObjectField{
+						Type: schema.NewNamedType("Author").Encode(),
+					},
+					"headers": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
+					},
+				},
+			},
 			"CustomHeadersResult_array_nullable_BaseAuthor": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
 					"Response": schema.ObjectField{
@@ -781,6 +791,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 				Fields: schema.ObjectTypeFields{
 					"created_at": schema.ObjectField{
 						Type: schema.NewNamedType("TimestampTZ").Encode(),
+					},
+					"generic_field": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewNamedType("CustomHeadersResult_Author")).Encode(),
 					},
 					"id": schema.ObjectField{
 						Type: schema.NewNamedType("UUID").Encode(),

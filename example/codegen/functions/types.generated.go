@@ -14,8 +14,6 @@ import (
 	"slices"
 )
 
-var connector_Decoder = utils.NewDecoder()
-
 // FromValue decodes values from map
 func (j *BaseAuthor) FromValue(input map[string]any) error {
 	var err error
@@ -33,7 +31,7 @@ func (j *GetArticlesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObject(&j.BaseAuthor, input)
+	j.BaseAuthor, err = utils.DecodeObject[BaseAuthor](input)
 	if err != nil {
 		return err
 	}
@@ -47,8 +45,7 @@ func (j *GetArticlesArguments) FromValue(input map[string]any) error {
 // FromValue decodes values from map
 func (j *GetAuthorArguments) FromValue(input map[string]any) error {
 	var err error
-	j.BaseAuthor = new(BaseAuthor)
-	err = connector_Decoder.DecodeObject(j.BaseAuthor, input)
+	j.BaseAuthor, err = utils.DecodeNullableObject[BaseAuthor](input)
 	if err != nil {
 		return err
 	}
@@ -179,7 +176,8 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			})
 		}
 		var args GetAuthorArguments
-		if parseErr := args.FromValue(rawArgs); parseErr != nil {
+		parseErr := args.FromValue(rawArgs)
+		if parseErr != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
 				"cause": parseErr.Error(),
 			})
@@ -215,7 +213,8 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			})
 		}
 		var args GetAuthorArguments
-		if parseErr := args.FromValue(rawArgs); parseErr != nil {
+		parseErr := args.FromValue(rawArgs)
+		if parseErr != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
 				"cause": parseErr.Error(),
 			})
@@ -254,8 +253,8 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 				"cause": err.Error(),
 			})
 		}
-		var args GetCustomHeadersArguments[BaseAuthor, int]
-		if parseErr := connector_Decoder.DecodeObject(&args, rawArgs); parseErr != nil {
+		args, parseErr := utils.DecodeObject[GetCustomHeadersArguments[BaseAuthor, int]](rawArgs)
+		if parseErr != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
 				"cause": parseErr.Error(),
 			})
@@ -287,8 +286,8 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 				"cause": err.Error(),
 			})
 		}
-		var args GetCustomHeadersArguments[arguments.GetCustomHeadersInput, int]
-		if parseErr := connector_Decoder.DecodeObject(&args, rawArgs); parseErr != nil {
+		args, parseErr := utils.DecodeObject[GetCustomHeadersArguments[arguments.GetCustomHeadersInput, int]](rawArgs)
+		if parseErr != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
 				"cause": parseErr.Error(),
 			})
@@ -321,7 +320,8 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			})
 		}
 		var args arguments.GetTypesArguments
-		if parseErr := args.FromValue(rawArgs); parseErr != nil {
+		parseErr := args.FromValue(rawArgs)
+		if parseErr != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
 				"cause": parseErr.Error(),
 			})
@@ -383,7 +383,8 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 			})
 		}
 		var args GetArticlesArguments
-		if parseErr := args.FromValue(rawArgs); parseErr != nil {
+		parseErr := args.FromValue(rawArgs)
+		if parseErr != nil {
 			return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
 				"cause": parseErr.Error(),
 			})
