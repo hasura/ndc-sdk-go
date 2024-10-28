@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-var connector_Decoder = utils.NewDecoder()
-
 // FromValue decodes values from map
 func (j *GetCustomHeadersInput) FromValue(input map[string]any) error {
 	var err error
@@ -29,11 +27,11 @@ func (j *GetCustomHeadersInput) FromValue(input map[string]any) error {
 // FromValue decodes values from map
 func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	var err error
-	err = connector_Decoder.DecodeObjectValue(&j.ArrayBigInt, input, "ArrayBigInt")
+	j.ArrayBigInt, err = utils.DecodeObjectValue[[]scalar.BigInt](input, "ArrayBigInt")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.ArrayBigIntPtr, input, "ArrayBigIntPtr")
+	j.ArrayBigIntPtr, err = utils.DecodeObjectValue[[]*scalar.BigInt](input, "ArrayBigIntPtr")
 	if err != nil {
 		return err
 	}
@@ -109,23 +107,23 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.ArrayMap, input, "ArrayMap")
+	j.ArrayMap, err = utils.DecodeObjectValue[[]map[string]any](input, "ArrayMap")
 	if err != nil {
 		return err
 	}
-	j.ArrayMapPtr = new([]map[string]any)
-	err = connector_Decoder.DecodeNullableObjectValue(j.ArrayMapPtr, input, "ArrayMapPtr")
+	j.ArrayMapPtr, err = utils.DecodeNullableObjectValue[[]map[string]any](input, "ArrayMapPtr")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.ArrayObject, input, "ArrayObject")
+	j.ArrayObject, err = utils.DecodeObjectValue[[]struct {
+		Content string `json:"content"`
+	}](input, "ArrayObject")
 	if err != nil {
 		return err
 	}
-	j.ArrayObjectPtr = new([]struct {
-		Content string "json:\"content\""
-	})
-	err = connector_Decoder.DecodeNullableObjectValue(j.ArrayObjectPtr, input, "ArrayObjectPtr")
+	j.ArrayObjectPtr, err = utils.DecodeNullableObjectValue[[]struct {
+		Content string `json:"content"`
+	}](input, "ArrayObjectPtr")
 	if err != nil {
 		return err
 	}
@@ -201,12 +199,11 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.BigInt, input, "BigInt")
+	j.BigInt, err = utils.DecodeObjectValue[scalar.BigInt](input, "BigInt")
 	if err != nil {
 		return err
 	}
-	j.BigIntPtr = new(scalar.BigInt)
-	err = connector_Decoder.DecodeNullableObjectValue(j.BigIntPtr, input, "BigIntPtr")
+	j.BigIntPtr, err = utils.DecodeNullableObjectValue[scalar.BigInt](input, "BigIntPtr")
 	if err != nil {
 		return err
 	}
@@ -218,43 +215,39 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.Bytes, input, "Bytes")
+	j.Bytes, err = utils.DecodeObjectValue[scalar.Bytes](input, "Bytes")
 	if err != nil {
 		return err
 	}
-	j.BytesPtr = new(scalar.Bytes)
-	err = connector_Decoder.DecodeNullableObjectValue(j.BytesPtr, input, "BytesPtr")
+	j.BytesPtr, err = utils.DecodeNullableObjectValue[scalar.Bytes](input, "BytesPtr")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.CustomScalar, input, "CustomScalar")
+	j.CustomScalar, err = utils.DecodeObjectValue[types.CommentText](input, "CustomScalar")
 	if err != nil {
 		return err
 	}
-	j.CustomScalarPtr = new(types.CommentText)
-	err = connector_Decoder.DecodeNullableObjectValue(j.CustomScalarPtr, input, "CustomScalarPtr")
+	j.CustomScalarPtr, err = utils.DecodeNullableObjectValue[types.CommentText](input, "CustomScalarPtr")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.Date, input, "Date")
+	j.Date, err = utils.DecodeObjectValue[scalar.Date](input, "Date")
 	if err != nil {
 		return err
 	}
-	j.DatePtr = new(scalar.Date)
-	err = connector_Decoder.DecodeNullableObjectValue(j.DatePtr, input, "DatePtr")
+	j.DatePtr, err = utils.DecodeNullableObjectValue[scalar.Date](input, "DatePtr")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.Duration, input, "Duration")
+	j.Duration, err = utils.DecodeObjectValue[scalar.Duration](input, "Duration")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.Enum, input, "Enum")
+	j.Enum, err = utils.DecodeObjectValue[types.SomeEnum](input, "Enum")
 	if err != nil {
 		return err
 	}
-	j.EnumPtr = new(types.SomeEnum)
-	err = connector_Decoder.DecodeNullableObjectValue(j.EnumPtr, input, "EnumPtr")
+	j.EnumPtr, err = utils.DecodeNullableObjectValue[types.SomeEnum](input, "EnumPtr")
 	if err != nil {
 		return err
 	}
@@ -322,57 +315,54 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.Map, input, "Map")
+	j.Map, err = utils.DecodeObjectValue[map[string]any](input, "Map")
 	if err != nil {
 		return err
 	}
-	j.MapPtr = new(map[string]any)
-	err = connector_Decoder.DecodeNullableObjectValue(j.MapPtr, input, "MapPtr")
+	j.MapPtr, err = utils.DecodeNullableObjectValue[map[string]any](input, "MapPtr")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.NamedArray, input, "NamedArray")
+	j.NamedArray, err = utils.DecodeObjectValue[[]types.Author](input, "NamedArray")
 	if err != nil {
 		return err
 	}
-	j.NamedArrayPtr = new([]types.Author)
-	err = connector_Decoder.DecodeNullableObjectValue(j.NamedArrayPtr, input, "NamedArrayPtr")
+	j.NamedArrayPtr, err = utils.DecodeNullableObjectValue[[]types.Author](input, "NamedArrayPtr")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.NamedObject, input, "NamedObject")
+	j.NamedObject, err = utils.DecodeObjectValue[types.Author](input, "NamedObject")
 	if err != nil {
 		return err
 	}
-	j.NamedObjectPtr = new(types.Author)
-	err = connector_Decoder.DecodeNullableObjectValue(j.NamedObjectPtr, input, "NamedObjectPtr")
+	j.NamedObjectPtr, err = utils.DecodeNullableObjectValue[types.Author](input, "NamedObjectPtr")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.Object, input, "Object")
+	j.Object, err = utils.DecodeObjectValue[struct {
+		ID           uuid.UUID                               `json:"id"`
+		CreatedAt    time.Time                               `json:"created_at"`
+		GenericField types.CustomHeadersResult[types.Author] `json:"generic_field,omitempty"`
+	}](input, "Object")
 	if err != nil {
 		return err
 	}
-	j.ObjectPtr = new(struct {
+	j.ObjectPtr, err = utils.DecodeNullableObjectValue[struct {
 		Long int
 		Lat  int
-	})
-	err = connector_Decoder.DecodeNullableObjectValue(j.ObjectPtr, input, "ObjectPtr")
+	}](input, "ObjectPtr")
 	if err != nil {
 		return err
 	}
-	j.PtrArrayBigInt = new([]scalar.BigInt)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayBigInt, input, "PtrArrayBigInt")
+	j.PtrArrayBigInt, err = utils.DecodeNullableObjectValue[[]scalar.BigInt](input, "PtrArrayBigInt")
 	if err != nil {
 		return err
 	}
-	j.PtrArrayBigIntPtr = new([]*scalar.BigInt)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayBigIntPtr, input, "PtrArrayBigIntPtr")
+	j.PtrArrayBigIntPtr, err = utils.DecodeNullableObjectValue[[]*scalar.BigInt](input, "PtrArrayBigIntPtr")
 	if err != nil {
 		return err
 	}
-	j.PtrArrayBool = new([]bool)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayBool, input, "PtrArrayBool")
+	j.PtrArrayBool, err = utils.DecodeNullableObjectValue[[]bool](input, "PtrArrayBool")
 	if err != nil {
 		return err
 	}
@@ -380,8 +370,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayFloat32 = new([]float32)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayFloat32, input, "PtrArrayFloat32")
+	j.PtrArrayFloat32, err = utils.DecodeNullableObjectValue[[]float32](input, "PtrArrayFloat32")
 	if err != nil {
 		return err
 	}
@@ -389,8 +378,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayFloat64 = new([]float64)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayFloat64, input, "PtrArrayFloat64")
+	j.PtrArrayFloat64, err = utils.DecodeNullableObjectValue[[]float64](input, "PtrArrayFloat64")
 	if err != nil {
 		return err
 	}
@@ -398,13 +386,11 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayInt = new([]int)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayInt, input, "PtrArrayInt")
+	j.PtrArrayInt, err = utils.DecodeNullableObjectValue[[]int](input, "PtrArrayInt")
 	if err != nil {
 		return err
 	}
-	j.PtrArrayInt16 = new([]int16)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayInt16, input, "PtrArrayInt16")
+	j.PtrArrayInt16, err = utils.DecodeNullableObjectValue[[]int16](input, "PtrArrayInt16")
 	if err != nil {
 		return err
 	}
@@ -412,8 +398,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayInt32 = new([]int32)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayInt32, input, "PtrArrayInt32")
+	j.PtrArrayInt32, err = utils.DecodeNullableObjectValue[[]int32](input, "PtrArrayInt32")
 	if err != nil {
 		return err
 	}
@@ -421,8 +406,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayInt64 = new([]int64)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayInt64, input, "PtrArrayInt64")
+	j.PtrArrayInt64, err = utils.DecodeNullableObjectValue[[]int64](input, "PtrArrayInt64")
 	if err != nil {
 		return err
 	}
@@ -430,8 +414,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayInt8 = new([]int8)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayInt8, input, "PtrArrayInt8")
+	j.PtrArrayInt8, err = utils.DecodeNullableObjectValue[[]int8](input, "PtrArrayInt8")
 	if err != nil {
 		return err
 	}
@@ -443,8 +426,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayJSON = new([]any)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayJSON, input, "PtrArrayJSON")
+	j.PtrArrayJSON, err = utils.DecodeNullableObjectValue[[]any](input, "PtrArrayJSON")
 	if err != nil {
 		return err
 	}
@@ -452,8 +434,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayRawJSON = new([]json.RawMessage)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayRawJSON, input, "PtrArrayRawJSON")
+	j.PtrArrayRawJSON, err = utils.DecodeNullableObjectValue[[]json.RawMessage](input, "PtrArrayRawJSON")
 	if err != nil {
 		return err
 	}
@@ -461,8 +442,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayString = new([]string)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayString, input, "PtrArrayString")
+	j.PtrArrayString, err = utils.DecodeNullableObjectValue[[]string](input, "PtrArrayString")
 	if err != nil {
 		return err
 	}
@@ -470,8 +450,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayTime = new([]time.Time)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayTime, input, "PtrArrayTime")
+	j.PtrArrayTime, err = utils.DecodeNullableObjectValue[[]time.Time](input, "PtrArrayTime")
 	if err != nil {
 		return err
 	}
@@ -479,8 +458,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayUUID = new([]uuid.UUID)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayUUID, input, "PtrArrayUUID")
+	j.PtrArrayUUID, err = utils.DecodeNullableObjectValue[[]uuid.UUID](input, "PtrArrayUUID")
 	if err != nil {
 		return err
 	}
@@ -488,13 +466,11 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayUint = new([]uint)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayUint, input, "PtrArrayUint")
+	j.PtrArrayUint, err = utils.DecodeNullableObjectValue[[]uint](input, "PtrArrayUint")
 	if err != nil {
 		return err
 	}
-	j.PtrArrayUint16 = new([]uint16)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayUint16, input, "PtrArrayUint16")
+	j.PtrArrayUint16, err = utils.DecodeNullableObjectValue[[]uint16](input, "PtrArrayUint16")
 	if err != nil {
 		return err
 	}
@@ -502,8 +478,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayUint32 = new([]uint32)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayUint32, input, "PtrArrayUint32")
+	j.PtrArrayUint32, err = utils.DecodeNullableObjectValue[[]uint32](input, "PtrArrayUint32")
 	if err != nil {
 		return err
 	}
@@ -511,8 +486,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayUint64 = new([]uint64)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayUint64, input, "PtrArrayUint64")
+	j.PtrArrayUint64, err = utils.DecodeNullableObjectValue[[]uint64](input, "PtrArrayUint64")
 	if err != nil {
 		return err
 	}
@@ -520,8 +494,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayUint8 = new([]uint8)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayUint8, input, "PtrArrayUint8")
+	j.PtrArrayUint8, err = utils.DecodeNullableObjectValue[[]uint8](input, "PtrArrayUint8")
 	if err != nil {
 		return err
 	}
@@ -549,12 +522,11 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.Text, input, "Text")
+	j.Text, err = utils.DecodeObjectValue[types.Text](input, "Text")
 	if err != nil {
 		return err
 	}
-	j.TextPtr = new(types.Text)
-	err = connector_Decoder.DecodeNullableObjectValue(j.TextPtr, input, "TextPtr")
+	j.TextPtr, err = utils.DecodeNullableObjectValue[types.Text](input, "TextPtr")
 	if err != nil {
 		return err
 	}
@@ -566,7 +538,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.URL, input, "URL")
+	j.URL, err = utils.DecodeObjectValue[scalar.URL](input, "URL")
 	if err != nil {
 		return err
 	}
@@ -622,11 +594,11 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeNullableObjectValue(&j.ArrayBigIntEmpty, input, "array_bigint_empty")
+	j.ArrayBigIntEmpty, err = utils.DecodeObjectValueDefault[[]scalar.BigInt](input, "array_bigint_empty")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeNullableObjectValue(&j.ArrayBigIntPtrEmpty, input, "array_bigint_ptr_empty")
+	j.ArrayBigIntPtrEmpty, err = utils.DecodeObjectValueDefault[[]*scalar.BigInt](input, "array_bigint_ptr_empty")
 	if err != nil {
 		return err
 	}
@@ -702,7 +674,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeNullableObjectValue(&j.ArrayMapEmpty, input, "array_map_empty")
+	j.ArrayMapEmpty, err = utils.DecodeObjectValueDefault[[]map[string]any](input, "array_map_empty")
 	if err != nil {
 		return err
 	}
@@ -778,7 +750,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeNullableObjectValue(&j.BigIntEmpty, input, "bigint_empty")
+	j.BigIntEmpty, err = utils.DecodeObjectValueDefault[scalar.BigInt](input, "bigint_empty")
 	if err != nil {
 		return err
 	}
@@ -786,15 +758,15 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeNullableObjectValue(&j.CustomScalarEmpty, input, "custom_scalar_empty")
+	j.CustomScalarEmpty, err = utils.DecodeObjectValueDefault[types.CommentText](input, "custom_scalar_empty")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeNullableObjectValue(&j.DateEmpty, input, "date_empty")
+	j.DateEmpty, err = utils.DecodeObjectValueDefault[scalar.Date](input, "date_empty")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeNullableObjectValue(&j.EnumEmpty, input, "enum_empty")
+	j.EnumEmpty, err = utils.DecodeObjectValueDefault[types.SomeEnum](input, "enum_empty")
 	if err != nil {
 		return err
 	}
@@ -826,7 +798,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeNullableObjectValue(&j.MapEmpty, input, "map_empty")
+	j.MapEmpty, err = utils.DecodeObjectValueDefault[map[string]any](input, "map_empty")
 	if err != nil {
 		return err
 	}
@@ -838,7 +810,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeNullableObjectValue(&j.TextEmpty, input, "text_empty")
+	j.TextEmpty, err = utils.DecodeObjectValueDefault[types.Text](input, "text_empty")
 	if err != nil {
 		return err
 	}
@@ -866,7 +838,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeNullableObjectValue(&j.URLEmpty, input, "url_empty")
+	j.URLEmpty, err = utils.DecodeObjectValueDefault[scalar.URL](input, "url_empty")
 	if err != nil {
 		return err
 	}
@@ -994,6 +966,7 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	}
 	j_Object_obj := make(map[string]any)
 	j_Object_obj["created_at"] = j.Object.CreatedAt
+	j_Object_obj["generic_field"] = j.Object.GenericField
 	j_Object_obj["id"] = j.Object.ID
 	r["Object"] = j_Object_obj
 	if j.ObjectPtr != nil {

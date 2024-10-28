@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"go/token"
+	"go/types"
 	"io"
 	"os"
 	"path"
@@ -61,7 +62,6 @@ func (ctb connectorTypeBuilder) String() string {
 		bs.WriteString(")\n")
 	}
 
-	bs.WriteString("var connector_Decoder = utils.NewDecoder()\n")
 	bs.WriteString(ctb.builder.String())
 	return bs.String()
 }
@@ -642,51 +642,61 @@ func (cg *connectorGenerator) writeGetTypeValueDecoder(sb *connectorTypeBuilder,
 	case "*[]*any", "*[]*interface{}":
 		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableArbitraryJSONPtrSlice", "", key, objectField, true)
 	default:
+		sb.builder.WriteString("  j.")
+		sb.builder.WriteString(fieldName)
+		sb.builder.WriteString(", err = utils.")
 		switch t := ty.(type) {
 		case *NullableType:
-			packagePaths := getTypePackagePaths(t.UnderlyingType, sb.packagePath)
-			tyName := getTypeArgumentName(t.UnderlyingType, sb.packagePath, false)
-
+			var tyName string
+			var packagePaths []string
+			if t.IsAnonymous() {
+				tyName, packagePaths = cg.getAnonymousObjectTypeName(sb, field.TypeAST, true)
+			} else {
+				packagePaths = getTypePackagePaths(t.UnderlyingType, sb.packagePath)
+				tyName = getTypeArgumentName(t.UnderlyingType, sb.packagePath, false)
+			}
 			for _, pkgPath := range packagePaths {
 				sb.imports[pkgPath] = ""
 			}
-			sb.builder.WriteString("  j.")
-			sb.builder.WriteString(fieldName)
-			sb.builder.WriteString(" = new(")
-			sb.builder.WriteString(tyName)
-			sb.builder.WriteString(")\n  err = connector_Decoder.")
 			if field.Embedded {
-				sb.builder.WriteString("DecodeObject(j.")
-				sb.builder.WriteString(fieldName)
-				sb.builder.WriteString(", input)")
+				sb.builder.WriteString("DecodeNullableObject[")
+				sb.builder.WriteString(tyName)
+				sb.builder.WriteString("](input)")
 			} else {
-				sb.builder.WriteString("DecodeNullableObjectValue(j.")
-				sb.builder.WriteString(fieldName)
-				sb.builder.WriteString(`, input, "`)
+				sb.builder.WriteString("DecodeNullableObjectValue[")
+				sb.builder.WriteString(tyName)
+				sb.builder.WriteString(`](input, "`)
 				sb.builder.WriteString(key)
 				sb.builder.WriteString(`")`)
 			}
 		default:
-			var canEmpty bool
-			if len(objectField.Type) > 0 {
-				if typeEnum, err := objectField.Type.Type(); err == nil && typeEnum == schema.TypeNullable {
-					canEmpty = true
-				}
-			}
-			if field.Embedded {
-				sb.builder.WriteString("  err = connector_Decoder.DecodeObject(&j.")
-				sb.builder.WriteString(fieldName)
-				sb.builder.WriteString(", input)")
+			var tyName string
+			var packagePaths []string
+			if t.IsAnonymous() {
+				tyName, packagePaths = cg.getAnonymousObjectTypeName(sb, field.TypeAST, true)
 			} else {
-				sb.builder.WriteString("  err = connector_Decoder.")
-				if canEmpty {
-					sb.builder.WriteString("DecodeNullableObjectValue")
-				} else {
-					sb.builder.WriteString("DecodeObjectValue")
+				packagePaths = getTypePackagePaths(ty, sb.packagePath)
+				tyName = getTypeArgumentName(ty, sb.packagePath, false)
+			}
+			for _, pkgPath := range packagePaths {
+				sb.imports[pkgPath] = ""
+			}
+
+			if field.Embedded {
+				sb.builder.WriteString("DecodeObject")
+				sb.builder.WriteRune('[')
+				sb.builder.WriteString(tyName)
+				sb.builder.WriteString("](input)")
+			} else {
+				sb.builder.WriteString("DecodeObjectValue")
+				if len(objectField.Type) > 0 {
+					if typeEnum, err := objectField.Type.Type(); err == nil && typeEnum == schema.TypeNullable {
+						sb.builder.WriteString("Default")
+					}
 				}
-				sb.builder.WriteString("(&j.")
-				sb.builder.WriteString(fieldName)
-				sb.builder.WriteString(`, input, "`)
+				sb.builder.WriteRune('[')
+				sb.builder.WriteString(tyName)
+				sb.builder.WriteString(`](input, "`)
 				sb.builder.WriteString(key)
 				sb.builder.WriteString(`")`)
 			}
@@ -713,6 +723,86 @@ func (cg *connectorGenerator) writeScalarDecodeValue(sb *connectorTypeBuilder, f
 	sb.builder.WriteString(`(input, "`)
 	sb.builder.WriteString(key)
 	sb.builder.WriteString(`")`)
+}
+
+// generate anonymous object type name with absolute package paths removed
+func (cg *connectorGenerator) getAnonymousObjectTypeName(sb *connectorTypeBuilder, goType types.Type, skipNullable bool) (string, []string) {
+	switch inferredType := goType.(type) {
+	case *types.Pointer:
+		var result string
+		if !skipNullable {
+			result += "*"
+		}
+		underlyingName, packagePaths := cg.getAnonymousObjectTypeName(sb, inferredType.Elem(), false)
+		return result + underlyingName, packagePaths
+	case *types.Struct:
+		packagePaths := []string{}
+		result := "struct{"
+		for i := 0; i < inferredType.NumFields(); i++ {
+			fieldVar := inferredType.Field(i)
+			fieldTag := inferredType.Tag(i)
+			if i > 0 {
+				result += "; "
+			}
+			result += fieldVar.Name() + " "
+			underlyingName, pkgPaths := cg.getAnonymousObjectTypeName(sb, fieldVar.Type(), false)
+			result += underlyingName
+			packagePaths = append(packagePaths, pkgPaths...)
+			if fieldTag != "" {
+				result += " `" + fieldTag + "`"
+			}
+		}
+		result += "}"
+		return result, packagePaths
+	case *types.Named:
+		packagePaths := []string{}
+		innerType := inferredType.Obj()
+		if innerType == nil {
+			return "", packagePaths
+		}
+
+		var result string
+		typeInfo := &TypeInfo{
+			Name: innerType.Name(),
+		}
+
+		innerPkg := innerType.Pkg()
+		if innerPkg != nil && innerPkg.Name() != "" && innerPkg.Path() != sb.packagePath {
+			packagePaths = append(packagePaths, innerPkg.Path())
+			result += innerPkg.Name() + "."
+			typeInfo.PackageName = innerPkg.Name()
+			typeInfo.PackagePath = innerPkg.Path()
+		}
+
+		result += innerType.Name()
+		typeParams := inferredType.TypeParams()
+		if typeParams != nil && typeParams.Len() > 0 {
+			// unwrap the generic type parameters such as Foo[T]
+			if err := parseTypeParameters(typeInfo, inferredType.String()); err == nil {
+				result += "["
+				for i, typeParam := range typeInfo.TypeParameters {
+					if i > 0 {
+						result += ", "
+					}
+					packagePaths = append(packagePaths, getTypePackagePaths(typeParam, sb.packagePath)...)
+					result += getTypeArgumentName(typeParam, sb.packagePath, false)
+				}
+				result += "]"
+			}
+		}
+
+		return result, packagePaths
+	case *types.Basic:
+		return inferredType.Name(), []string{}
+	case *types.Array:
+		result, packagePaths := cg.getAnonymousObjectTypeName(sb, inferredType.Elem(), false)
+		return "[]" + result, packagePaths
+	case *types.Slice:
+		result, packagePaths := cg.getAnonymousObjectTypeName(sb, inferredType.Elem(), false)
+		return "[]" + result, packagePaths
+	default:
+		return inferredType.String(), []string{}
+	}
 }
 
 func formatLocalFieldName(input string, others ...string) string {

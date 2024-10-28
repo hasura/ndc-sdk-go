@@ -7,6 +7,7 @@ import (
 	"github.com/hasura/ndc-sdk-go/schema"
 )
 
+// OperationKind the operation kind of connectors
 type OperationKind string
 
 const (
@@ -14,19 +15,23 @@ const (
 	OperationProcedure OperationKind = "Procedure"
 )
 
+// Scalar the structured information of the scalar
 type Scalar struct {
 	Schema     schema.ScalarType
 	NativeType *TypeInfo
 }
 
+// Type the interface of a type schema
 type Type interface {
 	Kind() schema.TypeEnum
 	Schema() schema.TypeEncoder
 	SchemaName(isAbsolute bool) string
 	FullName() string
 	String() string
+	IsAnonymous() bool
 }
 
+// NullableType the information of the nullable type
 type NullableType struct {
 	UnderlyingType Type
 }
@@ -39,6 +44,10 @@ func NewNullableType(input Type) *NullableType {
 
 func (t *NullableType) Kind() schema.TypeEnum {
 	return schema.TypeNullable
+}
+
+func (t *NullableType) IsAnonymous() bool {
+	return t.UnderlyingType.IsAnonymous()
 }
 
 func (t NullableType) SchemaName(isAbsolute bool) string {
@@ -65,6 +74,7 @@ func (t NullableType) String() string {
 	return "*" + t.UnderlyingType.String()
 }
 
+// ArrayType the information of the array type
 type ArrayType struct {
 	ElementType Type
 }
@@ -77,6 +87,10 @@ func NewArrayType(input Type) *ArrayType {
 
 func (t *ArrayType) Kind() schema.TypeEnum {
 	return schema.TypeArray
+}
+
+func (t *ArrayType) IsAnonymous() bool {
+	return t.ElementType.IsAnonymous()
 }
 
 func (t *ArrayType) Schema() schema.TypeEncoder {
@@ -100,6 +114,7 @@ func (t ArrayType) String() string {
 	return "[]" + t.ElementType.String()
 }
 
+// NamedType the information of a named type
 type NamedType struct {
 	Name       string
 	NativeType *TypeInfo
@@ -113,6 +128,10 @@ func NewNamedType(name string, info *TypeInfo) *NamedType {
 
 func (t *NamedType) Kind() schema.TypeEnum {
 	return schema.TypeNamed
+}
+
+func (t *NamedType) IsAnonymous() bool {
+	return t.NativeType.IsAnonymous
 }
 
 func (t *NamedType) Schema() schema.TypeEncoder {
@@ -209,6 +228,7 @@ type Field struct {
 	Description *string
 	Embedded    bool
 	Type        Type
+	TypeAST     types.Type
 }
 
 // ObjectInfo represents the serialization information of an object type.

@@ -963,3 +963,23 @@ func TestDecodeNestedInterface(t *testing.T) {
 	_, err = GetNullableFloatSlice[float32](fixture, "floatSlicePtr")
 	assert.NilError(t, err)
 }
+
+func TestDecodeNullableObjectValue(t *testing.T) {
+	type testObject struct {
+		Name string `json:"name"`
+	}
+
+	t.Run("null", func(t *testing.T) {
+		result, err := DecodeNullableValue[testObject](nil)
+		assert.NilError(t, err)
+		assert.Assert(t, result == nil)
+	})
+
+	t.Run("not_null", func(t *testing.T) {
+		result, err := DecodeNullableValue[testObject](map[string]any{
+			"name": "foo",
+		})
+		assert.NilError(t, err)
+		assert.Equal(t, result.Name, "foo")
+	})
+}

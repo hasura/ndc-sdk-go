@@ -131,16 +131,18 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 				chb.Builder.imports[fn.ArgumentsType.PackagePath] = ""
 			}
 
-			sb.WriteString(`
-    var args `)
-			sb.WriteString(argName)
-			sb.WriteString("\n    if parseErr := ")
 			if fn.ArgumentsType.CanMethod() {
+				sb.WriteString("\n    var args ")
+				sb.WriteString(argName)
+				sb.WriteString("\n    parseErr := ")
 				sb.WriteString("args.FromValue(rawArgs)")
 			} else {
-				sb.WriteString("connector_Decoder.DecodeObject(&args, rawArgs)")
+				sb.WriteString("\n    args, parseErr := utils.DecodeObject[")
+				sb.WriteString(argName)
+				sb.WriteString("](rawArgs)")
 			}
-			sb.WriteString(`; parseErr != nil {
+			sb.WriteString(`
+    if parseErr != nil {
       return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
         "cause": parseErr.Error(),
       })
