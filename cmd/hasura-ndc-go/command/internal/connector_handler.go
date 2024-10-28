@@ -132,12 +132,12 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 			}
 
 			if fn.ArgumentsType.CanMethod() {
-				sb.WriteString("\n      var args ")
+				sb.WriteString("\n    var args ")
 				sb.WriteString(argName)
 				sb.WriteString("\n    parseErr := ")
 				sb.WriteString("args.FromValue(rawArgs)")
 			} else {
-				sb.WriteString("\n      args, parseErr := utils.DecodeObject[")
+				sb.WriteString("\n    args, parseErr := utils.DecodeObject[")
 				sb.WriteString(argName)
 				sb.WriteString("](rawArgs)")
 			}

@@ -2,7 +2,7 @@
 package functions
 import (
   "context"
-	"github.com/hasura/ndc-codegen-example/types"
+  "github.com/hasura/ndc-codegen-example/types"
   "github.com/hasura/ndc-codegen-subdir-test/connector/types"
   "github.com/hasura/ndc-sdk-go/connector"
   "github.com/hasura/ndc-sdk-go/schema"
@@ -76,9 +76,9 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
         "cause": err.Error(),
       })
     }
-			var args GetArticlesArguments
+    var args GetArticlesArguments
     parseErr := args.FromValue(rawArgs)
-		if parseErr != nil {
+    if parseErr != nil {
       return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
         "cause": parseErr.Error(),
       })
