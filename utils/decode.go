@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/google/uuid"
+	"github.com/prometheus/common/model"
 )
 
 var (
@@ -902,20 +903,20 @@ func DecodeNullableDuration(value any) (*time.Duration, error) {
 	case *time.Duration:
 		result = *v
 	case string:
-		dur, err := time.ParseDuration(v)
+		dur, err := model.ParseDuration(v)
 		if err != nil {
 			return nil, err
 		}
-		result = dur
+		result = time.Duration(dur)
 	case *string:
 		if IsNil(v) {
 			return nil, nil
 		}
-		dur, err := time.ParseDuration(*v)
+		dur, err := model.ParseDuration(*v)
 		if err != nil {
 			return nil, err
 		}
-		result = dur
+		result = time.Duration(dur)
 	default:
 		i64, err := DecodeNullableInt[int64](v)
 		if err != nil {
