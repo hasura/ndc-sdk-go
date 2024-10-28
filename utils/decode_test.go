@@ -324,10 +324,10 @@ func TestDecodeDuration(t *testing.T) {
 
 		invalidStr := "test"
 		_, err = DecodeDuration(invalidStr)
-		assert.ErrorContains(t, err, "time: invalid duration \"test\"")
+		assert.ErrorContains(t, err, "not a valid duration string: \"test\"")
 
 		_, err = DecodeDuration(&invalidStr)
-		assert.ErrorContains(t, err, "time: invalid duration \"test\"")
+		assert.ErrorContains(t, err, "not a valid duration string: \"test\"")
 
 		var nilStr *string
 		nilValue, err := DecodeNullableDuration(nilStr)
