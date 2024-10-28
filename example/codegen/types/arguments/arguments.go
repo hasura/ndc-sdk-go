@@ -32,6 +32,7 @@ type GetTypesArguments struct {
 	BigInt       scalar.BigInt
 	Date         scalar.Date
 	URL          scalar.URL
+	Duration     scalar.Duration
 
 	UUIDPtr         *uuid.UUID
 	BoolPtr         *bool

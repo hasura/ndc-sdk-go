@@ -229,7 +229,7 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 			}
 		case "github.com/hasura/ndc-sdk-go/scalar":
 			switch innerType.Name() {
-			case "Date", "BigInt", "Bytes", "URL":
+			case "Date", "BigInt", "Bytes", "URL", "Duration":
 				typeInfo.SchemaName = innerType.Name()
 				scalarType = &Scalar{
 					Schema: defaultScalarTypes[ScalarName(innerType.Name())],

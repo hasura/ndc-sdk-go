@@ -546,6 +546,12 @@
             }
           }
         },
+        "Duration": {
+          "type": {
+            "name": "Duration",
+            "type": "named"
+          }
+        },
         "Enum": {
           "type": {
             "name": "SomeEnum",
@@ -2824,6 +2830,12 @@
             }
           }
         },
+        "Duration": {
+          "type": {
+            "name": "Duration",
+            "type": "named"
+          }
+        },
         "Enum": {
           "type": {
             "name": "SomeEnum",
@@ -4623,6 +4635,13 @@
       "comparison_operators": {},
       "representation": {
         "type": "date"
+      }
+    },
+    "Duration": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "json"
       }
     },
     "Float32": {
