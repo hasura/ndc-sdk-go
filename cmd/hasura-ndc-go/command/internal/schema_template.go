@@ -19,14 +19,14 @@ import (
 
 
 func toPtr[V any](value V) *V {
-	return &value
+  return &value
 }
 
 // GetConnectorSchema gets the generated connector schema
 func GetConnectorSchema() *schema.SchemaResponse {
-	return &schema.SchemaResponse{
-		Collections: []schema.CollectionInfo{},
-		ObjectTypes: schema.SchemaResponseObjectTypes{`)
+  return &schema.SchemaResponse{
+    Collections: []schema.CollectionInfo{},
+    ObjectTypes: schema.SchemaResponseObjectTypes{`)
 
 	objectKeys := utils.GetSortedKeys(rcs.Objects)
 	for _, key := range objectKeys {
@@ -36,8 +36,8 @@ func GetConnectorSchema() *schema.SchemaResponse {
 		}
 	}
 	builder.WriteString(`
-		},
-		Functions: []schema.FunctionInfo{`)
+    },
+    Functions: []schema.FunctionInfo{`)
 	for _, fn := range rcs.Functions {
 		op := OperationInfo(fn)
 		if err := rcs.writeOperationInfo(&builder, &op); err != nil {
@@ -46,8 +46,8 @@ func GetConnectorSchema() *schema.SchemaResponse {
 	}
 
 	builder.WriteString(`
-		},
-		Procedures: []schema.ProcedureInfo{`)
+    },
+    Procedures: []schema.ProcedureInfo{`)
 	for _, proc := range rcs.Procedures {
 		op := OperationInfo(proc)
 		if err := rcs.writeOperationInfo(&builder, &op); err != nil {
@@ -56,8 +56,8 @@ func GetConnectorSchema() *schema.SchemaResponse {
 	}
 
 	builder.WriteString(`
-		},
-		ScalarTypes: schema.SchemaResponseScalarTypes{`)
+    },
+    ScalarTypes: schema.SchemaResponseScalarTypes{`)
 	scalarKeys := utils.GetSortedKeys(rcs.Scalars)
 	for _, key := range scalarKeys {
 		scalarType := rcs.Scalars[key]
@@ -66,15 +66,15 @@ func GetConnectorSchema() *schema.SchemaResponse {
 		}
 	}
 
-	builder.WriteString("\n  	},\n	}\n}")
+	builder.WriteString("\n    },\n  }\n}")
 	return builder.String(), nil
 }
 
 func (rcs RawConnectorSchema) writeOperationInfo(builder *strings.Builder, operation *OperationInfo) error {
 	baseIndent := 6
 	builder.WriteString(`
-			{
-				Name: "`)
+      {
+        Name: "`)
 	builder.WriteString(operation.Name)
 	builder.WriteString("\",\n")
 	rcs.writeDescription(builder, operation.Description)
@@ -127,8 +127,8 @@ func (rcs RawConnectorSchema) writeScalarType(builder *strings.Builder, key stri
 
 	builder.WriteString(key)
 	builder.WriteString(`": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},`)
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},`)
 
 	if scalarType.Representation != nil {
 		builder.WriteRune('\n')
@@ -188,13 +188,13 @@ func (rcs RawConnectorSchema) writeScalarType(builder *strings.Builder, key stri
 		}
 	}
 	builder.WriteString(".Encode(),")
-	builder.WriteString("\n    	},")
+	builder.WriteString("\n      },")
 	return nil
 }
 
 func (rcs RawConnectorSchema) writeDescription(builder *strings.Builder, description *string) {
 	if description != nil {
-		builder.WriteString(`      	Description: toPtr("`)
+		builder.WriteString(`        Description: toPtr("`)
 		builder.WriteString(*description)
 		builder.WriteString("\"),\n")
 	}
