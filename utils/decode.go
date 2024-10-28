@@ -26,10 +26,9 @@ type (
 )
 
 var (
-	errIntRequired         = errors.New("the Int value must not be null")
-	errUintRequired        = errors.New("the Uint value must not be null")
-	errValueTargetRequired = errors.New("the decoded target must be a pointer and not null")
-	errValueRequired       = errors.New("the value must not be null")
+	errIntRequired   = errors.New("the Int value must not be null")
+	errUintRequired  = errors.New("the Uint value must not be null")
+	errValueRequired = errors.New("the value must not be null")
 )
 
 // ValueDecoder abstracts a type with the FromValue method to decode any value.
@@ -201,7 +200,7 @@ func DecodeObject[T any](value map[string]any, decodeHooks ...mapstructure.Decod
 
 	if t, ok := any(result).(ObjectDecoder); ok {
 		if err := t.FromValue(value); err != nil {
-			return *result, nil
+			return *result, err
 		}
 	}
 
@@ -222,7 +221,7 @@ func DecodeNullableObject[T any](value map[string]any, decodeHooks ...mapstructu
 
 	if t, ok := any(result).(ObjectDecoder); ok {
 		if err := t.FromValue(value); err != nil {
-			return nil, nil
+			return nil, err
 		}
 	}
 
