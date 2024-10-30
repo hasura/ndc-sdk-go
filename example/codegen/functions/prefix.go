@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-codegen-example/types"
 	"github.com/hasura/ndc-codegen-example/types/arguments"
+	"github.com/hasura/ndc-sdk-go/utils"
 )
 
 // A foo scalar
@@ -85,6 +86,11 @@ func FunctionGetBool(ctx context.Context, state *types.State) (bool, error) {
 	return true, nil
 }
 
+// FunctionGetInts return a slice of scalar ints
+func FunctionGetInts(ctx context.Context, state *types.State) ([]*int, error) {
+	return []*int{utils.ToPtr(1), utils.ToPtr(2), utils.ToPtr(3)}, nil
+}
+
 func FunctionGetTypes(ctx context.Context, state *types.State, arguments *arguments.GetTypesArguments) (*arguments.GetTypesArguments, error) {
 	return arguments, nil
 }
@@ -143,7 +149,8 @@ func FunctionGetCustomHeaders(ctx context.Context, state *types.State, arguments
 	if arguments.Headers == nil {
 		arguments.Headers = make(map[string]string)
 	}
-	arguments.Headers["X-Test-ResponseHeader"] = "I set this in the code"
+
+	arguments.Headers["X-Test-ResponseHeader"] = arguments.Input.Name
 	result := HelloResult{}
 	if arguments.Input != nil {
 		result.Text = types.Text(arguments.Input.Name)

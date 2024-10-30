@@ -311,6 +311,13 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 		}
 		return result, nil
 
+	case "getInts":
+
+		if len(queryFields) > 0 {
+			return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
+		}
+		return FunctionGetInts(ctx, state)
+
 	case "getTypes":
 
 		selection, err := queryFields.AsObject()
@@ -413,7 +420,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
 	}
 }
 
-var enumValues_FunctionName = []string{"getAuthor", "getAuthor2", "getBool", "getCustomHeaders", "getGenericWithoutDecodingMethod", "getTypes", "hello", "getArticles"}
+var enumValues_FunctionName = []string{"getAuthor", "getAuthor2", "getBool", "getCustomHeaders", "getGenericWithoutDecodingMethod", "getInts", "getTypes", "hello", "getArticles"}
 
 // MutationExists check if the mutation name exists
 func (dch DataConnectorHandler) MutationExists(name string) bool {
