@@ -892,6 +892,12 @@ func GetConnectorSchema() *schema.SchemaResponse {
 				},
 			},
 			{
+				Name:        "getInts",
+				Description: toPtr("return a slice of scalar ints"),
+				ResultType:  schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32"))).Encode(),
+				Arguments:   map[string]schema.ArgumentInfo{},
+			},
+			{
 				Name:       "getTypes",
 				ResultType: schema.NewNullableType(schema.NewNamedType("GetTypesArguments")).Encode(),
 				Arguments: map[string]schema.ArgumentInfo{

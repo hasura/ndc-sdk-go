@@ -122,7 +122,10 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 		functionKeys[i] = fn.Name
 		op := OperationInfo(fn)
 		resultType, isNullable := unwrapNullableType(op.ResultType.Type)
-		chb.writeOperationValidation(sb, &op, "queryFields", resultType)
+		schemaName := resultType.SchemaName(false)
+		_, isScalar := chb.RawSchema.Scalars[schemaName]
+
+		chb.writeOperationValidation(sb, &op, "queryFields", resultType, isScalar)
 
 		var argumentParamStr string
 		if fn.ArgumentsType != nil {
@@ -154,21 +157,21 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 			argumentParamStr = ", &args"
 		}
 
-		switch t := resultType.(type) {
+		if isScalar {
+			sb.WriteString(fmt.Sprintf("\n    return %s(ctx, state%s)\n", fn.OriginName, argumentParamStr))
+			continue
+		}
+		switch resultType.(type) {
 		case *ArrayType:
 			chb.writeOperationResult(sb, fn.OriginName, OperationFunction, argumentParamStr, isNullable)
 			sb.WriteString("\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)")
 			writeErrorCheck(sb, 2, 4)
 			sb.WriteString("    return result, nil\n")
 		case *NamedType:
-			if _, ok := chb.RawSchema.Scalars[t.NativeType.SchemaName]; ok {
-				sb.WriteString(fmt.Sprintf("\n    return %s(ctx, state%s)\n", fn.OriginName, argumentParamStr))
-			} else {
-				chb.writeOperationResult(sb, fn.OriginName, OperationFunction, argumentParamStr, isNullable)
-				sb.WriteString("\n    result, err := utils.EvalNestedColumnObject(selection, rawResult)")
-				writeErrorCheck(sb, 2, 4)
-				sb.WriteString("    return result, nil\n")
-			}
+			chb.writeOperationResult(sb, fn.OriginName, OperationFunction, argumentParamStr, isNullable)
+			sb.WriteString("\n    result, err := utils.EvalNestedColumnObject(selection, rawResult)")
+			writeErrorCheck(sb, 2, 4)
+			sb.WriteString("    return result, nil\n")
 		}
 	}
 
@@ -213,7 +216,9 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 		procedureKeys[i] = fn.Name
 		op := OperationInfo(fn)
 		resultType, isNullable := unwrapNullableType(op.ResultType.Type)
-		chb.writeOperationValidation(sb, &op, "operation.Fields", resultType)
+		schemaName := resultType.SchemaName(false)
+		_, isScalar := chb.RawSchema.Scalars[schemaName]
+		chb.writeOperationValidation(sb, &op, "operation.Fields", resultType, isScalar)
 
 		var argumentParamStr string
 		if fn.ArgumentsType != nil {
@@ -235,15 +240,15 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 
 		sb.WriteString("\n    span.AddEvent(\"execute_procedure\")")
 
-		switch t := resultType.(type) {
-		case *ArrayType:
-			chb.writeOperationResult(sb, fn.OriginName, OperationProcedure, argumentParamStr, isNullable)
-			sb.WriteString("\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)\n")
-			writeErrorCheck(sb, 2, 4)
-		case *NamedType:
-			if _, ok := chb.RawSchema.Scalars[t.NativeType.SchemaName]; ok {
-				chb.writeOperationExecution(sb, fn.OriginName, argumentParamStr, "result")
-			} else {
+		if isScalar {
+			chb.writeOperationExecution(sb, fn.OriginName, argumentParamStr, "result")
+		} else {
+			switch resultType.(type) {
+			case *ArrayType:
+				chb.writeOperationResult(sb, fn.OriginName, OperationProcedure, argumentParamStr, isNullable)
+				sb.WriteString("\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)\n")
+				writeErrorCheck(sb, 2, 4)
+			case *NamedType:
 				chb.writeOperationResult(sb, fn.OriginName, OperationProcedure, argumentParamStr, isNullable)
 				sb.WriteString("\n    result, err := utils.EvalNestedColumnObject(selection, rawResult)\n")
 				writeErrorCheck(sb, 2, 4)
@@ -261,12 +266,21 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 	chb.writeOperationNameEnums(sb, procedureEnumsName, procedureKeys)
 }
 
-func (chb connectorHandlerBuilder) writeOperationValidation(sb *strings.Builder, fn *OperationInfo, selector string, resultType Type) {
+func (chb connectorHandlerBuilder) writeOperationValidation(sb *strings.Builder, fn *OperationInfo, selector string, resultType Type, isScalar bool) {
 	_, _ = sb.WriteString("\n  case \"")
 	_, _ = sb.WriteString(fn.Name)
 	_, _ = sb.WriteString("\":\n")
 
-	switch t := resultType.(type) {
+	if isScalar {
+		sb.WriteString("\n      if len(")
+		sb.WriteString(selector)
+		sb.WriteString(`) > 0 {
+				return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
+			}`)
+		return
+	}
+
+	switch resultType.(type) {
 	case *ArrayType:
 		sb.WriteString("\n    selection, err := ")
 		sb.WriteString(selector)
@@ -277,15 +291,6 @@ func (chb connectorHandlerBuilder) writeOperationValidation(sb *strings.Builder,
       })
     }`)
 	case *NamedType:
-		if _, ok := chb.RawSchema.Scalars[t.NativeType.SchemaName]; ok {
-			sb.WriteString("\n      if len(")
-			sb.WriteString(selector)
-			sb.WriteString(`) > 0 {
-          return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
-        }`)
-			return
-		}
-
 		sb.WriteString("\n    selection, err := ")
 		sb.WriteString(selector)
 		sb.WriteString(`.AsObject()

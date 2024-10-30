@@ -11,7 +11,7 @@
             "text": "oK022ZdXnL"
           },
           "headers": {
-            "X-Test-ResponseHeader": "I set this in the code",
+            "X-Test-ResponseHeader": "oK022ZdXnL",
             "foo": "bar"
           }
         }
