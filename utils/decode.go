@@ -1504,12 +1504,12 @@ func GetBooleanDefault(object map[string]any, key string) (bool, error) {
 }
 
 // GetNullableDateTime get a time.Time pointer from object by key.
-func GetNullableDateTime(object map[string]any, key string) (*time.Time, error) {
+func GetNullableDateTime(object map[string]any, key string, options ...DecodeTimeOption) (*time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := DecodeNullableDateTime(value)
+	result, err := DecodeNullableDateTime(value, options...)
 	if err != nil {
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
@@ -1517,12 +1517,12 @@ func GetNullableDateTime(object map[string]any, key string) (*time.Time, error) 
 }
 
 // GetDateTime get a time.Time value from object by key.
-func GetDateTime(object map[string]any, key string) (time.Time, error) {
+func GetDateTime(object map[string]any, key string, options ...DecodeTimeOption) (time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return time.Time{}, fmt.Errorf("field `%s` is required", key)
 	}
-	result, err := DecodeDateTime(value)
+	result, err := DecodeDateTime(value, options...)
 	if err != nil {
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
@@ -1531,12 +1531,12 @@ func GetDateTime(object map[string]any, key string) (time.Time, error) {
 
 // GetDateTimeDefault get a time.Time value from object by key.
 // Returns the empty time if the value is empty.
-func GetDateTimeDefault(object map[string]any, key string) (time.Time, error) {
+func GetDateTimeDefault(object map[string]any, key string, options ...DecodeTimeOption) (time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return time.Time{}, nil
 	}
-	result, err := DecodeNullableDateTime(value)
+	result, err := DecodeNullableDateTime(value, options...)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("%s: %w", key, err)
 	}
@@ -1547,12 +1547,12 @@ func GetDateTimeDefault(object map[string]any, key string) (time.Time, error) {
 }
 
 // GetNullableDuration get a time.Duration pointer from object by key.
-func GetNullableDuration(object map[string]any, key string) (*time.Duration, error) {
+func GetNullableDuration(object map[string]any, key string, options ...DecodeTimeOption) (*time.Duration, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := DecodeNullableDuration(value)
+	result, err := DecodeNullableDuration(value, options...)
 	if err != nil {
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
@@ -1560,12 +1560,12 @@ func GetNullableDuration(object map[string]any, key string) (*time.Duration, err
 }
 
 // GetDuration get a time.Duration value from object by key.
-func GetDuration(object map[string]any, key string) (time.Duration, error) {
+func GetDuration(object map[string]any, key string, options ...DecodeTimeOption) (time.Duration, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return 0, fmt.Errorf("field `%s` is required", key)
 	}
-	result, err := DecodeDuration(value)
+	result, err := DecodeDuration(value, options...)
 	if err != nil {
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
@@ -1574,12 +1574,12 @@ func GetDuration(object map[string]any, key string) (time.Duration, error) {
 
 // GetDurationDefault get a time.Duration value from object by key.
 // Returns 0 if the value is null.
-func GetDurationDefault(object map[string]any, key string) (time.Duration, error) {
+func GetDurationDefault(object map[string]any, key string, options ...DecodeTimeOption) (time.Duration, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return 0, nil
 	}
-	result, err := DecodeNullableDuration(value)
+	result, err := DecodeNullableDuration(value, options...)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", key, err)
 	}
