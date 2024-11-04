@@ -26,9 +26,13 @@ type (
 )
 
 var (
-	errIntRequired   = errors.New("the Int value must not be null")
-	errUintRequired  = errors.New("the Uint value must not be null")
-	errValueRequired = errors.New("the value must not be null")
+	errIntRequired      = errors.New("the Int value must not be null")
+	errUintRequired     = errors.New("the Uint value must not be null")
+	errFloatRequired    = errors.New("the Float value must not be null")
+	errDateTimeRequired = errors.New("the date time value must not be null")
+	errDateRequired     = errors.New("the Date value must not be null")
+	errDurationRequired = errors.New("the Duration value must not be null")
+	errValueRequired    = errors.New("the value must not be null")
 )
 
 // ValueDecoder abstracts a type with the FromValue method to decode any value.
@@ -807,7 +811,7 @@ func DecodeFloat[T float32 | float64](value any) (T, error) {
 		return T(0), err
 	}
 	if result == nil {
-		return T(0), errors.New("the Float value must not be null")
+		return T(0), errFloatRequired
 	}
 	return *result, nil
 }
@@ -872,23 +876,150 @@ func DecodeBooleanReflection(value reflect.Value) (bool, error) {
 	return false, fmt.Errorf("failed to convert Boolean, got: %v", kind)
 }
 
+type decodeTimeOptions struct {
+	BaseUnix   time.Duration
+	TimeParser func(string) (time.Time, error)
+}
+
+// ConvertUnixTime convert an integer value to time.Time with the base unix timestamp
+func (d decodeTimeOptions) ConvertUnixTime(value int64) time.Time {
+	t := time.Unix(0, 0)
+	return t.Add(d.ConvertDuration(value))
+}
+
+// ConvertFloatUnixTime convert a floating point value to time.Time with the base unix timestamp
+func (d decodeTimeOptions) ConvertFloatUnixTime(value float64) time.Time {
+	t := time.Unix(0, 0)
+	return t.Add(d.ConvertFloatDuration(value))
+}
+
+// ConvertDuration convert an integer value to time.Time with the base unix timestamp
+func (d decodeTimeOptions) ConvertDuration(value int64) time.Duration {
+	baseUnix := d.BaseUnix
+	if baseUnix <= 0 {
+		baseUnix = time.Nanosecond
+	}
+	return baseUnix * time.Duration(value)
+}
+
+// ConvertDuration convert a floating point value to time.Time with the base unix timestamp
+func (d decodeTimeOptions) ConvertFloatDuration(value float64) time.Duration {
+	baseUnix := d.BaseUnix
+	if baseUnix <= 0 {
+		baseUnix = time.Nanosecond
+	}
+	return time.Duration(value * float64(baseUnix))
+}
+
+func createDecodeTimeOptions(defaultParser func(string) (time.Time, error), options ...DecodeTimeOption) decodeTimeOptions {
+	d := decodeTimeOptions{
+		BaseUnix: time.Millisecond,
+	}
+	for _, opt := range options {
+		opt(&d)
+	}
+
+	if d.TimeParser == nil {
+		d.TimeParser = defaultParser
+	}
+
+	return d
+}
+
+func createDecodeDurationOptions(options ...DecodeTimeOption) decodeTimeOptions {
+	d := decodeTimeOptions{
+		BaseUnix: time.Nanosecond,
+	}
+
+	for _, opt := range options {
+		opt(&d)
+	}
+
+	return d
+}
+
+// DecodeTimeOption abstracts a time decoding option
+type DecodeTimeOption func(*decodeTimeOptions)
+
+// WithBaseUnix sets the base unix value to decode date time or duration
+func WithBaseUnix(base time.Duration) DecodeTimeOption {
+	return func(d *decodeTimeOptions) {
+		d.BaseUnix = base
+	}
+}
+
+// WithTimeParser sets the time parser function to decode date time
+func WithTimeParser(parser func(string) (time.Time, error)) DecodeTimeOption {
+	return func(d *decodeTimeOptions) {
+		d.TimeParser = parser
+	}
+}
+
 // DecodeNullableDateTime tries to convert an unknown value to a time.Time pointer.
-func DecodeNullableDateTime(value any) (*time.Time, error) {
+func DecodeNullableDateTime(value any, options ...DecodeTimeOption) (*time.Time, error) {
 	if value == nil {
 		return nil, nil
 	}
+
+	return decodeNullableDateTime(value, createDecodeTimeOptions(parseDateTime, options...))
+}
+
+// decodeNullableDateTime tries to convert an unknown value to a time.Time pointer.
+func decodeNullableDateTime(value any, opts decodeTimeOptions) (*time.Time, error) {
 	switch v := value.(type) {
 	case time.Time:
 		return &v, nil
 	case *time.Time:
 		return v, nil
+	case string:
+		t, err := opts.TimeParser(v)
+		if err != nil {
+			return nil, err
+		}
+		return &t, nil
+	case int:
+		t := opts.ConvertUnixTime(int64(v))
+		return &t, nil
+	case int8:
+		t := opts.ConvertUnixTime(int64(v))
+		return &t, nil
+	case int16:
+		t := opts.ConvertUnixTime(int64(v))
+		return &t, nil
+	case int32:
+		t := opts.ConvertUnixTime(int64(v))
+		return &t, nil
+	case int64:
+		t := opts.ConvertUnixTime(v)
+		return &t, nil
+	case uint:
+		t := opts.ConvertUnixTime(int64(v))
+		return &t, nil
+	case uint8:
+		t := opts.ConvertUnixTime(int64(v))
+		return &t, nil
+	case uint16:
+		t := opts.ConvertUnixTime(int64(v))
+		return &t, nil
+	case uint32:
+		t := opts.ConvertUnixTime(int64(v))
+		return &t, nil
+	case uint64:
+		t := opts.ConvertUnixTime(int64(v))
+		return &t, nil
+	case float32:
+		t := opts.ConvertFloatUnixTime(float64(v))
+		return &t, nil
+	case float64:
+		t := opts.ConvertFloatUnixTime(v)
+		return &t, nil
 	default:
 		inferredValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
 		if !ok {
 			return nil, nil
 		}
 
-		result, err := DecodeDateTimeReflection(inferredValue)
+		result, err := decodeDateTimeReflection(inferredValue, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -897,151 +1028,210 @@ func DecodeNullableDateTime(value any) (*time.Time, error) {
 }
 
 // DecodeDateTimeReflection decodes a time.Time value from reflection.
-func DecodeDateTimeReflection(value reflect.Value) (time.Time, error) {
-	kind := value.Kind()
-	switch kind {
-	case reflect.String:
-		result, err := parseDateTime(value.String())
-		if err != nil {
-			return time.Time{}, err
-		}
-		return *result, nil
-	case reflect.Interface:
-		result, err := parseDateTime(fmt.Sprint(value.Interface()))
-		if err != nil {
-			return time.Time{}, err
-		}
-		return *result, nil
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return time.UnixMilli(value.Int()), nil
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return time.UnixMilli(int64(value.Uint())), nil
-	case reflect.Float32, reflect.Float64:
-		return time.UnixMilli(int64(value.Float())), nil
-	default:
-		return time.Time{}, fmt.Errorf("failed to convert DateTime, got: %v", value)
-	}
-}
-
-// DecodeDateTime tries to convert an unknown value to a time.Time value.
-func DecodeDateTime(value any) (time.Time, error) {
-	result, err := DecodeNullableDateTime(value)
+func DecodeDateTimeReflection(value reflect.Value, options ...DecodeTimeOption) (time.Time, error) {
+	result, err := DecodeNullableDateTimeReflection(value, options...)
 	if err != nil {
 		return time.Time{}, err
 	}
 	if result == nil {
-		return time.Time{}, errors.New("the DateTime value must not be null")
+		return time.Time{}, errDateTimeRequired
+	}
+	return *result, nil
+}
+
+// DecodeNullableDateTimeReflection decodes a nullable time.Time value from reflection.
+func DecodeNullableDateTimeReflection(value reflect.Value, options ...DecodeTimeOption) (*time.Time, error) {
+	inferredValue, ok := UnwrapPointerFromReflectValue(value)
+	if !ok {
+		return nil, nil
+	}
+
+	result, err := decodeDateTimeReflection(inferredValue, createDecodeTimeOptions(parseDateTime, options...))
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func decodeDateTimeReflection(value reflect.Value, options decodeTimeOptions) (time.Time, error) {
+	kind := value.Kind()
+	switch kind {
+	case reflect.String:
+		return options.TimeParser(value.String())
+	case reflect.Interface:
+		return options.TimeParser(fmt.Sprint(value.Interface()))
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return options.ConvertUnixTime(value.Int()), nil
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return options.ConvertUnixTime(int64(value.Uint())), nil
+	case reflect.Float32, reflect.Float64:
+		return options.ConvertFloatUnixTime(value.Float()), nil
+	default:
+		return time.Time{}, fmt.Errorf("failed to convert date time, got: %v", value)
+	}
+}
+
+// DecodeDateTime tries to convert an unknown value to a time.Time value.
+func DecodeDateTime(value any, options ...DecodeTimeOption) (time.Time, error) {
+	result, err := DecodeNullableDateTime(value, options...)
+	if err != nil {
+		return time.Time{}, err
+	}
+	if result == nil {
+		return time.Time{}, errDateTimeRequired
 	}
 	return *result, nil
 }
 
 // parse date time with fallback ISO8601 formats.
-func parseDateTime(value string) (*time.Time, error) {
+func parseDateTime(value string) (time.Time, error) {
 	for _, format := range []string{time.RFC3339, "2006-01-02T15:04:05Z0700", "2006-01-02T15:04:05-0700", time.RFC3339Nano} {
 		result, err := time.Parse(format, value)
 		if err != nil {
 			continue
 		}
-		return &result, nil
+		return result, nil
 	}
 
-	return nil, fmt.Errorf("failed to parse time from string: %s", value)
+	return time.Time{}, fmt.Errorf("failed to parse time from string: %s", value)
+}
+
+func parseDate(value string) (time.Time, error) {
+	return time.Parse(time.DateOnly, value)
 }
 
 // DecodeNullableDate tries to convert an unknown value to a date pointer.
-func DecodeNullableDate(value any) (*time.Time, error) {
+func DecodeNullableDate(value any, options ...DecodeTimeOption) (*time.Time, error) {
 	if value == nil {
 		return nil, nil
 	}
-	switch v := value.(type) {
-	case time.Time:
-		return &v, nil
-	case *time.Time:
-		return v, nil
-	default:
-		inferredValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
-		if !ok {
-			return nil, nil
-		}
 
-		result, err := DecodeDateReflection(inferredValue)
-		if err != nil {
-			return nil, err
-		}
-		return &result, nil
-	}
-}
-
-// DecodeDateReflection decodes a date value from reflection.
-func DecodeDateReflection(value reflect.Value) (time.Time, error) {
-	kind := value.Kind()
-	switch kind {
-	case reflect.String:
-		return time.Parse(time.DateOnly, value.String())
-	case reflect.Interface:
-		return time.Parse(time.DateOnly, fmt.Sprint(value.Interface()))
-	default:
-		return time.Time{}, fmt.Errorf("failed to convert Date, got: %v", value)
-	}
+	return decodeNullableDateTime(value, createDecodeTimeOptions(parseDate, options...))
 }
 
 // DecodeDate tries to convert an unknown date value to a time.Time value.
-func DecodeDate(value any) (time.Time, error) {
-	result, err := DecodeNullableDate(value)
+func DecodeDate(value any, options ...DecodeTimeOption) (time.Time, error) {
+	result, err := DecodeNullableDate(value, options...)
 	if err != nil {
 		return time.Time{}, err
 	}
 	if result == nil {
-		return time.Time{}, errors.New("the Date value must not be null")
+		return time.Time{}, errDateRequired
 	}
 	return *result, nil
 }
 
 // DecodeNullableDuration tries to convert an unknown value to a duration pointer.
-func DecodeNullableDuration(value any) (*time.Duration, error) {
-	var result time.Duration
+func DecodeNullableDuration(value any, options ...DecodeTimeOption) (*time.Duration, error) {
+	if value == nil {
+		return nil, nil
+	}
+	opts := createDecodeDurationOptions(options...)
+
 	switch v := value.(type) {
 	case time.Duration:
-		result = v
+		return &v, nil
 	case *time.Duration:
-		result = *v
+		return v, nil
 	case string:
 		dur, err := model.ParseDuration(v)
 		if err != nil {
 			return nil, err
 		}
-		result = time.Duration(dur)
+		r := time.Duration(dur)
+		return &r, nil
 	case *string:
-		if IsNil(v) {
+		if v == nil {
 			return nil, nil
 		}
 		dur, err := model.ParseDuration(*v)
 		if err != nil {
 			return nil, err
 		}
-		result = time.Duration(dur)
+		r := time.Duration(dur)
+		return &r, nil
+	case int:
+		t := opts.ConvertDuration(int64(v))
+		return &t, nil
+	case int8:
+		t := opts.ConvertDuration(int64(v))
+		return &t, nil
+	case int16:
+		t := opts.ConvertDuration(int64(v))
+		return &t, nil
+	case int32:
+		t := opts.ConvertDuration(int64(v))
+		return &t, nil
+	case int64:
+		t := opts.ConvertDuration(v)
+		return &t, nil
+	case uint:
+		t := opts.ConvertDuration(int64(v))
+		return &t, nil
+	case uint8:
+		t := opts.ConvertDuration(int64(v))
+		return &t, nil
+	case uint16:
+		t := opts.ConvertDuration(int64(v))
+		return &t, nil
+	case uint32:
+		t := opts.ConvertDuration(int64(v))
+		return &t, nil
+	case uint64:
+		t := opts.ConvertDuration(int64(v))
+		return &t, nil
+	case float32:
+		t := opts.ConvertFloatDuration(float64(v))
+		return &t, nil
+	case float64:
+		t := opts.ConvertFloatDuration(v)
+		return &t, nil
 	default:
-		i64, err := DecodeNullableInt[int64](v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert Duration, got: %v", value)
-		}
-		if i64 == nil {
+		inferredValue, ok := UnwrapPointerFromReflectValue(reflect.ValueOf(value))
+		if !ok {
 			return nil, nil
 		}
-		result = time.Duration(*i64)
-	}
 
-	return &result, nil
+		kind := inferredValue.Kind()
+		switch kind {
+		case reflect.String:
+			dur, err := model.ParseDuration(inferredValue.String())
+			if err != nil {
+				return nil, err
+			}
+			r := time.Duration(dur)
+			return &r, nil
+		case reflect.Interface:
+			dur, err := model.ParseDuration(fmt.Sprint(inferredValue.Interface()))
+			if err != nil {
+				return nil, err
+			}
+			r := time.Duration(dur)
+			return &r, nil
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			result := opts.ConvertDuration(inferredValue.Int())
+			return &result, nil
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			result := opts.ConvertDuration(int64(inferredValue.Uint()))
+			return &result, nil
+		case reflect.Float32, reflect.Float64:
+			result := opts.ConvertFloatDuration(inferredValue.Float())
+			return &result, nil
+		default:
+			return nil, fmt.Errorf("failed to convert Duration, got: %v", value)
+		}
+	}
 }
 
 // DecodeDuration tries to convert an unknown value to a duration value.
-func DecodeDuration(value any) (time.Duration, error) {
-	result, err := DecodeNullableDuration(value)
+func DecodeDuration(value any, options ...DecodeTimeOption) (time.Duration, error) {
+	result, err := DecodeNullableDuration(value, options...)
 	if err != nil {
 		return time.Duration(0), err
 	}
 	if result == nil {
-		return time.Duration(0), errors.New("the Duration value must not be null")
+		return time.Duration(0), errDurationRequired
 	}
 	return *result, nil
 }
@@ -1314,12 +1504,12 @@ func GetBooleanDefault(object map[string]any, key string) (bool, error) {
 }
 
 // GetNullableDateTime get a time.Time pointer from object by key.
-func GetNullableDateTime(object map[string]any, key string) (*time.Time, error) {
+func GetNullableDateTime(object map[string]any, key string, options ...DecodeTimeOption) (*time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := DecodeNullableDateTime(value)
+	result, err := DecodeNullableDateTime(value, options...)
 	if err != nil {
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
@@ -1327,12 +1517,12 @@ func GetNullableDateTime(object map[string]any, key string) (*time.Time, error) 
 }
 
 // GetDateTime get a time.Time value from object by key.
-func GetDateTime(object map[string]any, key string) (time.Time, error) {
+func GetDateTime(object map[string]any, key string, options ...DecodeTimeOption) (time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return time.Time{}, fmt.Errorf("field `%s` is required", key)
 	}
-	result, err := DecodeDateTime(value)
+	result, err := DecodeDateTime(value, options...)
 	if err != nil {
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
@@ -1341,12 +1531,12 @@ func GetDateTime(object map[string]any, key string) (time.Time, error) {
 
 // GetDateTimeDefault get a time.Time value from object by key.
 // Returns the empty time if the value is empty.
-func GetDateTimeDefault(object map[string]any, key string) (time.Time, error) {
+func GetDateTimeDefault(object map[string]any, key string, options ...DecodeTimeOption) (time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return time.Time{}, nil
 	}
-	result, err := DecodeNullableDateTime(value)
+	result, err := DecodeNullableDateTime(value, options...)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("%s: %w", key, err)
 	}
@@ -1357,12 +1547,12 @@ func GetDateTimeDefault(object map[string]any, key string) (time.Time, error) {
 }
 
 // GetNullableDuration get a time.Duration pointer from object by key.
-func GetNullableDuration(object map[string]any, key string) (*time.Duration, error) {
+func GetNullableDuration(object map[string]any, key string, options ...DecodeTimeOption) (*time.Duration, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
 	}
-	result, err := DecodeNullableDuration(value)
+	result, err := DecodeNullableDuration(value, options...)
 	if err != nil {
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
@@ -1370,12 +1560,12 @@ func GetNullableDuration(object map[string]any, key string) (*time.Duration, err
 }
 
 // GetDuration get a time.Duration value from object by key.
-func GetDuration(object map[string]any, key string) (time.Duration, error) {
+func GetDuration(object map[string]any, key string, options ...DecodeTimeOption) (time.Duration, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return 0, fmt.Errorf("field `%s` is required", key)
 	}
-	result, err := DecodeDuration(value)
+	result, err := DecodeDuration(value, options...)
 	if err != nil {
 		return result, fmt.Errorf("%s: %w", key, err)
 	}
@@ -1384,12 +1574,12 @@ func GetDuration(object map[string]any, key string) (time.Duration, error) {
 
 // GetDurationDefault get a time.Duration value from object by key.
 // Returns 0 if the value is null.
-func GetDurationDefault(object map[string]any, key string) (time.Duration, error) {
+func GetDurationDefault(object map[string]any, key string, options ...DecodeTimeOption) (time.Duration, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return 0, nil
 	}
-	result, err := DecodeNullableDuration(value)
+	result, err := DecodeNullableDuration(value, options...)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", key, err)
 	}

@@ -213,6 +213,13 @@ func TestDecodeDateTime(t *testing.T) {
 		assert.Equal(t, true, IsNil(ptr))
 	})
 
+	t.Run("unix_float", func(t *testing.T) {
+		iNow := float64(now.UnixNano()) / float64(1000)
+		value, err := DecodeDateTime(iNow, WithBaseUnix(time.Microsecond))
+		assert.NilError(t, err)
+		assert.Equal(t, int64(now.UnixNano()/1000), int64(value.UnixNano()/1000))
+	})
+
 	t.Run("from_string", func(t *testing.T) {
 		nowStr := now.Format(time.RFC3339)
 		value, err := DecodeDateTime(nowStr)
@@ -240,12 +247,12 @@ func TestDecodeDateTime(t *testing.T) {
 
 	t.Run("decode_nil", func(t *testing.T) {
 		_, err := DecodeDateTime(nil)
-		assert.ErrorContains(t, err, "the DateTime value must not be null")
+		assert.ErrorContains(t, err, errDateTimeRequired.Error())
 	})
 
 	t.Run("decode_invalid_type", func(t *testing.T) {
 		_, err := DecodeDateTime(false)
-		assert.ErrorContains(t, err, "failed to convert DateTime, got: false")
+		assert.ErrorContains(t, err, "failed to convert date time, got: false")
 	})
 }
 
@@ -289,7 +296,7 @@ func TestDecodeDate(t *testing.T) {
 
 	t.Run("decode_invalid_type", func(t *testing.T) {
 		_, err := DecodeDate(false)
-		assert.ErrorContains(t, err, "failed to convert Date, got: false")
+		assert.ErrorContains(t, err, "failed to convert date time, got: false")
 	})
 }
 
