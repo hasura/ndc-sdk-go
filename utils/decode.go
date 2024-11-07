@@ -1086,7 +1086,7 @@ func DecodeDateTime(value any, options ...DecodeTimeOption) (time.Time, error) {
 
 // parse date time with fallback ISO8601 formats.
 func parseDateTime(value string) (time.Time, error) {
-	for _, format := range []string{time.RFC3339, "2006-01-02T15:04:05", "2006-01-02T15:04:05Z0700", "2006-01-02T15:04:05-0700", time.RFC3339Nano, time.DateOnly} {
+	for _, format := range []string{time.RFC3339, "2006-01-02T15:04:05Z0700", "2006-01-02T15:04:05-0700", time.RFC3339Nano, "2006-01-02T15:04:05", "2006-01-02 15:04:05", time.DateOnly} {
 		result, err := time.Parse(format, value)
 		if err != nil {
 			continue
