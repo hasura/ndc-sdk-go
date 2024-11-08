@@ -105,6 +105,7 @@ func (j *GroupOrderByTarget) UnmarshalJSON(b []byte) error {
 		}
 
 		results["aggregate"] = aggregate
+	default:
 	}
 
 	*j = results
@@ -340,6 +341,7 @@ func (j *GroupComparisonTarget) UnmarshalJSON(b []byte) error {
 		}
 
 		results["aggregate"] = aggregate
+	default:
 	}
 
 	*j = results
@@ -531,6 +533,7 @@ func (j *GroupComparisonValue) UnmarshalJSON(b []byte) error {
 			return fmt.Errorf("field value in GroupComparisonValue: %w", err)
 		}
 		result["value"] = value
+	default:
 	}
 	*j = result
 	return nil

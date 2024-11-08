@@ -531,6 +531,7 @@ func (j *ArrayComparison) UnmarshalJSON(b []byte) error {
 		}
 
 		results["value"] = value
+	default:
 	}
 
 	*j = results
@@ -751,6 +752,7 @@ func (j *Dimension) UnmarshalJSON(b []byte) error {
 		}
 
 		results["value"] = value
+	default:
 	}
 
 	*j = results
