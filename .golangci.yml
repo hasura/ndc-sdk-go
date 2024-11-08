@@ -35,6 +35,7 @@ linters:
     - tagalign
     - gochecknoinits
     - execinquery
+    - exportloopref
 issues:
   exclude-files:
     - ".*_test\\.go$"

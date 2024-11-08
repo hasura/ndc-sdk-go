@@ -2,26 +2,14 @@
   "scalar_types": {
     "Int": {
       "representation": {
-        "type": "integer"
+        "type": "int32"
       },
       "aggregate_functions": {
         "max": {
-          "result_type": {
-            "type": "nullable",
-            "underlying_type": {
-              "type": "named",
-              "name": "Int"
-            }
-          }
+          "type": "max"
         },
         "min": {
-          "result_type": {
-            "type": "nullable",
-            "underlying_type": {
-              "type": "named",
-              "name": "Int"
-            }
-          }
+          "type": "min"
         }
       },
       "comparison_operators": {
@@ -80,6 +68,16 @@
             "name": "String"
           }
         }
+      },
+      "foreign_keys": {
+        "Article_AuthorID": {
+          "column_mapping": {
+            "author_id": [
+              "id"
+            ]
+          },
+          "foreign_collection": "authors"
+        }
       }
     },
     "author": {
@@ -106,7 +104,8 @@
             "name": "String"
           }
         }
-      }
+      },
+      "foreign_keys": {}
     },
     "institution": {
       "description": "An institution",
@@ -152,7 +151,8 @@
             }
           }
         }
-      }
+      },
+      "foreign_keys": {}
     },
     "location": {
       "description": "A location",
@@ -181,7 +181,8 @@
             "name": "String"
           }
         }
-      }
+      },
+      "foreign_keys": {}
     },
     "staff_member": {
       "description": "A staff member",
@@ -210,7 +211,8 @@
             }
           }
         }
-      }
+      },
+      "foreign_keys": {}
     }
   },
   "collections": [
@@ -225,14 +227,6 @@
             "id"
           ]
         }
-      },
-      "foreign_keys": {
-        "Article_AuthorID": {
-          "column_mapping": {
-            "author_id": "id"
-          },
-          "foreign_collection": "authors"
-        }
       }
     },
     {
@@ -246,8 +240,7 @@
             "id"
           ]
         }
-      },
-      "foreign_keys": {}
+      }
     },
     {
       "name": "institutions",
@@ -260,8 +253,7 @@
             "id"
           ]
         }
-      },
-      "foreign_keys": {}
+      }
     },
     {
       "name": "articles_by_author",
@@ -275,8 +267,7 @@
         }
       },
       "type": "article",
-      "uniqueness_constraints": {},
-      "foreign_keys": {}
+      "uniqueness_constraints": {}
     }
   ],
   "functions": [
@@ -346,5 +337,6 @@
         }
       }
     }
-  ]
+  ],
+  "capabilities": null
 }
