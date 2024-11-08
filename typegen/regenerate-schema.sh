@@ -1,18 +1,32 @@
 #!/usr/bin/env bash
 set -e -o pipefail
 
+if ! command -v jq 2>&1 >/dev/null; then
+  echo "please install jq"
+  exit 1
+fi
+
 if [ ! -f ./go-jsonschema ]; then
-  wget -qO- https://github.com/omissis/go-jsonschema/releases/download/v0.16.0/go-jsonschema_Linux_x86_64.tar.gz | tar xvz
+  wget -qO- https://github.com/omissis/go-jsonschema/releases/download/v0.17.0/go-jsonschema_Linux_x86_64.tar.gz | tar xvz
   chmod +x go-jsonschema
+fi
+
+if ! command -v json-patch 2>&1 >/dev/null; then
+  go get github.com/evanphx/json-patch/cmd/json-patch
+  go install github.com/evanphx/json-patch/cmd/json-patch
+  # cleanup unused json-patch packages
+  go mod tidy
 fi
 
 # download the schema json file from ndc-sdk-typescript repository and regerate schema 
 # wget https://raw.githubusercontent.com/hasura/ndc-sdk-typescript/main/src/schema/schema.generated.json
 
+cat schema.generated.json | json-patch -p schema.patch.json > schema.patched.json
+
 ./go-jsonschema \
   --package=github.com/hasura/ndc-sdk-go/schema \
   --output=../schema/schema.generated.go \
-  schema.generated.json
+  schema.patched.json
 
 # patch some custom types because of the limitation of the generation tool
 sed -i 's/type Field interface{}//g' ../schema/schema.generated.go
@@ -58,11 +72,26 @@ sed -i '/type NestedFieldCapabilities struct {/,/}/s/OrderBy \*OrderBy/OrderBy i
 sed -i '/type Query struct {/,/}/s/OrderBy \interface{}/OrderBy *OrderBy/g' ../schema/schema.generated.go
 sed -i 's/NestedFields interface{}/NestedFields NestedFieldCapabilities/g' ../schema/schema.generated.go
 sed -i 's/plain.NestedFields = map\[string\]interface{}{}/plain.NestedFields = NestedFieldCapabilities{}/g' ../schema/schema.generated.go
-sed -i 's/Exists interface{}/Exists ExistsCapabilities/g' ../schema/schema.generated.go
 sed -i 's/plain.Exists = map\[string\]interface{}{}/plain.Exists = ExistsCapabilities{}/g' ../schema/schema.generated.go
 sed -i 's/Relationships interface{}/Relationships *RelationshipCapabilities/g' ../schema/schema.generated.go
+sed -i 's/type GroupOrderByTarget interface{}//g' ../schema/schema.generated.go
+sed -i 's/type AggregateFunctionDefinition interface{}//g' ../schema/schema.generated.go
+sed -i 's/type ArrayComparison interface{}//g' ../schema/schema.generated.go
+sed -i 's/type Dimension interface{}//g' ../schema/schema.generated.go
+sed -i 's/type GroupComparisonTarget interface{}//g' ../schema/schema.generated.go
+sed -i 's/type GroupComparisonValue interface{}//g' ../schema/schema.generated.go
+sed -i 's/type GroupExpression interface{}//g' ../schema/schema.generated.go
+sed -i 's/type RowFieldValue interface{}//g' ../schema/schema.generated.go
+sed -i 's/\[\]GroupingDimensionsElem/[]Dimension/g' ../schema/schema.generated.go
+sed -i 's/type GroupingDimensionsElem interface{}//g' ../schema/schema.generated.go
+sed -i 's/type GroupingAggregates map\[string\]interface{}/type GroupingAggregates map[string]Aggregate/g' ../schema/schema.generated.go
+sed -i 's/order_by,omitempty/order_by/g' ../schema/schema.generated.go
+sed -i 's/variables,omitempty/variables/g' ../schema/schema.generated.go
+sed -i 's/order_by_aggregate,omitempty/order_by_aggregate/g' ../schema/schema.generated.go
+sed -i 's/relation_comparisons,omitempty/relation_comparisons/g' ../schema/schema.generated.go
+sed -i 's/type ScalarTypeAggregateFunctions map\[string\]interface{}/type ScalarTypeAggregateFunctions map[string]AggregateFunctionDefinition/g' ../schema/schema.generated.go
 
 # format codes
 gofmt -w -s ../
 
-cp schema.generated.json ../schema/schema.generated.json
+cat schema.patched.json | jq . > ../schema/schema.generated.json

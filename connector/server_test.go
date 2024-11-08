@@ -22,15 +22,15 @@ type mockState struct{}
 type mockConnector struct{}
 
 var mockCapabilities = schema.CapabilitiesResponse{
-	Version: "^0.1.6",
+	Version: "^0.2.0",
 	Capabilities: schema.Capabilities{
 		Query: schema.QueryCapabilities{
-			Aggregates: map[string]any{},
-			Variables:  map[string]any{},
+			Aggregates: &schema.AggregateCapabilities{},
+			Variables:  schema.LeafCapability{},
 		},
 		Relationships: &schema.RelationshipCapabilities{
-			OrderByAggregate:    map[string]any{},
-			RelationComparisons: map[string]any{},
+			OrderByAggregate:    schema.LeafCapability{},
+			RelationComparisons: schema.LeafCapability{},
 		},
 	},
 }
@@ -42,17 +42,15 @@ var mockSchema = schema.SchemaResponse{
 			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
 				"like": schema.NewComparisonOperatorCustom(schema.NewNamedType("String")).Encode(),
 			},
+			Representation: schema.NewTypeRepresentationString().Encode(),
 		},
 		"Int": schema.ScalarType{
 			AggregateFunctions: schema.ScalarTypeAggregateFunctions{
-				"max": schema.AggregateFunctionDefinition{
-					ResultType: schema.NewNullableNamedType("Int").Encode(),
-				},
-				"min": schema.AggregateFunctionDefinition{
-					ResultType: schema.NewNullableNamedType("Int").Encode(),
-				},
+				"max": schema.NewAggregateFunctionDefinitionMax().Encode(),
+				"min": schema.NewAggregateFunctionDefinitionMin().Encode(),
 			},
 			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+			Representation:      schema.NewTypeRepresentationInt32().Encode(),
 		},
 	},
 	ObjectTypes: schema.SchemaResponseObjectTypes{
@@ -72,13 +70,14 @@ var mockSchema = schema.SchemaResponse{
 					Type:        schema.NewNamedType("Int").Encode(),
 				},
 			},
+			ForeignKeys: schema.ObjectTypeForeignKeys{},
 		},
 	},
 	Collections: []schema.CollectionInfo{
 		{
 			Name:        "articles",
+			Type:        "articles",
 			Description: utils.ToPtr("A collection of articles"),
-			ForeignKeys: schema.CollectionInfoForeignKeys{},
 			Arguments:   schema.CollectionInfoArguments{},
 			UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
 				"ArticleByID": schema.UniquenessConstraint{

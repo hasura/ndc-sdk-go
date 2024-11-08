@@ -27,18 +27,6 @@ const (
 	TypeRepresentationTypeBoolean TypeRepresentationType = "boolean"
 	// JSON booleans.
 	TypeRepresentationTypeString TypeRepresentationType = "string"
-	// Any JSON number
-	//
-	// Deprecated: [Deprecate Int and Number representations]
-	//
-	// [Deprecate Int and Number representations]: https://github.com/hasura/ndc-spec/blob/main/rfcs/0007-additional-type-representations.md#deprecate-int-and-number-representations
-	TypeRepresentationTypeNumber TypeRepresentationType = "number"
-	// Any JSON number, with no decimal part
-	//
-	// Deprecated: [Deprecate Int and Number representations]
-	//
-	// [Deprecate Int and Number representations]: https://github.com/hasura/ndc-spec/blob/main/rfcs/0007-additional-type-representations.md#deprecate-int-and-number-representations
-	TypeRepresentationTypeInteger TypeRepresentationType = "integer"
 	// One of the specified string values.
 	TypeRepresentationTypeEnum TypeRepresentationType = "enum"
 	// A 8-bit signed integer with a minimum value of -2^7 and a maximum value of 2^7 - 1.
@@ -78,8 +66,6 @@ const (
 var enumValues_TypeRepresentationType = []TypeRepresentationType{
 	TypeRepresentationTypeBoolean,
 	TypeRepresentationTypeString,
-	TypeRepresentationTypeNumber,
-	TypeRepresentationTypeInteger,
 	TypeRepresentationTypeEnum,
 	TypeRepresentationTypeInt8,
 	TypeRepresentationTypeInt16,
@@ -218,44 +204,6 @@ func (ty TypeRepresentation) AsString() (*TypeRepresentationString, error) {
 	}
 
 	return &TypeRepresentationString{
-		Type: t,
-	}, nil
-}
-
-// AsNumber tries to convert the current type to TypeRepresentationNumber
-//
-// Deprecated: [Deprecate Int and Number representations]
-//
-// [Deprecate Int and Number representations]: https://github.com/hasura/ndc-spec/blob/main/rfcs/0007-additional-type-representations.md#deprecate-int-and-number-representations
-func (ty TypeRepresentation) AsNumber() (*TypeRepresentationNumber, error) {
-	t, err := ty.Type()
-	if err != nil {
-		return nil, err
-	}
-	if t != TypeRepresentationTypeNumber {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeNumber, t)
-	}
-
-	return &TypeRepresentationNumber{
-		Type: t,
-	}, nil
-}
-
-// AsInteger tries to convert the current type to TypeRepresentationInteger
-//
-// Deprecated: [Deprecate Int and Number representations]
-//
-// [Deprecate Int and Number representations]: https://github.com/hasura/ndc-spec/blob/main/rfcs/0007-additional-type-representations.md#deprecate-int-and-number-representations
-func (ty TypeRepresentation) AsInteger() (*TypeRepresentationInteger, error) {
-	t, err := ty.Type()
-	if err != nil {
-		return nil, err
-	}
-	if t != TypeRepresentationTypeInteger {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeInteger, t)
-	}
-
-	return &TypeRepresentationInteger{
 		Type: t,
 	}, nil
 }
@@ -550,10 +498,6 @@ func (ty TypeRepresentation) InterfaceT() (TypeRepresentationEncoder, error) {
 		return ty.AsBoolean()
 	case TypeRepresentationTypeString:
 		return ty.AsString()
-	case TypeRepresentationTypeNumber:
-		return ty.AsNumber()
-	case TypeRepresentationTypeInteger:
-		return ty.AsInteger()
 	case TypeRepresentationTypeEnum:
 		return ty.AsEnum()
 	case TypeRepresentationTypeInt8:
@@ -631,52 +575,6 @@ func NewTypeRepresentationString() *TypeRepresentationString {
 
 // Encode returns the raw TypeRepresentation instance.
 func (ty TypeRepresentationString) Encode() TypeRepresentation {
-	return map[string]any{
-		"type": ty.Type,
-	}
-}
-
-// TypeRepresentationNumber represents a JSON number type representation
-//
-// Deprecated: [Deprecate Int and Number representations]
-//
-// [Deprecate Int and Number representations]: https://github.com/hasura/ndc-spec/blob/main/rfcs/0007-additional-type-representations.md#deprecate-int-and-number-representations
-type TypeRepresentationNumber struct {
-	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
-}
-
-// NewTypeRepresentationNumber creates a new TypeRepresentationNumber instance.
-func NewTypeRepresentationNumber() *TypeRepresentationNumber {
-	return &TypeRepresentationNumber{
-		Type: TypeRepresentationTypeNumber,
-	}
-}
-
-// Encode returns the raw TypeRepresentation instance.
-func (ty TypeRepresentationNumber) Encode() TypeRepresentation {
-	return map[string]any{
-		"type": ty.Type,
-	}
-}
-
-// TypeRepresentationInteger represents a JSON integer type representation
-//
-// Deprecated: [Deprecate Int and Number representations]
-//
-// [Deprecate Int and Number representations]: https://github.com/hasura/ndc-spec/blob/main/rfcs/0007-additional-type-representations.md#deprecate-int-and-number-representations
-type TypeRepresentationInteger struct {
-	Type TypeRepresentationType `json:"type" yaml:"type" mapstructure:"type"`
-}
-
-// NewTypeRepresentationInteger creates a new TypeRepresentationInteger instance.
-func NewTypeRepresentationInteger() *TypeRepresentationInteger {
-	return &TypeRepresentationInteger{
-		Type: TypeRepresentationTypeInteger,
-	}
-}
-
-// Encode returns the raw TypeRepresentation instance.
-func (ty TypeRepresentationInteger) Encode() TypeRepresentation {
 	return map[string]any{
 		"type": ty.Type,
 	}

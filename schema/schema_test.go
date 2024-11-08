@@ -84,7 +84,7 @@ func TestQueryRequest(t *testing.T) {
 						"author_articles": {
 								"arguments": {},
 								"column_mapping": {
-										"id": "author_id"
+										"id": ["author_id"]
 								},
 								"relationship_type": "array",
 								"target_collection": "articles"
@@ -111,7 +111,7 @@ func TestQueryRequest(t *testing.T) {
 				CollectionRelationships: QueryRequestCollectionRelationships{
 					"author_articles": Relationship{
 						ColumnMapping: RelationshipColumnMapping{
-							"id": "author_id",
+							"id": []string{"author_id"},
 						},
 						RelationshipType: RelationshipTypeArray,
 						TargetCollection: "articles",
@@ -338,7 +338,7 @@ func TestQueryRequest(t *testing.T) {
 						"author_articles": {
 								"arguments": {},
 								"column_mapping": {
-										"id": "author_id"
+										"id": ["author_id"]
 								},
 								"relationship_type": "array",
 								"target_collection": "articles"
@@ -375,7 +375,7 @@ func TestQueryRequest(t *testing.T) {
 					"author_articles": Relationship{
 						Arguments: RelationshipArguments{},
 						ColumnMapping: RelationshipColumnMapping{
-							"id": "author_id",
+							"id": []string{"author_id"},
 						},
 						RelationshipType: RelationshipTypeArray,
 						TargetCollection: "articles",
@@ -434,7 +434,7 @@ func TestQueryRequest(t *testing.T) {
 						"author_articles": {
 								"arguments": {},
 								"column_mapping": {
-										"id": "author_id"
+										"id": ["author_id"]
 								},
 								"relationship_type": "array",
 								"source_collection_or_type": "author",
@@ -472,7 +472,7 @@ func TestQueryRequest(t *testing.T) {
 					"author_articles": Relationship{
 						Arguments: RelationshipArguments{},
 						ColumnMapping: RelationshipColumnMapping{
-							"id": "author_id",
+							"id": []string{"author_id"},
 						},
 						RelationshipType: RelationshipTypeArray,
 						TargetCollection: "articles",

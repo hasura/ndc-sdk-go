@@ -847,7 +847,7 @@ var enumValues_ExpressionType = []ExpressionType{
 	ExpressionTypeExists,
 }
 
-// ParseExpressionType parses a comparison target type argument type from string.
+// ParseExpressionType parses an expression type argument type from string.
 func ParseExpressionType(input string) (ExpressionType, error) {
 	result := ExpressionType(input)
 	if !result.IsValid() {
@@ -3359,5 +3359,21 @@ func (ob NestedArray) Encode() NestedField {
 	return NestedField{
 		"type":   ob.Type,
 		"fields": ob.Fields,
+	}
+}
+
+// NewObjectType creates a new object type
+func NewObjectType(fields ObjectTypeFields, foreignKeys ObjectTypeForeignKeys, description *string) ObjectType {
+	if fields == nil {
+		fields = ObjectTypeFields{}
+	}
+	if foreignKeys == nil {
+		foreignKeys = ObjectTypeForeignKeys{}
+	}
+
+	return ObjectType{
+		Fields:      fields,
+		ForeignKeys: foreignKeys,
+		Description: description,
 	}
 }

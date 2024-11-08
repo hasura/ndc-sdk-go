@@ -6,29 +6,44 @@ import "encoding/json"
 import "fmt"
 import "reflect"
 
-// The definition of an aggregation function on a scalar type
-type AggregateFunctionDefinition struct {
-	// The scalar or object type of the result of this function
-	ResultType Type `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+type AggregateCapabilities struct {
+	// Does the connector support filtering based on aggregated values
+	FilterBy LeafCapability `json:"filter_by,omitempty" yaml:"filter_by,omitempty" mapstructure:"filter_by,omitempty"`
+
+	// Does the connector support aggregations over groups
+	GroupBy *GroupByCapabilities `json:"group_by,omitempty" yaml:"group_by,omitempty" mapstructure:"group_by,omitempty"`
+}
+
+type AggregateCapabilitiesSchemaInfo struct {
+	// Schema information relevant to the aggregates.filter_by capability
+	FilterBy *AggregateFilterByCapabilitiesSchemaInfo `json:"filter_by,omitempty" yaml:"filter_by,omitempty" mapstructure:"filter_by,omitempty"`
+}
+
+type AggregateFilterByCapabilitiesSchemaInfo struct {
+	// The scalar type which should be used for the return type of count (star_count
+	// and column_count) operations.
+	CountScalarType string `json:"count_scalar_type" yaml:"count_scalar_type" mapstructure:"count_scalar_type"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *AggregateFunctionDefinition) UnmarshalJSON(b []byte) error {
+func (j *AggregateFilterByCapabilitiesSchemaInfo) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-	if _, ok := raw["result_type"]; raw != nil && !ok {
-		return fmt.Errorf("field result_type in AggregateFunctionDefinition: required")
+	if _, ok := raw["count_scalar_type"]; raw != nil && !ok {
+		return fmt.Errorf("field count_scalar_type in AggregateFilterByCapabilitiesSchemaInfo: required")
 	}
-	type Plain AggregateFunctionDefinition
+	type Plain AggregateFilterByCapabilitiesSchemaInfo
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	*j = AggregateFunctionDefinition(plain)
+	*j = AggregateFilterByCapabilitiesSchemaInfo(plain)
 	return nil
 }
+
+// The definition of an aggregation function on a scalar type
 
 type ArgumentInfo struct {
 	// Argument description
@@ -118,15 +133,17 @@ func (j *Capabilities) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+type CapabilitySchemaInfo struct {
+	// Schema information relevant to query capabilities
+	Query Query `json:"query,omitempty" yaml:"query,omitempty" mapstructure:"query,omitempty"`
+}
+
 type CollectionInfo struct {
 	// Any arguments that this collection requires
 	Arguments CollectionInfoArguments `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 
 	// Description of the collection
 	Description *string `json:"description,omitempty" yaml:"description,omitempty" mapstructure:"description,omitempty"`
-
-	// Any foreign key constraints enforced on this collection
-	ForeignKeys CollectionInfoForeignKeys `json:"foreign_keys" yaml:"foreign_keys" mapstructure:"foreign_keys"`
 
 	// The name of the collection
 	//
@@ -144,9 +161,6 @@ type CollectionInfo struct {
 // Any arguments that this collection requires
 type CollectionInfoArguments map[string]ArgumentInfo
 
-// Any foreign key constraints enforced on this collection
-type CollectionInfoForeignKeys map[string]ForeignKeyConstraint
-
 // Any uniqueness constraints enforced on this collection
 type CollectionInfoUniquenessConstraints map[string]UniquenessConstraint
 
@@ -158,9 +172,6 @@ func (j *CollectionInfo) UnmarshalJSON(b []byte) error {
 	}
 	if _, ok := raw["arguments"]; raw != nil && !ok {
 		return fmt.Errorf("field arguments in CollectionInfo: required")
-	}
-	if _, ok := raw["foreign_keys"]; raw != nil && !ok {
-		return fmt.Errorf("field foreign_keys in CollectionInfo: required")
 	}
 	if _, ok := raw["name"]; raw != nil && !ok {
 		return fmt.Errorf("field name in CollectionInfo: required")
@@ -212,8 +223,20 @@ func (j *ErrorResponse) UnmarshalJSON(b []byte) error {
 }
 
 type ExistsCapabilities struct {
+	// Does the connector support named scopes in column references inside EXISTS
+	// predicates
+	NamedScopes LeafCapability `json:"named_scopes,omitempty" yaml:"named_scopes,omitempty" mapstructure:"named_scopes,omitempty"`
+
 	// Does the connector support ExistsInCollection::NestedCollection
-	NestedCollections interface{} `json:"nested_collections,omitempty" yaml:"nested_collections,omitempty" mapstructure:"nested_collections,omitempty"`
+	NestedCollections LeafCapability `json:"nested_collections,omitempty" yaml:"nested_collections,omitempty" mapstructure:"nested_collections,omitempty"`
+
+	// Does the connector support filtering over nested scalar arrays using
+	// existential quantification. This means the connector must support
+	// ExistsInCollection::NestedScalarCollection.
+	NestedScalarCollections LeafCapability `json:"nested_scalar_collections,omitempty" yaml:"nested_scalar_collections,omitempty" mapstructure:"nested_scalar_collections,omitempty"`
+
+	// Does the connector support ExistsInCollection::Unrelated
+	Unrelated LeafCapability `json:"unrelated,omitempty" yaml:"unrelated,omitempty" mapstructure:"unrelated,omitempty"`
 }
 
 type ExplainResponse struct {
@@ -249,15 +272,27 @@ func (j *ExplainResponse) UnmarshalJSON(b []byte) error {
 }
 
 type ForeignKeyConstraint struct {
-	// The columns on which you want want to define the foreign key.
+	// The columns on which you want want to define the foreign key. This is a mapping
+	// between fields on object type to columns on the foreign collection. The column
+	// on the foreign collection is specified via a field path (ie. an array of field
+	// names that descend through nested object fields). The field path must only
+	// contain a single item, meaning a column on the foreign collection's type,
+	// unless the 'relationships.nested' capability is supported, in which case
+	// multiple items can be used to denote a nested object field.
 	ColumnMapping ForeignKeyConstraintColumnMapping `json:"column_mapping" yaml:"column_mapping" mapstructure:"column_mapping"`
 
 	// The name of a collection
 	ForeignCollection string `json:"foreign_collection" yaml:"foreign_collection" mapstructure:"foreign_collection"`
 }
 
-// The columns on which you want want to define the foreign key.
-type ForeignKeyConstraintColumnMapping map[string]string
+// The columns on which you want want to define the foreign key. This is a mapping
+// between fields on object type to columns on the foreign collection. The column
+// on the foreign collection is specified via a field path (ie. an array of field
+// names that descend through nested object fields). The field path must only
+// contain a single item, meaning a column on the foreign collection's type, unless
+// the 'relationships.nested' capability is supported, in which case multiple items
+// can be used to denote a nested object field.
+type ForeignKeyConstraintColumnMapping map[string][]string
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *ForeignKeyConstraint) UnmarshalJSON(b []byte) error {
@@ -321,27 +356,172 @@ func (j *FunctionInfo) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+type Group struct {
+	// Aggregates computed within this group
+	Aggregates GroupAggregates `json:"aggregates" yaml:"aggregates" mapstructure:"aggregates"`
+
+	// Values of dimensions which identify this group
+	Dimensions []interface{} `json:"dimensions" yaml:"dimensions" mapstructure:"dimensions"`
+}
+
+// Aggregates computed within this group
+type GroupAggregates map[string]interface{}
+
+type GroupByCapabilities struct {
+	// Does the connector support post-grouping predicates
+	Filter LeafCapability `json:"filter,omitempty" yaml:"filter,omitempty" mapstructure:"filter,omitempty"`
+
+	// Does the connector support post-grouping ordering
+	Order LeafCapability `json:"order,omitempty" yaml:"order,omitempty" mapstructure:"order,omitempty"`
+
+	// Does the connector support post-grouping pagination
+	Paginate LeafCapability `json:"paginate,omitempty" yaml:"paginate,omitempty" mapstructure:"paginate,omitempty"`
+}
+
+type GroupOrderBy struct {
+	// The elements to order by, in priority order
+	Elements []GroupOrderByElement `json:"elements" yaml:"elements" mapstructure:"elements"`
+}
+
+type GroupOrderByElement struct {
+	// OrderDirection corresponds to the JSON schema field "order_direction".
+	OrderDirection OrderDirection `json:"order_direction" yaml:"order_direction" mapstructure:"order_direction"`
+
+	// Target corresponds to the JSON schema field "target".
+	Target GroupOrderByTarget `json:"target" yaml:"target" mapstructure:"target"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *GroupOrderByElement) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["order_direction"]; raw != nil && !ok {
+		return fmt.Errorf("field order_direction in GroupOrderByElement: required")
+	}
+	if _, ok := raw["target"]; raw != nil && !ok {
+		return fmt.Errorf("field target in GroupOrderByElement: required")
+	}
+	type Plain GroupOrderByElement
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = GroupOrderByElement(plain)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *GroupOrderBy) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["elements"]; raw != nil && !ok {
+		return fmt.Errorf("field elements in GroupOrderBy: required")
+	}
+	type Plain GroupOrderBy
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = GroupOrderBy(plain)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Group) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["aggregates"]; raw != nil && !ok {
+		return fmt.Errorf("field aggregates in Group: required")
+	}
+	if _, ok := raw["dimensions"]; raw != nil && !ok {
+		return fmt.Errorf("field dimensions in Group: required")
+	}
+	type Plain Group
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = Group(plain)
+	return nil
+}
+
+type Grouping struct {
+	// Aggregates to compute in each group
+	Aggregates GroupingAggregates `json:"aggregates" yaml:"aggregates" mapstructure:"aggregates"`
+
+	// Dimensions along which to partition the data
+	Dimensions []Dimension `json:"dimensions" yaml:"dimensions" mapstructure:"dimensions"`
+
+	// Optionally limit to N groups Only used if the
+	// 'query.aggregates.group_by.paginate' capability is supported.
+	Limit *int `json:"limit,omitempty" yaml:"limit,omitempty" mapstructure:"limit,omitempty"`
+
+	// Optionally offset from the Nth group Only used if the
+	// 'query.aggregates.group_by.paginate' capability is supported.
+	Offset *int `json:"offset,omitempty" yaml:"offset,omitempty" mapstructure:"offset,omitempty"`
+
+	// Optionally specify how groups should be ordered Only used if the
+	// 'query.aggregates.group_by.order' capability is supported.
+	OrderBy *GroupOrderBy `json:"order_by" yaml:"order_by" mapstructure:"order_by"`
+
+	// Optionally specify a predicate to apply after grouping rows. Only used if the
+	// 'query.aggregates.group_by.filter' capability is supported.
+	Predicate Expression `json:"predicate,omitempty" yaml:"predicate,omitempty" mapstructure:"predicate,omitempty"`
+}
+
+// Aggregates to compute in each group
+type GroupingAggregates map[string]Aggregate
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Grouping) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["aggregates"]; raw != nil && !ok {
+		return fmt.Errorf("field aggregates in Grouping: required")
+	}
+	if _, ok := raw["dimensions"]; raw != nil && !ok {
+		return fmt.Errorf("field dimensions in Grouping: required")
+	}
+	type Plain Grouping
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = Grouping(plain)
+	return nil
+}
+
 // A unit value to indicate a particular leaf capability is supported. This is an
 // empty struct to allow for future sub-capabilities.
 type LeafCapability map[string]interface{}
 
 type MutationCapabilities struct {
 	// Does the connector support explaining mutations
-	Explain interface{} `json:"explain,omitempty" yaml:"explain,omitempty" mapstructure:"explain,omitempty"`
+	Explain LeafCapability `json:"explain,omitempty" yaml:"explain,omitempty" mapstructure:"explain,omitempty"`
 
 	// Does the connector support executing multiple mutations in a transaction.
-	Transactional interface{} `json:"transactional,omitempty" yaml:"transactional,omitempty" mapstructure:"transactional,omitempty"`
+	Transactional LeafCapability `json:"transactional,omitempty" yaml:"transactional,omitempty" mapstructure:"transactional,omitempty"`
 }
 
 type MutationRequest struct {
-	// The relationships between collections involved in the entire mutation request
+	// The relationships between collections involved in the entire mutation request.
+	// Only used if the 'relationships' capability is supported.
 	CollectionRelationships MutationRequestCollectionRelationships `json:"collection_relationships" yaml:"collection_relationships" mapstructure:"collection_relationships"`
 
 	// The mutation operations to perform
 	Operations []MutationOperation `json:"operations" yaml:"operations" mapstructure:"operations"`
 }
 
-// The relationships between collections involved in the entire mutation request
+// The relationships between collections involved in the entire mutation request.
+// Only used if the 'relationships' capability is supported.
 type MutationRequestCollectionRelationships map[string]Relationship
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -388,15 +568,43 @@ func (j *MutationResponse) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+type NestedArrayFilterByCapabilities struct {
+	// Does the connector support filtering over nested arrays by checking if the
+	// array contains a value. This must be supported for all types that can be
+	// contained in an array that implement an 'eq' comparison operator.
+	Contains LeafCapability `json:"contains,omitempty" yaml:"contains,omitempty" mapstructure:"contains,omitempty"`
+
+	// Does the connector support filtering over nested arrays by checking if the
+	// array is empty. This must be supported no matter what type is contained in the
+	// array.
+	IsEmpty LeafCapability `json:"is_empty,omitempty" yaml:"is_empty,omitempty" mapstructure:"is_empty,omitempty"`
+}
+
 type NestedFieldCapabilities struct {
 	// Does the connector support aggregating values within nested fields
-	Aggregates interface{} `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
+	Aggregates LeafCapability `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
 
 	// Does the connector support filtering by values of nested fields
-	FilterBy interface{} `json:"filter_by,omitempty" yaml:"filter_by,omitempty" mapstructure:"filter_by,omitempty"`
+	FilterBy *NestedFieldFilterByCapabilities `json:"filter_by,omitempty" yaml:"filter_by,omitempty" mapstructure:"filter_by,omitempty"`
+
+	// Does the connector support nested collection queries using
+	// `NestedField::NestedCollection`
+	NestedCollections LeafCapability `json:"nested_collections,omitempty" yaml:"nested_collections,omitempty" mapstructure:"nested_collections,omitempty"`
 
 	// Does the connector support ordering by values of nested fields
-	OrderBy interface{} `json:"order_by,omitempty" yaml:"order_by,omitempty" mapstructure:"order_by,omitempty"`
+	OrderBy LeafCapability `json:"order_by" yaml:"order_by" mapstructure:"order_by"`
+}
+
+type NestedFieldFilterByCapabilities struct {
+	// Does the connector support filtering over nested arrays (ie.
+	// Expression::ArrayComparison)
+	NestedArrays *NestedArrayFilterByCapabilities `json:"nested_arrays,omitempty" yaml:"nested_arrays,omitempty" mapstructure:"nested_arrays,omitempty"`
+}
+
+type NestedRelationshipCapabilities struct {
+	// Does the connector support navigating a relationship from inside a nested
+	// object inside a nested array
+	Array LeafCapability `json:"array,omitempty" yaml:"array,omitempty" mapstructure:"array,omitempty"`
 }
 
 // The definition of an object field
@@ -441,10 +649,16 @@ type ObjectType struct {
 
 	// Fields defined on this object type
 	Fields ObjectTypeFields `json:"fields" yaml:"fields" mapstructure:"fields"`
+
+	// Any foreign keys defined for this object type's columns
+	ForeignKeys ObjectTypeForeignKeys `json:"foreign_keys" yaml:"foreign_keys" mapstructure:"foreign_keys"`
 }
 
 // Fields defined on this object type
 type ObjectTypeFields map[string]ObjectField
+
+// Any foreign keys defined for this object type's columns
+type ObjectTypeForeignKeys map[string]ForeignKeyConstraint
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *ObjectType) UnmarshalJSON(b []byte) error {
@@ -454,6 +668,9 @@ func (j *ObjectType) UnmarshalJSON(b []byte) error {
 	}
 	if _, ok := raw["fields"]; raw != nil && !ok {
 		return fmt.Errorf("field fields in ObjectType: required")
+	}
+	if _, ok := raw["foreign_keys"]; raw != nil && !ok {
+		return fmt.Errorf("field foreign_keys in ObjectType: required")
 	}
 	type Plain ObjectType
 	var plain Plain
@@ -550,6 +767,11 @@ type PathElement struct {
 	// Values to be provided to any collection arguments
 	Arguments PathElementArguments `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 
+	// Path to a nested field within an object column that must be navigated before
+	// the relationship is navigated. Only non-empty if the 'relationships.nested'
+	// capability is supported.
+	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path,omitempty"`
+
 	// A predicate expression to apply to the target collection
 	Predicate Expression `json:"predicate,omitempty" yaml:"predicate,omitempty" mapstructure:"predicate,omitempty"`
 
@@ -623,11 +845,16 @@ func (j *ProcedureInfo) UnmarshalJSON(b []byte) error {
 }
 
 type Query struct {
-	// Aggregate fields of the query
+	// Aggregate fields of the query. Only used if the 'query.aggregates' capability
+	// is supported.
 	Aggregates QueryAggregates `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
 
 	// Fields of the query
 	Fields QueryFields `json:"fields,omitempty" yaml:"fields,omitempty" mapstructure:"fields,omitempty"`
+
+	// Optionally group and aggregate the selected rows. Only used if the
+	// 'query.aggregates.group_by' capability is supported.
+	Groups *Query `json:"groups,omitempty" yaml:"groups,omitempty" mapstructure:"groups,omitempty"`
 
 	// Optionally limit to N results
 	Limit *int `json:"limit,omitempty" yaml:"limit,omitempty" mapstructure:"limit,omitempty"`
@@ -635,31 +862,37 @@ type Query struct {
 	// Optionally offset from the Nth result
 	Offset *int `json:"offset,omitempty" yaml:"offset,omitempty" mapstructure:"offset,omitempty"`
 
-	// OrderBy corresponds to the JSON schema field "order_by".
-	OrderBy *OrderBy `json:"order_by,omitempty" yaml:"order_by,omitempty" mapstructure:"order_by,omitempty"`
+	// Optionally specify how rows should be ordered
+	OrderBy *OrderBy `json:"order_by" yaml:"order_by" mapstructure:"order_by"`
 
-	// Predicate corresponds to the JSON schema field "predicate".
+	// Optionally specify a predicate to apply to the rows
 	Predicate Expression `json:"predicate,omitempty" yaml:"predicate,omitempty" mapstructure:"predicate,omitempty"`
 }
 
-// Aggregate fields of the query
+// Aggregate fields of the query. Only used if the 'query.aggregates' capability is
+// supported.
 type QueryAggregates map[string]Aggregate
 
 type QueryCapabilities struct {
 	// Does the connector support aggregate queries
-	Aggregates interface{} `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
+	Aggregates *AggregateCapabilities `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
 
 	// Does the connector support EXISTS predicates
 	Exists ExistsCapabilities `json:"exists,omitempty" yaml:"exists,omitempty" mapstructure:"exists,omitempty"`
 
 	// Does the connector support explaining queries
-	Explain interface{} `json:"explain,omitempty" yaml:"explain,omitempty" mapstructure:"explain,omitempty"`
+	Explain LeafCapability `json:"explain,omitempty" yaml:"explain,omitempty" mapstructure:"explain,omitempty"`
 
 	// Does the connector support nested fields
 	NestedFields NestedFieldCapabilities `json:"nested_fields,omitempty" yaml:"nested_fields,omitempty" mapstructure:"nested_fields,omitempty"`
 
 	// Does the connector support queries which use variables
-	Variables interface{} `json:"variables,omitempty" yaml:"variables,omitempty" mapstructure:"variables,omitempty"`
+	Variables LeafCapability `json:"variables" yaml:"variables" mapstructure:"variables"`
+}
+
+type QueryCapabilitiesSchemaInfo struct {
+	// Schema information relevant to aggregate query capabilities
+	Aggregates *AggregateCapabilitiesSchemaInfo `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -694,21 +927,24 @@ type QueryRequest struct {
 	// The name of a collection
 	Collection string `json:"collection" yaml:"collection" mapstructure:"collection"`
 
-	// Any relationships between collections involved in the query request
+	// Any relationships between collections involved in the query request. Only used
+	// if the 'relationships' capability is supported.
 	CollectionRelationships QueryRequestCollectionRelationships `json:"collection_relationships" yaml:"collection_relationships" mapstructure:"collection_relationships"`
 
 	// The query syntax tree
 	Query Query `json:"query" yaml:"query" mapstructure:"query"`
 
 	// One set of named variables for each rowset to fetch. Each variable set should
-	// be subtituted in turn, and a fresh set of rows returned.
-	Variables []QueryRequestVariablesElem `json:"variables,omitempty" yaml:"variables,omitempty" mapstructure:"variables,omitempty"`
+	// be subtituted in turn, and a fresh set of rows returned. Only used if the
+	// 'query.variables' capability is supported.
+	Variables []QueryRequestVariablesElem `json:"variables" yaml:"variables" mapstructure:"variables"`
 }
 
 // Values to be provided to any collection arguments
 type QueryRequestArguments map[string]Argument
 
-// Any relationships between collections involved in the query request
+// Any relationships between collections involved in the query request. Only used
+// if the 'relationships' capability is supported.
 type QueryRequestCollectionRelationships map[string]Relationship
 
 type QueryRequestVariablesElem map[string]interface{}
@@ -748,8 +984,12 @@ type Relationship struct {
 	// Values to be provided to any collection arguments
 	Arguments RelationshipArguments `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
 
-	// A mapping between columns on the source collection to columns on the target
-	// collection
+	// A mapping between columns on the source row to columns on the target
+	// collection. The column on the target collection is specified via a field path
+	// (ie. an array of field names that descend through nested object fields). The
+	// field path will only contain a single item, meaning a column on the target
+	// collection's type, unless the 'relationships.nested' capability is supported,
+	// in which case multiple items denotes a nested object field.
 	ColumnMapping RelationshipColumnMapping `json:"column_mapping" yaml:"column_mapping" mapstructure:"column_mapping"`
 
 	// RelationshipType corresponds to the JSON schema field "relationship_type".
@@ -763,17 +1003,25 @@ type Relationship struct {
 type RelationshipArguments map[string]RelationshipArgument
 
 type RelationshipCapabilities struct {
+	// Does the connector support navigating a relationship from inside a nested
+	// object
+	Nested *NestedRelationshipCapabilities `json:"nested,omitempty" yaml:"nested,omitempty" mapstructure:"nested,omitempty"`
+
 	// Does the connector support ordering by an aggregated array relationship?
-	OrderByAggregate interface{} `json:"order_by_aggregate,omitempty" yaml:"order_by_aggregate,omitempty" mapstructure:"order_by_aggregate,omitempty"`
+	OrderByAggregate LeafCapability `json:"order_by_aggregate" yaml:"order_by_aggregate" mapstructure:"order_by_aggregate"`
 
 	// Does the connector support comparisons that involve related collections (ie.
 	// joins)?
-	RelationComparisons interface{} `json:"relation_comparisons,omitempty" yaml:"relation_comparisons,omitempty" mapstructure:"relation_comparisons,omitempty"`
+	RelationComparisons LeafCapability `json:"relation_comparisons" yaml:"relation_comparisons" mapstructure:"relation_comparisons"`
 }
 
-// A mapping between columns on the source collection to columns on the target
-// collection
-type RelationshipColumnMapping map[string]string
+// A mapping between columns on the source row to columns on the target collection.
+// The column on the target collection is specified via a field path (ie. an array
+// of field names that descend through nested object fields). The field path will
+// only contain a single item, meaning a column on the target collection's type,
+// unless the 'relationships.nested' capability is supported, in which case
+// multiple items denotes a nested object field.
+type RelationshipColumnMapping map[string][]string
 
 type RelationshipType string
 
@@ -832,11 +1080,12 @@ func (j *Relationship) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-type RowFieldValue interface{}
-
 type RowSet struct {
 	// The results of the aggregates returned by the query
 	Aggregates RowSetAggregates `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
+
+	// The results of any grouping operation
+	Groups []Group `json:"groups,omitempty" yaml:"groups,omitempty" mapstructure:"groups,omitempty"`
 
 	// The rows returned by the query, corresponding to the query's fields
 	Rows []map[string]any `json:"rows,omitempty" yaml:"rows,omitempty" mapstructure:"rows,omitempty"`
@@ -856,9 +1105,8 @@ type ScalarType struct {
 	// must be defined scalar types declared in ScalarTypesCapabilities.
 	ComparisonOperators map[string]ComparisonOperatorDefinition `json:"comparison_operators" yaml:"comparison_operators" mapstructure:"comparison_operators"`
 
-	// A description of valid values for this scalar type. Defaults to
-	// `TypeRepresentation::JSON` if omitted
-	Representation TypeRepresentation `json:"representation,omitempty" yaml:"representation,omitempty" mapstructure:"representation,omitempty"`
+	// A description of valid values for this scalar type.
+	Representation TypeRepresentation `json:"representation" yaml:"representation" mapstructure:"representation"`
 }
 
 // A map from aggregate function names to their definitions. Result type names must
@@ -880,6 +1128,9 @@ func (j *ScalarType) UnmarshalJSON(b []byte) error {
 	if _, ok := raw["comparison_operators"]; raw != nil && !ok {
 		return fmt.Errorf("field comparison_operators in ScalarType: required")
 	}
+	if _, ok := raw["representation"]; raw != nil && !ok {
+		return fmt.Errorf("field representation in ScalarType: required")
+	}
 	type Plain ScalarType
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
@@ -889,7 +1140,7 @@ func (j *ScalarType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-type SchemaGeneratedJson struct {
+type SchemaPatchedJson struct {
 	// CapabilitiesResponse corresponds to the JSON schema field
 	// "capabilities_response".
 	CapabilitiesResponse CapabilitiesResponse `json:"capabilities_response" yaml:"capabilities_response" mapstructure:"capabilities_response"`
@@ -920,48 +1171,51 @@ type SchemaGeneratedJson struct {
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *SchemaGeneratedJson) UnmarshalJSON(b []byte) error {
+func (j *SchemaPatchedJson) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
 	if _, ok := raw["capabilities_response"]; raw != nil && !ok {
-		return fmt.Errorf("field capabilities_response in SchemaGeneratedJson: required")
+		return fmt.Errorf("field capabilities_response in SchemaPatchedJson: required")
 	}
 	if _, ok := raw["error_response"]; raw != nil && !ok {
-		return fmt.Errorf("field error_response in SchemaGeneratedJson: required")
+		return fmt.Errorf("field error_response in SchemaPatchedJson: required")
 	}
 	if _, ok := raw["explain_response"]; raw != nil && !ok {
-		return fmt.Errorf("field explain_response in SchemaGeneratedJson: required")
+		return fmt.Errorf("field explain_response in SchemaPatchedJson: required")
 	}
 	if _, ok := raw["mutation_request"]; raw != nil && !ok {
-		return fmt.Errorf("field mutation_request in SchemaGeneratedJson: required")
+		return fmt.Errorf("field mutation_request in SchemaPatchedJson: required")
 	}
 	if _, ok := raw["mutation_response"]; raw != nil && !ok {
-		return fmt.Errorf("field mutation_response in SchemaGeneratedJson: required")
+		return fmt.Errorf("field mutation_response in SchemaPatchedJson: required")
 	}
 	if _, ok := raw["query_request"]; raw != nil && !ok {
-		return fmt.Errorf("field query_request in SchemaGeneratedJson: required")
+		return fmt.Errorf("field query_request in SchemaPatchedJson: required")
 	}
 	if _, ok := raw["query_response"]; raw != nil && !ok {
-		return fmt.Errorf("field query_response in SchemaGeneratedJson: required")
+		return fmt.Errorf("field query_response in SchemaPatchedJson: required")
 	}
 	if _, ok := raw["schema_response"]; raw != nil && !ok {
-		return fmt.Errorf("field schema_response in SchemaGeneratedJson: required")
+		return fmt.Errorf("field schema_response in SchemaPatchedJson: required")
 	}
 	if _, ok := raw["validate_response"]; raw != nil && !ok {
-		return fmt.Errorf("field validate_response in SchemaGeneratedJson: required")
+		return fmt.Errorf("field validate_response in SchemaPatchedJson: required")
 	}
-	type Plain SchemaGeneratedJson
+	type Plain SchemaPatchedJson
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	*j = SchemaGeneratedJson(plain)
+	*j = SchemaPatchedJson(plain)
 	return nil
 }
 
 type SchemaResponse struct {
+	// Schema data which is relevant to features enabled by capabilities
+	Capabilities *CapabilitySchemaInfo `json:"capabilities,omitempty" yaml:"capabilities,omitempty" mapstructure:"capabilities,omitempty"`
+
 	// Collections which are available for queries
 	Collections []CollectionInfo `json:"collections" yaml:"collections" mapstructure:"collections"`
 

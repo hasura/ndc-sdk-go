@@ -233,6 +233,8 @@ func (rcs RawConnectorSchema) writeObjectType(builder *strings.Builder, objectTy
 	}
 	writeIndent(builder, baseIndent+2)
 	builder.WriteString("},\n")
+	writeIndent(builder, baseIndent+2)
+	builder.WriteString("ForeignKeys: schema.ObjectTypeForeignKeys{},\n")
 	writeIndent(builder, baseIndent)
 	builder.WriteString("},")
 

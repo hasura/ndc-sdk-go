@@ -77,18 +77,14 @@ var ndcSchema = schema.SchemaResponse{
 	ScalarTypes: schema.SchemaResponseScalarTypes{
 		"Int": schema.ScalarType{
 			AggregateFunctions: schema.ScalarTypeAggregateFunctions{
-				"max": schema.AggregateFunctionDefinition{
-					ResultType: schema.NewNullableNamedType("Int").Encode(),
-				},
-				"min": schema.AggregateFunctionDefinition{
-					ResultType: schema.NewNullableNamedType("Int").Encode(),
-				},
+				"max": schema.NewAggregateFunctionDefinitionMax().Encode(),
+				"min": schema.NewAggregateFunctionDefinitionMin().Encode(),
 			},
 			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
 				"eq": schema.NewComparisonOperatorEqual().Encode(),
 				"in": schema.NewComparisonOperatorIn().Encode(),
 			},
-			Representation: schema.NewTypeRepresentationInteger().Encode(),
+			Representation: schema.NewTypeRepresentationInt32().Encode(),
 		},
 		"String": {
 			AggregateFunctions: schema.ScalarTypeAggregateFunctions{},
@@ -101,9 +97,8 @@ var ndcSchema = schema.SchemaResponse{
 		},
 	},
 	ObjectTypes: schema.SchemaResponseObjectTypes{
-		"article": schema.ObjectType{
-			Description: utils.ToPtr("An article"),
-			Fields: schema.ObjectTypeFields{
+		"article": schema.NewObjectType(
+			schema.ObjectTypeFields{
 				"author_id": schema.ObjectField{
 					Description: utils.ToPtr("The article's author ID"),
 					Type:        schema.NewNamedType("Int").Encode(),
@@ -117,10 +112,18 @@ var ndcSchema = schema.SchemaResponse{
 					Type:        schema.NewNamedType("String").Encode(),
 				},
 			},
-		},
-		"author": schema.ObjectType{
-			Description: utils.ToPtr("An author"),
-			Fields: schema.ObjectTypeFields{
+			schema.ObjectTypeForeignKeys{
+				"Article_AuthorID": schema.ForeignKeyConstraint{
+					ColumnMapping: schema.ForeignKeyConstraintColumnMapping{
+						"author_id": []string{"id"},
+					},
+					ForeignCollection: "authors",
+				},
+			},
+			utils.ToPtr("An article"),
+		),
+		"author": schema.NewObjectType(
+			schema.ObjectTypeFields{
 				"first_name": {
 					Description: utils.ToPtr("The author's first name"),
 					Type:        schema.NewNamedType("String").Encode(),
@@ -134,10 +137,11 @@ var ndcSchema = schema.SchemaResponse{
 					Type:        schema.NewNamedType("String").Encode(),
 				},
 			},
-		},
-		"institution": schema.ObjectType{
-			Description: utils.ToPtr("An institution"),
-			Fields: schema.ObjectTypeFields{
+			nil,
+			utils.ToPtr("An author"),
+		),
+		"institution": schema.NewObjectType(
+			schema.ObjectTypeFields{
 				"departments": schema.ObjectField{
 					Description: utils.ToPtr("The institution's departments"),
 					Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
@@ -159,10 +163,11 @@ var ndcSchema = schema.SchemaResponse{
 					Type:        schema.NewArrayType(schema.NewNamedType("staff_member")).Encode(),
 				},
 			},
-		},
-		"location": schema.ObjectType{
-			Description: utils.ToPtr("A location"),
-			Fields: schema.ObjectTypeFields{
+			nil,
+			utils.ToPtr("An institution"),
+		),
+		"location": schema.NewObjectType(
+			schema.ObjectTypeFields{
 				"campuses": schema.ObjectField{
 					Description: utils.ToPtr("The location's campuses"),
 					Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
@@ -175,11 +180,11 @@ var ndcSchema = schema.SchemaResponse{
 					Description: utils.ToPtr("The location's country"),
 					Type:        schema.NewNamedType("String").Encode(),
 				},
-			},
-		},
-		"staff_member": schema.ObjectType{
-			Description: utils.ToPtr("A staff member"),
-			Fields: schema.ObjectTypeFields{
+			}, nil,
+			utils.ToPtr("A location"),
+		),
+		"staff_member": schema.NewObjectType(
+			schema.ObjectTypeFields{
 				"first_name": schema.ObjectField{
 					Description: utils.ToPtr("The staff member's first name"),
 					Type:        schema.NewNamedType("String").Encode(),
@@ -193,7 +198,9 @@ var ndcSchema = schema.SchemaResponse{
 					Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
 				},
 			},
-		},
+			nil,
+			utils.ToPtr("A staff member"),
+		),
 	},
 	Collections: []schema.CollectionInfo{
 		{
@@ -204,14 +211,6 @@ var ndcSchema = schema.SchemaResponse{
 			UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
 				"ArticleByID": schema.UniquenessConstraint{
 					UniqueColumns: []string{"id"},
-				},
-			},
-			ForeignKeys: schema.CollectionInfoForeignKeys{
-				"Article_AuthorID": schema.ForeignKeyConstraint{
-					ColumnMapping: schema.ForeignKeyConstraintColumnMapping{
-						"author_id": "id",
-					},
-					ForeignCollection: "authors",
 				},
 			},
 		},
@@ -225,7 +224,6 @@ var ndcSchema = schema.SchemaResponse{
 					UniqueColumns: []string{"id"},
 				},
 			},
-			ForeignKeys: schema.CollectionInfoForeignKeys{},
 		},
 		{
 			Name:        "institutions",
@@ -237,7 +235,6 @@ var ndcSchema = schema.SchemaResponse{
 					UniqueColumns: []string{"id"},
 				},
 			},
-			ForeignKeys: schema.CollectionInfoForeignKeys{},
 		},
 		{
 			Name:        "articles_by_author",
@@ -249,7 +246,6 @@ var ndcSchema = schema.SchemaResponse{
 			},
 			Type:                  "article",
 			UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{},
-			ForeignKeys:           schema.CollectionInfoForeignKeys{},
 		},
 	},
 	Functions: []schema.FunctionInfo{
@@ -334,13 +330,13 @@ func (mc *Connector) HealthCheck(ctx context.Context, configuration *Configurati
 
 func (mc *Connector) GetCapabilities(configuration *Configuration) schema.CapabilitiesResponseMarshaler {
 	return &schema.CapabilitiesResponse{
-		Version: "0.1.6",
+		Version: "0.2.0",
 		Capabilities: schema.Capabilities{
 			Query: schema.QueryCapabilities{
-				Aggregates: schema.LeafCapability{},
+				Aggregates: &schema.AggregateCapabilities{},
 				Variables:  schema.LeafCapability{},
 				NestedFields: schema.NestedFieldCapabilities{
-					FilterBy: schema.LeafCapability{},
+					FilterBy: &schema.NestedFieldFilterByCapabilities{},
 					OrderBy:  schema.LeafCapability{},
 				},
 			},
@@ -1489,9 +1485,9 @@ func evalColumnMapping(relationship *schema.Relationship, srcRow map[string]any,
 		if !ok {
 			return false, schema.UnprocessableContentError("source column does not exist: "+srcColumn, nil)
 		}
-		targetValue, ok := target[targetColumn]
+		targetValue, ok := target[strings.Join(targetColumn, ".")]
 		if !ok {
-			return false, schema.UnprocessableContentError("target column does not exist: "+targetColumn, nil)
+			return false, schema.UnprocessableContentError(fmt.Sprintf("target column does not exist: %v", targetColumn), nil)
 		}
 		if srcValue != targetValue {
 			return false, nil
