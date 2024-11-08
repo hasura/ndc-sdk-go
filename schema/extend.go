@@ -53,31 +53,11 @@ func (j *ArgumentType) UnmarshalJSON(b []byte) error {
 }
 
 // Argument is provided by reference to a variable or as a literal value
-//
-// TODO: may change Argument to a generic map in the future.
-type Argument struct {
-	Type  ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
-	Name  string       `json:"name" yaml:"name" mapstructure:"name"`
-	Value any          `json:"value" yaml:"value" mapstructure:"value"`
-}
+type Argument map[string]any
 
 // ArgumentEncoder abstracts the interface for Argument.
 type ArgumentEncoder interface {
 	Encode() Argument
-}
-
-// MarshalJSON implements json.Marshaler.
-func (j Argument) MarshalJSON() ([]byte, error) {
-	result := map[string]any{
-		"type": j.Type,
-	}
-	switch j.Type {
-	case ArgumentTypeLiteral:
-		result["value"] = j.Value
-	case ArgumentTypeVariable:
-		result["name"] = j.Name
-	}
-	return json.Marshal(result)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -97,48 +77,86 @@ func (j *Argument) UnmarshalJSON(b []byte) error {
 		return fmt.Errorf("field type in Argument: %w", err)
 	}
 
-	arg := Argument{
-		Type: argumentType,
+	arg := map[string]any{
+		"type": argumentType,
 	}
 
-	switch arg.Type {
+	switch argumentType {
 	case ArgumentTypeLiteral:
 		if value, ok := raw["value"]; !ok {
 			return errors.New("field value in Argument is required for literal type")
 		} else {
-			arg.Value = value
+			arg["value"] = value
 		}
 	case ArgumentTypeVariable:
 		name := getStringValueByKey(raw, "name")
 		if name == "" {
 			return errors.New("field name in Argument is required for variable type")
 		}
-		arg.Name = name
+		arg["name"] = name
 	}
 
 	*j = arg
 	return nil
 }
 
+// Type gets the type enum of the current type.
+func (j Argument) Type() (ArgumentType, error) {
+	t, ok := j["type"]
+	if !ok {
+		return ArgumentType(""), errTypeRequired
+	}
+	switch raw := t.(type) {
+	case string:
+		v, err := ParseArgumentType(raw)
+		if err != nil {
+			return ArgumentType(""), err
+		}
+		return v, nil
+	case ArgumentType:
+		return raw, nil
+	default:
+		return ArgumentType(""), fmt.Errorf("invalid Field type: %+v", t)
+	}
+}
+
 // AsLiteral converts the instance to ArgumentLiteral.
 func (j Argument) AsLiteral() (*ArgumentLiteral, error) {
-	if j.Type != ArgumentTypeLiteral {
-		return nil, fmt.Errorf("invalid ArgumentLiteral type; expected: %s, got: %s", ArgumentTypeLiteral, j.Type)
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
 	}
+
+	if t != ArgumentTypeLiteral {
+		return nil, fmt.Errorf("invalid ArgumentLiteral type; expected: %s, got: %s", ArgumentTypeLiteral, t)
+	}
+	value := j["value"]
+
 	return &ArgumentLiteral{
-		Type:  j.Type,
-		Value: j.Value,
+		Type:  t,
+		Value: value,
 	}, nil
 }
 
 // AsVariable converts the instance to ArgumentVariable.
 func (j Argument) AsVariable() (*ArgumentVariable, error) {
-	if j.Type != ArgumentTypeVariable {
-		return nil, fmt.Errorf("invalid ArgumentVariable type; expected: %s, got: %s", ArgumentTypeVariable, j.Type)
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
 	}
+
+	if t != ArgumentTypeVariable {
+		return nil, fmt.Errorf("invalid ArgumentVariable type; expected: %s, got: %s", ArgumentTypeVariable, t)
+	}
+
+	name := getStringValueByKey(j, "name")
+	if name == "" {
+		return nil, errors.New("ArgumentVariable.name is required")
+	}
+
 	return &ArgumentVariable{
-		Type: j.Type,
-		Name: j.Name,
+		Type: t,
+		Name: name,
 	}, nil
 }
 
@@ -150,13 +168,18 @@ func (j Argument) Interface() ArgumentEncoder {
 
 // InterfaceT converts the comparison value to its generic interface safely with explicit error.
 func (j Argument) InterfaceT() (ArgumentEncoder, error) {
-	switch j.Type {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+
+	switch t {
 	case ArgumentTypeLiteral:
 		return j.AsLiteral()
 	case ArgumentTypeVariable:
 		return j.AsVariable()
 	default:
-		return nil, fmt.Errorf("invalid Argument type: %s", j.Type)
+		return nil, err
 	}
 }
 
@@ -177,8 +200,8 @@ func NewArgumentLiteral(value any) *ArgumentLiteral {
 // Encode converts the instance to raw Field.
 func (j ArgumentLiteral) Encode() Argument {
 	return Argument{
-		Type:  j.Type,
-		Value: j.Value,
+		"type":  j.Type,
+		"value": j.Value,
 	}
 }
 
@@ -199,8 +222,8 @@ func NewArgumentVariable(name string) *ArgumentVariable {
 // Encode converts the instance to raw Field.
 func (j ArgumentVariable) Encode() Argument {
 	return Argument{
-		Type: j.Type,
-		Name: j.Name,
+		"type": j.Type,
+		"name": j.Name,
 	}
 }
 
@@ -249,14 +272,8 @@ func (j *RelationshipArgumentType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// RelationshipArgument is provided by reference to a variable or as a literal value
-//
-// TODO: may change RelationshipArgument to a generic map in the future.
-type RelationshipArgument struct {
-	Type  RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
-	Name  string                   `json:"name" yaml:"name" mapstructure:"name"`
-	Value any                      `json:"value" yaml:"value" mapstructure:"value"`
-}
+// RelationshipArgument is provided by reference to a variable or as a literal value.
+type RelationshipArgument map[string]any
 
 // RelationshipArgumentEncoder abstracts the interface for RelationshipArgument.
 type RelationshipArgumentEncoder interface {
@@ -280,59 +297,105 @@ func (j *RelationshipArgument) UnmarshalJSON(b []byte) error {
 		return fmt.Errorf("field type in Argument: %w", err)
 	}
 
-	arg := RelationshipArgument{
-		Type: argumentType,
+	result := map[string]any{
+		"type": argumentType,
 	}
 
-	switch arg.Type {
+	switch argumentType {
 	case RelationshipArgumentTypeLiteral:
 		if value, ok := raw["value"]; !ok {
 			return errors.New("field value in Argument is required for literal type")
 		} else {
-			arg.Value = value
+			result["value"] = value
 		}
 	default:
 		name := getStringValueByKey(raw, "name")
 		if name == "" {
 			return fmt.Errorf("field name in Argument is required for %s type", rawArgumentType)
 		}
-		arg.Name = name
+		result["name"] = name
 	}
 
-	*j = arg
+	*j = result
 	return nil
+}
+
+// Type gets the type enum of the current type.
+func (j RelationshipArgument) Type() (RelationshipArgumentType, error) {
+	t, ok := j["type"]
+	if !ok {
+		return RelationshipArgumentType(""), errTypeRequired
+	}
+	switch raw := t.(type) {
+	case string:
+		v, err := ParseRelationshipArgumentType(raw)
+		if err != nil {
+			return RelationshipArgumentType(""), err
+		}
+		return v, nil
+	case RelationshipArgumentType:
+		return raw, nil
+	default:
+		return RelationshipArgumentType(""), fmt.Errorf("invalid Field type: %+v", t)
+	}
 }
 
 // AsLiteral converts the instance to RelationshipArgumentLiteral.
 func (j RelationshipArgument) AsLiteral() (*RelationshipArgumentLiteral, error) {
-	if j.Type != RelationshipArgumentTypeLiteral {
-		return nil, fmt.Errorf("invalid RelationshipArgumentLiteral type; expected: %s, got: %s", RelationshipArgumentTypeLiteral, j.Type)
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
 	}
+
+	if t != RelationshipArgumentTypeLiteral {
+		return nil, fmt.Errorf("invalid RelationshipArgumentLiteral type; expected: %s, got: %s", RelationshipArgumentTypeLiteral, t)
+	}
+
+	value := j["value"]
+
 	return &RelationshipArgumentLiteral{
-		Type:  j.Type,
-		Value: j.Value,
+		Type:  t,
+		Value: value,
 	}, nil
 }
 
 // AsVariable converts the instance to RelationshipArgumentVariable.
 func (j RelationshipArgument) AsVariable() (*RelationshipArgumentVariable, error) {
-	if j.Type != RelationshipArgumentTypeVariable {
-		return nil, fmt.Errorf("invalid RelationshipArgumentVariable type; expected: %s, got: %s", RelationshipArgumentTypeVariable, j.Type)
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+
+	if t != RelationshipArgumentTypeVariable {
+		return nil, fmt.Errorf("invalid RelationshipArgumentVariable type; expected: %s, got: %s", RelationshipArgumentTypeVariable, t)
+	}
+
+	name := getStringValueByKey(j, "name")
+	if name == "" {
+		return nil, errors.New("RelationshipArgumentVariable.name is required")
 	}
 	return &RelationshipArgumentVariable{
-		Type: j.Type,
-		Name: j.Name,
+		Type: t,
+		Name: name,
 	}, nil
 }
 
 // AsColumn converts the instance to RelationshipArgumentColumn.
 func (j RelationshipArgument) AsColumn() (*RelationshipArgumentColumn, error) {
-	if j.Type != RelationshipArgumentTypeColumn {
-		return nil, fmt.Errorf("invalid RelationshipArgumentTypeColumn type; expected: %s, got: %s", RelationshipArgumentTypeColumn, j.Type)
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != RelationshipArgumentTypeColumn {
+		return nil, fmt.Errorf("invalid RelationshipArgumentTypeColumn type; expected: %s, got: %s", RelationshipArgumentTypeColumn, t)
+	}
+	name := getStringValueByKey(j, "name")
+	if name == "" {
+		return nil, errors.New("RelationshipArgumentColumn.name is required")
 	}
 	return &RelationshipArgumentColumn{
-		Type: j.Type,
-		Name: j.Name,
+		Type: t,
+		Name: name,
 	}, nil
 }
 
@@ -344,7 +407,8 @@ func (j RelationshipArgument) Interface() RelationshipArgumentEncoder {
 
 // InterfaceT converts the comparison value to its generic interface safely with explicit error.
 func (j RelationshipArgument) InterfaceT() (RelationshipArgumentEncoder, error) {
-	switch j.Type {
+	ty, err := j.Type()
+	switch ty {
 	case RelationshipArgumentTypeLiteral:
 		return j.AsLiteral()
 	case RelationshipArgumentTypeVariable:
@@ -352,7 +416,7 @@ func (j RelationshipArgument) InterfaceT() (RelationshipArgumentEncoder, error) 
 	case RelationshipArgumentTypeColumn:
 		return j.AsColumn()
 	default:
-		return nil, fmt.Errorf("invalid RelationshipArgument type: %s", j.Type)
+		return nil, err
 	}
 }
 
@@ -373,8 +437,8 @@ func NewRelationshipArgumentLiteral(value any) *RelationshipArgumentLiteral {
 // Encode converts the instance to raw Field.
 func (j RelationshipArgumentLiteral) Encode() RelationshipArgument {
 	return RelationshipArgument{
-		Type:  j.Type,
-		Value: j.Value,
+		"type":  j.Type,
+		"value": j.Value,
 	}
 }
 
@@ -395,8 +459,8 @@ func NewRelationshipArgumentColumn(name string) *RelationshipArgumentColumn {
 // Encode converts the instance to raw Field.
 func (j RelationshipArgumentColumn) Encode() RelationshipArgument {
 	return RelationshipArgument{
-		Type: j.Type,
-		Name: j.Name,
+		"type": j.Type,
+		"name": j.Name,
 	}
 }
 
@@ -417,8 +481,8 @@ func NewRelationshipArgumentVariable(name string) *RelationshipArgumentVariable 
 // Encode converts the instance to raw Field.
 func (j RelationshipArgumentVariable) Encode() RelationshipArgument {
 	return RelationshipArgument{
-		Type: j.Type,
-		Name: j.Name,
+		"type": j.Type,
+		"name": j.Name,
 	}
 }
 
