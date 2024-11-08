@@ -10,16 +10,28 @@ import (
 	"time"
 )
 
-var connector_Decoder = utils.NewDecoder()
+// FromValue decodes values from map
+func (j *GetCustomHeadersInput) FromValue(input map[string]any) error {
+	var err error
+	j.ID, err = utils.GetUUID(input, "id")
+	if err != nil {
+		return err
+	}
+	j.Num, err = utils.GetInt[int](input, "num")
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 // FromValue decodes values from map
 func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	var err error
-	err = connector_Decoder.DecodeObjectValue(&j.ArrayBigInt, input, "ArrayBigInt")
+	j.ArrayBigInt, err = utils.DecodeObjectValue[[]scalar.BigInt](input, "ArrayBigInt")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.ArrayBigIntPtr, input, "ArrayBigIntPtr")
+	j.ArrayBigIntPtr, err = utils.DecodeObjectValue[[]*scalar.BigInt](input, "ArrayBigIntPtr")
 	if err != nil {
 		return err
 	}
@@ -95,23 +107,23 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.ArrayMap, input, "ArrayMap")
+	j.ArrayMap, err = utils.DecodeObjectValue[[]map[string]any](input, "ArrayMap")
 	if err != nil {
 		return err
 	}
-	j.ArrayMapPtr = new([]map[string]any)
-	err = connector_Decoder.DecodeNullableObjectValue(j.ArrayMapPtr, input, "ArrayMapPtr")
+	j.ArrayMapPtr, err = utils.DecodeNullableObjectValue[[]map[string]any](input, "ArrayMapPtr")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.ArrayObject, input, "ArrayObject")
+	j.ArrayObject, err = utils.DecodeObjectValue[[]struct {
+		Content string `json:"content"`
+	}](input, "ArrayObject")
 	if err != nil {
 		return err
 	}
-	j.ArrayObjectPtr = new([]struct {
-		Content string "json:\"content\""
-	})
-	err = connector_Decoder.DecodeNullableObjectValue(j.ArrayObjectPtr, input, "ArrayObjectPtr")
+	j.ArrayObjectPtr, err = utils.DecodeNullableObjectValue[[]struct {
+		Content string `json:"content"`
+	}](input, "ArrayObjectPtr")
 	if err != nil {
 		return err
 	}
@@ -187,12 +199,11 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.BigInt, input, "BigInt")
+	j.BigInt, err = utils.DecodeObjectValue[scalar.BigInt](input, "BigInt")
 	if err != nil {
 		return err
 	}
-	j.BigIntPtr = new(scalar.BigInt)
-	err = connector_Decoder.DecodeNullableObjectValue(j.BigIntPtr, input, "BigIntPtr")
+	j.BigIntPtr, err = utils.DecodeNullableObjectValue[scalar.BigInt](input, "BigIntPtr")
 	if err != nil {
 		return err
 	}
@@ -204,39 +215,39 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.Bytes, input, "Bytes")
+	j.Bytes, err = utils.DecodeObjectValue[scalar.Bytes](input, "Bytes")
 	if err != nil {
 		return err
 	}
-	j.BytesPtr = new(scalar.Bytes)
-	err = connector_Decoder.DecodeNullableObjectValue(j.BytesPtr, input, "BytesPtr")
+	j.BytesPtr, err = utils.DecodeNullableObjectValue[scalar.Bytes](input, "BytesPtr")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.CustomScalar, input, "CustomScalar")
+	j.CustomScalar, err = utils.DecodeObjectValue[types.CommentText](input, "CustomScalar")
 	if err != nil {
 		return err
 	}
-	j.CustomScalarPtr = new(types.CommentText)
-	err = connector_Decoder.DecodeNullableObjectValue(j.CustomScalarPtr, input, "CustomScalarPtr")
+	j.CustomScalarPtr, err = utils.DecodeNullableObjectValue[types.CommentText](input, "CustomScalarPtr")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.Date, input, "Date")
+	j.Date, err = utils.DecodeObjectValue[scalar.Date](input, "Date")
 	if err != nil {
 		return err
 	}
-	j.DatePtr = new(scalar.Date)
-	err = connector_Decoder.DecodeNullableObjectValue(j.DatePtr, input, "DatePtr")
+	j.DatePtr, err = utils.DecodeNullableObjectValue[scalar.Date](input, "DatePtr")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.Enum, input, "Enum")
+	j.Duration, err = utils.DecodeObjectValue[scalar.Duration](input, "Duration")
 	if err != nil {
 		return err
 	}
-	j.EnumPtr = new(types.SomeEnum)
-	err = connector_Decoder.DecodeNullableObjectValue(j.EnumPtr, input, "EnumPtr")
+	j.Enum, err = utils.DecodeObjectValue[types.SomeEnum](input, "Enum")
+	if err != nil {
+		return err
+	}
+	j.EnumPtr, err = utils.DecodeNullableObjectValue[types.SomeEnum](input, "EnumPtr")
 	if err != nil {
 		return err
 	}
@@ -304,57 +315,54 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.Map, input, "Map")
+	j.Map, err = utils.DecodeObjectValue[map[string]any](input, "Map")
 	if err != nil {
 		return err
 	}
-	j.MapPtr = new(map[string]any)
-	err = connector_Decoder.DecodeNullableObjectValue(j.MapPtr, input, "MapPtr")
+	j.MapPtr, err = utils.DecodeNullableObjectValue[map[string]any](input, "MapPtr")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.NamedArray, input, "NamedArray")
+	j.NamedArray, err = utils.DecodeObjectValue[[]types.Author](input, "NamedArray")
 	if err != nil {
 		return err
 	}
-	j.NamedArrayPtr = new([]types.Author)
-	err = connector_Decoder.DecodeNullableObjectValue(j.NamedArrayPtr, input, "NamedArrayPtr")
+	j.NamedArrayPtr, err = utils.DecodeNullableObjectValue[[]types.Author](input, "NamedArrayPtr")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.NamedObject, input, "NamedObject")
+	j.NamedObject, err = utils.DecodeObjectValue[types.Author](input, "NamedObject")
 	if err != nil {
 		return err
 	}
-	j.NamedObjectPtr = new(types.Author)
-	err = connector_Decoder.DecodeNullableObjectValue(j.NamedObjectPtr, input, "NamedObjectPtr")
+	j.NamedObjectPtr, err = utils.DecodeNullableObjectValue[types.Author](input, "NamedObjectPtr")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.Object, input, "Object")
+	j.Object, err = utils.DecodeObjectValue[struct {
+		ID           uuid.UUID                               `json:"id"`
+		CreatedAt    time.Time                               `json:"created_at"`
+		GenericField types.CustomHeadersResult[types.Author] `json:"generic_field,omitempty"`
+	}](input, "Object")
 	if err != nil {
 		return err
 	}
-	j.ObjectPtr = new(struct {
+	j.ObjectPtr, err = utils.DecodeNullableObjectValue[struct {
 		Long int
 		Lat  int
-	})
-	err = connector_Decoder.DecodeNullableObjectValue(j.ObjectPtr, input, "ObjectPtr")
+	}](input, "ObjectPtr")
 	if err != nil {
 		return err
 	}
-	j.PtrArrayBigInt = new([]scalar.BigInt)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayBigInt, input, "PtrArrayBigInt")
+	j.PtrArrayBigInt, err = utils.DecodeNullableObjectValue[[]scalar.BigInt](input, "PtrArrayBigInt")
 	if err != nil {
 		return err
 	}
-	j.PtrArrayBigIntPtr = new([]*scalar.BigInt)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayBigIntPtr, input, "PtrArrayBigIntPtr")
+	j.PtrArrayBigIntPtr, err = utils.DecodeNullableObjectValue[[]*scalar.BigInt](input, "PtrArrayBigIntPtr")
 	if err != nil {
 		return err
 	}
-	j.PtrArrayBool = new([]bool)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayBool, input, "PtrArrayBool")
+	j.PtrArrayBool, err = utils.DecodeNullableObjectValue[[]bool](input, "PtrArrayBool")
 	if err != nil {
 		return err
 	}
@@ -362,8 +370,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayFloat32 = new([]float32)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayFloat32, input, "PtrArrayFloat32")
+	j.PtrArrayFloat32, err = utils.DecodeNullableObjectValue[[]float32](input, "PtrArrayFloat32")
 	if err != nil {
 		return err
 	}
@@ -371,8 +378,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayFloat64 = new([]float64)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayFloat64, input, "PtrArrayFloat64")
+	j.PtrArrayFloat64, err = utils.DecodeNullableObjectValue[[]float64](input, "PtrArrayFloat64")
 	if err != nil {
 		return err
 	}
@@ -380,13 +386,11 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayInt = new([]int)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayInt, input, "PtrArrayInt")
+	j.PtrArrayInt, err = utils.DecodeNullableObjectValue[[]int](input, "PtrArrayInt")
 	if err != nil {
 		return err
 	}
-	j.PtrArrayInt16 = new([]int16)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayInt16, input, "PtrArrayInt16")
+	j.PtrArrayInt16, err = utils.DecodeNullableObjectValue[[]int16](input, "PtrArrayInt16")
 	if err != nil {
 		return err
 	}
@@ -394,8 +398,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayInt32 = new([]int32)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayInt32, input, "PtrArrayInt32")
+	j.PtrArrayInt32, err = utils.DecodeNullableObjectValue[[]int32](input, "PtrArrayInt32")
 	if err != nil {
 		return err
 	}
@@ -403,8 +406,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayInt64 = new([]int64)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayInt64, input, "PtrArrayInt64")
+	j.PtrArrayInt64, err = utils.DecodeNullableObjectValue[[]int64](input, "PtrArrayInt64")
 	if err != nil {
 		return err
 	}
@@ -412,8 +414,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayInt8 = new([]int8)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayInt8, input, "PtrArrayInt8")
+	j.PtrArrayInt8, err = utils.DecodeNullableObjectValue[[]int8](input, "PtrArrayInt8")
 	if err != nil {
 		return err
 	}
@@ -425,8 +426,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayJSON = new([]any)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayJSON, input, "PtrArrayJSON")
+	j.PtrArrayJSON, err = utils.DecodeNullableObjectValue[[]any](input, "PtrArrayJSON")
 	if err != nil {
 		return err
 	}
@@ -434,8 +434,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayRawJSON = new([]json.RawMessage)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayRawJSON, input, "PtrArrayRawJSON")
+	j.PtrArrayRawJSON, err = utils.DecodeNullableObjectValue[[]json.RawMessage](input, "PtrArrayRawJSON")
 	if err != nil {
 		return err
 	}
@@ -443,8 +442,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayString = new([]string)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayString, input, "PtrArrayString")
+	j.PtrArrayString, err = utils.DecodeNullableObjectValue[[]string](input, "PtrArrayString")
 	if err != nil {
 		return err
 	}
@@ -452,8 +450,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayTime = new([]time.Time)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayTime, input, "PtrArrayTime")
+	j.PtrArrayTime, err = utils.DecodeNullableObjectValue[[]time.Time](input, "PtrArrayTime")
 	if err != nil {
 		return err
 	}
@@ -461,8 +458,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayUUID = new([]uuid.UUID)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayUUID, input, "PtrArrayUUID")
+	j.PtrArrayUUID, err = utils.DecodeNullableObjectValue[[]uuid.UUID](input, "PtrArrayUUID")
 	if err != nil {
 		return err
 	}
@@ -470,13 +466,11 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayUint = new([]uint)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayUint, input, "PtrArrayUint")
+	j.PtrArrayUint, err = utils.DecodeNullableObjectValue[[]uint](input, "PtrArrayUint")
 	if err != nil {
 		return err
 	}
-	j.PtrArrayUint16 = new([]uint16)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayUint16, input, "PtrArrayUint16")
+	j.PtrArrayUint16, err = utils.DecodeNullableObjectValue[[]uint16](input, "PtrArrayUint16")
 	if err != nil {
 		return err
 	}
@@ -484,8 +478,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayUint32 = new([]uint32)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayUint32, input, "PtrArrayUint32")
+	j.PtrArrayUint32, err = utils.DecodeNullableObjectValue[[]uint32](input, "PtrArrayUint32")
 	if err != nil {
 		return err
 	}
@@ -493,8 +486,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayUint64 = new([]uint64)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayUint64, input, "PtrArrayUint64")
+	j.PtrArrayUint64, err = utils.DecodeNullableObjectValue[[]uint64](input, "PtrArrayUint64")
 	if err != nil {
 		return err
 	}
@@ -502,8 +494,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.PtrArrayUint8 = new([]uint8)
-	err = connector_Decoder.DecodeNullableObjectValue(j.PtrArrayUint8, input, "PtrArrayUint8")
+	j.PtrArrayUint8, err = utils.DecodeNullableObjectValue[[]uint8](input, "PtrArrayUint8")
 	if err != nil {
 		return err
 	}
@@ -531,12 +522,11 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.Text, input, "Text")
+	j.Text, err = utils.DecodeObjectValue[types.Text](input, "Text")
 	if err != nil {
 		return err
 	}
-	j.TextPtr = new(types.Text)
-	err = connector_Decoder.DecodeNullableObjectValue(j.TextPtr, input, "TextPtr")
+	j.TextPtr, err = utils.DecodeNullableObjectValue[types.Text](input, "TextPtr")
 	if err != nil {
 		return err
 	}
@@ -548,7 +538,7 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.URL, input, "URL")
+	j.URL, err = utils.DecodeObjectValue[scalar.URL](input, "URL")
 	if err != nil {
 		return err
 	}
@@ -600,7 +590,272 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	j.JSONEmpty, err = utils.GetArbitraryJSONDefault(input, "any_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayBigIntEmpty, err = utils.DecodeObjectValueDefault[[]scalar.BigInt](input, "array_bigint_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayBigIntPtrEmpty, err = utils.DecodeObjectValueDefault[[]*scalar.BigInt](input, "array_bigint_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayBoolEmpty, err = utils.GetBooleanSliceDefault(input, "array_bool_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayBoolPtrEmpty, err = utils.GetBooleanPtrSliceDefault(input, "array_bool_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayFloat32Empty, err = utils.GetFloatSliceDefault[float32](input, "array_float32_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayFloat32PtrEmpty, err = utils.GetFloatPtrSliceDefault[float32](input, "array_float32_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayFloat64Empty, err = utils.GetFloatSliceDefault[float64](input, "array_float64_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayFloat64PtrEmpty, err = utils.GetFloatPtrSliceDefault[float64](input, "array_float64_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt16Empty, err = utils.GetIntSliceDefault[int16](input, "array_int16_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt16PtrEmpty, err = utils.GetIntPtrSliceDefault[int16](input, "array_int16_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt32Empty, err = utils.GetIntSliceDefault[int32](input, "array_int32_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt32PtrEmpty, err = utils.GetIntPtrSliceDefault[int32](input, "array_int32_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt64Empty, err = utils.GetIntSliceDefault[int64](input, "array_int64_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt64PtrEmpty, err = utils.GetIntPtrSliceDefault[int64](input, "array_int64_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt8Empty, err = utils.GetIntSliceDefault[int8](input, "array_int8_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayInt8PtrEmpty, err = utils.GetIntPtrSliceDefault[int8](input, "array_int8_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayIntEmpty, err = utils.GetIntSliceDefault[int](input, "array_int_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayIntPtrEmpty, err = utils.GetIntPtrSliceDefault[int](input, "array_int_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayJSONEmpty, err = utils.GetArbitraryJSONSliceDefault(input, "array_json_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayJSONPtrEmpty, err = utils.GetArbitraryJSONPtrSliceDefault(input, "array_json_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayMapEmpty, err = utils.DecodeObjectValueDefault[[]map[string]any](input, "array_map_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayRawJSONEmpty, err = utils.GetRawJSONSliceDefault(input, "array_raw_json_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayRawJSONPtrEmpty, err = utils.GetRawJSONPtrSliceDefault(input, "array_raw_json_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayStringEmpty, err = utils.GetStringSliceDefault(input, "array_string_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayStringPtrEmpty, err = utils.GetStringPtrSliceDefault(input, "array_string_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayTimeEmpty, err = utils.GetDateTimeSliceDefault(input, "array_time_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayTimePtrEmpty, err = utils.GetDateTimePtrSliceDefault(input, "array_time_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint16Empty, err = utils.GetUintSliceDefault[uint16](input, "array_uint16_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint16PtrEmpty, err = utils.GetUintPtrSliceDefault[uint16](input, "array_uint16_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint32Empty, err = utils.GetUintSliceDefault[uint32](input, "array_uint32_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint32PtrEmpty, err = utils.GetUintPtrSliceDefault[uint32](input, "array_uint32_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint64Empty, err = utils.GetUintSliceDefault[uint64](input, "array_uint64_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint64PtrEmpty, err = utils.GetUintPtrSliceDefault[uint64](input, "array_uint64_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint8Empty, err = utils.GetUintSliceDefault[uint8](input, "array_uint8_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUint8PtrEmpty, err = utils.GetUintPtrSliceDefault[uint8](input, "array_uint8_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUintEmpty, err = utils.GetUintSliceDefault[uint](input, "array_uint_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUintPtrEmpty, err = utils.GetUintPtrSliceDefault[uint](input, "array_uint_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUUIDEmpty, err = utils.GetUUIDSliceDefault(input, "array_uuid_empty")
+	if err != nil {
+		return err
+	}
+	j.ArrayUUIDPtrEmpty, err = utils.GetUUIDPtrSliceDefault(input, "array_uuid_ptr_empty")
+	if err != nil {
+		return err
+	}
+	j.BigIntEmpty, err = utils.DecodeObjectValueDefault[scalar.BigInt](input, "bigint_empty")
+	if err != nil {
+		return err
+	}
+	j.BoolEmpty, err = utils.GetBooleanDefault(input, "bool_empty")
+	if err != nil {
+		return err
+	}
+	j.CustomScalarEmpty, err = utils.DecodeObjectValueDefault[types.CommentText](input, "custom_scalar_empty")
+	if err != nil {
+		return err
+	}
+	j.DateEmpty, err = utils.DecodeObjectValueDefault[scalar.Date](input, "date_empty")
+	if err != nil {
+		return err
+	}
+	j.EnumEmpty, err = utils.DecodeObjectValueDefault[types.SomeEnum](input, "enum_empty")
+	if err != nil {
+		return err
+	}
+	j.Float32Empty, err = utils.GetFloatDefault[float32](input, "float32_empty")
+	if err != nil {
+		return err
+	}
+	j.Float64Empty, err = utils.GetFloatDefault[float64](input, "float64_empty")
+	if err != nil {
+		return err
+	}
+	j.Int16Empty, err = utils.GetIntDefault[int16](input, "int16_empty")
+	if err != nil {
+		return err
+	}
+	j.Int32Empty, err = utils.GetIntDefault[int32](input, "int32_empty")
+	if err != nil {
+		return err
+	}
+	j.Int64Empty, err = utils.GetIntDefault[int64](input, "int64_empty")
+	if err != nil {
+		return err
+	}
+	j.Int8Empty, err = utils.GetIntDefault[int8](input, "int8_empty")
+	if err != nil {
+		return err
+	}
+	j.IntEmpty, err = utils.GetIntDefault[int](input, "int_empty")
+	if err != nil {
+		return err
+	}
+	j.MapEmpty, err = utils.DecodeObjectValueDefault[map[string]any](input, "map_empty")
+	if err != nil {
+		return err
+	}
+	j.RawJSONEmpty, err = utils.GetRawJSONDefault(input, "raw_json_empty")
+	if err != nil {
+		return err
+	}
+	j.StringEmpty, err = utils.GetStringDefault(input, "string_empty")
+	if err != nil {
+		return err
+	}
+	j.TextEmpty, err = utils.DecodeObjectValueDefault[types.Text](input, "text_empty")
+	if err != nil {
+		return err
+	}
+	j.TimeEmpty, err = utils.GetDateTimeDefault(input, "time_empty")
+	if err != nil {
+		return err
+	}
+	j.Uint16Empty, err = utils.GetUintDefault[uint16](input, "uint16_empty")
+	if err != nil {
+		return err
+	}
+	j.Uint32Empty, err = utils.GetUintDefault[uint32](input, "uint32_empty")
+	if err != nil {
+		return err
+	}
+	j.Uint64Empty, err = utils.GetUintDefault[uint64](input, "uint64_empty")
+	if err != nil {
+		return err
+	}
+	j.Uint8Empty, err = utils.GetUintDefault[uint8](input, "uint8_empty")
+	if err != nil {
+		return err
+	}
+	j.UintEmpty, err = utils.GetUintDefault[uint](input, "uint_empty")
+	if err != nil {
+		return err
+	}
+	j.URLEmpty, err = utils.DecodeObjectValueDefault[scalar.URL](input, "url_empty")
+	if err != nil {
+		return err
+	}
+	j.UUIDEmpty, err = utils.GetUUIDDefault(input, "uuid_empty")
+	if err != nil {
+		return err
+	}
 	return nil
+}
+
+// ToMap encodes the struct to a value map
+func (j GetCustomHeadersInput) ToMap() map[string]any {
+	r := make(map[string]any)
+	r["id"] = j.ID
+	r["num"] = j.Num
+
+	return r
 }
 
 // ToMap encodes the struct to a value map
@@ -672,6 +927,7 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["CustomScalarPtr"] = j.CustomScalarPtr
 	r["Date"] = j.Date
 	r["DatePtr"] = j.DatePtr
+	r["Duration"] = j.Duration
 	r["Enum"] = j.Enum
 	r["EnumPtr"] = j.EnumPtr
 	r["Float32"] = j.Float32
@@ -710,6 +966,7 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	}
 	j_Object_obj := make(map[string]any)
 	j_Object_obj["created_at"] = j.Object.CreatedAt
+	j_Object_obj["generic_field"] = j.Object.GenericField
 	j_Object_obj["id"] = j.Object.ID
 	r["Object"] = j_Object_obj
 	if j.ObjectPtr != nil {
@@ -777,6 +1034,70 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["Uint8"] = j.Uint8
 	r["Uint8Ptr"] = j.Uint8Ptr
 	r["UintPtr"] = j.UintPtr
+	r["any_empty"] = j.JSONEmpty
+	r["array_bigint_empty"] = j.ArrayBigIntEmpty
+	r["array_bigint_ptr_empty"] = j.ArrayBigIntPtrEmpty
+	r["array_bool_empty"] = j.ArrayBoolEmpty
+	r["array_bool_ptr_empty"] = j.ArrayBoolPtrEmpty
+	r["array_float32_empty"] = j.ArrayFloat32Empty
+	r["array_float32_ptr_empty"] = j.ArrayFloat32PtrEmpty
+	r["array_float64_empty"] = j.ArrayFloat64Empty
+	r["array_float64_ptr_empty"] = j.ArrayFloat64PtrEmpty
+	r["array_int16_empty"] = j.ArrayInt16Empty
+	r["array_int16_ptr_empty"] = j.ArrayInt16PtrEmpty
+	r["array_int32_empty"] = j.ArrayInt32Empty
+	r["array_int32_ptr_empty"] = j.ArrayInt32PtrEmpty
+	r["array_int64_empty"] = j.ArrayInt64Empty
+	r["array_int64_ptr_empty"] = j.ArrayInt64PtrEmpty
+	r["array_int8_empty"] = j.ArrayInt8Empty
+	r["array_int8_ptr_empty"] = j.ArrayInt8PtrEmpty
+	r["array_int_empty"] = j.ArrayIntEmpty
+	r["array_int_ptr_empty"] = j.ArrayIntPtrEmpty
+	r["array_json_empty"] = j.ArrayJSONEmpty
+	r["array_json_ptr_empty"] = j.ArrayJSONPtrEmpty
+	r["array_map_empty"] = j.ArrayMapEmpty
+	r["array_raw_json_empty"] = j.ArrayRawJSONEmpty
+	r["array_raw_json_ptr_empty"] = j.ArrayRawJSONPtrEmpty
+	r["array_string_empty"] = j.ArrayStringEmpty
+	r["array_string_ptr_empty"] = j.ArrayStringPtrEmpty
+	r["array_time_empty"] = j.ArrayTimeEmpty
+	r["array_time_ptr_empty"] = j.ArrayTimePtrEmpty
+	r["array_uint16_empty"] = j.ArrayUint16Empty
+	r["array_uint16_ptr_empty"] = j.ArrayUint16PtrEmpty
+	r["array_uint32_empty"] = j.ArrayUint32Empty
+	r["array_uint32_ptr_empty"] = j.ArrayUint32PtrEmpty
+	r["array_uint64_empty"] = j.ArrayUint64Empty
+	r["array_uint64_ptr_empty"] = j.ArrayUint64PtrEmpty
+	r["array_uint8_empty"] = j.ArrayUint8Empty
+	r["array_uint8_ptr_empty"] = j.ArrayUint8PtrEmpty
+	r["array_uint_empty"] = j.ArrayUintEmpty
+	r["array_uint_ptr_empty"] = j.ArrayUintPtrEmpty
+	r["array_uuid_empty"] = j.ArrayUUIDEmpty
+	r["array_uuid_ptr_empty"] = j.ArrayUUIDPtrEmpty
+	r["bigint_empty"] = j.BigIntEmpty
+	r["bool_empty"] = j.BoolEmpty
+	r["custom_scalar_empty"] = j.CustomScalarEmpty
+	r["date_empty"] = j.DateEmpty
+	r["enum_empty"] = j.EnumEmpty
+	r["float32_empty"] = j.Float32Empty
+	r["float64_empty"] = j.Float64Empty
+	r["int16_empty"] = j.Int16Empty
+	r["int32_empty"] = j.Int32Empty
+	r["int64_empty"] = j.Int64Empty
+	r["int8_empty"] = j.Int8Empty
+	r["int_empty"] = j.IntEmpty
+	r["map_empty"] = j.MapEmpty
+	r["raw_json_empty"] = j.RawJSONEmpty
+	r["string_empty"] = j.StringEmpty
+	r["text_empty"] = j.TextEmpty
+	r["time_empty"] = j.TimeEmpty
+	r["uint16_empty"] = j.Uint16Empty
+	r["uint32_empty"] = j.Uint32Empty
+	r["uint64_empty"] = j.Uint64Empty
+	r["uint8_empty"] = j.Uint8Empty
+	r["uint_empty"] = j.UintEmpty
+	r["url_empty"] = j.URLEmpty
+	r["uuid_empty"] = j.UUIDEmpty
 
 	return r
 }

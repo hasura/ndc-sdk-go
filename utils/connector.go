@@ -14,12 +14,12 @@ const (
 
 var ErrHandlerNotfound = errors.New("connector handler not found")
 
-// Scalar abstracts a scalar interface to determine when evaluating
+// Scalar abstracts a scalar interface to determine when evaluating.
 type Scalar interface {
 	ScalarName() string
 }
 
-// EvalNestedColumnObject evaluate and prune nested fields from an object without relationship
+// EvalNestedColumnObject evaluate and prune nested fields from an object without relationship.
 func EvalNestedColumnObject(fields *schema.NestedObject, value any) (any, error) {
 	return evalNestedColumnObject(fields, value, "")
 }
@@ -39,7 +39,7 @@ func evalNestedColumnObject(fields *schema.NestedObject, value any, fieldPath st
 	return evalObjectWithColumnSelection(fields.Fields, row, fieldPath)
 }
 
-// EvalNestedColumnArrayIntoSlice evaluate and prune nested fields from array without relationship
+// EvalNestedColumnArrayIntoSlice evaluate and prune nested fields from array without relationship.
 func EvalNestedColumnArrayIntoSlice[T any](fields *schema.NestedArray, value []T) (any, error) {
 	return evalNestedColumnArrayIntoSlice(fields, value, "")
 }
@@ -61,7 +61,7 @@ func evalNestedColumnArrayIntoSlice[T any](fields *schema.NestedArray, value []T
 	return result, nil
 }
 
-// EvalNestedColumnArray evaluate and prune nested fields from array without relationship
+// EvalNestedColumnArray evaluate and prune nested fields from array without relationship.
 func EvalNestedColumnArray(fields *schema.NestedArray, value any) (any, error) {
 	return evalNestedColumnArray(fields, value, "")
 }
@@ -83,7 +83,7 @@ func evalNestedColumnArray(fields *schema.NestedArray, value any, fieldPath stri
 	return result, nil
 }
 
-// EvalNestedColumnFields evaluate and prune nested fields without relationship
+// EvalNestedColumnFields evaluate and prune nested fields without relationship.
 func EvalNestedColumnFields(fields schema.NestedField, value any) (any, error) {
 	return evalNestedColumnFields(fields, value, "")
 }
@@ -104,7 +104,7 @@ func evalNestedColumnFields(fields schema.NestedField, value any, fieldPath stri
 	}
 }
 
-// EncodeObjectsWithColumnSelection encodes objects with column fields selection without relationship
+// EncodeObjectsWithColumnSelection encodes objects with column fields selection without relationship.
 func EncodeObjectsWithColumnSelection[T any](fields map[string]schema.Field, data []T) ([]map[string]any, error) {
 	return encodeObjectsWithColumnSelection(fields, data, "")
 }
@@ -117,7 +117,7 @@ func encodeObjectsWithColumnSelection[T any](fields map[string]schema.Field, dat
 	return evalObjectsWithColumnSelection(fields, objects, fieldPath)
 }
 
-// EncodeObjectWithColumnSelection encodes an object with column fields selection without relationship
+// EncodeObjectWithColumnSelection encodes an object with column fields selection without relationship.
 func EncodeObjectWithColumnSelection[T any](fields map[string]schema.Field, data T) (map[string]any, error) {
 	return encodeObjectWithColumnSelection(fields, data, "")
 }
@@ -130,7 +130,7 @@ func encodeObjectWithColumnSelection[T any](fields map[string]schema.Field, data
 	return evalObjectWithColumnSelection(fields, objects, fieldPath)
 }
 
-// EvalObjectsWithColumnSelection evaluate and prune column fields of array objects without relationship
+// EvalObjectsWithColumnSelection evaluate and prune column fields of array objects without relationship.
 func EvalObjectsWithColumnSelection(fields map[string]schema.Field, data []map[string]any) ([]map[string]any, error) {
 	return evalObjectsWithColumnSelection(fields, data, "")
 }
@@ -147,7 +147,7 @@ func evalObjectsWithColumnSelection(fields map[string]schema.Field, data []map[s
 	return results, nil
 }
 
-// EvalObjectWithColumnSelection evaluate and prune column fields without relationship
+// EvalObjectWithColumnSelection evaluate and prune column fields without relationship.
 func EvalObjectWithColumnSelection(fields map[string]schema.Field, data map[string]any) (map[string]any, error) {
 	return evalObjectWithColumnSelection(fields, data, "")
 }
@@ -196,7 +196,7 @@ func evalObjectWithColumnSelection(fields map[string]schema.Field, data map[stri
 	return output, nil
 }
 
-// ResolveArgumentVariables resolve variables in arguments if exist
+// ResolveArgumentVariables resolve variables in arguments if exist.
 func ResolveArgumentVariables(arguments map[string]schema.Argument, variables map[string]any) (map[string]any, error) {
 	results := make(map[string]any)
 	for key, argument := range arguments {
@@ -211,7 +211,7 @@ func ResolveArgumentVariables(arguments map[string]schema.Argument, variables ma
 					Message: "failed to resolve argument",
 					Details: map[string]any{
 						"reason": fmt.Sprintf("variable %s not found", arg.Name),
-						"path":   fmt.Sprintf(".%s", key),
+						"path":   "." + key,
 					},
 				}
 			}
@@ -221,7 +221,7 @@ func ResolveArgumentVariables(arguments map[string]schema.Argument, variables ma
 				Message: "failed to resolve argument",
 				Details: map[string]any{
 					"reason": err.Error(),
-					"path":   fmt.Sprintf(".%s", key),
+					"path":   "." + key,
 				},
 			}
 		}
@@ -267,7 +267,7 @@ func EvalFunctionSelectionFieldValue(request *schema.QueryRequest) (schema.Neste
 	return valueColumn.Fields, nil
 }
 
-// MergeSchemas merge multiple connector schemas into one schema
+// MergeSchemas merge multiple connector schemas into one schema.
 func MergeSchemas(schemas ...*schema.SchemaResponse) (*schema.SchemaResponse, []error) {
 	var errs []error
 	result := schema.SchemaResponse{

@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"regexp"
 
 	"github.com/hasura/ndc-sdk-go/schema"
@@ -21,6 +22,7 @@ const (
 	ScalarBigDecimal  ScalarName = "BigDecimal"
 	ScalarUUID        ScalarName = "UUID"
 	ScalarDate        ScalarName = "Date"
+	ScalarDuration    ScalarName = "Duration"
 	ScalarTimestamp   ScalarName = "Timestamp"
 	ScalarTimestampTZ ScalarName = "TimestampTZ"
 	ScalarGeography   ScalarName = "Geography"
@@ -31,6 +33,7 @@ const (
 	// Note: we don't recommend to use this scalar for function arguments
 	// because the decoder will re-encode the value to []byte that isn't performance-wise.
 	ScalarRawJSON ScalarName = "RawJSON"
+	ScalarURL     ScalarName = "URL"
 )
 
 var defaultScalarTypes = map[ScalarName]schema.ScalarType{
@@ -94,6 +97,11 @@ var defaultScalarTypes = map[ScalarName]schema.ScalarType{
 		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 		Representation:      schema.NewTypeRepresentationDate().Encode(),
 	},
+	ScalarDuration: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationJSON().Encode(),
+	},
 	ScalarTimestamp: {
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
 		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
@@ -124,48 +132,23 @@ var defaultScalarTypes = map[ScalarName]schema.ScalarType{
 		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 		Representation:      schema.NewTypeRepresentationJSON().Encode(),
 	},
-}
-
-var ndcOperationNameRegex = regexp.MustCompile(`^(Function|Procedure)([A-Z][A-Za-z0-9]*)$`)
-var ndcOperationCommentRegex = regexp.MustCompile(`^@(function|procedure)(\s+([A-Za-z]\w*))?`)
-var ndcScalarNameRegex = regexp.MustCompile(`^Scalar([A-Z]\w*)$`)
-var ndcScalarCommentRegex = regexp.MustCompile(`^@scalar(\s+(\w+))?(\s+([a-z]+))?$`)
-var ndcEnumCommentRegex = regexp.MustCompile(`^@enum\s+([\w-.,!@#$%^&*()+=~\s\t]+)$`)
-
-type nativeScalarPackageConfig struct {
-	PackageName string
-	Pattern     *regexp.Regexp
-}
-
-var fieldNameRegex = regexp.MustCompile(`[^\w]`)
-
-var nativeScalarPackages map[string]nativeScalarPackageConfig = map[string]nativeScalarPackageConfig{
-	"scalar": {
-		PackageName: "github.com/hasura/ndc-sdk-go/scalar",
-		Pattern:     regexp.MustCompile(`^(\[\]|\*)*github\.com\/hasura\/ndc-sdk-go\/scalar\.`),
-	},
-	"json": {
-		PackageName: "encoding/json",
-		Pattern:     regexp.MustCompile(`^(\[\]|\*)*encoding\/json\.`),
-	},
-	"uuid": {
-		PackageName: "github.com/google/uuid",
-		Pattern:     regexp.MustCompile(`^(\[\]|\*)*github\.com\/google\/uuid\.`),
-	},
-	"time": {
-		PackageName: "time",
-		Pattern:     regexp.MustCompile(`^(\[\]|\*)*time\.`),
+	ScalarURL: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationString().Encode(),
 	},
 }
 
-const textBlockErrorCheck = `
-    if err != nil {
-		  return err
-    }
-`
+var (
+	fieldNameRegex           = regexp.MustCompile(`[^\w]`)
+	ndcOperationNameRegex    = regexp.MustCompile(`^(Function|Procedure)([A-Z][A-Za-z0-9]*)$`)
+	ndcOperationCommentRegex = regexp.MustCompile(`^@(function|procedure)(\s+([A-Za-z]\w*))?`)
+	ndcScalarNameRegex       = regexp.MustCompile(`^Scalar([A-Z]\w*)$`)
+	ndcScalarCommentRegex    = regexp.MustCompile(`^@scalar(\s+(\w+))?(\s+([a-z]+))?$`)
+	ndcEnumCommentRegex      = regexp.MustCompile(`^@enum\s+([\w-.,!@#$%^&*()+=~\s\t]+)$`)
+)
 
-const textBlockErrorCheck2 = `
-    if err != nil {
-      return nil, err
-    }
-`
+var (
+	errUnsupportedTypeDuration = errors.New("unsupported time.Duration. Use github.com/hasura/ndc-sdk-go/scalar.Duration instead")
+	errMustUseEnumTag          = errors.New("use @enum tag with values instead")
+)

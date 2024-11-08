@@ -113,7 +113,9 @@ func TestConnectorGeneration(t *testing.T) {
 				if err == nil {
 					functionTypesBytes, err := os.ReadFile(path.Join("source", td, "types.generated.go"))
 					assert.NilError(t, err)
-					assert.Equal(t, formatTextContent(string(expectedFunctionTypesBytes)), formatTextContent(string(functionTypesBytes)))
+					expected := formatTextContent(string(expectedFunctionTypesBytes))
+					reality := formatTextContent(string(functionTypesBytes))
+					assert.Equal(t, expected, reality)
 				} else if !os.IsNotExist(err) {
 					assert.NilError(t, err)
 				}

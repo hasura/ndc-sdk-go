@@ -14,6 +14,8 @@ import (
 )
 
 func assertResponseJSON[B any](t *testing.T, res *http.Response, statusCode int, expected B) {
+	t.Helper()
+
 	defer res.Body.Close()
 	bodyBytes, err := io.ReadAll(res.Body)
 	assert.NilError(t, err, "failed to read response body")
@@ -22,8 +24,12 @@ func assertResponseJSON[B any](t *testing.T, res *http.Response, statusCode int,
 	var reality B
 	assert.NilError(t, json.Unmarshal(bodyBytes, &reality), "failed to decode json body")
 	if !assert.Check(t, cmp.DeepEqual(reality, expected)) {
-		indented, _ := json.MarshalIndent(reality, "", "  ")
-		t.Logf("reality:\n%s", indented)
+		indented, err := json.MarshalIndent(reality, "", "  ")
+		if err != nil {
+			t.Logf("reality: %v", reality)
+		} else {
+			t.Logf("reality:\n%s", indented)
+		}
 	}
 }
 
@@ -33,10 +39,11 @@ func httpPostJSON(url string, body any) (*http.Response, error) {
 		return nil, err
 	}
 
-	return http.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
+	return http.DefaultClient.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
 }
 
 func readSnapshot[R any, E any](t *testing.T, dir string, skipResponseValidation bool) (*R, *E) {
+	t.Helper()
 	reqPath := filepath.Join(dir, "request.json")
 	reqBytes, err := os.ReadFile(reqPath)
 	if err != nil {

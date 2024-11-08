@@ -1,0 +1,21 @@
+[
+  {
+    "rows": [
+      {
+        "__value": {
+          "Response": {
+            "error": null,
+            "foo": "",
+            "id": "00000000-0000-0000-0000-000000000000",
+            "num": 2054689251,
+            "text": "oK022ZdXnL"
+          },
+          "headers": {
+            "X-Test-ResponseHeader": "oK022ZdXnL",
+            "foo": "bar"
+          }
+        }
+      }
+    ]
+  }
+]

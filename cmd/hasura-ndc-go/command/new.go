@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"embed"
-	"fmt"
+	"errors"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -24,7 +24,7 @@ const (
 	templateNewPath = "internal/templates/new"
 )
 
-// NewArguments input arguments for the new command
+// NewArguments input arguments for the new command.
 type NewArguments struct {
 	Name    string `help:"Name of the connector." short:"n" required:""`
 	Module  string `help:"Module name of the connector" short:"m" required:""`
@@ -32,7 +32,7 @@ type NewArguments struct {
 	Output  string `help:"The location where source codes will be generated" short:"o" default:""`
 }
 
-// GenerateNewProject generates a new project boilerplate
+// GenerateNewProject generates a new project boilerplate.
 func GenerateNewProject(args *NewArguments, silent bool) error {
 	srcPath := args.Output
 	if srcPath == "" {
@@ -42,7 +42,7 @@ func GenerateNewProject(args *NewArguments, silent bool) error {
 		}
 		srcPath = path.Join(p, args.Name)
 	}
-	if err := os.MkdirAll(srcPath, 0755); err != nil {
+	if err := os.MkdirAll(srcPath, 0o755); err != nil {
 		return err
 	}
 
@@ -86,7 +86,6 @@ func GenerateNewProject(args *NewArguments, silent bool) error {
 }
 
 func generateNewProjectFiles(args *NewArguments, srcPath string) error {
-
 	return fs.WalkDir(initTemplateFS, templateNewPath, func(filePath string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -97,9 +96,9 @@ func generateNewProjectFiles(args *NewArguments, srcPath string) error {
 			return nil
 		}
 
-		targetPath := path.Join(srcPath, strings.TrimPrefix(filePath, fmt.Sprintf("%s/", templateNewPath)))
+		targetPath := path.Join(srcPath, strings.TrimPrefix(filePath, templateNewPath+"/"))
 		if d.IsDir() {
-			return os.Mkdir(targetPath, 0755)
+			return os.Mkdir(targetPath, 0o755)
 		}
 
 		fileTemplate, err := template.ParseFS(initTemplateFS, filePath)
@@ -129,6 +128,10 @@ func generateNewProjectFiles(args *NewArguments, srcPath string) error {
 	})
 }
 
+func execGetLatestSDK(basePath string) error {
+	return execCommand(basePath, "go", "get", "github.com/hasura/ndc-sdk-go@v1")
+}
+
 func execGoModTidy(basePath string) error {
 	return execCommand(basePath, "go", "mod", "tidy")
 }
@@ -147,7 +150,7 @@ func execCommand(basePath string, commandName string, args ...string) error {
 	cmd.Stderr = &errBuf
 	out, err := cmd.Output()
 	if err != nil {
-		l.Error().Err(fmt.Errorf(errBuf.String())).Msg(err.Error())
+		l.Error().Err(errors.New(errBuf.String())).Msg(err.Error())
 	} else {
 		l.Debug().Str("logs", errBuf.String()).Msg(string(out))
 	}

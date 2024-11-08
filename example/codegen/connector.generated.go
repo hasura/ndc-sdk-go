@@ -3,8 +3,11 @@ package main
 
 import (
 	"context"
-	_ "embed"
+
 	"fmt"
+	"os"
+	"strconv"
+	"sync"
 
 	"encoding/json"
 	"github.com/hasura/ndc-codegen-example/functions"
@@ -13,9 +16,10 @@ import (
 	"github.com/hasura/ndc-sdk-go/utils"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/trace"
+	"golang.org/x/sync/errgroup"
 )
 
+var loadGlobalEnvOnce sync.Once
 var schemaResponse *schema.RawSchemaResponse
 var connectorQueryHandlers = []ConnectorQueryHandler{functions.DataConnectorHandler{}}
 var connectorMutationHandlers = []ConnectorMutationHandler{functions.DataConnectorHandler{}}
@@ -51,44 +55,63 @@ func (c *Connector) Query(ctx context.Context, configuration *types.Configuratio
 	if len(connectorQueryHandlers) == 0 {
 		return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported query: %s", request.Collection), nil)
 	}
-
-	span := trace.SpanFromContext(ctx)
 	requestVars := request.Variables
-	varsLength := len(requestVars)
-	if varsLength == 0 {
+	if len(requestVars) == 0 {
 		requestVars = []schema.QueryRequestVariablesElem{make(schema.QueryRequestVariablesElem)}
-		varsLength = 1
 	}
 
-	rowSets := make([]schema.RowSet, varsLength)
-	for i, requestVar := range requestVars {
-		childSpan := span
-		childContext := ctx
-		if varsLength > 1 {
-			childContext, childSpan = state.Tracer.Start(ctx, fmt.Sprintf("execute_function_%d", i))
-			defer childSpan.End()
-		}
+	concurrencyLimit := getGlobalEnvironments().GetQueryConcurrencyLimitByName(request.Collection)
+	if concurrencyLimit <= 1 || len(request.Variables) <= 1 {
+		return c.execQuerySync(ctx, state, request, requestVars)
+	}
+	return c.execQueryAsync(ctx, state, request, requestVars, concurrencyLimit)
+}
 
-		result, err := c.execQuery(childContext, state, request, requestVar)
+func (c *Connector) execQuerySync(ctx context.Context, state *types.State, request *schema.QueryRequest, requestVars []schema.QueryRequestVariablesElem) (schema.QueryResponse, error) {
+	rowSets := make([]schema.RowSet, len(requestVars))
+	for i, requestVar := range requestVars {
+		result, err := c.execQuery(ctx, state, request, requestVar, i)
 		if err != nil {
-			if varsLength > 1 {
-				childSpan.SetStatus(codes.Error, err.Error())
-			}
 			return nil, err
 		}
 		rowSets[i] = *result
-
-		if varsLength > 1 {
-			childSpan.End()
-		}
 	}
 
 	return rowSets, nil
 }
 
-func (c *Connector) execQuery(ctx context.Context, state *types.State, request *schema.QueryRequest, variables map[string]any) (*schema.RowSet, error) {
+func (c *Connector) execQueryAsync(ctx context.Context, state *types.State, request *schema.QueryRequest, requestVars []schema.QueryRequestVariablesElem, concurrencyLimit int) (schema.QueryResponse, error) {
+	rowSets := make([]schema.RowSet, len(requestVars))
+	eg, ctx := errgroup.WithContext(ctx)
+	eg.SetLimit(concurrencyLimit)
+
+	for i, requestVar := range requestVars {
+		func(index int, vars schema.QueryRequestVariablesElem) {
+			eg.Go(func() error {
+				result, err := c.execQuery(ctx, state, request, vars, index)
+				if err != nil {
+					return err
+				}
+				rowSets[index] = *result
+				return nil
+			})
+		}(i, requestVar)
+	}
+
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
+	return rowSets, nil
+}
+
+func (c *Connector) execQuery(ctx context.Context, state *types.State, request *schema.QueryRequest, variables map[string]any, index int) (*schema.RowSet, error) {
+	ctx, span := state.Tracer.Start(ctx, fmt.Sprintf("Execute Function %d", index))
+	defer span.End()
+
 	rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
 	if err != nil {
+		span.SetStatus(codes.Error, "failed to resolve argument variables")
+		span.RecordError(err)
 		return nil, schema.UnprocessableContentError("failed to resolve argument variables", map[string]any{
 			"cause": err.Error(),
 		})
@@ -101,10 +124,15 @@ func (c *Connector) execQuery(ctx context.Context, state *types.State, request *
 		}
 
 		if err != utils.ErrHandlerNotfound {
+			span.SetStatus(codes.Error, fmt.Sprintf("failed to execute function %d", index))
+			span.RecordError(err)
 			return nil, err
 		}
 	}
-	return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported query: %s", request.Collection), nil)
+
+	errorMsg := fmt.Sprintf("unsupported query: %s", request.Collection)
+	span.SetStatus(codes.Error, errorMsg)
+	return nil, schema.UnprocessableContentError(errorMsg, nil)
 }
 
 // Mutation executes a mutation.
@@ -113,43 +141,78 @@ func (c *Connector) Mutation(ctx context.Context, configuration *types.Configura
 		return nil, schema.UnprocessableContentError("unsupported mutation", nil)
 	}
 
-	operationLen := len(request.Operations)
-	operationResults := make([]schema.MutationOperationResults, operationLen)
-	span := trace.SpanFromContext(ctx)
+	concurrencyLimit := getGlobalEnvironments().mutationConcurrencyLimit
+	if len(request.Operations) <= 1 || concurrencyLimit <= 1 {
+		return c.execMutationSync(ctx, state, request)
+	}
 
+	return c.execMutationAsync(ctx, state, request, concurrencyLimit)
+}
+
+func (c *Connector) execMutationSync(ctx context.Context, state *types.State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
+	operationResults := make([]schema.MutationOperationResults, len(request.Operations))
 	for i, operation := range request.Operations {
-		childSpan := span
-		childContext := ctx
-		if operationLen > 1 {
-			childContext, childSpan = state.Tracer.Start(ctx, fmt.Sprintf("execute_operation_%d", i))
-			defer childSpan.End()
+		result, err := c.execMutation(ctx, state, operation, i)
+		if err != nil {
+			return nil, err
 		}
-		childSpan.SetAttributes(
-			attribute.String("operation.type", string(operation.Type)),
-			attribute.String("operation.name", string(operation.Name)),
-		)
-
-		switch operation.Type {
-		case schema.MutationOperationProcedure:
-			result, err := c.execProcedure(childContext, state, &operation)
-			if err != nil {
-				if operationLen > 1 {
-					childSpan.SetStatus(codes.Error, err.Error())
-				}
-				return nil, err
-			}
-			operationResults[i] = result
-			if operationLen > 1 {
-				childSpan.End()
-			}
-		default:
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid operation type: %s", operation.Type), nil)
-		}
+		operationResults[i] = result
 	}
 
 	return &schema.MutationResponse{
 		OperationResults: operationResults,
 	}, nil
+}
+
+func (c *Connector) execMutationAsync(ctx context.Context, state *types.State, request *schema.MutationRequest, concurrencyLimit int) (*schema.MutationResponse, error) {
+	operationResults := make([]schema.MutationOperationResults, len(request.Operations))
+	eg, ctx := errgroup.WithContext(ctx)
+	eg.SetLimit(concurrencyLimit)
+
+	for i, operation := range request.Operations {
+		func(index int, op schema.MutationOperation) {
+			eg.Go(func() error {
+				result, err := c.execMutation(ctx, state, op, index)
+				if err != nil {
+					return err
+				}
+				operationResults[index] = result
+				return nil
+			})
+		}(i, operation)
+	}
+
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
+	return &schema.MutationResponse{
+		OperationResults: operationResults,
+	}, nil
+}
+
+func (c *Connector) execMutation(ctx context.Context, state *types.State, operation schema.MutationOperation, index int) (schema.MutationOperationResults, error) {
+	ctx, span := state.Tracer.Start(ctx, fmt.Sprintf("Execute Procedure %d", index))
+	defer span.End()
+
+	span.SetAttributes(
+		attribute.String("operation.type", string(operation.Type)),
+		attribute.String("operation.name", string(operation.Name)),
+	)
+
+	switch operation.Type {
+	case schema.MutationOperationProcedure:
+		result, err := c.execProcedure(ctx, state, &operation)
+		if err != nil {
+			span.SetStatus(codes.Error, fmt.Sprintf("failed to execute procedure %d", index))
+			span.RecordError(err)
+			return nil, err
+		}
+		return result, nil
+	default:
+		errorMsg := fmt.Sprintf("invalid operation type: %s", operation.Type)
+		span.SetStatus(codes.Error, errorMsg)
+		return nil, schema.UnprocessableContentError(errorMsg, nil)
+	}
 }
 
 func (c *Connector) execProcedure(ctx context.Context, state *types.State, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
@@ -164,4 +227,54 @@ func (c *Connector) execProcedure(ctx context.Context, state *types.State, opera
 	}
 
 	return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported procedure operation: %s", operation.Name), nil)
+}
+
+type globalEnvironments struct {
+	queryConcurrency         map[string]int
+	queryConcurrencyLimit    int
+	mutationConcurrencyLimit int
+}
+
+// GetQueryConcurrencyLimitByName gets the concurrency limit of the query by name
+func (ge globalEnvironments) GetQueryConcurrencyLimitByName(name string) int {
+	if len(ge.queryConcurrency) > 0 {
+		if limit, ok := ge.queryConcurrency[name]; ok {
+			return limit
+		}
+	}
+
+	return ge.queryConcurrencyLimit
+}
+
+var _globalEnvironments = globalEnvironments{}
+
+func initGlobalEnvironments() {
+	rawQueryConcurrencyLimit := os.Getenv("QUERY_CONCURRENCY_LIMIT")
+	if rawQueryConcurrencyLimit != "" {
+		limit, err := strconv.ParseInt(rawQueryConcurrencyLimit, 10, 64)
+		if err != nil {
+			panic(fmt.Sprintf("QUERY_CONCURRENCY_LIMIT: invalid integer <%s>", rawQueryConcurrencyLimit))
+		}
+		_globalEnvironments.queryConcurrencyLimit = int(limit)
+	}
+
+	rawMutationConcurrencyLimit := os.Getenv("MUTATION_CONCURRENCY_LIMIT")
+	if rawMutationConcurrencyLimit != "" {
+		limit, err := strconv.ParseInt(rawMutationConcurrencyLimit, 10, 64)
+		if err != nil {
+			panic(fmt.Sprintf("MUTATION_CONCURRENCY_LIMIT: invalid integer <%s>", rawMutationConcurrencyLimit))
+		}
+		_globalEnvironments.mutationConcurrencyLimit = int(limit)
+	}
+
+	queryConcurrency, err := utils.ParseIntMapFromString(os.Getenv("QUERY_CONCURRENCY"))
+	if err != nil {
+		panic(fmt.Sprintf("QUERY_CONCURRENCY: %s", err))
+	}
+	_globalEnvironments.queryConcurrency = queryConcurrency
+}
+
+func getGlobalEnvironments() *globalEnvironments {
+	loadGlobalEnvOnce.Do(initGlobalEnvironments)
+	return &_globalEnvironments
 }

@@ -10,15 +10,15 @@ import (
 // BigInt wraps the scalar implementation for big integer,
 // with string representation
 //
-// @scalar BigInt string
+// @scalar BigInt string.
 type BigInt int64
 
-// NewBigInt creates a BigInt instance
+// NewBigInt creates a BigInt instance.
 func NewBigInt(value int64) BigInt {
 	return BigInt(value)
 }
 
-// ScalarName get the schema name of the scalar
+// ScalarName get the schema name of the scalar.
 func (bi BigInt) ScalarName() string {
 	return "BigInt"
 }

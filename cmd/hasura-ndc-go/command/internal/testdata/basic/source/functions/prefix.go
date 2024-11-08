@@ -105,6 +105,7 @@ type GetTypesArguments struct {
 	Enum         SomeEnum
 	BigInt       scalar.BigInt
 	URL          scalar.URL
+	Duration     scalar.Duration
 
 	UUIDPtr         *uuid.UUID
 	BoolPtr         *bool
@@ -236,8 +237,114 @@ type GetTypesArguments struct {
 	RawJSONPtr *json.RawMessage
 	Bytes      scalar.Bytes
 	BytesPtr   *scalar.Bytes
+
+	UUIDEmpty    uuid.UUID     `json:"uuid_empty,omitempty"`
+	BoolEmpty    bool          `json:"bool_empty,omitempty"`
+	StringEmpty  string        `json:"string_empty,omitempty"`
+	IntEmpty     int           `json:"int_empty,omitempty"`
+	Int8Empty    int8          `json:"int8_empty,omitempty"`
+	Int16Empty   int16         `json:"int16_empty,omitempty"`
+	Int32Empty   int32         `json:"int32_empty,omitempty"`
+	Int64Empty   int64         `json:"int64_empty,omitempty"`
+	UintEmpty    uint          `json:"uint_empty,omitempty"`
+	Uint8Empty   uint8         `json:"uint8_empty,omitempty"`
+	Uint16Empty  uint16        `json:"uint16_empty,omitempty"`
+	Uint32Empty  uint32        `json:"uint32_empty,omitempty"`
+	Uint64Empty  uint64        `json:"uint64_empty,omitempty"`
+	Float32Empty float32       `json:"float32_empty,omitempty"`
+	Float64Empty float64       `json:"float64_empty,omitempty"`
+	TimeEmpty    time.Time     `json:"time_empty,omitempty"`
+	BigIntEmpty  scalar.BigInt `json:"bigint_empty,omitempty"`
+	DateEmpty    scalar.Date   `json:"date_empty,omitempty"`
+	URLEmpty     scalar.URL    `json:"url_empty,omitempty"`
+
+	ArrayBoolEmpty       []bool             `json:"array_bool_empty,omitempty"`
+	ArrayStringEmpty     []string           `json:"array_string_empty,omitempty"`
+	ArrayIntEmpty        []int              `json:"array_int_empty,omitempty"`
+	ArrayInt8Empty       []int8             `json:"array_int8_empty,omitempty"`
+	ArrayInt16Empty      []int16            `json:"array_int16_empty,omitempty"`
+	ArrayInt32Empty      []int32            `json:"array_int32_empty,omitempty"`
+	ArrayInt64Empty      []int64            `json:"array_int64_empty,omitempty"`
+	ArrayUintEmpty       []uint             `json:"array_uint_empty,omitempty"`
+	ArrayUint8Empty      []uint8            `json:"array_uint8_empty,omitempty"`
+	ArrayUint16Empty     []uint16           `json:"array_uint16_empty,omitempty"`
+	ArrayUint32Empty     []uint32           `json:"array_uint32_empty,omitempty"`
+	ArrayUint64Empty     []uint64           `json:"array_uint64_empty,omitempty"`
+	ArrayFloat32Empty    []float32          `json:"array_float32_empty,omitempty"`
+	ArrayFloat64Empty    []float64          `json:"array_float64_empty,omitempty"`
+	ArrayUUIDEmpty       []uuid.UUID        `json:"array_uuid_empty,omitempty"`
+	ArrayBoolPtrEmpty    []*bool            `json:"array_bool_ptr_empty,omitempty"`
+	ArrayStringPtrEmpty  []*string          `json:"array_string_ptr_empty,omitempty"`
+	ArrayIntPtrEmpty     []*int             `json:"array_int_ptr_empty,omitempty"`
+	ArrayInt8PtrEmpty    []*int8            `json:"array_int8_ptr_empty,omitempty"`
+	ArrayInt16PtrEmpty   []*int16           `json:"array_int16_ptr_empty,omitempty"`
+	ArrayInt32PtrEmpty   []*int32           `json:"array_int32_ptr_empty,omitempty"`
+	ArrayInt64PtrEmpty   []*int64           `json:"array_int64_ptr_empty,omitempty"`
+	ArrayUintPtrEmpty    []*uint            `json:"array_uint_ptr_empty,omitempty"`
+	ArrayUint8PtrEmpty   []*uint8           `json:"array_uint8_ptr_empty,omitempty"`
+	ArrayUint16PtrEmpty  []*uint16          `json:"array_uint16_ptr_empty,omitempty"`
+	ArrayUint32PtrEmpty  []*uint32          `json:"array_uint32_ptr_empty,omitempty"`
+	ArrayUint64PtrEmpty  []*uint64          `json:"array_uint64_ptr_empty,omitempty"`
+	ArrayFloat32PtrEmpty []*float32         `json:"array_float32_ptr_empty,omitempty"`
+	ArrayFloat64PtrEmpty []*float64         `json:"array_float64_ptr_empty,omitempty"`
+	ArrayUUIDPtrEmpty    []*uuid.UUID       `json:"array_uuid_ptr_empty,omitempty"`
+	ArrayJSONEmpty       []any              `json:"array_json_empty,omitempty"`
+	ArrayJSONPtrEmpty    []*interface{}     `json:"array_json_ptr_empty,omitempty"`
+	ArrayRawJSONEmpty    []json.RawMessage  `json:"array_raw_json_empty,omitempty"`
+	ArrayRawJSONPtrEmpty []*json.RawMessage `json:"array_raw_json_ptr_empty,omitempty"`
+	ArrayBigIntEmpty     []scalar.BigInt    `json:"array_bigint_empty,omitempty"`
+	ArrayBigIntPtrEmpty  []*scalar.BigInt   `json:"array_bigint_ptr_empty,omitempty"`
+	ArrayTimeEmpty       []time.Time        `json:"array_time_empty,omitempty"`
+	ArrayTimePtrEmpty    []*time.Time       `json:"array_time_ptr_empty,omitempty"`
+
+	IgnoredField string `json:"-"`
 }
 
 func FunctionGetTypes(ctx context.Context, state *types.State, arguments *GetTypesArguments) (*GetTypesArguments, error) {
 	return arguments, nil
+}
+
+type BaseAuthor struct {
+	Name string `json:"name"`
+}
+
+// generate schema and methods for generic types
+type GetCustomHeadersArguments[T any, S int | int8 | int16 | int32 | int64] struct {
+	Headers map[string]string         `json:"headers"`
+	Input   *T                        `json:"input"`
+	Other   *GetCustomHeadersOther[S] `json:"other"`
+}
+
+type GetCustomHeadersOther[T int | int8 | int16 | int32 | int64] struct {
+	Value T `json:"value"`
+}
+
+type GetCustomHeadersResult[T any, O int | int8 | int16 | int32 | int64] struct {
+	Headers  map[string]string `json:"headers"`
+	Response T
+	Other    *GetCustomHeadersOther[O] `json:"other"`
+}
+
+func FunctionGetCustomHeaders(ctx context.Context, state *types.State, arguments *GetCustomHeadersArguments[BaseAuthor, int]) (GetCustomHeadersResult[HelloResult, int64], error) {
+	if arguments.Headers == nil {
+		arguments.Headers = make(map[string]string)
+	}
+	arguments.Headers["X-Test-ResponseHeader"] = "I set this in the code"
+	result := HelloResult{}
+	if arguments.Input != nil {
+		result.Text = types.Text(arguments.Input.Name)
+	}
+	return GetCustomHeadersResult[HelloResult, int64]{
+		Headers:  arguments.Headers,
+		Response: result,
+	}, nil
+}
+
+type CustomHeadersResult[T any] struct {
+	Headers  map[string]string `json:"headers,omitempty"`
+	Response T
+}
+
+func ProcedureDoCustomHeaders(ctx context.Context, state *types.State, arguments *GetCustomHeadersArguments[*[]BaseAuthor, int]) (*CustomHeadersResult[[]*BaseAuthor], error) {
+	return &CustomHeadersResult[[]*BaseAuthor]{}, nil
 }

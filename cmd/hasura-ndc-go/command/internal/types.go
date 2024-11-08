@@ -5,7 +5,7 @@ import (
 	"slices"
 )
 
-// OperationNamingStyle the enum for operation naming style
+// OperationNamingStyle the enum for operation naming style.
 type OperationNamingStyle string
 
 const (
@@ -17,12 +17,12 @@ var enumValues_OperationNamingStyle = []OperationNamingStyle{
 	StyleCamelCase, StyleSnakeCase,
 }
 
-// IsValid checks if the value is invalid
+// IsValid checks if the value is invalid.
 func (j OperationNamingStyle) IsValid() bool {
 	return slices.Contains(enumValues_OperationNamingStyle, j)
 }
 
-// ParseOperationNamingStyle parses a OperationNamingStyle enum from string
+// ParseOperationNamingStyle parses a OperationNamingStyle enum from string.
 func ParseOperationNamingStyle(input string) (OperationNamingStyle, error) {
 	result := OperationNamingStyle(input)
 	if !result.IsValid() {

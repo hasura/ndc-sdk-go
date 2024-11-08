@@ -2,6 +2,7 @@ package command
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math/rand"
@@ -15,7 +16,7 @@ import (
 	"github.com/hasura/ndc-sdk-go/schema"
 )
 
-// GenTestSnapshotArguments represents arguments for test snapshot generation
+// GenTestSnapshotArguments represents arguments for test snapshot generation.
 type GenTestSnapshotArguments struct {
 	Schema   string                     `help:"NDC schema file path. Use either endpoint or schema path"`
 	Endpoint string                     `help:"The endpoint of the connector. Use either endpoint or schema path"`
@@ -26,14 +27,14 @@ type GenTestSnapshotArguments struct {
 	Strategy internal.WriteFileStrategy `help:"Decide the strategy to do when the snapshot file exists. Accept: none, override" enum:"none,override" default:"none"`
 }
 
-// genTestSnapshotsCommand
+// genTestSnapshotsCommand.
 type genTestSnapshotsCommand struct {
 	args   *GenTestSnapshotArguments
 	schema schema.SchemaResponse
 	random *rand.Rand
 }
 
-// GenTestSnapshots generates test snapshots from NDC schema
+// GenTestSnapshots generates test snapshots from NDC schema.
 func GenTestSnapshots(args *GenTestSnapshotArguments) error {
 	seed := time.Now().UnixNano()
 	random := rand.New(rand.NewSource(seed))
@@ -64,19 +65,20 @@ func (cmd *genTestSnapshotsCommand) fetchSchema() error {
 	if cmd.args.Schema != "" {
 		rawBytes, err := os.ReadFile(cmd.args.Schema)
 		if err != nil {
-			return fmt.Errorf("failed to read schema from %s: %s", cmd.args.Schema, err)
+			return fmt.Errorf("failed to read schema from %s: %w", cmd.args.Schema, err)
 		}
 		if err := json.Unmarshal(rawBytes, &cmd.schema); err != nil {
-			return fmt.Errorf("failed to decode schema json from %s: %s", cmd.args.Schema, err)
+			return fmt.Errorf("failed to decode schema json from %s: %w", cmd.args.Schema, err)
 		}
 		return nil
 	}
 
 	if cmd.args.Endpoint != "" {
-		resp, err := http.Get(fmt.Sprintf("%s/schema", cmd.args.Endpoint))
+		resp, err := http.Get(cmd.args.Endpoint + "/schema")
 		if err != nil {
-			return fmt.Errorf("failed to fetch schema from %s: %s", cmd.args.Endpoint, err)
+			return fmt.Errorf("failed to fetch schema from %s: %w", cmd.args.Endpoint, err)
 		}
+		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
 			var respBytes []byte
@@ -93,12 +95,12 @@ func (cmd *genTestSnapshotsCommand) fetchSchema() error {
 		}
 
 		if err := json.NewDecoder(resp.Body).Decode(&cmd.schema); err != nil {
-			return fmt.Errorf("failed to decode schema json from %s: %s", cmd.args.Schema, err)
+			return fmt.Errorf("failed to decode schema json from %s: %w", cmd.args.Schema, err)
 		}
 		return nil
 	}
 
-	return fmt.Errorf("required either endpoint or file path to the schema")
+	return errors.New("required either endpoint or file path to the schema")
 }
 
 func (cmd *genTestSnapshotsCommand) genFunction(fn *schema.FunctionInfo) error {
@@ -107,11 +109,11 @@ func (cmd *genTestSnapshotsCommand) genFunction(fn *schema.FunctionInfo) error {
 	}
 	args, err := cmd.genQueryArguments(fn.Arguments)
 	if err != nil {
-		return fmt.Errorf("failed to generate arguments for %s function: %s", fn.Name, err)
+		return fmt.Errorf("failed to generate arguments for %s function: %w", fn.Name, err)
 	}
 	fields, value, err := cmd.genNestFieldAndValue(fn.ResultType)
 	if err != nil {
-		return fmt.Errorf("failed to generate result for %s function: %s", fn.Name, err)
+		return fmt.Errorf("failed to generate result for %s function: %w", fn.Name, err)
 	}
 
 	queryReq := schema.QueryRequest{
@@ -136,7 +138,7 @@ func (cmd *genTestSnapshotsCommand) genFunction(fn *schema.FunctionInfo) error {
 	}
 
 	snapshotDir := path.Join(cmd.args.Dir, "query", queryReq.Collection)
-	if err := os.MkdirAll(snapshotDir, 0755); err != nil {
+	if err := os.MkdirAll(snapshotDir, 0o755); err != nil {
 		return err
 	}
 
@@ -165,12 +167,12 @@ func (cmd *genTestSnapshotsCommand) genProcedure(proc *schema.ProcedureInfo) err
 	}
 	args, err := cmd.genOperationArguments(proc.Arguments)
 	if err != nil {
-		return fmt.Errorf("failed to generate arguments for %s procedure: %s", proc.Name, err)
+		return fmt.Errorf("failed to generate arguments for %s procedure: %w", proc.Name, err)
 	}
 
 	fields, value, err := cmd.genNestFieldAndValue(proc.ResultType)
 	if err != nil {
-		return fmt.Errorf("failed to generate result for %s procedure: %s", proc.Name, err)
+		return fmt.Errorf("failed to generate result for %s procedure: %w", proc.Name, err)
 	}
 	var rawFields schema.NestedField
 	if fields != nil {
@@ -195,7 +197,7 @@ func (cmd *genTestSnapshotsCommand) genProcedure(proc *schema.ProcedureInfo) err
 	}
 
 	snapshotDir := path.Join(cmd.args.Dir, "mutation", proc.Name)
-	if err := os.MkdirAll(snapshotDir, 0755); err != nil {
+	if err := os.MkdirAll(snapshotDir, 0o755); err != nil {
 		return err
 	}
 

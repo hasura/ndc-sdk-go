@@ -8,13 +8,10 @@ import (
 	"slices"
 )
 
-var connector_Decoder = utils.NewDecoder()
-
 // FromValue decodes values from map
 func (j *Author) FromValue(input map[string]any) error {
 	var err error
-	j.Author = new(Author)
-	err = connector_Decoder.DecodeNullableObjectValue(j.Author, input, "author")
+	j.Author, err = utils.DecodeNullableObjectValue[Author](input, "author")
 	if err != nil {
 		return err
 	}
@@ -26,12 +23,11 @@ func (j *Author) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
-	j.Status = new(AuthorStatus)
-	err = connector_Decoder.DecodeNullableObjectValue(j.Status, input, "status")
+	j.Status, err = utils.DecodeNullableObjectValue[AuthorStatus](input, "status")
 	if err != nil {
 		return err
 	}
-	err = connector_Decoder.DecodeObjectValue(&j.Tags, input, "tags")
+	j.Tags, err = utils.GetStringSliceDefault(input, "tags")
 	if err != nil {
 		return err
 	}
@@ -48,15 +44,6 @@ func (j Author) ToMap() map[string]any {
 	r["id"] = j.ID
 	r["status"] = j.Status
 	r["tags"] = j.Tags
-
-	return r
-}
-
-// ToMap encodes the struct to a value map
-func (j GetAuthorResult) ToMap() map[string]any {
-	r := make(map[string]any)
-	r["id"] = j.ID
-	r["name"] = j.Name
 
 	return r
 }

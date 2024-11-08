@@ -12,7 +12,7 @@ func (j *ProcedureInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 	var arguments ProcedureInfoArguments
 	if ok && !isNullJSON(rawArguments) {
 		if err := json.Unmarshal(rawArguments, &arguments); err != nil {
-			return fmt.Errorf("ProcedureInfo.arguments: %s", err)
+			return fmt.Errorf("ProcedureInfo.arguments: %w", err)
 		}
 	}
 
@@ -22,7 +22,7 @@ func (j *ProcedureInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 	}
 	var name string
 	if err := json.Unmarshal(rawName, &name); err != nil {
-		return fmt.Errorf("ProcedureInfo.name: %s", err)
+		return fmt.Errorf("ProcedureInfo.name: %w", err)
 	}
 	if name == "" {
 		return errors.New("ProcedureInfo.name: required")
@@ -32,17 +32,17 @@ func (j *ProcedureInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 	var description *string
 	if ok && !isNullJSON(rawDescription) {
 		if err := json.Unmarshal(rawDescription, &description); err != nil {
-			return fmt.Errorf("ProcedureInfo.description: %s", err)
+			return fmt.Errorf("ProcedureInfo.description: %w", err)
 		}
 	}
 
 	rawResultType, ok := raw["result_type"]
 	if !ok || isNullJSON(rawResultType) {
-		return fmt.Errorf("ProcedureInfo.result_type: required")
+		return errors.New("ProcedureInfo.result_type: required")
 	}
 	var resultType Type
 	if err := json.Unmarshal(rawResultType, &resultType); err != nil {
-		return fmt.Errorf("ProcedureInfo.result_type: %s", err)
+		return fmt.Errorf("ProcedureInfo.result_type: %w", err)
 	}
 
 	*j = ProcedureInfo{
@@ -54,14 +54,14 @@ func (j *ProcedureInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 	return nil
 }
 
-// MutationOperationType represents the mutation operation type enum
+// MutationOperationType represents the mutation operation type enum.
 type MutationOperationType string
 
 const (
 	MutationOperationProcedure MutationOperationType = "procedure"
 )
 
-// ParseMutationOperationType parses a mutation operation type argument type from string
+// ParseMutationOperationType parses a mutation operation type argument type from string.
 func ParseMutationOperationType(input string) (*MutationOperationType, error) {
 	if input != string(MutationOperationProcedure) {
 		return nil, fmt.Errorf("failed to parse MutationOperationType, expect one of %v, got %s", []MutationOperationType{MutationOperationProcedure}, input)
@@ -87,7 +87,7 @@ func (j *MutationOperationType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// MutationOperation represents a mutation operation
+// MutationOperation represents a mutation operation.
 type MutationOperation struct {
 	Type MutationOperationType `json:"type" yaml:"type" mapstructure:"type"`
 	// The name of the operation
@@ -113,7 +113,7 @@ func (j *MutationOperation) UnmarshalJSON(b []byte) error {
 	}
 	err := json.Unmarshal(rawType, &operationType)
 	if err != nil {
-		return fmt.Errorf("field type in MutationOperation: %s", err)
+		return fmt.Errorf("field type in MutationOperation: %w", err)
 	}
 
 	value := MutationOperation{
@@ -124,7 +124,7 @@ func (j *MutationOperation) UnmarshalJSON(b []byte) error {
 	case MutationOperationProcedure:
 		name, err := unmarshalStringFromJsonMap(raw, "name", true)
 		if err != nil {
-			return fmt.Errorf("field name in MutationOperation: %s", err)
+			return fmt.Errorf("field name in MutationOperation: %w", err)
 		}
 		value.Name = name
 
@@ -139,17 +139,19 @@ func (j *MutationOperation) UnmarshalJSON(b []byte) error {
 		if ok && !isNullJSON(rawFields) {
 			var fields NestedField
 			if err = json.Unmarshal(rawFields, &fields); err != nil {
-				return fmt.Errorf("field fields in MutationOperation: %s", err)
+				return fmt.Errorf("field fields in MutationOperation: %w", err)
 			}
 			value.Fields = fields
 		}
+	default:
+		return fmt.Errorf("invalid mutation operation type: %s", value.Type)
 	}
 
 	*j = value
 	return nil
 }
 
-// MutationOperationResults represent the result of mutation operation
+// MutationOperationResults represent the result of mutation operation.
 type MutationOperationResults map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -166,7 +168,7 @@ func (j *MutationOperationResults) UnmarshalJSON(b []byte) error {
 
 	var ty MutationOperationType
 	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in MutationOperationResults: %s", err)
+		return fmt.Errorf("field type in MutationOperationResults: %w", err)
 	}
 
 	result := map[string]any{
@@ -180,15 +182,17 @@ func (j *MutationOperationResults) UnmarshalJSON(b []byte) error {
 		}
 		var procedureResult any
 		if err := json.Unmarshal(rawResult, &procedureResult); err != nil {
-			return fmt.Errorf("field result in MutationOperationResults: %s", err)
+			return fmt.Errorf("field result in MutationOperationResults: %w", err)
 		}
 		result["result"] = procedureResult
+	default:
+		return fmt.Errorf("invalid mutation operation type: %s", ty)
 	}
 	*j = result
 	return nil
 }
 
-// Type gets the type enum of the current type
+// Type gets the type enum of the current type.
 func (j MutationOperationResults) Type() (MutationOperationType, error) {
 	t, ok := j["type"]
 	if !ok {
@@ -208,7 +212,7 @@ func (j MutationOperationResults) Type() (MutationOperationType, error) {
 	}
 }
 
-// AsProcedure tries to convert the instance to ProcedureResult type
+// AsProcedure tries to convert the instance to ProcedureResult type.
 func (j MutationOperationResults) AsProcedure() (*ProcedureResult, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -229,13 +233,13 @@ func (j MutationOperationResults) AsProcedure() (*ProcedureResult, error) {
 	}, nil
 }
 
-// Interface tries to convert the instance to MutationOperationResultsEncoder interface
+// Interface tries to convert the instance to MutationOperationResultsEncoder interface.
 func (j MutationOperationResults) Interface() MutationOperationResultsEncoder {
 	result, _ := j.InterfaceT()
 	return result
 }
 
-// InterfaceT tries to convert the instance to MutationOperationResultsEncoder interface safely with explicit error
+// InterfaceT tries to convert the instance to MutationOperationResultsEncoder interface safely with explicit error.
 func (j MutationOperationResults) InterfaceT() (MutationOperationResultsEncoder, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -250,18 +254,18 @@ func (j MutationOperationResults) InterfaceT() (MutationOperationResultsEncoder,
 	}
 }
 
-// MutationOperationResultsEncoder abstracts the serialization interface for MutationOperationResults
+// MutationOperationResultsEncoder abstracts the serialization interface for MutationOperationResults.
 type MutationOperationResultsEncoder interface {
 	Encode() MutationOperationResults
 }
 
-// ProcedureResult represent the result of a procedure mutation operation
+// ProcedureResult represent the result of a procedure mutation operation.
 type ProcedureResult struct {
 	Type   MutationOperationType `json:"type" yaml:"type" mapstructure:"type"`
 	Result any                   `json:"result" yaml:"result" mapstructure:"result"`
 }
 
-// Encode encodes the struct to MutationOperationResults
+// Encode encodes the struct to MutationOperationResults.
 func (pr ProcedureResult) Encode() MutationOperationResults {
 	return MutationOperationResults{
 		"type":   pr.Type,
@@ -269,7 +273,7 @@ func (pr ProcedureResult) Encode() MutationOperationResults {
 	}
 }
 
-// NewProcedureResult creates a MutationProcedureResult instance
+// NewProcedureResult creates a MutationProcedureResult instance.
 func NewProcedureResult(result any) *ProcedureResult {
 	return &ProcedureResult{
 		Type:   MutationOperationProcedure,

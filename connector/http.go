@@ -52,7 +52,7 @@ var allowedTraceEndpoints = map[string]string{
 
 var debugApiPaths = []string{apiPathMetrics, apiPathHealth}
 
-// define a custom response write to capture response information for logging
+// define a custom response write to capture response information for logging.
 type customResponseWriter struct {
 	http.ResponseWriter
 	statusCode int
@@ -72,7 +72,7 @@ func (cw *customResponseWriter) Write(body []byte) (int, error) {
 	return bodyLength, err
 }
 
-// implements a simple router to reuse for both configuration and connector servers
+// implements a simple router to reuse for both configuration and connector servers.
 type router struct {
 	routes          map[string]map[string]http.HandlerFunc
 	logger          *slog.Logger
@@ -102,7 +102,7 @@ func (rt *router) Build() *http.ServeMux {
 	handleFunc := func(handlers map[string]http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			startTime := time.Now()
-			isDebug := rt.logger.Enabled(context.Background(), slog.LevelDebug)
+			isDebug := rt.logger.Enabled(r.Context(), slog.LevelDebug)
 			requestID := getRequestID(r)
 			requestLogData := map[string]any{
 				"url":            r.URL.String(),
@@ -203,7 +203,7 @@ func (rt *router) Build() *http.ServeMux {
 					slog.Duration("latency", time.Since(startTime)),
 					slog.Any("request", requestLogData),
 					slog.Any("response", map[string]any{
-						"status": 404,
+						"status": http.StatusNotFound,
 					}),
 				)
 
@@ -226,12 +226,12 @@ func (rt *router) Build() *http.ServeMux {
 						slog.Duration("latency", time.Since(startTime)),
 						slog.Any("request", requestLogData),
 						slog.Any("response", map[string]any{
-							"status": 422,
+							"status": http.StatusUnprocessableEntity,
 							"body":   err,
 						}),
 					)
 					span.SetAttributes(attribute.Int("http.response.status_code", http.StatusUnprocessableEntity))
-					span.SetStatus(codes.Error, fmt.Sprintf("invalid content type: %s", contentType))
+					span.SetStatus(codes.Error, "invalid content type: "+contentType)
 					return
 				}
 			}
@@ -255,7 +255,7 @@ func (rt *router) Build() *http.ServeMux {
 			}
 			setSpanHeadersAttributes(span, "http.response.header", w.Header(), isDebug)
 
-			if writer.statusCode >= 400 {
+			if writer.statusCode >= http.StatusBadRequest {
 				logger.Error(
 					http.StatusText(writer.statusCode),
 					slog.Duration("latency", time.Since(startTime)),
@@ -296,7 +296,7 @@ func getRequestID(r *http.Request) string {
 	return requestID
 }
 
-// writeJsonFunc writes raw bytes data with a json encoding callback
+// writeJsonFunc writes raw bytes data with a json encoding callback.
 func writeJsonFunc(w http.ResponseWriter, logger *slog.Logger, statusCode int, encodeFunc func() ([]byte, error)) {
 	w.Header().Set(headerContentType, contentTypeJson)
 	jsonBytes, err := encodeFunc()
@@ -313,7 +313,7 @@ func writeJsonFunc(w http.ResponseWriter, logger *slog.Logger, statusCode int, e
 	}
 }
 
-// writeJson writes response data with json encode
+// writeJson writes response data with json encode.
 func writeJson(w http.ResponseWriter, logger *slog.Logger, statusCode int, body any) {
 	if body == nil {
 		w.WriteHeader(statusCode)
@@ -325,7 +325,7 @@ func writeJson(w http.ResponseWriter, logger *slog.Logger, statusCode int, body 
 	})
 }
 
-// GetLogger gets the logger instance from context
+// GetLogger gets the logger instance from context.
 func GetLogger(ctx context.Context) *slog.Logger {
 	value := ctx.Value(logContextKey)
 	if value != nil {

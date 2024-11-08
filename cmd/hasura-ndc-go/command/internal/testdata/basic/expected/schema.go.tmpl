@@ -7,20 +7,27 @@ import (
 
 
 func toPtr[V any](value V) *V {
-	return &value
+  return &value
 }
 
 // GetConnectorSchema gets the generated connector schema
 func GetConnectorSchema() *schema.SchemaResponse {
-	return &schema.SchemaResponse{
-		Collections: []schema.CollectionInfo{},
-		ObjectTypes: schema.SchemaResponseObjectTypes{
+  return &schema.SchemaResponse{
+    Collections: []schema.CollectionInfo{},
+    ObjectTypes: schema.SchemaResponseObjectTypes{
       "Author": schema.ObjectType{
         Fields: schema.ObjectTypeFields{
           "created_at": schema.ObjectField{
             Type: schema.NewNamedType("TimestampTZ").Encode(),
           },
           "id": schema.ObjectField{
+            Type: schema.NewNamedType("String").Encode(),
+          },
+        },
+      },
+      "BaseAuthor": schema.ObjectType{
+        Fields: schema.ObjectTypeFields{
+          "name": schema.ObjectField{
             Type: schema.NewNamedType("String").Encode(),
           },
         },
@@ -58,6 +65,16 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
         },
       },
+      "CustomHeadersResult_array_nullable_BaseAuthor": schema.ObjectType{
+        Fields: schema.ObjectTypeFields{
+          "Response": schema.ObjectField{
+            Type: schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("BaseAuthor"))).Encode(),
+          },
+          "headers": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
+          },
+        },
+      },
       "GetArticlesResult": schema.ObjectType{
         Fields: schema.ObjectTypeFields{
           "Name": schema.ObjectField{
@@ -65,6 +82,33 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
           "id": schema.ObjectField{
             Type: schema.NewNamedType("String").Encode(),
+          },
+        },
+      },
+      "GetCustomHeadersOther_int": schema.ObjectType{
+        Fields: schema.ObjectTypeFields{
+          "value": schema.ObjectField{
+            Type: schema.NewNamedType("Int32").Encode(),
+          },
+        },
+      },
+      "GetCustomHeadersOther_int64": schema.ObjectType{
+        Fields: schema.ObjectTypeFields{
+          "value": schema.ObjectField{
+            Type: schema.NewNamedType("Int64").Encode(),
+          },
+        },
+      },
+      "GetCustomHeadersResult_HelloResult_int64": schema.ObjectType{
+        Fields: schema.ObjectTypeFields{
+          "Response": schema.ObjectField{
+            Type: schema.NewNamedType("HelloResult").Encode(),
+          },
+          "headers": schema.ObjectField{
+            Type: schema.NewNamedType("JSON").Encode(),
+          },
+          "other": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther_int64")).Encode(),
           },
         },
       },
@@ -219,6 +263,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
           "CustomScalarPtr": schema.ObjectField{
             Type: schema.NewNullableType(schema.NewNamedType("CommentString")).Encode(),
+          },
+          "Duration": schema.ObjectField{
+            Type: schema.NewNamedType("Duration").Encode(),
           },
           "Enum": schema.ObjectField{
             Type: schema.NewNamedType("SomeEnum").Encode(),
@@ -478,6 +525,177 @@ func GetConnectorSchema() *schema.SchemaResponse {
           "UintPtr": schema.ObjectField{
             Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
           },
+          "array_bigint_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("BigInt"))).Encode(),
+          },
+          "array_bigint_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("BigInt")))).Encode(),
+          },
+          "array_bool_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Boolean"))).Encode(),
+          },
+          "array_bool_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Boolean")))).Encode(),
+          },
+          "array_float32_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Float32"))).Encode(),
+          },
+          "array_float32_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float32")))).Encode(),
+          },
+          "array_float64_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Float64"))).Encode(),
+          },
+          "array_float64_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float64")))).Encode(),
+          },
+          "array_int16_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int16"))).Encode(),
+          },
+          "array_int16_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16")))).Encode(),
+          },
+          "array_int32_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+          },
+          "array_int32_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
+          },
+          "array_int64_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int64"))).Encode(),
+          },
+          "array_int64_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64")))).Encode(),
+          },
+          "array_int8_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int8"))).Encode(),
+          },
+          "array_int8_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8")))).Encode(),
+          },
+          "array_int_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+          },
+          "array_int_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
+          },
+          "array_json_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("JSON"))).Encode(),
+          },
+          "array_json_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("JSON")))).Encode(),
+          },
+          "array_raw_json_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("RawJSON"))).Encode(),
+          },
+          "array_raw_json_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("RawJSON")))).Encode(),
+          },
+          "array_string_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("String"))).Encode(),
+          },
+          "array_string_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("String")))).Encode(),
+          },
+          "array_time_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("TimestampTZ"))).Encode(),
+          },
+          "array_time_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("TimestampTZ")))).Encode(),
+          },
+          "array_uint16_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int16"))).Encode(),
+          },
+          "array_uint16_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16")))).Encode(),
+          },
+          "array_uint32_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+          },
+          "array_uint32_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
+          },
+          "array_uint64_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int64"))).Encode(),
+          },
+          "array_uint64_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64")))).Encode(),
+          },
+          "array_uint8_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int8"))).Encode(),
+          },
+          "array_uint8_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8")))).Encode(),
+          },
+          "array_uint_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+          },
+          "array_uint_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
+          },
+          "array_uuid_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("UUID"))).Encode(),
+          },
+          "array_uuid_ptr_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("UUID")))).Encode(),
+          },
+          "bigint_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("BigInt")).Encode(),
+          },
+          "bool_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("Boolean")).Encode(),
+          },
+          "date_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("Date")).Encode(),
+          },
+          "float32_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("Float32")).Encode(),
+          },
+          "float64_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("Float64")).Encode(),
+          },
+          "int16_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("Int16")).Encode(),
+          },
+          "int32_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+          },
+          "int64_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("Int64")).Encode(),
+          },
+          "int8_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("Int8")).Encode(),
+          },
+          "int_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+          },
+          "string_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("String")).Encode(),
+          },
+          "time_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("TimestampTZ")).Encode(),
+          },
+          "uint16_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("Int16")).Encode(),
+          },
+          "uint32_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+          },
+          "uint64_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("Int64")).Encode(),
+          },
+          "uint8_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("Int8")).Encode(),
+          },
+          "uint_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+          },
+          "url_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("URL")).Encode(),
+          },
+          "uuid_empty": schema.ObjectField{
+            Type: schema.NewNullableType(schema.NewNamedType("UUID")).Encode(),
+          },
         },
       },
       "GetTypesArgumentsArrayObject": schema.ObjectType{
@@ -533,17 +751,32 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
         },
       },
-		},
-		Functions: []schema.FunctionInfo{
-			{
-				Name: "getBool",
-      	Description: toPtr("return an scalar boolean"),
+    },
+    Functions: []schema.FunctionInfo{
+      {
+        Name: "getBool",
+        Description: toPtr("return an scalar boolean"),
         ResultType: schema.NewNamedType("Boolean").Encode(),
         Arguments: map[string]schema.ArgumentInfo{
         },
       },
-			{
-				Name: "getTypes",
+      {
+        Name: "getCustomHeaders",
+        ResultType: schema.NewNamedType("GetCustomHeadersResult_HelloResult_int64").Encode(),
+        Arguments: map[string]schema.ArgumentInfo{
+          "headers": {
+            Type: schema.NewNamedType("JSON").Encode(),
+          },
+          "input": {
+            Type: schema.NewNullableType(schema.NewNamedType("BaseAuthor")).Encode(),
+          },
+          "other": {
+            Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther_int")).Encode(),
+          },
+        },
+      },
+      {
+        Name: "getTypes",
         ResultType: schema.NewNullableType(schema.NewNamedType("GetTypesArguments")).Encode(),
         Arguments: map[string]schema.ArgumentInfo{
           "ArrayBigInt": {
@@ -695,6 +928,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
           "CustomScalarPtr": {
             Type: schema.NewNullableType(schema.NewNamedType("CommentString")).Encode(),
+          },
+          "Duration": {
+            Type: schema.NewNamedType("Duration").Encode(),
           },
           "Enum": {
             Type: schema.NewNamedType("SomeEnum").Encode(),
@@ -954,18 +1190,189 @@ func GetConnectorSchema() *schema.SchemaResponse {
           "UintPtr": {
             Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
           },
+          "array_bigint_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("BigInt"))).Encode(),
+          },
+          "array_bigint_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("BigInt")))).Encode(),
+          },
+          "array_bool_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Boolean"))).Encode(),
+          },
+          "array_bool_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Boolean")))).Encode(),
+          },
+          "array_float32_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Float32"))).Encode(),
+          },
+          "array_float32_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float32")))).Encode(),
+          },
+          "array_float64_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Float64"))).Encode(),
+          },
+          "array_float64_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Float64")))).Encode(),
+          },
+          "array_int16_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int16"))).Encode(),
+          },
+          "array_int16_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16")))).Encode(),
+          },
+          "array_int32_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+          },
+          "array_int32_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
+          },
+          "array_int64_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int64"))).Encode(),
+          },
+          "array_int64_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64")))).Encode(),
+          },
+          "array_int8_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int8"))).Encode(),
+          },
+          "array_int8_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8")))).Encode(),
+          },
+          "array_int_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+          },
+          "array_int_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
+          },
+          "array_json_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("JSON"))).Encode(),
+          },
+          "array_json_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("JSON")))).Encode(),
+          },
+          "array_raw_json_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("RawJSON"))).Encode(),
+          },
+          "array_raw_json_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("RawJSON")))).Encode(),
+          },
+          "array_string_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("String"))).Encode(),
+          },
+          "array_string_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("String")))).Encode(),
+          },
+          "array_time_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("TimestampTZ"))).Encode(),
+          },
+          "array_time_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("TimestampTZ")))).Encode(),
+          },
+          "array_uint16_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int16"))).Encode(),
+          },
+          "array_uint16_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int16")))).Encode(),
+          },
+          "array_uint32_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+          },
+          "array_uint32_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
+          },
+          "array_uint64_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int64"))).Encode(),
+          },
+          "array_uint64_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int64")))).Encode(),
+          },
+          "array_uint8_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int8"))).Encode(),
+          },
+          "array_uint8_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int8")))).Encode(),
+          },
+          "array_uint_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("Int32"))).Encode(),
+          },
+          "array_uint_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("Int32")))).Encode(),
+          },
+          "array_uuid_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("UUID"))).Encode(),
+          },
+          "array_uuid_ptr_empty": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNullableType(schema.NewNamedType("UUID")))).Encode(),
+          },
+          "bigint_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("BigInt")).Encode(),
+          },
+          "bool_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("Boolean")).Encode(),
+          },
+          "date_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("Date")).Encode(),
+          },
+          "float32_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("Float32")).Encode(),
+          },
+          "float64_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("Float64")).Encode(),
+          },
+          "int16_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("Int16")).Encode(),
+          },
+          "int32_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+          },
+          "int64_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("Int64")).Encode(),
+          },
+          "int8_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("Int8")).Encode(),
+          },
+          "int_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+          },
+          "string_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("String")).Encode(),
+          },
+          "time_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("TimestampTZ")).Encode(),
+          },
+          "uint16_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("Int16")).Encode(),
+          },
+          "uint32_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+          },
+          "uint64_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("Int64")).Encode(),
+          },
+          "uint8_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("Int8")).Encode(),
+          },
+          "uint_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("Int32")).Encode(),
+          },
+          "url_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("URL")).Encode(),
+          },
+          "uuid_empty": {
+            Type: schema.NewNullableType(schema.NewNamedType("UUID")).Encode(),
+          },
         },
       },
-			{
-				Name: "hello",
-      	Description: toPtr("sends a hello message"),
+      {
+        Name: "hello",
+        Description: toPtr("sends a hello message"),
         ResultType: schema.NewNullableType(schema.NewNamedType("HelloResult")).Encode(),
         Arguments: map[string]schema.ArgumentInfo{
         },
       },
-			{
-				Name: "getArticles",
-      	Description: toPtr("GetArticles"),
+      {
+        Name: "getArticles",
+        Description: toPtr("GetArticles"),
         ResultType: schema.NewArrayType(schema.NewNamedType("GetArticlesResult")).Encode(),
         Arguments: map[string]schema.ArgumentInfo{
           "Limit": {
@@ -973,11 +1380,11 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
         },
       },
-		},
-		Procedures: []schema.ProcedureInfo{
-			{
-				Name: "create_article",
-      	Description: toPtr("CreateArticle"),
+    },
+    Procedures: []schema.ProcedureInfo{
+      {
+        Name: "create_article",
+        Description: toPtr("CreateArticle"),
         ResultType: schema.NewNullableType(schema.NewNamedType("CreateArticleResult")).Encode(),
         Arguments: map[string]schema.ArgumentInfo{
           "author": {
@@ -985,16 +1392,16 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
         },
       },
-			{
-				Name: "increase",
-      	Description: toPtr("Increase"),
+      {
+        Name: "increase",
+        Description: toPtr("Increase"),
         ResultType: schema.NewNamedType("Int32").Encode(),
         Arguments: map[string]schema.ArgumentInfo{
         },
       },
-			{
-				Name: "createAuthor",
-      	Description: toPtr("creates an author"),
+      {
+        Name: "createAuthor",
+        Description: toPtr("creates an author"),
         ResultType: schema.NewNullableType(schema.NewNamedType("CreateAuthorResult")).Encode(),
         Arguments: map[string]schema.ArgumentInfo{
           "name": {
@@ -1002,9 +1409,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
         },
       },
-			{
-				Name: "createAuthors",
-      	Description: toPtr("creates a list of authors"),
+      {
+        Name: "createAuthors",
+        Description: toPtr("creates a list of authors"),
         ResultType: schema.NewArrayType(schema.NewNamedType("CreateAuthorResult")).Encode(),
         Arguments: map[string]schema.ArgumentInfo{
           "names": {
@@ -1012,98 +1419,123 @@ func GetConnectorSchema() *schema.SchemaResponse {
           },
         },
       },
-		},
-		ScalarTypes: schema.SchemaResponseScalarTypes{
+      {
+        Name: "doCustomHeaders",
+        ResultType: schema.NewNullableType(schema.NewNamedType("CustomHeadersResult_array_nullable_BaseAuthor")).Encode(),
+        Arguments: map[string]schema.ArgumentInfo{
+          "headers": {
+            Type: schema.NewNamedType("JSON").Encode(),
+          },
+          "input": {
+            Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("BaseAuthor"))).Encode(),
+          },
+          "other": {
+            Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther_int")).Encode(),
+          },
+        },
+      },
+    },
+    ScalarTypes: schema.SchemaResponseScalarTypes{
       "BigInt": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationBigInteger().Encode(),
-    	},
+      },
       "Boolean": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationBoolean().Encode(),
-    	},
+      },
       "Bytes": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationBytes().Encode(),
-    	},
+      },
       "CommentString": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationJSON().Encode(),
-    	},
+      },
+      "Date": schema.ScalarType{
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        Representation:      schema.NewTypeRepresentationDate().Encode(),
+      },
+      "Duration": schema.ScalarType{
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        Representation:      schema.NewTypeRepresentationJSON().Encode(),
+      },
       "Float32": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationFloat32().Encode(),
-    	},
+      },
       "Float64": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationFloat64().Encode(),
-    	},
+      },
       "Foo": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationJSON().Encode(),
-    	},
+      },
       "Int16": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationInt16().Encode(),
-    	},
+      },
       "Int32": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationInt32().Encode(),
-    	},
+      },
       "Int64": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationInt64().Encode(),
-    	},
+      },
       "Int8": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationInt8().Encode(),
-    	},
+      },
       "JSON": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationJSON().Encode(),
-    	},
+      },
       "RawJSON": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationJSON().Encode(),
-    	},
+      },
       "SomeEnum": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationEnum([]string{"foo", "bar"}).Encode(),
-    	},
+      },
       "String": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationString().Encode(),
-    	},
+      },
       "TimestampTZ": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationTimestampTZ().Encode(),
-    	},
+      },
       "URL": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationString().Encode(),
-    	},
+      },
       "UUID": schema.ScalarType{
-		  	AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
-		  	ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+        AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+        ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
         Representation:      schema.NewTypeRepresentationUUID().Encode(),
-    	},
-  	},
-	}
+      },
+    },
+  }
 }

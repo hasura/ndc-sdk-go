@@ -1,16 +1,5 @@
 {
-  "arguments": {
-    "name": {
-      "type": "literal",
-      "value": "foo"
-    },
-    "Limit": {
-      "type": "literal",
-      "value": 10
-    }
-  },
   "collection": "getArticles",
-  "collection_relationships": {},
   "query": {
     "fields": {
       "__value": {
@@ -34,5 +23,12 @@
         "type": "column"
       }
     }
-  }
+  },
+  "arguments": {
+    "name": { "type": "literal", "value": "foo" },
+    "AuthorID": { "type": "variable", "name": "$authorId" },
+    "Limit": { "type": "literal", "value": 2 }
+  },
+  "collection_relationships": {},
+  "variables": [{ "$authorId": 1 }, { "$authorId": 2 }]
 }

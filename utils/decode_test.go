@@ -3,7 +3,6 @@ package utils
 import (
 	"fmt"
 	"reflect"
-	"strings"
 	"testing"
 	"time"
 
@@ -11,38 +10,24 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-func assertError(t *testing.T, err error, message string) {
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	} else if !strings.Contains(err.Error(), message) {
-		t.Fatalf("expected error with content: %s, got: %s", message, err.Error())
-	}
-}
-
-func assertEqual(t *testing.T, expected any, reality any) {
-	if expected != reality {
-		t.Fatalf("not equal, expected: %+v got: %+v", expected, reality)
-	}
-}
-
 func TestDecodeBool(t *testing.T) {
 	value, err := DecodeBoolean(true)
 	assert.NilError(t, err)
-	assertEqual(t, true, value)
+	assert.Equal(t, true, value)
 
 	ptr, err := DecodeNullableBoolean(true)
 	assert.NilError(t, err)
-	assertEqual(t, true, *ptr)
+	assert.Equal(t, true, *ptr)
 
 	ptr2, err := DecodeNullableBoolean(ptr)
 	assert.NilError(t, err)
-	assertEqual(t, *ptr, *ptr2)
+	assert.Equal(t, *ptr, *ptr2)
 
 	_, err = DecodeBoolean(nil)
-	assertError(t, err, "the Boolean value must not be null")
+	assert.ErrorContains(t, err, "the Boolean value must not be null")
 
 	_, err = DecodeBoolean("failure")
-	assertError(t, err, "failed to convert Boolean, got: string")
+	assert.ErrorContains(t, err, "failed to convert Boolean, got: string")
 }
 
 func TestDecodeBooleanSlice(t *testing.T) {
@@ -59,19 +44,19 @@ func TestDecodeBooleanSlice(t *testing.T) {
 	assert.DeepEqual(t, []bool{true}, value)
 
 	_, err = DecodeBooleanSlice(nil)
-	assertError(t, err, "boolean slice must not be null")
+	assert.ErrorContains(t, err, "boolean slice must not be null")
 
 	_, err = DecodeBooleanSlice("failure")
-	assertError(t, err, "expected a boolean slice, got: string")
+	assert.ErrorContains(t, err, "expected a boolean slice, got: string")
 
 	_, err = DecodeBooleanSlice(time.Now())
-	assertError(t, err, "expected a boolean slice, got: struct")
+	assert.ErrorContains(t, err, "expected a boolean slice, got: struct")
 
 	_, err = DecodeBooleanSlice([]any{nil})
-	assertError(t, err, "boolean element at 0 must not be null")
+	assert.ErrorContains(t, err, "boolean element at 0 must not be null")
 
 	_, err = DecodeBooleanSlice(&[]any{nil})
-	assertError(t, err, "boolean element at 0 must not be null")
+	assert.ErrorContains(t, err, "boolean element at 0 must not be null")
 }
 
 func TestDecodeNullableBooleanSlice(t *testing.T) {
@@ -96,7 +81,7 @@ func TestDecodeNullableBooleanSlice(t *testing.T) {
 	assert.DeepEqual(t, []bool{true}, *value)
 
 	_, err = DecodeNullableBooleanSlice([]any{nil})
-	assertError(t, err, "boolean element at 0 must not be null")
+	assert.ErrorContains(t, err, "boolean element at 0 must not be null")
 
 	value, err = DecodeNullableBooleanSlice(nil)
 	assert.NilError(t, err)
@@ -107,34 +92,34 @@ func TestDecodeNullableBooleanSlice(t *testing.T) {
 	assert.Check(t, value == nil)
 
 	_, err = DecodeNullableBooleanSlice([]any{"true"})
-	assertError(t, err, "failed to decode boolean element at 0: failed to convert Boolean, got: interface")
+	assert.ErrorContains(t, err, "failed to decode boolean element at 0: failed to convert Boolean, got: interface")
 
 	_, err = DecodeNullableBooleanSlice("failure")
-	assertError(t, err, "expected a boolean slice, got: string")
+	assert.ErrorContains(t, err, "expected a boolean slice, got: string")
 
 	_, err = DecodeNullableBooleanSlice(time.Now())
-	assertError(t, err, "expected a boolean slice, got: struct")
+	assert.ErrorContains(t, err, "expected a boolean slice, got: struct")
 
 }
 
 func TestDecodeString(t *testing.T) {
 	value, err := DecodeString("success")
 	assert.NilError(t, err)
-	assertEqual(t, "success", value)
+	assert.Equal(t, "success", value)
 
 	ptr, err := DecodeNullableString("pointer")
 	assert.NilError(t, err)
-	assertEqual(t, "pointer", *ptr)
+	assert.Equal(t, "pointer", *ptr)
 
 	ptr2, err := DecodeNullableString(ptr)
 	assert.NilError(t, err)
-	assertEqual(t, *ptr, *ptr2)
+	assert.Equal(t, *ptr, *ptr2)
 
 	_, err = DecodeString(nil)
-	assertError(t, err, "the String value must not be null")
+	assert.ErrorContains(t, err, "the String value must not be null")
 
 	_, err = DecodeString(0)
-	assertError(t, err, "failed to convert String, got: 0")
+	assert.ErrorContains(t, err, "failed to convert String, got: 0")
 }
 
 func TestDecodeStringSlice(t *testing.T) {
@@ -159,19 +144,19 @@ func TestDecodeStringSlice(t *testing.T) {
 	assert.DeepEqual(t, []string{"foo"}, value)
 
 	_, err = DecodeStringSlice(nil)
-	assertError(t, err, "string slice must not be null")
+	assert.ErrorContains(t, err, "string slice must not be null")
 
 	_, err = DecodeStringSlice("failure")
-	assertError(t, err, "expected a string slice, got: string")
+	assert.ErrorContains(t, err, "expected a string slice, got: string")
 
 	_, err = DecodeStringSlice(time.Now())
-	assertError(t, err, "expected a string slice, got: struct")
+	assert.ErrorContains(t, err, "expected a string slice, got: struct")
 
 	_, err = DecodeStringSlice([]any{nil})
-	assertError(t, err, "string element at 0 must not be null")
+	assert.ErrorContains(t, err, "string element at 0 must not be null")
 
 	_, err = DecodeStringSlice(&[]any{nil})
-	assertError(t, err, "string element at 0 must not be null")
+	assert.ErrorContains(t, err, "string element at 0 must not be null")
 }
 
 func TestDecodeNullableStringSlice(t *testing.T) {
@@ -195,13 +180,13 @@ func TestDecodeNullableStringSlice(t *testing.T) {
 	assert.Check(t, value == nil)
 
 	_, err = DecodeNullableStringSlice("failure")
-	assertError(t, err, "expected a string slice, got: string")
+	assert.ErrorContains(t, err, "expected a string slice, got: string")
 
 	_, err = DecodeNullableStringSlice(time.Now())
-	assertError(t, err, "expected a string slice, got: struct")
+	assert.ErrorContains(t, err, "expected a string slice, got: struct")
 
 	_, err = DecodeNullableStringSlice([]any{nil})
-	assertError(t, err, "string element at 0 must not be null")
+	assert.ErrorContains(t, err, "string element at 0 must not be null")
 }
 
 func TestDecodeDateTime(t *testing.T) {
@@ -209,58 +194,109 @@ func TestDecodeDateTime(t *testing.T) {
 	t.Run("decode_value", func(t *testing.T) {
 		value, err := DecodeDateTime(now)
 		assert.NilError(t, err)
-		assertEqual(t, now, value)
+		assert.Equal(t, now, value)
 	})
 
 	t.Run("unix_int", func(t *testing.T) {
 		iNow := now.UnixMilli()
 		value, err := DecodeDateTime(iNow)
 		assert.NilError(t, err)
-		assertEqual(t, now.UnixMilli(), value.UnixMilli())
+		assert.Equal(t, now.UnixMilli(), value.UnixMilli())
 
 		value, err = DecodeDateTime(&iNow)
 		assert.NilError(t, err)
-		assertEqual(t, now.UnixMilli(), value.UnixMilli())
+		assert.Equal(t, now.UnixMilli(), value.UnixMilli())
 
 		var nilI64 *int64 = nil
 		ptr, err := DecodeNullableDateTime(nilI64)
 		assert.NilError(t, err)
-		assertEqual(t, true, IsNil(ptr))
+		assert.Equal(t, true, IsNil(ptr))
+	})
+
+	t.Run("unix_float", func(t *testing.T) {
+		iNow := float64(now.UnixNano()) / float64(1000)
+		value, err := DecodeDateTime(iNow, WithBaseUnix(time.Microsecond))
+		assert.NilError(t, err)
+		assert.Equal(t, int64(now.UnixNano()/1000), int64(value.UnixNano()/1000))
 	})
 
 	t.Run("from_string", func(t *testing.T) {
 		nowStr := now.Format(time.RFC3339)
 		value, err := DecodeDateTime(nowStr)
 		assert.NilError(t, err)
-		assertEqual(t, now.Unix(), value.Unix())
+		assert.Equal(t, now.Unix(), value.Unix())
 
 		value, err = DecodeDateTime(&nowStr)
 		assert.NilError(t, err)
-		assertEqual(t, now.Unix(), value.Unix())
+		assert.Equal(t, now.Unix(), value.Unix())
 
 		invalidStr := "test"
 		_, err = DecodeDateTime(invalidStr)
-		assertError(t, err, "failed to parse time from string: test")
+		assert.ErrorContains(t, err, "failed to parse time from string: test")
 	})
 
 	t.Run("decode_pointer", func(t *testing.T) {
 		ptr, err := DecodeNullableDateTime(&now)
 		assert.NilError(t, err)
-		assertEqual(t, now, *ptr)
+		assert.Equal(t, now, *ptr)
 
 		ptr2, err := DecodeNullableDateTime(ptr)
 		assert.NilError(t, err)
-		assertEqual(t, *ptr, *ptr2)
+		assert.Equal(t, *ptr, *ptr2)
 	})
 
 	t.Run("decode_nil", func(t *testing.T) {
 		_, err := DecodeDateTime(nil)
-		assertError(t, err, "the DateTime value must not be null")
+		assert.ErrorContains(t, err, errDateTimeRequired.Error())
 	})
 
 	t.Run("decode_invalid_type", func(t *testing.T) {
 		_, err := DecodeDateTime(false)
-		assertError(t, err, "failed to convert DateTime, got: false")
+		assert.ErrorContains(t, err, "failed to convert date time, got: false")
+	})
+}
+
+func TestDecodeDate(t *testing.T) {
+	now := time.Date(2024, 10, 10, 0, 0, 0, 0, time.UTC)
+	t.Run("decode_value", func(t *testing.T) {
+		value, err := DecodeDate(now)
+		assert.NilError(t, err)
+		assert.Equal(t, now, value)
+	})
+
+	t.Run("from_string", func(t *testing.T) {
+		nowStr := now.Format(time.DateOnly)
+		value, err := DecodeDate(nowStr)
+		assert.NilError(t, err)
+		assert.Equal(t, now.Unix(), value.Unix())
+
+		value, err = DecodeDate(&nowStr)
+		assert.NilError(t, err)
+		assert.Equal(t, now.Unix(), value.Unix())
+
+		invalidStr := "test"
+		_, err = DecodeDate(invalidStr)
+		assert.ErrorContains(t, err, "parsing time \"test\" as \"2006-01-02\": cannot parse \"test\" as \"2006\"")
+	})
+
+	t.Run("decode_pointer", func(t *testing.T) {
+		ptr, err := DecodeNullableDate(&now)
+		assert.NilError(t, err)
+		assert.Equal(t, now, *ptr)
+
+		ptr2, err := DecodeNullableDate(ptr)
+		assert.NilError(t, err)
+		assert.Equal(t, *ptr, *ptr2)
+	})
+
+	t.Run("decode_nil", func(t *testing.T) {
+		_, err := DecodeDate(nil)
+		assert.ErrorContains(t, err, "the Date value must not be null")
+	})
+
+	t.Run("decode_invalid_type", func(t *testing.T) {
+		_, err := DecodeDate(false)
+		assert.ErrorContains(t, err, "failed to convert date time, got: false")
 	})
 }
 
@@ -269,61 +305,61 @@ func TestDecodeDuration(t *testing.T) {
 	t.Run("decode_value", func(t *testing.T) {
 		value, err := DecodeDuration(duration)
 		assert.NilError(t, err)
-		assertEqual(t, duration, value)
+		assert.Equal(t, duration, value)
 	})
 
 	t.Run("unix_int", func(t *testing.T) {
 		iDuration := int64(duration)
 		value, err := DecodeDuration(iDuration)
 		assert.NilError(t, err)
-		assertEqual(t, duration, value)
+		assert.Equal(t, duration, value)
 
 		value, err = DecodeDuration(&iDuration)
 		assert.NilError(t, err)
-		assertEqual(t, duration, value)
+		assert.Equal(t, duration, value)
 	})
 
 	t.Run("from_string", func(t *testing.T) {
 		durationStr := "10s"
 		value, err := DecodeDuration(durationStr)
 		assert.NilError(t, err)
-		assertEqual(t, duration, value)
+		assert.Equal(t, duration, value)
 
 		value, err = DecodeDuration(&durationStr)
 		assert.NilError(t, err)
-		assertEqual(t, duration, value)
+		assert.Equal(t, duration, value)
 
 		invalidStr := "test"
 		_, err = DecodeDuration(invalidStr)
-		assertError(t, err, "time: invalid duration \"test\"")
+		assert.ErrorContains(t, err, "not a valid duration string: \"test\"")
 
 		_, err = DecodeDuration(&invalidStr)
-		assertError(t, err, "time: invalid duration \"test\"")
+		assert.ErrorContains(t, err, "not a valid duration string: \"test\"")
 
 		var nilStr *string
 		nilValue, err := DecodeNullableDuration(nilStr)
 		assert.NilError(t, err)
-		assertEqual(t, true, IsNil(nilValue))
+		assert.Equal(t, true, IsNil(nilValue))
 	})
 
 	t.Run("decode_pointer", func(t *testing.T) {
 		ptr, err := DecodeNullableDuration(&duration)
 		assert.NilError(t, err)
-		assertEqual(t, duration, *ptr)
+		assert.Equal(t, duration, *ptr)
 
 		ptr2, err := DecodeNullableDuration(ptr)
 		assert.NilError(t, err)
-		assertEqual(t, *ptr, *ptr2)
+		assert.Equal(t, *ptr, *ptr2)
 	})
 
 	t.Run("decode_nil", func(t *testing.T) {
 		_, err := DecodeDuration(nil)
-		assertError(t, err, "the Duration value must not be null")
+		assert.ErrorContains(t, err, "the Duration value must not be null")
 	})
 
 	t.Run("decode_invalid_type", func(t *testing.T) {
 		_, err := DecodeDuration(false)
-		assertError(t, err, "failed to convert Duration, got: false")
+		assert.ErrorContains(t, err, "failed to convert Duration, got: false")
 	})
 }
 
@@ -334,15 +370,15 @@ func TestDecodeInt(t *testing.T) {
 
 			value, err := DecodeInt[int64](expected)
 			assert.NilError(t, err)
-			assertEqual(t, fmt.Sprint(expected), fmt.Sprint(value))
+			assert.Equal(t, fmt.Sprint(expected), fmt.Sprint(value))
 
 			ptr, err := DecodeNullableInt[int64](&expected)
 			assert.NilError(t, err)
-			assertEqual(t, fmt.Sprint(expected), fmt.Sprint(*ptr))
+			assert.Equal(t, fmt.Sprint(expected), fmt.Sprint(*ptr))
 
 			ptr2, err := DecodeNullableInt[int64](ptr)
 			assert.NilError(t, err)
-			assertEqual(t, fmt.Sprint(*ptr), fmt.Sprint(*ptr2))
+			assert.Equal(t, fmt.Sprint(*ptr), fmt.Sprint(*ptr2))
 		})
 	}
 
@@ -350,75 +386,75 @@ func TestDecodeInt(t *testing.T) {
 		vInt := int(1)
 		ptr, err := DecodeNullableInt[int64](&vInt)
 		assert.NilError(t, err)
-		assertEqual(t, int64(vInt), *ptr)
+		assert.Equal(t, int64(vInt), *ptr)
 
 		ptrInt := &vInt
 		ptr, err = DecodeNullableInt[int64](&ptrInt)
 		assert.NilError(t, err)
-		assertEqual(t, int64(vInt), *ptr)
+		assert.Equal(t, int64(vInt), *ptr)
 
 		vInt8 := int8(1)
 		ptr, err = DecodeNullableInt[int64](&vInt8)
 		assert.NilError(t, err)
-		assertEqual(t, int64(vInt8), *ptr)
+		assert.Equal(t, int64(vInt8), *ptr)
 
 		vInt16 := int16(1)
 		ptr, err = DecodeNullableInt[int64](&vInt16)
 		assert.NilError(t, err)
-		assertEqual(t, int64(vInt16), *ptr)
+		assert.Equal(t, int64(vInt16), *ptr)
 
 		vInt32 := int32(1)
 		ptr, err = DecodeNullableInt[int64](&vInt32)
 		assert.NilError(t, err)
-		assertEqual(t, int64(vInt32), *ptr)
+		assert.Equal(t, int64(vInt32), *ptr)
 
 		vInt64 := int64(1)
 		ptr, err = DecodeNullableInt[int64](&vInt64)
 		assert.NilError(t, err)
-		assertEqual(t, int64(vInt64), *ptr)
+		assert.Equal(t, int64(vInt64), *ptr)
 
 		vUint := uint(1)
 		ptr, err = DecodeNullableInt[int64](&vUint)
 		assert.NilError(t, err)
-		assertEqual(t, int64(vUint), *ptr)
+		assert.Equal(t, int64(vUint), *ptr)
 
 		vUint8 := uint8(1)
 		ptr, err = DecodeNullableInt[int64](&vUint8)
 		assert.NilError(t, err)
-		assertEqual(t, int64(vUint8), *ptr)
+		assert.Equal(t, int64(vUint8), *ptr)
 
 		vUint16 := uint16(1)
 		ptr, err = DecodeNullableInt[int64](&vUint16)
 		assert.NilError(t, err)
-		assertEqual(t, int64(vUint16), *ptr)
+		assert.Equal(t, int64(vUint16), *ptr)
 
 		vUint32 := uint32(1)
 		ptr, err = DecodeNullableInt[int64](&vUint32)
 		assert.NilError(t, err)
-		assertEqual(t, int64(vUint32), *ptr)
+		assert.Equal(t, int64(vUint32), *ptr)
 
 		vUint64 := uint64(1)
 		ptr, err = DecodeNullableInt[int64](&vUint64)
 		assert.NilError(t, err)
-		assertEqual(t, int64(vUint64), *ptr)
+		assert.Equal(t, int64(vUint64), *ptr)
 
-		var vAny any = float64(1.1)
+		var vAny any = "failure"
 		_, err = DecodeNullableInt[int64](&vAny)
-		assertError(t, err, "failed to convert integer, got: 1.1")
+		assert.ErrorContains(t, err, "failed to convert integer, got failure")
 
 		var vFn any = func() {}
 		_, err = DecodeNullableInt[int64](&vFn)
-		assertError(t, err, "failed to convert integer")
+		assert.ErrorContains(t, err, "failed to convert integer")
 	})
 
 	t.Run("decode_nil", func(t *testing.T) {
 		_, err := DecodeInt[rune](nil)
-		assertError(t, err, "the Int value must not be null")
+		assert.ErrorContains(t, err, "the Int value must not be null")
 	})
 
 	t.Run("decode_invalid_type", func(t *testing.T) {
 		_, err := DecodeInt[rune]("failure")
-		assertError(t, err, "failed to convert integer, got: failure")
+		assert.ErrorContains(t, err, "failed to convert integer, got failure")
 	})
 }
 
@@ -453,19 +489,19 @@ func TestDecodeIntSlice(t *testing.T) {
 	assert.DeepEqual(t, []int{1, 2}, value)
 
 	_, err = DecodeIntSlice[int](nil)
-	assertError(t, err, "the int slice must not be null")
+	assert.ErrorContains(t, err, "the int slice must not be null")
 
 	_, err = DecodeIntSlice[int]("failure")
-	assertError(t, err, "expected a number slice, got: string")
+	assert.ErrorContains(t, err, "expected a number slice, got: string")
 
 	_, err = DecodeIntSlice[int](time.Now())
-	assertError(t, err, "expected a number slice, got: struct")
+	assert.ErrorContains(t, err, "expected a number slice, got: struct")
 
 	_, err = DecodeIntSlice[int]([]any{nil})
-	assertError(t, err, "number element at 0 must not be null")
+	assert.ErrorContains(t, err, "number element at 0 must not be null")
 
 	_, err = DecodeIntSlice[int](&[]any{nil})
-	assertError(t, err, "number element at 0 must not be null")
+	assert.ErrorContains(t, err, "number element at 0 must not be null")
 }
 
 func TestDecodeNullableIntSlice(t *testing.T) {
@@ -503,13 +539,13 @@ func TestDecodeNullableIntSlice(t *testing.T) {
 	assert.Check(t, value == nil)
 
 	_, err = DecodeNullableIntSlice[int]([]any{nil})
-	assertError(t, err, "number element at 0 must not be null")
+	assert.ErrorContains(t, err, "number element at 0 must not be null")
 
 	_, err = DecodeNullableIntSlice[int]("failure")
-	assertError(t, err, "expected a number slice, got: string")
+	assert.ErrorContains(t, err, "expected a number slice, got: string")
 
 	_, err = DecodeNullableIntSlice[int](time.Now())
-	assertError(t, err, "expected a number slice, got: struct")
+	assert.ErrorContains(t, err, "expected a number slice, got: struct")
 
 }
 
@@ -519,19 +555,19 @@ func TestDecodeUint(t *testing.T) {
 
 			value, err := DecodeUint[uint64](expected)
 			assert.NilError(t, err)
-			assertEqual(t, fmt.Sprint(expected), fmt.Sprint(value))
+			assert.Equal(t, fmt.Sprint(expected), fmt.Sprint(value))
 
 			value, err = DecodeUint[uint64](expected)
 			assert.NilError(t, err)
-			assertEqual(t, fmt.Sprint(expected), fmt.Sprint(value))
+			assert.Equal(t, fmt.Sprint(expected), fmt.Sprint(value))
 
 			ptr, err := DecodeNullableUint[uint64](&expected)
 			assert.NilError(t, err)
-			assertEqual(t, fmt.Sprint(expected), fmt.Sprint(*ptr))
+			assert.Equal(t, fmt.Sprint(expected), fmt.Sprint(*ptr))
 
 			ptr2, err := DecodeNullableUint[uint64](ptr)
 			assert.NilError(t, err)
-			assertEqual(t, fmt.Sprint(*ptr), fmt.Sprint(*ptr2))
+			assert.Equal(t, fmt.Sprint(*ptr), fmt.Sprint(*ptr2))
 		})
 	}
 
@@ -539,26 +575,26 @@ func TestDecodeUint(t *testing.T) {
 		vUint := uint(1)
 		ptr, err := DecodeNullableUint[uint64](&vUint)
 		assert.NilError(t, err)
-		assertEqual(t, uint64(vUint), *ptr)
+		assert.Equal(t, uint64(vUint), *ptr)
 
 		ptrUint := &vUint
 		ptr, err = DecodeNullableUint[uint64](&ptrUint)
 		assert.NilError(t, err)
-		assertEqual(t, uint64(vUint), *ptr)
+		assert.Equal(t, uint64(vUint), *ptr)
 
-		var vAny any = float64(1.1)
+		var vAny any = string("1,1")
 		_, err = DecodeNullableUint[uint64](&vAny)
-		assertError(t, err, "failed to convert integer, got: 1.1")
+		assert.ErrorContains(t, err, "failed to convert integer, got 1,1")
 	})
 
 	t.Run("decode_nil", func(t *testing.T) {
 		_, err := DecodeUint[uint](nil)
-		assertError(t, err, "the Uint value must not be null")
+		assert.ErrorContains(t, err, "the Uint value must not be null")
 	})
 
 	t.Run("decode_invalid_type", func(t *testing.T) {
 		_, err := DecodeUint[uint]("failure")
-		assertError(t, err, "failed to convert integer, got: failure")
+		assert.ErrorContains(t, err, "failed to convert integer, got failure")
 	})
 }
 
@@ -582,19 +618,19 @@ func TestDecodeUintSlice(t *testing.T) {
 	assert.DeepEqual(t, []uint64{1, 2}, value)
 
 	_, err = DecodeUintSlice[uint64](nil)
-	assertError(t, err, "the uint slice must not be null")
+	assert.ErrorContains(t, err, "the uint slice must not be null")
 
 	_, err = DecodeUintSlice[uint64]("failure")
-	assertError(t, err, "expected a number slice, got: string")
+	assert.ErrorContains(t, err, "expected a number slice, got: string")
 
 	_, err = DecodeUintSlice[uint64](time.Now())
-	assertError(t, err, "expected a number slice, got: struct")
+	assert.ErrorContains(t, err, "expected a number slice, got: struct")
 
 	_, err = DecodeUintSlice[uint64]([]any{nil})
-	assertError(t, err, "number element at 0 must not be null")
+	assert.ErrorContains(t, err, "number element at 0 must not be null")
 
 	_, err = DecodeUintSlice[uint64](&[]any{nil})
-	assertError(t, err, "number element at 0 must not be null")
+	assert.ErrorContains(t, err, "number element at 0 must not be null")
 }
 
 func TestDecodeFloat(t *testing.T) {
@@ -603,15 +639,15 @@ func TestDecodeFloat(t *testing.T) {
 
 			value, err := DecodeFloat[float64](expected)
 			assert.NilError(t, err)
-			assertEqual(t, fmt.Sprint(expected), fmt.Sprintf("%.0f", value))
+			assert.Equal(t, fmt.Sprint(expected), fmt.Sprintf("%.0f", value))
 
 			ptr, err := DecodeNullableFloat[float64](&expected)
 			assert.NilError(t, err)
-			assertEqual(t, fmt.Sprint(expected), fmt.Sprintf("%.0f", *ptr))
+			assert.Equal(t, fmt.Sprint(expected), fmt.Sprintf("%.0f", *ptr))
 
 			ptr2, err := DecodeNullableFloat[float64](ptr)
 			assert.NilError(t, err)
-			assertEqual(t, fmt.Sprintf("%.1f", *ptr), fmt.Sprintf("%.1f", *ptr2))
+			assert.Equal(t, fmt.Sprintf("%.1f", *ptr), fmt.Sprintf("%.1f", *ptr2))
 		})
 	}
 
@@ -620,15 +656,15 @@ func TestDecodeFloat(t *testing.T) {
 
 			value, err := DecodeFloat[float64](expected)
 			assert.NilError(t, err)
-			assertEqual(t, fmt.Sprintf("%.1f", expected), fmt.Sprintf("%.1f", value))
+			assert.Equal(t, fmt.Sprintf("%.1f", expected), fmt.Sprintf("%.1f", value))
 
 			ptr, err := DecodeNullableFloat[float64](&expected)
 			assert.NilError(t, err)
-			assertEqual(t, fmt.Sprintf("%.1f", expected), fmt.Sprintf("%.1f", *ptr))
+			assert.Equal(t, fmt.Sprintf("%.1f", expected), fmt.Sprintf("%.1f", *ptr))
 
 			ptr2, err := DecodeNullableFloat[float64](ptr)
 			assert.NilError(t, err)
-			assertEqual(t, fmt.Sprintf("%.1f", *ptr), fmt.Sprintf("%.1f", *ptr2))
+			assert.Equal(t, fmt.Sprintf("%.1f", *ptr), fmt.Sprintf("%.1f", *ptr2))
 		})
 	}
 
@@ -637,15 +673,15 @@ func TestDecodeFloat(t *testing.T) {
 		expected := "0"
 		value, err := DecodeFloat[float64](expected)
 		assert.NilError(t, err)
-		assertEqual(t, "0", fmt.Sprintf("%.0f", value))
+		assert.Equal(t, "0", fmt.Sprintf("%.0f", value))
 
 		ptr, err := DecodeNullableFloat[float64](&expected)
 		assert.NilError(t, err)
-		assertEqual(t, expected, fmt.Sprintf("%.0f", *ptr))
+		assert.Equal(t, expected, fmt.Sprintf("%.0f", *ptr))
 
 		ptr2, err := DecodeNullableFloat[float64](ptr)
 		assert.NilError(t, err)
-		assertEqual(t, fmt.Sprintf("%.1f", *ptr), fmt.Sprintf("%.1f", *ptr2))
+		assert.Equal(t, fmt.Sprintf("%.1f", *ptr), fmt.Sprintf("%.1f", *ptr2))
 	})
 
 	t.Run("decode_pointers", func(t *testing.T) {
@@ -653,95 +689,95 @@ func TestDecodeFloat(t *testing.T) {
 		vInt := int(1)
 		ptr, err := DecodeNullableFloat[float64](&vInt)
 		assert.NilError(t, err)
-		assertEqual(t, float64(vInt), *ptr)
+		assert.Equal(t, float64(vInt), *ptr)
 
 		ptrInt := &vInt
 		ptr, err = DecodeNullableFloat[float64](&ptrInt)
 		assert.NilError(t, err)
-		assertEqual(t, float64(vInt), *ptr)
+		assert.Equal(t, float64(vInt), *ptr)
 
 		vInt8 := int8(1)
 		ptr, err = DecodeNullableFloat[float64](&vInt8)
 		assert.NilError(t, err)
-		assertEqual(t, float64(vInt8), *ptr)
+		assert.Equal(t, float64(vInt8), *ptr)
 
 		vInt16 := int16(1)
 		ptr, err = DecodeNullableFloat[float64](&vInt16)
 		assert.NilError(t, err)
-		assertEqual(t, float64(vInt16), *ptr)
+		assert.Equal(t, float64(vInt16), *ptr)
 
 		vInt32 := int32(1)
 		ptr, err = DecodeNullableFloat[float64](&vInt32)
 		assert.NilError(t, err)
-		assertEqual(t, float64(vInt32), *ptr)
+		assert.Equal(t, float64(vInt32), *ptr)
 
 		vInt64 := int64(1)
 		ptr, err = DecodeNullableFloat[float64](&vInt64)
 		assert.NilError(t, err)
-		assertEqual(t, float64(vInt64), *ptr)
+		assert.Equal(t, float64(vInt64), *ptr)
 
 		vUint := uint(1)
 		ptr, err = DecodeNullableFloat[float64](&vUint)
 		assert.NilError(t, err)
-		assertEqual(t, float64(vUint), *ptr)
+		assert.Equal(t, float64(vUint), *ptr)
 
 		ptrUint := &vUint
 		ptr, err = DecodeNullableFloat[float64](&ptrUint)
 		assert.NilError(t, err)
-		assertEqual(t, float64(vUint), *ptr)
+		assert.Equal(t, float64(vUint), *ptr)
 
 		vUint8 := uint8(1)
 		ptr, err = DecodeNullableFloat[float64](&vUint8)
 		assert.NilError(t, err)
-		assertEqual(t, float64(vUint8), *ptr)
+		assert.Equal(t, float64(vUint8), *ptr)
 
 		vUint16 := uint16(1)
 		ptr, err = DecodeNullableFloat[float64](&vUint16)
 		assert.NilError(t, err)
-		assertEqual(t, float64(vUint16), *ptr)
+		assert.Equal(t, float64(vUint16), *ptr)
 
 		vUint32 := uint32(1)
 		ptr, err = DecodeNullableFloat[float64](&vUint32)
 		assert.NilError(t, err)
-		assertEqual(t, float64(vUint32), *ptr)
+		assert.Equal(t, float64(vUint32), *ptr)
 
 		vUint64 := uint64(1)
 		ptr, err = DecodeNullableFloat[float64](&vUint64)
 		assert.NilError(t, err)
-		assertEqual(t, float64(vUint64), *ptr)
+		assert.Equal(t, float64(vUint64), *ptr)
 
 		vFloat32 := float32(1)
 		ptr, err = DecodeNullableFloat[float64](&vFloat32)
 		assert.NilError(t, err)
-		assertEqual(t, float64(vFloat32), *ptr)
+		assert.Equal(t, float64(vFloat32), *ptr)
 
 		ptrFloat32 := &vFloat32
 		ptr, err = DecodeNullableFloat[float64](&ptrFloat32)
 		assert.NilError(t, err)
-		assertEqual(t, float64(vFloat32), *ptr)
+		assert.Equal(t, float64(vFloat32), *ptr)
 
 		vFloat64 := float64(2.2)
 		ptr, err = DecodeNullableFloat[float64](&vFloat64)
 		assert.NilError(t, err)
-		assertEqual(t, float64(vFloat64), *ptr)
+		assert.Equal(t, float64(vFloat64), *ptr)
 
 		var vAny any = "test"
 		_, err = DecodeNullableFloat[float64](&vAny)
-		assertError(t, err, "failed to convert Float, got: test")
+		assert.ErrorContains(t, err, "failed to convert Float, got: test")
 
 		var vFn any = func() {}
 		_, err = DecodeNullableFloat[float64](&vFn)
-		assertError(t, err, "failed to convert Float")
+		assert.ErrorContains(t, err, "failed to convert Float")
 	})
 
 	t.Run("decode_nil", func(t *testing.T) {
 		_, err := DecodeFloat[float64](nil)
-		assertError(t, err, "the Float value must not be null")
+		assert.ErrorContains(t, err, "the Float value must not be null")
 	})
 
 	t.Run("decode_invalid_type", func(t *testing.T) {
 		_, err := DecodeFloat[float64]("failure")
-		assertError(t, err, "failed to convert Float, got: failure")
+		assert.ErrorContains(t, err, "failed to convert Float, got: failure")
 	})
 }
 
@@ -750,28 +786,28 @@ func TestDecodeUUID(t *testing.T) {
 		expected := uuid.NewString()
 		value, err := DecodeUUID(expected)
 		assert.NilError(t, err)
-		assertEqual(t, expected, value.String())
+		assert.Equal(t, expected, value.String())
 	})
 
 	t.Run("decode_pointer", func(t *testing.T) {
 		expected := uuid.NewString()
 		ptr, err := DecodeNullableUUID(&expected)
 		assert.NilError(t, err)
-		assertEqual(t, expected, (*ptr).String())
+		assert.Equal(t, expected, (*ptr).String())
 
 		ptr2, err := DecodeNullableUUID(ptr)
 		assert.NilError(t, err)
-		assertEqual(t, ptr.String(), ptr2.String())
+		assert.Equal(t, ptr.String(), ptr2.String())
 	})
 
 	t.Run("decode_nil", func(t *testing.T) {
 		_, err := DecodeUUID(nil)
-		assertError(t, err, "the uuid value must not be null")
+		assert.ErrorContains(t, err, "the uuid value must not be null")
 	})
 
 	t.Run("decode_invalid_type", func(t *testing.T) {
 		_, err := DecodeUUID(false)
-		assertError(t, err, "failed to parse uuid, got: false")
+		assert.ErrorContains(t, err, "failed to parse uuid, got: false")
 	})
 }
 
@@ -818,86 +854,86 @@ func TestDecodeNestedInterface(t *testing.T) {
 
 	b, err := GetBoolean(fixture, "bool")
 	assert.NilError(t, err)
-	assertEqual(t, true, b)
+	assert.Equal(t, true, b)
 
 	s, err := GetString(fixture, "string")
 	assert.NilError(t, err)
-	assertEqual(t, "test", s)
+	assert.Equal(t, "test", s)
 
 	i, err := GetInt[int](fixture, "int")
 	assert.NilError(t, err)
-	assertEqual(t, 1, i)
+	assert.Equal(t, 1, i)
 
 	f, err := GetFloat[float32](fixture, "float")
 	assert.NilError(t, err)
-	assertEqual(t, fmt.Sprint(1.1), fmt.Sprint(f))
+	assert.Equal(t, fmt.Sprint(1.1), fmt.Sprint(f))
 
 	b, err = GetBoolean(fixture, "boolPtr")
 	assert.NilError(t, err)
-	assertEqual(t, true, b)
+	assert.Equal(t, true, b)
 
 	s, err = GetString(fixture, "stringPtr")
 	assert.NilError(t, err)
-	assertEqual(t, "test", s)
+	assert.Equal(t, "test", s)
 
 	i, err = GetInt[int](fixture, "intPtr")
 	assert.NilError(t, err)
-	assertEqual(t, 1, i)
+	assert.Equal(t, 1, i)
 
 	f, err = GetFloat[float32](fixture, "floatPtr")
 	assert.NilError(t, err)
-	assertEqual(t, fmt.Sprint(1.1), fmt.Sprint(f))
+	assert.Equal(t, fmt.Sprint(1.1), fmt.Sprint(f))
 
 	arrItemAny := fixture["array"].([]any)[0]
 	arrItem := arrItemAny.(map[string]any)
 
 	b, err = GetBoolean(arrItem, "bool")
 	assert.NilError(t, err)
-	assertEqual(t, true, b)
+	assert.Equal(t, true, b)
 
 	s, err = GetString(arrItem, "string")
 	assert.NilError(t, err)
-	assertEqual(t, "test", s)
+	assert.Equal(t, "test", s)
 
 	i, err = GetInt[int](arrItem, "int")
 	assert.NilError(t, err)
-	assertEqual(t, 1, i)
+	assert.Equal(t, 1, i)
 
 	f, err = GetFloat[float32](arrItem, "float")
 	assert.NilError(t, err)
-	assertEqual(t, fmt.Sprint(1.1), fmt.Sprint(f))
+	assert.Equal(t, fmt.Sprint(1.1), fmt.Sprint(f))
 
 	b, err = GetBoolean(arrItem, "boolPtr")
 	assert.NilError(t, err)
-	assertEqual(t, true, b)
+	assert.Equal(t, true, b)
 
 	s, err = GetString(arrItem, "stringPtr")
 	assert.NilError(t, err)
-	assertEqual(t, "test", s)
+	assert.Equal(t, "test", s)
 
 	i, err = GetInt[int](arrItem, "intPtr")
 	assert.NilError(t, err)
-	assertEqual(t, 1, i)
+	assert.Equal(t, 1, i)
 
 	f, err = GetFloat[float32](arrItem, "floatPtr")
 	assert.NilError(t, err)
-	assertEqual(t, fmt.Sprint(1.1), fmt.Sprint(f))
+	assert.Equal(t, fmt.Sprint(1.1), fmt.Sprint(f))
 
 	j, err := GetArbitraryJSON(arrItem, "int")
 	assert.NilError(t, err)
-	assertEqual(t, 1, j)
+	assert.Equal(t, 1, j)
 
 	jp, err := GetNullableArbitraryJSON(arrItem, "int")
 	assert.NilError(t, err)
-	assertEqual(t, 1, *jp)
+	assert.Equal(t, 1, *jp)
 
 	jp, err = GetNullableArbitraryJSON(arrItem, "floatPtr")
 	assert.NilError(t, err)
-	assertEqual(t, fmt.Sprint(1.1), fmt.Sprint(*jp))
+	assert.Equal(t, fmt.Sprint(1.1), fmt.Sprint(*jp))
 
 	jp, err = GetNullableArbitraryJSON(arrItem, "not_exist")
 	assert.NilError(t, err)
-	assertEqual(t, true, jp == nil)
+	assert.Equal(t, true, jp == nil)
 
 	bs, err := GetBooleanSlice(fixture, "boolSlicePtr")
 	assert.NilError(t, err)
@@ -933,4 +969,24 @@ func TestDecodeNestedInterface(t *testing.T) {
 
 	_, err = GetNullableFloatSlice[float32](fixture, "floatSlicePtr")
 	assert.NilError(t, err)
+}
+
+func TestDecodeNullableObjectValue(t *testing.T) {
+	type testObject struct {
+		Name string `json:"name"`
+	}
+
+	t.Run("null", func(t *testing.T) {
+		result, err := DecodeNullableValue[testObject](nil)
+		assert.NilError(t, err)
+		assert.Assert(t, result == nil)
+	})
+
+	t.Run("not_null", func(t *testing.T) {
+		result, err := DecodeNullableValue[testObject](map[string]any{
+			"name": "foo",
+		})
+		assert.NilError(t, err)
+		assert.Equal(t, result.Name, "foo")
+	})
 }
