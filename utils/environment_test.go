@@ -28,10 +28,7 @@ func TestEnvString(t *testing.T) {
 			ErrorMsg: errEnvironmentValueRequired.Error(),
 		},
 		{
-			Input: EnvString{
-				Value:    ToPtr("bar"),
-				Variable: ToPtr("SOME_BAR"),
-			},
+			Input:    NewEnvString("SOME_BAR", "bar"),
 			Expected: "bar",
 		},
 		{
@@ -87,10 +84,7 @@ func TestEnvBool(t *testing.T) {
 			ErrorMsg: errEnvironmentValueRequired.Error(),
 		},
 		{
-			Input: EnvBool{
-				Value:    ToPtr(true),
-				Variable: ToPtr("SOME_FOO_2"),
-			},
+			Input:    NewEnvBool("SOME_FOO_2", true),
 			Expected: true,
 		},
 		{
@@ -155,10 +149,7 @@ func TestEnvInt(t *testing.T) {
 			ErrorMsg: errEnvironmentValueRequired.Error(),
 		},
 		{
-			Input: EnvInt{
-				Value:    ToPtr[int64](10),
-				Variable: ToPtr("SOME_FOO_2"),
-			},
+			Input:    NewEnvInt("SOME_FOO_2", 10),
 			Expected: 10,
 		},
 		{
@@ -223,10 +214,7 @@ func TestEnvFloat(t *testing.T) {
 			ErrorMsg: errEnvironmentValueRequired.Error(),
 		},
 		{
-			Input: EnvFloat{
-				Value:    ToPtr[float64](10),
-				Variable: ToPtr("SOME_FOO_1"),
-			},
+			Input:    NewEnvFloat("SOME_FOO_1", 10),
 			Expected: 10,
 		},
 		{
@@ -294,10 +282,7 @@ func TestEnvMapBool(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Input: EnvMapBool{
-				Value:    map[string]bool{},
-				Variable: ToPtr("SOME_FOO_2"),
-			},
+			Input:    NewEnvMapBool("SOME_FOO_2", map[string]bool{}),
 			Expected: map[string]bool{},
 		},
 		{
@@ -359,10 +344,7 @@ func TestEnvMapInt(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Input: EnvMapInt{
-				Value:    map[string]int64{},
-				Variable: ToPtr("SOME_FOO_2"),
-			},
+			Input:    NewEnvMapInt("SOME_FOO_2", map[string]int64{}),
 			Expected: map[string]int64{},
 		},
 		{
@@ -424,10 +406,7 @@ func TestEnvMapFloat(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Input: EnvMapFloat{
-				Value:    map[string]float64{},
-				Variable: ToPtr("SOME_FOO_2"),
-			},
+			Input:    NewEnvMapFloat("SOME_FOO_2", map[string]float64{}),
 			Expected: map[string]float64{},
 		},
 		{
@@ -489,10 +468,7 @@ func TestEnvMapString(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Input: EnvMapString{
-				Value:    map[string]string{},
-				Variable: ToPtr("SOME_FOO_2"),
-			},
+			Input:    NewEnvMapString("SOME_FOO_2", map[string]string{}),
 			Expected: map[string]string{},
 		},
 		{
