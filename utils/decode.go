@@ -1122,6 +1122,33 @@ func DecodeDate(value any, options ...DecodeTimeOption) (time.Time, error) {
 	return *result, nil
 }
 
+// DecodeDateReflection decodes a date value from reflection.
+func DecodeDateReflection(value reflect.Value, options ...DecodeTimeOption) (time.Time, error) {
+	result, err := DecodeNullableDateReflection(value, options...)
+	if err != nil {
+		return time.Time{}, err
+	}
+	if result == nil {
+		return time.Time{}, errDateTimeRequired
+	}
+	return *result, nil
+}
+
+// DecodeNullableDateReflection decodes a nullable date value from reflection.
+func DecodeNullableDateReflection(value reflect.Value, options ...DecodeTimeOption) (*time.Time, error) {
+	inferredValue, ok := UnwrapPointerFromReflectValue(value)
+	if !ok {
+		return nil, nil
+	}
+
+	result, err := decodeDateTimeReflection(inferredValue, createDecodeTimeOptions(parseDate, options...))
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
 // DecodeNullableDuration tries to convert an unknown value to a duration pointer.
 func DecodeNullableDuration(value any, options ...DecodeTimeOption) (*time.Duration, error) {
 	if value == nil {
