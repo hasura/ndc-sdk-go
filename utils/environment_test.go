@@ -28,11 +28,8 @@ func TestEnvString(t *testing.T) {
 			ErrorMsg: errEnvironmentValueRequired.Error(),
 		},
 		{
-			Input: EnvString{
-				Value:    ToPtr("foo"),
-				Variable: ToPtr("SOME_FOO"),
-			},
-			ErrorMsg: errEnvironmentEitherValueOrEnv.Error(),
+			Input:    NewEnvString("SOME_BAR", "bar"),
+			Expected: "bar",
 		},
 		{
 			Input: EnvString{
@@ -87,11 +84,8 @@ func TestEnvBool(t *testing.T) {
 			ErrorMsg: errEnvironmentValueRequired.Error(),
 		},
 		{
-			Input: EnvBool{
-				Value:    ToPtr(true),
-				Variable: ToPtr("SOME_FOO"),
-			},
-			ErrorMsg: errEnvironmentEitherValueOrEnv.Error(),
+			Input:    NewEnvBool("SOME_FOO_2", true),
+			Expected: true,
 		},
 		{
 			Input: EnvBool{
@@ -155,11 +149,8 @@ func TestEnvInt(t *testing.T) {
 			ErrorMsg: errEnvironmentValueRequired.Error(),
 		},
 		{
-			Input: EnvInt{
-				Value:    ToPtr[int64](10),
-				Variable: ToPtr("SOME_FOO"),
-			},
-			ErrorMsg: errEnvironmentEitherValueOrEnv.Error(),
+			Input:    NewEnvInt("SOME_FOO_2", 10),
+			Expected: 10,
 		},
 		{
 			Input: EnvInt{
@@ -223,11 +214,8 @@ func TestEnvFloat(t *testing.T) {
 			ErrorMsg: errEnvironmentValueRequired.Error(),
 		},
 		{
-			Input: EnvFloat{
-				Value:    ToPtr[float64](10),
-				Variable: ToPtr("SOME_FOO"),
-			},
-			ErrorMsg: errEnvironmentEitherValueOrEnv.Error(),
+			Input:    NewEnvFloat("SOME_FOO_1", 10),
+			Expected: 10,
 		},
 		{
 			Input: EnvFloat{
@@ -294,11 +282,8 @@ func TestEnvMapBool(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Input: EnvMapBool{
-				Value:    map[string]bool{},
-				Variable: ToPtr("SOME_FOO"),
-			},
-			ErrorMsg: errEnvironmentEitherValueOrEnv.Error(),
+			Input:    NewEnvMapBool("SOME_FOO_2", map[string]bool{}),
+			Expected: map[string]bool{},
 		},
 		{
 			Input: EnvMapBool{
@@ -359,11 +344,8 @@ func TestEnvMapInt(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Input: EnvMapInt{
-				Value:    map[string]int64{},
-				Variable: ToPtr("SOME_FOO"),
-			},
-			ErrorMsg: errEnvironmentEitherValueOrEnv.Error(),
+			Input:    NewEnvMapInt("SOME_FOO_2", map[string]int64{}),
+			Expected: map[string]int64{},
 		},
 		{
 			Input: EnvMapInt{
@@ -424,11 +406,8 @@ func TestEnvMapFloat(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Input: EnvMapFloat{
-				Value:    map[string]float64{},
-				Variable: ToPtr("SOME_FOO"),
-			},
-			ErrorMsg: errEnvironmentEitherValueOrEnv.Error(),
+			Input:    NewEnvMapFloat("SOME_FOO_2", map[string]float64{}),
+			Expected: map[string]float64{},
 		},
 		{
 			Input: EnvMapFloat{
@@ -446,9 +425,6 @@ func TestEnvMapFloat(t *testing.T) {
 			} else {
 				assert.NilError(t, err)
 				assert.DeepEqual(t, result, tc.Expected)
-				if tc.Input.Variable != nil {
-					assert.DeepEqual(t, tc.Input.value, tc.Expected)
-				}
 			}
 		})
 	}
@@ -492,11 +468,8 @@ func TestEnvMapString(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Input: EnvMapString{
-				Value:    map[string]string{},
-				Variable: ToPtr("SOME_FOO"),
-			},
-			ErrorMsg: errEnvironmentEitherValueOrEnv.Error(),
+			Input:    NewEnvMapString("SOME_FOO_2", map[string]string{}),
+			Expected: map[string]string{},
 		},
 		{
 			Input: EnvMapString{
