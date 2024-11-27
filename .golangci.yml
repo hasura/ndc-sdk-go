@@ -35,6 +35,7 @@ linters:
     - tagalign
     - gochecknoinits
     - execinquery
+    - recvcheck
 issues:
   exclude-files:
     - ".*_test\\.go$"

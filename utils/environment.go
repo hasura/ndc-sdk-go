@@ -10,8 +10,8 @@ import (
 
 var (
 	errEnvironmentValueRequired         = errors.New("require either value or env")
-	errEnvironmentVariableRequired      = errors.New("the variable name of env is empty")
-	errEnvironmentVariableValueRequired = errors.New("the variable value of env is empty")
+	errEnvironmentVariableRequired      = errors.New("the environment variable name is empty")
+	errEnvironmentVariableValueRequired = errors.New("the environment variable value is empty")
 )
 
 // EnvString represents either a literal string or an environment reference
@@ -61,8 +61,11 @@ func (ev EnvString) Get() (string, error) {
 	if err := validateEnvironmentValue(ev.Value, ev.Variable); err != nil {
 		return "", err
 	}
+
+	var value string
+	var envExisted bool
 	if ev.Variable != nil {
-		value := os.Getenv(*ev.Variable)
+		value, envExisted = os.LookupEnv(*ev.Variable)
 		if value != "" {
 			return value, nil
 		}
@@ -72,7 +75,28 @@ func (ev EnvString) Get() (string, error) {
 		return *ev.Value, nil
 	}
 
-	return "", errEnvironmentVariableValueRequired
+	if envExisted {
+		return "", nil
+	}
+
+	return "", getEnvVariableValueRequiredError(ev.Variable)
+}
+
+// GetOrDefault gets literal value or from system environment.
+// Returns the default value if the environment value is empty
+func (ev EnvString) GetOrDefault(defaultValue string) (string, error) {
+	result, err := ev.Get()
+	if err != nil {
+		if errors.Is(err, errEnvironmentVariableValueRequired) {
+			return defaultValue, nil
+		}
+
+		return "", err
+	} else if result == "" {
+		result = defaultValue
+	}
+
+	return result, nil
 }
 
 // EnvInt represents either a literal integer or an environment reference
@@ -133,7 +157,7 @@ func (ev EnvInt) Get() (int64, error) {
 		return *ev.Value, nil
 	}
 
-	return 0, errEnvironmentVariableValueRequired
+	return 0, getEnvVariableValueRequiredError(ev.Variable)
 }
 
 // GetOrDefault gets literal value or from system environment.
@@ -207,7 +231,7 @@ func (ev EnvBool) Get() (bool, error) {
 		return *ev.Value, nil
 	}
 
-	return false, errEnvironmentVariableValueRequired
+	return false, getEnvVariableValueRequiredError(ev.Variable)
 }
 
 // GetOrDefault gets literal value or from system environment.
@@ -281,7 +305,7 @@ func (ev EnvFloat) Get() (float64, error) {
 		return *ev.Value, nil
 	}
 
-	return 0, errEnvironmentVariableValueRequired
+	return 0, getEnvVariableValueRequiredError(ev.Variable)
 }
 
 // GetOrDefault gets literal value or from system environment.
@@ -542,4 +566,12 @@ func (ev EnvMapBool) Get() (map[string]bool, error) {
 	}
 
 	return ev.Value, nil
+}
+
+func getEnvVariableValueRequiredError(envName *string) error {
+	if envName != nil {
+		return fmt.Errorf("%s: %w", *envName, errEnvironmentVariableValueRequired)
+	}
+
+	return errEnvironmentVariableValueRequired
 }

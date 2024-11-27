@@ -58,6 +58,12 @@ func TestEnvString(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Equal(t, "bar", result)
 	})
+
+	t.Run("get_default", func(t *testing.T) {
+		result, err := NewEnvStringVariable("SOME_BAZ").GetOrDefault("baz")
+		assert.NilError(t, err)
+		assert.Equal(t, "baz", result)
+	})
 }
 
 func TestEnvBool(t *testing.T) {
@@ -77,7 +83,7 @@ func TestEnvBool(t *testing.T) {
 		},
 		{
 			Input:    NewEnvBoolVariable("SOME_FOO_2"),
-			ErrorMsg: errEnvironmentVariableValueRequired.Error(),
+			ErrorMsg: getEnvVariableValueRequiredError(ToPtr("SOME_FOO_2")).Error(),
 		},
 		{
 			Input:    EnvBool{},
@@ -120,6 +126,12 @@ func TestEnvBool(t *testing.T) {
 		var ev EnvBool
 		assert.NilError(t, json.Unmarshal([]byte(`{"env": "SOME_FOO"}`), &ev))
 		result, err := ev.Get()
+		assert.NilError(t, err)
+		assert.Equal(t, true, result)
+	})
+
+	t.Run("get_default", func(t *testing.T) {
+		result, err := NewEnvBoolVariable("SOME_TRUE").GetOrDefault(true)
 		assert.NilError(t, err)
 		assert.Equal(t, true, result)
 	})
