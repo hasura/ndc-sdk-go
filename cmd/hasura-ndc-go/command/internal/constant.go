@@ -152,3 +152,7 @@ var (
 	errUnsupportedTypeDuration = errors.New("unsupported time.Duration. Use github.com/hasura/ndc-sdk-go/scalar.Duration instead")
 	errMustUseEnumTag          = errors.New("use @enum tag with values instead")
 )
+
+const (
+	packageSDKUtils = "github.com/hasura/ndc-sdk-go/utils"
+)

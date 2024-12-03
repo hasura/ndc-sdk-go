@@ -1,0 +1,84 @@
+{
+  "collections": [],
+  "functions": [
+    {
+      "arguments": {},
+      "name": "simpleObject",
+      "result_type": {
+        "name": "SimpleResult",
+        "type": "named"
+      }
+    },
+    {
+      "arguments": {},
+      "name": "hello",
+      "result_type": {
+        "name": "String",
+        "type": "named"
+      }
+    }
+  ],
+  "object_types": {
+    "Demography": {
+      "fields": {
+        "ID": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "DemographyResult": {
+      "fields": {
+        "demography": {
+          "type": {
+            "element_type": {
+              "name": "Demography",
+              "type": "named"
+            },
+            "type": "array"
+          }
+        },
+        "errorCode": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    },
+    "SimpleResult": {
+      "fields": {
+        "reply": {
+          "type": {
+            "name": "String",
+            "type": "named"
+          }
+        }
+      }
+    }
+  },
+  "procedures": [
+    {
+      "arguments": {},
+      "name": "createDemo",
+      "result_type": {
+        "type": "nullable",
+        "underlying_type": {
+          "name": "DemographyResult",
+          "type": "named"
+        }
+      }
+    }
+  ],
+  "scalar_types": {
+    "String": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "string"
+      }
+    }
+  }
+}

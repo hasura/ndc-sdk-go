@@ -344,6 +344,7 @@ func (cg *connectorGenerator) writeToMapProperty(sb *connectorTypeBuilder, field
 			return selector
 		}
 
+		sb.imports[packageSDKUtils] = ""
 		sb.builder.WriteString(fmt.Sprintf("  r = utils.MergeMap(r, %s.ToMap())\n", selector))
 		return selector
 	default:
@@ -381,6 +382,7 @@ func (j `)
 			sb.imports["errors"] = ""
 			sb.imports["encoding/json"] = ""
 			sb.imports["slices"] = ""
+			sb.imports[packageSDKUtils] = ""
 
 			sb.builder.WriteString("const (\n")
 			pascalName := strcase.ToCamel(scalar.NativeType.Name)
@@ -499,10 +501,8 @@ func (cg *connectorGenerator) getOrCreateTypeBuilder(packagePath string) *connec
 		bs = &connectorTypeBuilder{
 			packageName: pkgName,
 			packagePath: packagePath,
-			imports: map[string]string{
-				"github.com/hasura/ndc-sdk-go/utils": "",
-			},
-			builder: &strings.Builder{},
+			imports:     map[string]string{},
+			builder:     &strings.Builder{},
 		}
 		cg.typeBuilders[packagePath] = bs
 	}
@@ -642,6 +642,7 @@ func (cg *connectorGenerator) writeGetTypeValueDecoder(sb *connectorTypeBuilder,
 	case "*[]*any", "*[]*interface{}":
 		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableArbitraryJSONPtrSlice", "", key, objectField, true)
 	default:
+		sb.imports[packageSDKUtils] = ""
 		sb.builder.WriteString("  j.")
 		sb.builder.WriteString(fieldName)
 		sb.builder.WriteString(", err = utils.")
@@ -706,6 +707,7 @@ func (cg *connectorGenerator) writeGetTypeValueDecoder(sb *connectorTypeBuilder,
 }
 
 func (cg *connectorGenerator) writeScalarDecodeValue(sb *connectorTypeBuilder, fieldName, functionName, typeParam, key string, objectField schema.ObjectField, isNullable bool) {
+	sb.imports[packageSDKUtils] = ""
 	sb.builder.WriteString("  j.")
 	sb.builder.WriteString(fieldName)
 	sb.builder.WriteString(", err = utils.")
