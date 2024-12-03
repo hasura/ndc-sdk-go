@@ -29,6 +29,10 @@ func (chb connectorHandlerBuilder) Render() {
 	bs.imports["github.com/hasura/ndc-sdk-go/connector"] = ""
 	bs.imports["github.com/hasura/ndc-sdk-go/schema"] = ""
 	bs.imports["go.opentelemetry.io/otel/trace"] = ""
+	if len(chb.Functions) > 0 || len(chb.Procedures) > 0 {
+		bs.imports[packageSDKUtils] = ""
+	}
+
 	if chb.RawSchema.StateType != nil && bs.packagePath != chb.RawSchema.StateType.PackagePath {
 		bs.imports[chb.RawSchema.StateType.PackagePath] = ""
 	}
@@ -188,9 +192,8 @@ func (chb connectorHandlerBuilder) writeMutation(sb *strings.Builder) {
 	if len(chb.Procedures) == 0 {
 		return
 	}
-	stateArgument := chb.writeStateArgumentName()
-	chb.Builder.imports["encoding/json"] = ""
 
+	stateArgument := chb.writeStateArgumentName()
 	_, _ = sb.WriteString(`
 // MutationExists check if the mutation name exists
 func (dch DataConnectorHandler) MutationExists(name string) bool {
@@ -227,6 +230,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 				chb.Builder.imports[fn.ArgumentsType.PackagePath] = ""
 			}
 
+			chb.Builder.imports["encoding/json"] = ""
 			argumentStr := fmt.Sprintf(`
     var args %s
     if err := json.Unmarshal(operation.Arguments, &args); err != nil {
