@@ -11,13 +11,15 @@ import (
 type WriteFileStrategy string
 
 const (
-	WriteFileStrategyNone     WriteFileStrategy = "none"
-	WriteFileStrategyOverride WriteFileStrategy = "override"
+	WriteFileStrategyNone           WriteFileStrategy = "none"
+	WriteFileStrategyOverride       WriteFileStrategy = "override"
+	WriteFileStrategyUpdateResponse WriteFileStrategy = "update_response"
 )
 
 var enumValues_WriteFileStrategy = []WriteFileStrategy{
 	WriteFileStrategyNone,
 	WriteFileStrategyOverride,
+	WriteFileStrategyUpdateResponse,
 }
 
 // ParseWriteFileStrategy parses a WriteFileStrategy enum from string.
@@ -31,13 +33,7 @@ func ParseWriteFileStrategy(input string) (WriteFileStrategy, error) {
 }
 
 // WritePrettyFileJSON writes JSON data with indent.
-func WritePrettyFileJSON(fileName string, data any, strategy WriteFileStrategy) error {
-	if _, err := os.Stat(fileName); err == nil {
-		switch strategy {
-		case WriteFileStrategyNone, "":
-			return nil
-		}
-	}
+func WritePrettyFileJSON(fileName string, data any) error {
 	rawBytes, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return err

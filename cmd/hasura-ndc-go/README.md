@@ -344,7 +344,8 @@ Flags:
       --seed=SEED                Using a fixed seed will produce the same output on every run.
       --query=QUERY,...          Specify individual queries to be generated. Separated by commas, or 'all' for all queries
       --mutation=MUTATION,...    Specify individual mutations to be generated. Separated by commas, or 'all' for all mutations
-      --strategy="none"          Decide the strategy to do when the snapshot file exists.
+      --fetch-response           Fetch snapshot responses from the connector server
+      --strategy="none"          Decide the strategy to do when the snapshot file exists. Accept: none, override, update
 ```
 
 The command accepts either a connector `--endpoint` or a JSON `--schema` file.
