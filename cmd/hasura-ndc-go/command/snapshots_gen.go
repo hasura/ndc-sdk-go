@@ -21,14 +21,14 @@ import (
 
 // GenTestSnapshotArguments represents arguments for test snapshot generation.
 type GenTestSnapshotArguments struct {
-	Schema         string                     `help:"NDC schema file path. Use either endpoint or schema path"`
-	Endpoint       string                     `help:"The endpoint of the connector. Use either endpoint or schema path"`
-	Dir            string                     `help:"The directory of test snapshots."`
-	Depth          uint                       `help:"The selection depth of nested fields in result types." default:"10"`
-	Query          []string                   `help:"Specify individual queries to be generated. Separated by commas, or 'all' for all queries"`
-	Mutation       []string                   `help:"Specify individual mutations to be generated. Separated by commas, or 'all' for all mutations"`
-	ServerResponse bool                       `help:"Fetch snapshot responses from the connector server"`
-	Strategy       internal.WriteFileStrategy `help:"Decide the strategy to do when the snapshot file exists. Accept: none, override, update" enum:"none,override,update" default:"none"`
+	Schema        string                     `help:"NDC schema file path. Use either endpoint or schema path"`
+	Endpoint      string                     `help:"The endpoint of the connector. Use either endpoint or schema path"`
+	Dir           string                     `help:"The directory of test snapshots."`
+	Depth         uint                       `help:"The selection depth of nested fields in result types." default:"10"`
+	Query         []string                   `help:"Specify individual queries to be generated. Separated by commas, or 'all' for all queries"`
+	Mutation      []string                   `help:"Specify individual mutations to be generated. Separated by commas, or 'all' for all mutations"`
+	FetchResponse bool                       `help:"Fetch snapshot responses from the connector server"`
+	Strategy      internal.WriteFileStrategy `help:"Decide the strategy to do when the snapshot file exists. Accept: none, override, update" enum:"none,override,update" default:"none"`
 }
 
 // genTestSnapshotsCommand.
@@ -41,7 +41,7 @@ type genTestSnapshotsCommand struct {
 
 // GenTestSnapshots generates test snapshots from NDC schema.
 func GenTestSnapshots(args *GenTestSnapshotArguments) error {
-	if args.ServerResponse && args.Endpoint == "" {
+	if args.FetchResponse && args.Endpoint == "" {
 		return errors.New("require --endpoint argument if the --server-response argument is enabled")
 	}
 
@@ -181,7 +181,7 @@ func (cmd *genTestSnapshotsCommand) genFunction(fn *schema.FunctionInfo) error {
 		return fmt.Errorf("%s: failed to encode the request snapshot: %w", fn.Name, err)
 	}
 
-	if cmd.args.ServerResponse {
+	if cmd.args.FetchResponse {
 		httpRequest, err := http.NewRequest(http.MethodPost, cmd.endpoint+"/query", bytes.NewBuffer(requestBytes))
 		if err != nil {
 			return fmt.Errorf("%s: failed to create http request: %w", fn.Name, err)
@@ -289,7 +289,7 @@ func (cmd *genTestSnapshotsCommand) genProcedure(proc *schema.ProcedureInfo) err
 		return fmt.Errorf("%s: failed to encode the request snapshot: %w", proc.Name, err)
 	}
 
-	if cmd.args.ServerResponse {
+	if cmd.args.FetchResponse {
 		httpRequest, err := http.NewRequest(http.MethodPost, cmd.endpoint+"/mutation", bytes.NewBuffer(requestBytes))
 		if err != nil {
 			return fmt.Errorf("%s: failed to create http request: %w", proc.Name, err)
