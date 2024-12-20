@@ -300,8 +300,6 @@ func SetupOTelExporters(ctx context.Context, config *OTLPConfig, serviceVersion,
 	}
 
 	otelLogger := slog.New(createLogHandler(config.ServiceName, logger, loggerProvider))
-	slog.SetDefault(otelLogger)
-
 	state := &TelemetryState{
 		Tracer:   &Tracer{traceProvider.Tracer(config.ServiceName, traceapi.WithSchemaURL(semconv.SchemaURL))},
 		Meter:    meterProvider.Meter(config.ServiceName, metricapi.WithSchemaURL(semconv.SchemaURL)),

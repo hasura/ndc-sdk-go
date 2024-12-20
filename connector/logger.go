@@ -20,7 +20,12 @@ type LogHandler struct {
 }
 
 func createLogHandler(serviceName string, logger *slog.Logger, provider *log.LoggerProvider) slog.Handler {
-	otelHandler := otelslog.NewHandler(serviceName, otelslog.WithLoggerProvider(provider))
+	options := []otelslog.Option{}
+	if provider != nil {
+		options = append(options, otelslog.WithLoggerProvider(provider))
+	}
+
+	otelHandler := otelslog.NewHandler(serviceName, options...)
 	loggerHandler := logger.Handler()
 
 	return LogHandler{
@@ -119,4 +124,16 @@ func newLoggerProvider(ctx context.Context, config *OTLPConfig, otelDisabled boo
 	loggerProvider := log.NewLoggerProvider(opts...)
 
 	return loggerProvider, nil
+}
+
+// GetLogger gets the logger instance from context.
+func GetLogger(ctx context.Context) *slog.Logger {
+	value := ctx.Value(logContextKey)
+	if value != nil {
+		if logger, ok := value.(*slog.Logger); ok {
+			return logger
+		}
+	}
+
+	return slog.New(createLogHandler("hasura-ndc-go", slog.Default(), nil))
 }

@@ -17,7 +17,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
-	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -331,18 +330,6 @@ func writeJson(w http.ResponseWriter, logger *slog.Logger, statusCode int, body 
 	writeJsonFunc(w, logger, statusCode, func() ([]byte, error) {
 		return json.Marshal(body)
 	})
-}
-
-// GetLogger gets the logger instance from context.
-func GetLogger(ctx context.Context) *slog.Logger {
-	value := ctx.Value(logContextKey)
-	if value != nil {
-		if logger, ok := value.(*slog.Logger); ok {
-			return logger
-		}
-	}
-
-	return otelslog.NewLogger("hasura-ndc-go")
 }
 
 func writeError(w http.ResponseWriter, logger *slog.Logger, err error) int {
