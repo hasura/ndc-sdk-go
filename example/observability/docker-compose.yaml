@@ -1,5 +1,3 @@
-version: "3.6"
-
 services:
   jaeger:
     image: jaegertracing/all-in-one:latest
@@ -27,7 +25,7 @@ services:
     restart: always
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
+    image: otel/opentelemetry-collector-contrib:0.116.1
     command:
       - --config=/etc/otel-collector-config.yaml
     volumes:

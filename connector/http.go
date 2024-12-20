@@ -17,6 +17,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
+	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -69,6 +70,7 @@ func (cw *customResponseWriter) Write(body []byte) (int, error) {
 	cw.body = body
 	bodyLength, err := cw.ResponseWriter.Write(body)
 	cw.bodyLength = bodyLength
+
 	return bodyLength, err
 }
 
@@ -155,6 +157,7 @@ func (rt *router) Build() *http.ServeMux {
 						})
 						span.SetStatus(codes.Error, "read_request_body_failure")
 						span.RecordError(err)
+
 						return
 					}
 
@@ -209,6 +212,7 @@ func (rt *router) Build() *http.ServeMux {
 
 				span.SetAttributes(attribute.Int("http.response.status_code", http.StatusNotFound))
 				span.SetStatus(codes.Error, fmt.Sprintf("path %s is not found", r.URL.RequestURI()))
+
 				return
 			}
 
@@ -232,6 +236,7 @@ func (rt *router) Build() *http.ServeMux {
 					)
 					span.SetAttributes(attribute.Int("http.response.status_code", http.StatusUnprocessableEntity))
 					span.SetStatus(codes.Error, "invalid content type: "+contentType)
+
 					return
 				}
 			}
@@ -293,6 +298,7 @@ func getRequestID(r *http.Request) string {
 	if requestID == "" {
 		requestID = uuid.NewString()
 	}
+
 	return requestID
 }
 
@@ -305,6 +311,7 @@ func writeJsonFunc(w http.ResponseWriter, logger *slog.Logger, statusCode int, e
 		if _, err := w.Write([]byte(fmt.Sprintf(`{"message": "%s"}`, http.StatusText(http.StatusInternalServerError)))); err != nil {
 			logger.Error("failed to write response", slog.Any("error", err))
 		}
+
 		return
 	}
 	w.WriteHeader(statusCode)
@@ -317,6 +324,7 @@ func writeJsonFunc(w http.ResponseWriter, logger *slog.Logger, statusCode int, e
 func writeJson(w http.ResponseWriter, logger *slog.Logger, statusCode int, body any) {
 	if body == nil {
 		w.WriteHeader(statusCode)
+
 		return
 	}
 
@@ -333,7 +341,8 @@ func GetLogger(ctx context.Context) *slog.Logger {
 			return logger
 		}
 	}
-	return slog.Default()
+
+	return otelslog.NewLogger("hasura-ndc-go")
 }
 
 func writeError(w http.ResponseWriter, logger *slog.Logger, err error) int {
@@ -342,18 +351,21 @@ func writeError(w http.ResponseWriter, logger *slog.Logger, err error) int {
 	var connectorErrorPtr *schema.ConnectorError
 	if errors.As(err, &connectorErrorPtr) {
 		writeJson(w, logger, connectorErrorPtr.StatusCode(), connectorErrorPtr)
+
 		return connectorErrorPtr.StatusCode()
 	}
 
 	var errorResponse schema.ErrorResponse
 	if errors.As(err, &errorResponse) {
 		writeJson(w, logger, http.StatusBadRequest, errorResponse)
+
 		return http.StatusInternalServerError
 	}
 
 	var errorResponsePtr *schema.ErrorResponse
 	if errors.As(err, &errorResponsePtr) {
 		writeJson(w, logger, http.StatusBadRequest, errorResponsePtr)
+
 		return http.StatusInternalServerError
 	}
 

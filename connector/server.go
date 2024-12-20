@@ -75,14 +75,15 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 	)
 
 	// Handle SIGINT (CTRL+C) gracefully.
-	ctx, stop := signal.NotifyContext(context.WithValue(context.TODO(), logContextKey, defaultOptions.logger), os.Interrupt)
+	ctx, stop := signal.NotifyContext(context.TODO(), os.Interrupt)
 
-	configuration, err := connector.ParseConfiguration(ctx, options.Configuration)
+	telemetry, err := setupOTelSDK(ctx, &options.OTLPConfig, defaultOptions.version, defaultOptions.metricsPrefix, defaultOptions.logger)
 	if err != nil {
 		return nil, err
 	}
 
-	telemetry, err := setupOTelSDK(ctx, &options.OTLPConfig, defaultOptions.version, defaultOptions.metricsPrefix, defaultOptions.logger)
+	ctx = context.WithValue(ctx, logContextKey, telemetry.Logger)
+	configuration, err := connector.ParseConfiguration(ctx, options.Configuration)
 	if err != nil {
 		return nil, err
 	}
@@ -349,7 +350,7 @@ func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, 
 }
 
 func (s *Server[Configuration, State]) buildHandler() *http.ServeMux {
-	router := newRouter(s.logger, s.telemetry, !s.withoutRecovery)
+	router := newRouter(s.telemetry.Logger, s.telemetry, !s.withoutRecovery)
 	router.Use(apiPathCapabilities, http.MethodGet, s.withAuth(s.GetCapabilities))
 	router.Use(apiPathSchema, http.MethodGet, s.withAuth(s.GetSchema))
 	router.Use(apiPathQuery, http.MethodPost, s.withAuth(s.Query))
@@ -405,10 +406,10 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 	go func() {
 		var err error
 		if s.options.ServerTLSCertFile != "" || s.options.ServerTLSKeyFile != "" {
-			s.logger.Info("Listening server and serving TLS on " + server.Addr)
+			s.telemetry.Logger.Info("Listening server and serving TLS on " + server.Addr)
 			err = server.ListenAndServeTLS(s.options.ServerTLSCertFile, s.options.ServerTLSKeyFile)
 		} else {
-			s.logger.Info("Listening server on " + server.Addr)
+			s.telemetry.Logger.Info("Listening server on " + server.Addr)
 			err = server.ListenAndServe()
 		}
 
@@ -423,7 +424,7 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 			_ = promServer.Shutdown(context.Background())
 		}()
 		go func() {
-			s.logger.Info(fmt.Sprintf("Listening prometheus server on %d", *s.options.PrometheusPort))
+			s.telemetry.Logger.Info(fmt.Sprintf("Listening prometheus server on %d", *s.options.PrometheusPort))
 			if err := promServer.ListenAndServe(); err != http.ErrServerClosed {
 				serverErr <- err
 			}
