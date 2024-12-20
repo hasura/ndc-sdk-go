@@ -3,7 +3,7 @@ module github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go
 go 1.21
 
 require (
-	github.com/alecthomas/kong v1.2.1
+	github.com/alecthomas/kong v1.6.0
 	github.com/fatih/structtag v1.2.0
 	github.com/google/uuid v1.6.0
 	github.com/hasura/ndc-sdk-go v1.5.0
@@ -19,7 +19,7 @@ require (
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	go.opentelemetry.io/otel v1.28.0 // indirect
+	go.opentelemetry.io/otel v1.29.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 )

@@ -62,16 +62,21 @@ Flags:
       --otlp-endpoint=STRING                   OpenTelemetry receiver endpoint that is set as default for all types ($OTEL_EXPORTER_OTLP_ENDPOINT).
       --otlp-traces-endpoint=STRING            OpenTelemetry endpoint for traces ($OTEL_EXPORTER_OTLP_TRACES_ENDPOINT).
       --otlp-metrics-endpoint=STRING           OpenTelemetry endpoint for metrics ($OTEL_EXPORTER_OTLP_METRICS_ENDPOINT).
+      --otlp-logs-endpoint=STRING              OpenTelemetry endpoint for logs ($OTEL_EXPORTER_OTLP_LOGS_ENDPOINT).
       --otlp-insecure                          Disable LTS for OpenTelemetry exporters ($OTEL_EXPORTER_OTLP_INSECURE).
       --otlp-traces-insecure                   Disable LTS for OpenTelemetry traces exporter ($OTEL_EXPORTER_OTLP_TRACES_INSECURE).
       --otlp-metrics-insecure                  Disable LTS for OpenTelemetry metrics exporter ($OTEL_EXPORTER_OTLP_METRICS_INSECURE).
+      --otlp-logs-insecure                     Disable LTS for OpenTelemetry logs exporter ($OTEL_EXPORTER_OTLP_LOGS_INSECURE).
       --otlp-protocol=STRING                   OpenTelemetry receiver protocol for all types ($OTEL_EXPORTER_OTLP_PROTOCOL).
       --otlp-traces-protocol=STRING            OpenTelemetry receiver protocol for traces ($OTEL_EXPORTER_OTLP_TRACES_PROTOCOL).
       --otlp-metrics-protocol=STRING           OpenTelemetry receiver protocol for metrics ($OTEL_EXPORTER_OTLP_METRICS_PROTOCOL).
+      --otlp-logs-protocol=STRING              OpenTelemetry receiver protocol for logs ($OTEL_EXPORTER_OTLP_LOGS_PROTOCOL).
       --otlp-compression="gzip"                Enable compression for OTLP exporters. Accept: none, gzip ($OTEL_EXPORTER_OTLP_COMPRESSION)
       --otlp-trace-compression="gzip"          Enable compression for OTLP traces exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_TRACES_COMPRESSION)
       --otlp-metrics-compression="gzip"        Enable compression for OTLP metrics exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_METRICS_COMPRESSION)
+      --otlp-logs-compression="gzip"           Enable compression for OTLP logs exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_LOGS_COMPRESSION)
       --metrics-exporter="none"                Metrics export type. Accept: none, otlp, prometheus ($OTEL_METRICS_EXPORTER)
+      --logs-exporter="none"                   Logs export type. Accept: none, otlp ($OTEL_LOGS_EXPORTER)
       --prometheus-port=PROMETHEUS-PORT        Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty
                                                ($OTEL_EXPORTER_PROMETHEUS_PORT)
       --disable-go-metrics                     Disable internal Go and process metrics
