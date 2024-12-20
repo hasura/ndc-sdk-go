@@ -84,7 +84,7 @@ type OTLPConfig struct {
 	OtlpLogsCompression    string `help:"Enable compression for OTLP logs exporter. Accept: none, gzip" enum:"none,gzip" env:"OTEL_EXPORTER_OTLP_LOGS_COMPRESSION" default:"gzip"`
 
 	MetricsExporter  string `help:"Metrics export type. Accept: none, otlp, prometheus" enum:"none,otlp,prometheus" env:"OTEL_METRICS_EXPORTER" default:"none"`
-	LogsExporter     string `help:"Logs export type. Accept: none, otlp, console" enum:"none,otlp" env:"OTEL_LOGS_EXPORTER" default:"none"`
+	LogsExporter     string `help:"Logs export type. Accept: none, otlp" enum:"none,otlp" env:"OTEL_LOGS_EXPORTER" default:"none"`
 	PrometheusPort   *uint  `help:"Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty" env:"OTEL_EXPORTER_PROMETHEUS_PORT"`
 	DisableGoMetrics *bool  `help:"Disable internal Go and process metrics"`
 }

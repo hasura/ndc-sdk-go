@@ -76,7 +76,7 @@ Flags:
       --otlp-metrics-compression="gzip"        Enable compression for OTLP metrics exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_METRICS_COMPRESSION)
       --otlp-logs-compression="gzip"           Enable compression for OTLP logs exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_LOGS_COMPRESSION)
       --metrics-exporter="none"                Metrics export type. Accept: none, otlp, prometheus ($OTEL_METRICS_EXPORTER)
-      --logs-exporter="none"                   Logs export type. Accept: none, otlp, console ($OTEL_LOGS_EXPORTER)
+      --logs-exporter="none"                   Logs export type. Accept: none, otlp ($OTEL_LOGS_EXPORTER)
       --prometheus-port=PROMETHEUS-PORT        Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty
                                                ($OTEL_EXPORTER_PROMETHEUS_PORT)
       --disable-go-metrics                     Disable internal Go and process metrics
