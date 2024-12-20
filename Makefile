@@ -34,6 +34,8 @@ go-tidy:
 	cd $(ROOT_DIR)/cmd/hasura-ndc-go && go mod tidy
 	cd $(ROOT_DIR)/cmd/hasura-ndc-go/command/internal/testdata/basic/source && go mod tidy
 	cd $(ROOT_DIR)/cmd/hasura-ndc-go/command/internal/testdata/empty/source && go mod tidy
+	cd $(ROOT_DIR)/cmd/hasura-ndc-go/command/internal/testdata/single_op/source && go mod tidy
+	cd $(ROOT_DIR)/cmd/hasura-ndc-go/command/internal/testdata/snake_case/source && go mod tidy
 	cd $(ROOT_DIR)/example/codegen && go mod tidy
 	
 # Install golangci-lint tool to run lint locally

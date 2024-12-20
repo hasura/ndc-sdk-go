@@ -7,18 +7,24 @@ receivers:
   otlp:
     protocols:
       grpc:
+        endpoint: "0.0.0.0:4317"
         auth:
           authenticator: bearertokenauth
       http:
+        endpoint: "0.0.0.0:4318"
         auth:
           authenticator: bearertokenauth
 
 exporters:
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
   prometheus:
     endpoint: "0.0.0.0:8889"
 
-  # Data sources: traces, metrics, logs
-  logging:
+  debug:
     verbosity: detailed
 
 processors:
@@ -33,20 +39,18 @@ processors:
     spike_limit_percentage: 20
 
 service:
-  extensions: 
+  extensions:
     - bearertokenauth
   pipelines:
-    ## enable traces to DataDogs if require
-    ##
-    # traces:
-    #   receivers: [otlp]
-    #   processors: [memory_limiter, batch]
-    #   exporters: []
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/jaeger]
 
-    # logs:
-    #   receivers: [otlp]
-    #   processors: [memory_limiter, batch]
-    #   exporters: [logging, loki]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug]
 
     metrics:
       receivers: [otlp]
