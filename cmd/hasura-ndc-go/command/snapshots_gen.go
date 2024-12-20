@@ -1,15 +1,18 @@
 package command
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"math/rand"
 	"net/http"
 	"os"
-	"path"
+	"path/filepath"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/command/internal"
@@ -18,29 +21,36 @@ import (
 
 // GenTestSnapshotArguments represents arguments for test snapshot generation.
 type GenTestSnapshotArguments struct {
-	Schema   string                     `help:"NDC schema file path. Use either endpoint or schema path"`
-	Endpoint string                     `help:"The endpoint of the connector. Use either endpoint or schema path"`
-	Dir      string                     `help:"The directory of test snapshots."`
-	Depth    uint                       `help:"The selection depth of nested fields in result types." default:"10"`
-	Query    []string                   `help:"Specify individual queries to be generated. Separated by commas, or 'all' for all queries"`
-	Mutation []string                   `help:"Specify individual mutations to be generated. Separated by commas, or 'all' for all mutations"`
-	Strategy internal.WriteFileStrategy `help:"Decide the strategy to do when the snapshot file exists. Accept: none, override" enum:"none,override" default:"none"`
+	Schema        string                     `help:"NDC schema file path. Use either endpoint or schema path"`
+	Endpoint      string                     `help:"The endpoint of the connector. Use either endpoint or schema path"`
+	Dir           string                     `help:"The directory of test snapshots."`
+	Depth         uint                       `help:"The selection depth of nested fields in result types." default:"10"`
+	Query         []string                   `help:"Specify individual queries to be generated. Separated by commas, or 'all' for all queries"`
+	Mutation      []string                   `help:"Specify individual mutations to be generated. Separated by commas, or 'all' for all mutations"`
+	FetchResponse bool                       `help:"Fetch snapshot responses from the connector server"`
+	Strategy      internal.WriteFileStrategy `help:"Decide the strategy to do when the snapshot file exists. Accept: none, override, update" enum:"none,override,update" default:"none"`
 }
 
 // genTestSnapshotsCommand.
 type genTestSnapshotsCommand struct {
-	args   *GenTestSnapshotArguments
-	schema schema.SchemaResponse
-	random *rand.Rand
+	args     *GenTestSnapshotArguments
+	schema   schema.SchemaResponse
+	random   *rand.Rand
+	endpoint string
 }
 
 // GenTestSnapshots generates test snapshots from NDC schema.
 func GenTestSnapshots(args *GenTestSnapshotArguments) error {
+	if args.FetchResponse && args.Endpoint == "" {
+		return errors.New("require --endpoint argument if the --server-response argument is enabled")
+	}
+
 	seed := time.Now().UnixNano()
 	random := rand.New(rand.NewSource(seed))
 	cmd := genTestSnapshotsCommand{
-		args:   args,
-		random: random,
+		args:     args,
+		random:   random,
+		endpoint: strings.TrimRight(args.Endpoint, "/"),
 	}
 
 	if err := cmd.fetchSchema(); err != nil {
@@ -74,7 +84,7 @@ func (cmd *genTestSnapshotsCommand) fetchSchema() error {
 	}
 
 	if cmd.args.Endpoint != "" {
-		resp, err := http.Get(cmd.args.Endpoint + "/schema")
+		resp, err := http.Get(cmd.endpoint + "/schema")
 		if err != nil {
 			return fmt.Errorf("failed to fetch schema from %s: %w", cmd.args.Endpoint, err)
 		}
@@ -103,28 +113,57 @@ func (cmd *genTestSnapshotsCommand) fetchSchema() error {
 	return errors.New("required either endpoint or file path to the schema")
 }
 
+func (cmd *genTestSnapshotsCommand) prepareFilePaths(snapshotDir string) (string, string, error) {
+	if err := os.MkdirAll(snapshotDir, 0o755); err != nil {
+		return "", "", err
+	}
+
+	requestFilePath := filepath.Join(snapshotDir, "request.json")
+	expectedFilePath := filepath.Join(snapshotDir, "expected.json")
+
+	return requestFilePath, expectedFilePath, nil
+}
+
 func (cmd *genTestSnapshotsCommand) genFunction(fn *schema.FunctionInfo) error {
 	if !cmd.hasQuery(fn.Name) {
 		return nil
 	}
-	args, err := cmd.genQueryArguments(fn.Arguments)
+
+	snapshotDir := filepath.Join(cmd.args.Dir, "query", fn.Name)
+	requestFilePath, expectedFilePath, err := cmd.prepareFilePaths(snapshotDir)
 	if err != nil {
-		return fmt.Errorf("failed to generate arguments for %s function: %w", fn.Name, err)
+		return err
 	}
+
+	currentRequest := readSnapshotFile[schema.QueryRequest](requestFilePath)
+	currentResponse := readSnapshotFile[schema.QueryResponse](expectedFilePath)
+
+	if currentRequest != nil && currentResponse != nil && cmd.args.Strategy == internal.WriteFileStrategyNone {
+		return nil
+	}
+
 	fields, value, err := cmd.genNestFieldAndValue(fn.ResultType)
 	if err != nil {
 		return fmt.Errorf("failed to generate result for %s function: %w", fn.Name, err)
 	}
 
-	queryReq := schema.QueryRequest{
-		Collection: fn.Name,
-		Query: schema.Query{
-			Fields: schema.QueryFields{
-				"__value": schema.NewColumnField("__value", fields).Encode(),
+	queryReq := currentRequest
+	if currentRequest == nil || cmd.args.Strategy == internal.WriteFileStrategyOverride {
+		args, err := cmd.genQueryArguments(fn.Arguments)
+		if err != nil {
+			return fmt.Errorf("failed to generate arguments for %s function: %w", fn.Name, err)
+		}
+
+		queryReq = &schema.QueryRequest{
+			Collection: fn.Name,
+			Query: schema.Query{
+				Fields: schema.QueryFields{
+					"__value": schema.NewColumnField("__value", fields).Encode(),
+				},
 			},
-		},
-		Arguments:               args,
-		CollectionRelationships: schema.QueryRequestCollectionRelationships{},
+			Arguments:               args,
+			CollectionRelationships: schema.QueryRequestCollectionRelationships{},
+		}
 	}
 
 	queryResp := schema.QueryResponse{
@@ -137,16 +176,47 @@ func (cmd *genTestSnapshotsCommand) genFunction(fn *schema.FunctionInfo) error {
 		},
 	}
 
-	snapshotDir := path.Join(cmd.args.Dir, "query", queryReq.Collection)
-	if err := os.MkdirAll(snapshotDir, 0o755); err != nil {
-		return err
+	requestBytes, err := json.MarshalIndent(queryReq, "", "  ")
+	if err != nil {
+		return fmt.Errorf("%s: failed to encode the request snapshot: %w", fn.Name, err)
 	}
 
-	if err := internal.WritePrettyFileJSON(path.Join(snapshotDir, "request.json"), queryReq, cmd.args.Strategy); err != nil {
-		return err
+	if cmd.args.FetchResponse {
+		httpRequest, err := http.NewRequest(http.MethodPost, cmd.endpoint+"/query", bytes.NewBuffer(requestBytes))
+		if err != nil {
+			return fmt.Errorf("%s: failed to create http request: %w", fn.Name, err)
+		}
+
+		httpRequest.Header.Set("Content-Type", "application/json")
+		resp, err := http.DefaultClient.Do(httpRequest)
+		if err != nil {
+			slog.Error("failed to execute http request: "+err.Error(), slog.String("function", fn.Name))
+		}
+
+		defer resp.Body.Close()
+		commonAttrs := []any{slog.String("function", fn.Name), slog.Int("status", resp.StatusCode)}
+		if resp.StatusCode != http.StatusOK {
+			errorBytes, err := io.ReadAll(resp.Body)
+			if err != nil {
+				slog.Error("failed to read http response: "+err.Error(), commonAttrs...)
+			} else {
+				slog.Error("received non-200 error: "+string(errorBytes), commonAttrs...)
+			}
+		} else {
+			var response schema.QueryResponse
+			if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+				slog.Error("failed to read http response: "+err.Error(), commonAttrs...)
+			} else {
+				queryResp = response
+			}
+		}
 	}
 
-	return internal.WritePrettyFileJSON(path.Join(snapshotDir, "expected.json"), queryResp, cmd.args.Strategy)
+	if err := os.WriteFile(requestFilePath, requestBytes, 0o644); err != nil {
+		return fmt.Errorf("%s: failed write request file: %w", fn.Name, err)
+	}
+
+	return internal.WritePrettyFileJSON(expectedFilePath, queryResp)
 }
 
 func (cmd *genTestSnapshotsCommand) genQueryArguments(arguments schema.FunctionInfoArguments) (schema.QueryRequestArguments, error) {
@@ -165,29 +235,47 @@ func (cmd *genTestSnapshotsCommand) genProcedure(proc *schema.ProcedureInfo) err
 	if !cmd.hasMutation(proc.Name) {
 		return nil
 	}
-	args, err := cmd.genOperationArguments(proc.Arguments)
+
+	snapshotDir := filepath.Join(cmd.args.Dir, "mutation", proc.Name)
+	requestFilePath, expectedFilePath, err := cmd.prepareFilePaths(snapshotDir)
 	if err != nil {
-		return fmt.Errorf("failed to generate arguments for %s procedure: %w", proc.Name, err)
+		return err
 	}
 
+	currentRequest := readSnapshotFile[schema.MutationRequest](requestFilePath)
+	currentResponse := readSnapshotFile[schema.MutationResponse](expectedFilePath)
+
+	if currentRequest != nil && currentResponse != nil && cmd.args.Strategy == internal.WriteFileStrategyNone {
+		return nil
+	}
+
+	mutationReq := currentRequest
 	fields, value, err := cmd.genNestFieldAndValue(proc.ResultType)
 	if err != nil {
 		return fmt.Errorf("failed to generate result for %s procedure: %w", proc.Name, err)
 	}
-	var rawFields schema.NestedField
-	if fields != nil {
-		rawFields = fields.Encode()
-	}
-	mutationReq := schema.MutationRequest{
-		Operations: []schema.MutationOperation{
-			{
-				Type:      schema.MutationOperationProcedure,
-				Name:      proc.Name,
-				Arguments: args,
-				Fields:    rawFields,
+
+	if currentRequest == nil || cmd.args.Strategy == internal.WriteFileStrategyOverride {
+		args, err := cmd.genOperationArguments(proc.Arguments)
+		if err != nil {
+			return fmt.Errorf("failed to generate arguments for %s procedure: %w", proc.Name, err)
+		}
+
+		var rawFields schema.NestedField
+		if fields != nil {
+			rawFields = fields.Encode()
+		}
+		mutationReq = &schema.MutationRequest{
+			Operations: []schema.MutationOperation{
+				{
+					Type:      schema.MutationOperationProcedure,
+					Name:      proc.Name,
+					Arguments: args,
+					Fields:    rawFields,
+				},
 			},
-		},
-		CollectionRelationships: make(schema.MutationRequestCollectionRelationships),
+			CollectionRelationships: make(schema.MutationRequestCollectionRelationships),
+		}
 	}
 
 	mutationResp := schema.MutationResponse{
@@ -196,16 +284,47 @@ func (cmd *genTestSnapshotsCommand) genProcedure(proc *schema.ProcedureInfo) err
 		},
 	}
 
-	snapshotDir := path.Join(cmd.args.Dir, "mutation", proc.Name)
-	if err := os.MkdirAll(snapshotDir, 0o755); err != nil {
-		return err
+	requestBytes, err := json.MarshalIndent(mutationReq, "", "  ")
+	if err != nil {
+		return fmt.Errorf("%s: failed to encode the request snapshot: %w", proc.Name, err)
 	}
 
-	if err := internal.WritePrettyFileJSON(path.Join(snapshotDir, "request.json"), mutationReq, cmd.args.Strategy); err != nil {
-		return err
+	if cmd.args.FetchResponse {
+		httpRequest, err := http.NewRequest(http.MethodPost, cmd.endpoint+"/mutation", bytes.NewBuffer(requestBytes))
+		if err != nil {
+			return fmt.Errorf("%s: failed to create http request: %w", proc.Name, err)
+		}
+
+		httpRequest.Header.Set("Content-Type", "application/json")
+		resp, err := http.DefaultClient.Do(httpRequest)
+		if err != nil {
+			slog.Error("failed to execute http request: "+err.Error(), slog.String("function", proc.Name))
+		}
+
+		defer resp.Body.Close()
+		commonAttrs := []any{slog.String("procedure", proc.Name), slog.Int("status", resp.StatusCode)}
+		if resp.StatusCode != http.StatusOK {
+			errorBytes, err := io.ReadAll(resp.Body)
+			if err != nil {
+				slog.Error("failed to read http response: "+err.Error(), commonAttrs...)
+			} else {
+				slog.Error("received non-200 error: "+string(errorBytes), commonAttrs...)
+			}
+		} else {
+			var response schema.MutationResponse
+			if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+				slog.Error("failed to read http response: "+err.Error(), commonAttrs...)
+			} else {
+				mutationResp = response
+			}
+		}
 	}
 
-	return internal.WritePrettyFileJSON(path.Join(snapshotDir, "expected.json"), mutationResp, cmd.args.Strategy)
+	if err := os.WriteFile(requestFilePath, requestBytes, 0o644); err != nil {
+		return fmt.Errorf("%s: failed write request file: %w", proc.Name, err)
+	}
+
+	return internal.WritePrettyFileJSON(expectedFilePath, mutationResp)
 }
 
 func (cmd *genTestSnapshotsCommand) genOperationArguments(arguments schema.ProcedureInfoArguments) ([]byte, error) {
@@ -287,4 +406,24 @@ func (cmd genTestSnapshotsCommand) hasMutation(name string) bool {
 		return true
 	}
 	return slices.Contains(cmd.args.Mutation, name)
+}
+
+func readSnapshotFile[T any](snapshotPath string) *T {
+	rawBytes, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			slog.Error(err.Error(), slog.String("path", snapshotPath))
+		}
+
+		return nil
+	}
+
+	var result T
+	if err := json.Unmarshal(rawBytes, &result); err != nil {
+		slog.Error(err.Error(), slog.String("path", snapshotPath))
+
+		return nil
+	}
+
+	return &result
 }

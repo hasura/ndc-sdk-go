@@ -23,7 +23,6 @@ func formatTextContent(input string) string {
 }
 
 func TestConnectorGeneration(t *testing.T) {
-
 	testCases := []struct {
 		Name         string
 		BasePath     string
@@ -59,6 +58,12 @@ func TestConnectorGeneration(t *testing.T) {
 			ModuleName:  "github.com/hasura/ndc-codegen-test-snake-case",
 			Directories: []string{"functions"},
 			NamingStyle: string(StyleSnakeCase),
+		},
+		{
+			Name:        "single_operation",
+			BasePath:    "./testdata/single_op",
+			ModuleName:  "github.com/hasura/ndc-codegen-function-only-test",
+			Directories: []string{"function", "hello", "procedure"},
 		},
 	}
 
