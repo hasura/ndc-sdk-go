@@ -1,6 +1,6 @@
 module github.com/hasura/ndc-codegen-empty-test
 
-go 1.21.0
+go 1.21
 
 require github.com/hasura/ndc-sdk-go v1.4.1
 
