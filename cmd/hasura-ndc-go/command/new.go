@@ -17,7 +17,7 @@ import (
 	"golang.org/x/mod/modfile"
 )
 
-//go:embed all:internal/templates/new* internal/templates/new
+//go:embed all:internal/templates/new/* internal/templates/new
 var initTemplateFS embed.FS
 
 const (
