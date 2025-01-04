@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -40,6 +41,8 @@ const (
 	otlpCompressionNone = "none"
 	otlpCompressionGzip = "gzip"
 )
+
+var sensitiveHeaderRegex = regexp.MustCompile(`auth|key|secret|token`)
 
 type otlpProtocol string
 
@@ -420,13 +423,13 @@ func NewTracer(name string, opts ...traceapi.TracerOption) *Tracer {
 // Start creates a span and a context.Context containing the newly-created span
 // with `internal.visibility: "user"` so that it shows up in the Hasura Console.
 func (t *Tracer) Start(ctx context.Context, spanName string, opts ...traceapi.SpanStartOption) (context.Context, traceapi.Span) {
-	return t.Tracer.Start(ctx, spanName, append(opts, userVisibilityAttribute)...) //nolint:all
+	return t.Tracer.Start(ctx, spanName, append(opts, userVisibilityAttribute)...) //nolint:spancheck
 }
 
 // StartInternal creates a span and a context.Context containing the newly-created span.
 // It won't show up in the Hasura Console.
 func (t *Tracer) StartInternal(ctx context.Context, spanName string, opts ...traceapi.SpanStartOption) (context.Context, traceapi.Span) {
-	return t.Tracer.Start(ctx, spanName, opts...) //nolint:all
+	return t.Tracer.Start(ctx, spanName, opts...) //nolint:spancheck
 }
 
 func httpStatusAttribute(code int) attribute.KeyValue {
@@ -492,37 +495,71 @@ func parseOTELMetricsExporterType(input string) (otelMetricsExporterType, error)
 	}
 }
 
-var allowedTraceHeaders = []string{
-	"accept",
-	"accept-encoding",
-	"accept-language",
-	"origin",
-	"host",
-	"user-agent",
-	"x-forwarded-for",
-	"x-forwarded-host",
-	"x-real-ip",
-	"content-length",
-	"project-id",
+// SetSpanHeaderAttributes sets header attributes to the otel span.
+func SetSpanHeaderAttributes(span traceapi.Span, prefix string, httpHeaders http.Header, allowedHeaders ...string) {
+	headers := NewTelemetryHeaders(httpHeaders, allowedHeaders...)
+
+	for key, values := range headers {
+		span.SetAttributes(attribute.StringSlice(prefix+strings.ToLower(key), values))
+	}
 }
 
-func setSpanHeadersAttributes(span traceapi.Span, prefix string, header http.Header, isDebug bool) {
-	for k, h := range header {
-		if len(h) == 0 {
+// NewTelemetryHeaders creates a new header map with sensitive values masked.
+func NewTelemetryHeaders(httpHeaders http.Header, allowedHeaders ...string) http.Header {
+	result := http.Header{}
+
+	if len(allowedHeaders) > 0 {
+		for _, key := range allowedHeaders {
+			value := httpHeaders.Get(key)
+
+			if value == "" {
+				continue
+			}
+
+			if IsSensitiveHeader(key) {
+				result.Set(strings.ToLower(key), MaskString(value))
+			} else {
+				result.Set(strings.ToLower(key), value)
+			}
+		}
+
+		return result
+	}
+
+	for key, headers := range httpHeaders {
+		if len(headers) == 0 {
 			continue
 		}
 
-		lowerKey := strings.ToLower(k)
-		attrKey := fmt.Sprintf("%s.%s", prefix, lowerKey)
-		if isDebug {
-			span.SetAttributes(attribute.StringSlice(attrKey, h))
-			continue
-		}
-		for _, allowedKey := range allowedTraceHeaders {
-			if lowerKey == allowedKey {
-				span.SetAttributes(attribute.String(attrKey, h[0]))
-				break
+		values := headers
+		if IsSensitiveHeader(key) {
+			values = make([]string, len(headers))
+			for i, header := range headers {
+				values[i] = MaskString(header)
 			}
 		}
+
+		result[key] = values
+	}
+
+	return result
+}
+
+// IsSensitiveHeader checks if the header name is sensitive.
+func IsSensitiveHeader(name string) bool {
+	return sensitiveHeaderRegex.MatchString(strings.ToLower(name))
+}
+
+// MaskString masks the string value for security.
+func MaskString(input string) string {
+	inputLength := len(input)
+
+	switch {
+	case inputLength <= 6:
+		return strings.Repeat("*", inputLength)
+	case inputLength < 12:
+		return input[0:1] + strings.Repeat("*", inputLength-1)
+	default:
+		return input[0:3] + strings.Repeat("*", 7) + fmt.Sprintf("(%d)", inputLength)
 	}
 }

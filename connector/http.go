@@ -113,7 +113,7 @@ func (rt *router) Build() *http.ServeMux {
 
 			ctx := r.Context()
 			//lint:ignore SA1012 possible to set nil
-			span := trace.SpanFromContext(nil) //nolint:all
+			span := trace.SpanFromContext(nil) //nolint:contextcheck,staticcheck
 			spanName, spanOk := allowedTraceEndpoints[strings.ToLower(r.URL.Path)]
 			if spanOk {
 				ctx, span = rt.telemetry.Tracer.Start(
@@ -135,7 +135,7 @@ func (rt *router) Build() *http.ServeMux {
 			if isDebug {
 				requestLogData["headers"] = r.Header
 				if spanOk {
-					setSpanHeadersAttributes(span, "http.request.header", r.Header, isDebug)
+					SetSpanHeaderAttributes(span, "http.request.header", r.Header)
 				}
 				if r.Body != nil {
 					bodyBytes, err := io.ReadAll(r.Body)
@@ -257,7 +257,7 @@ func (rt *router) Build() *http.ServeMux {
 					span.SetAttributes(attribute.String("response.body", string(writer.body)))
 				}
 			}
-			setSpanHeadersAttributes(span, "http.response.header", w.Header(), isDebug)
+			SetSpanHeaderAttributes(span, "http.response.header", w.Header())
 
 			if writer.statusCode >= http.StatusBadRequest {
 				logger.Error(
