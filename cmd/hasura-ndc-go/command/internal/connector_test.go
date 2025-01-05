@@ -2,8 +2,10 @@ package internal
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
@@ -50,7 +52,7 @@ func TestConnectorGeneration(t *testing.T) {
 			BasePath:     "./testdata/subdir",
 			ConnectorDir: "connector",
 			ModuleName:   "github.com/hasura/ndc-codegen-subdir-test",
-			Directories:  []string{"connector/functions"},
+			Directories:  []string{"connector"},
 		},
 		{
 			Name:        "snake_case",
@@ -116,7 +118,20 @@ func TestConnectorGeneration(t *testing.T) {
 			for _, td := range tc.Directories {
 				expectedFunctionTypesBytes, err := os.ReadFile(path.Join("expected", "functions.go.tmpl"))
 				if err == nil {
-					functionTypesBytes, err := os.ReadFile(path.Join("source", td, "types.generated.go"))
+					var generatedPath string
+					for _, globPath := range []string{filepath.Join("source", td, "types.generated.go"), filepath.Join("source", td, "**", "types.generated.go")} {
+						goFiles, err := filepath.Glob(globPath)
+						assert.NilError(t, err)
+						log.Println(globPath, goFiles)
+						if len(goFiles) > 0 {
+							generatedPath = goFiles[0]
+
+							break
+						}
+					}
+
+					assert.Assert(t, generatedPath != "")
+					functionTypesBytes, err := os.ReadFile(generatedPath)
 					assert.NilError(t, err)
 					expected := formatTextContent(string(expectedFunctionTypesBytes))
 					reality := formatTextContent(string(functionTypesBytes))

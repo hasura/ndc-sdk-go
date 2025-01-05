@@ -1142,7 +1142,7 @@ var enumValues_SomeEnum = []SomeEnum{SomeEnumFoo, SomeEnumBar}
 func ParseSomeEnum(input string) (SomeEnum, error) {
   result := SomeEnum(input)
   if !slices.Contains(enumValues_SomeEnum, result) {
-    return SomeEnum(""), errors.New("failed to parse SomeEnum, expect one of SomeEnumFoo, SomeEnumBar")
+    return SomeEnum(""), errors.New("failed to parse SomeEnum, expect one of [foo, bar]")
   }
 
   return result, nil
