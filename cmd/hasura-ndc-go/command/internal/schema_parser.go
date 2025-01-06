@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/utils"
 	"github.com/iancoleman/strcase"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/tools/go/packages"
@@ -93,7 +94,7 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 	}
 
 	if len(directories) > 0 {
-		log.Info().Interface("directories", directories).Msgf("parsing connector schema...")
+		log.Debug().Interface("directories", utils.GetSortedKeys(directories)).Msgf("parsing connector schema")
 
 		var packageList []*packages.Package
 		fset := token.NewFileSet()
