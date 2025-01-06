@@ -94,7 +94,7 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 	}
 
 	if len(directories) > 0 {
-		log.Info().Interface("directories", utils.GetSortedKeys(directories)).Msgf("parsing connector schema...")
+		log.Debug().Interface("directories", utils.GetSortedKeys(directories)).Msgf("parsing connector schema")
 
 		var packageList []*packages.Package
 		fset := token.NewFileSet()
