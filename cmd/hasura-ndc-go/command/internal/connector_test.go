@@ -116,28 +116,25 @@ func TestConnectorGeneration(t *testing.T) {
 			assert.NilError(t, os.Chdir(".."))
 
 			for _, td := range tc.Directories {
-				expectedFunctionTypesBytes, err := os.ReadFile(path.Join("expected", "functions.go.tmpl"))
-				if err == nil {
-					var generatedPath string
-					for _, globPath := range []string{filepath.Join("source", td, "types.generated.go"), filepath.Join("source", td, "**", "types.generated.go")} {
-						goFiles, err := filepath.Glob(globPath)
+				for _, globPath := range []string{filepath.Join("source", td, "types.generated.go"), filepath.Join("source", td, "**", "types.generated.go")} {
+					goFiles, err := filepath.Glob(globPath)
+					assert.NilError(t, err)
+
+					for _, goFile := range goFiles {
+						log.Println("file", goFile)
+
+						expectedDir := filepath.Dir(strings.Replace(goFile, "source/", "expected/", -1))
+
+						expectedFunctionTypesBytes, err := os.ReadFile(filepath.Join(expectedDir, "types.generated.go.tmpl"))
 						assert.NilError(t, err)
-						log.Println(globPath, goFiles)
-						if len(goFiles) > 0 {
-							generatedPath = goFiles[0]
 
-							break
-						}
+						functionTypesBytes, err := os.ReadFile(goFile)
+						assert.NilError(t, err)
+
+						expected := formatTextContent(string(expectedFunctionTypesBytes))
+						reality := formatTextContent(string(functionTypesBytes))
+						assert.Equal(t, expected, reality)
 					}
-
-					assert.Assert(t, generatedPath != "")
-					functionTypesBytes, err := os.ReadFile(generatedPath)
-					assert.NilError(t, err)
-					expected := formatTextContent(string(expectedFunctionTypesBytes))
-					reality := formatTextContent(string(functionTypesBytes))
-					assert.Equal(t, expected, reality)
-				} else if !os.IsNotExist(err) {
-					assert.NilError(t, err)
 				}
 			}
 		})
