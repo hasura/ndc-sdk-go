@@ -3,6 +3,7 @@ package functions
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -63,6 +64,11 @@ type CreateAuthorResult struct {
 
 // ProcedureCreateAuthor creates an author
 func ProcedureCreateAuthor(ctx context.Context, state *types.State, arguments *CreateAuthorArguments) (*CreateAuthorResult, error) {
+	selection := utils.CommandSelectionFieldFromContext(ctx)
+	if len(selection) == 0 {
+		return nil, errors.New("expected not-null selection field, got null")
+	}
+
 	return &CreateAuthorResult{
 		ID:   1,
 		Name: arguments.Name,
@@ -92,6 +98,11 @@ func FunctionGetInts(ctx context.Context, state *types.State) ([]*int, error) {
 }
 
 func FunctionGetTypes(ctx context.Context, state *types.State, arguments *arguments.GetTypesArguments) (*arguments.GetTypesArguments, error) {
+	selection := utils.CommandSelectionFieldFromContext(ctx)
+	if len(selection) == 0 {
+		return nil, errors.New("expected not-null selection field, got null")
+	}
+
 	return arguments, nil
 }
 

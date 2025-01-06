@@ -29,9 +29,7 @@ func (chb connectorHandlerBuilder) Render() {
 	bs.imports["github.com/hasura/ndc-sdk-go/connector"] = ""
 	bs.imports["github.com/hasura/ndc-sdk-go/schema"] = ""
 	bs.imports["go.opentelemetry.io/otel/trace"] = ""
-	if len(chb.Functions) > 0 || len(chb.Procedures) > 0 {
-		bs.imports[packageSDKUtils] = ""
-	}
+	bs.imports[packageSDKUtils] = ""
 
 	if chb.RawSchema.StateType != nil && bs.packagePath != chb.RawSchema.StateType.PackagePath {
 		bs.imports[chb.RawSchema.StateType.PackagePath] = ""
@@ -99,7 +97,7 @@ func (dch DataConnectorHandler) Query(ctx context.Context, state *`)
     return nil, schema.UnprocessableContentError(err.Error(), nil)
   }
 
-  result, err := dch.execQuery(ctx, state, request, queryFields, rawArgs)
+  result, err := dch.execQuery(context.WithValue(ctx, utils.CommandSelectionFieldKey, queryFields), state, request, queryFields, rawArgs)
   if err != nil {
     return nil, err
   }
@@ -208,6 +206,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 	_, _ = sb.WriteString(`, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
   span := trace.SpanFromContext(ctx)  
   logger := connector.GetLogger(ctx)
+	ctx = context.WithValue(ctx, utils.CommandSelectionFieldKey, operation.Fields)
   connector_addSpanEvent(span, logger, "validate_request", map[string]any{
     "operations_name": operation.Name,
   })

@@ -49,7 +49,7 @@ func (dch DataConnectorHandler) Query(ctx context.Context, state *types.State, r
     return nil, schema.UnprocessableContentError(err.Error(), nil)
   }
 
-  result, err := dch.execQuery(ctx, state, request, queryFields, rawArgs)
+  result, err := dch.execQuery(context.WithValue(ctx, utils.CommandSelectionFieldKey, queryFields), state, request, queryFields, rawArgs)
   if err != nil {
     return nil, err
   }
