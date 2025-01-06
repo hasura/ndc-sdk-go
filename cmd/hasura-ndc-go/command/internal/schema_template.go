@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/hasura/ndc-sdk-go/schema"
@@ -194,9 +195,9 @@ func (rcs RawConnectorSchema) writeScalarType(builder *strings.Builder, key stri
 
 func (rcs RawConnectorSchema) writeDescription(builder *strings.Builder, description *string) {
 	if description != nil {
-		builder.WriteString(`        Description: toPtr("`)
-		builder.WriteString(*description)
-		builder.WriteString("\"),\n")
+		builder.WriteString(`        Description: toPtr(`)
+		builder.WriteString(strconv.Quote(*description))
+		builder.WriteString("),\n")
 	}
 }
 

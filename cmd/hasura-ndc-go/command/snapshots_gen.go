@@ -149,6 +149,12 @@ func (cmd *genTestSnapshotsCommand) genFunction(fn *schema.FunctionInfo) error {
 
 	queryReq := currentRequest
 	if currentRequest == nil || cmd.args.Strategy == internal.WriteFileStrategyOverride {
+		if currentRequest == nil {
+			slog.Debug("can not find the request.json file at "+snapshotDir, slog.String("function", fn.Name))
+		} else {
+			slog.Debug("override request and response files", slog.String("function", fn.Name))
+		}
+
 		args, err := cmd.genQueryArguments(fn.Arguments)
 		if err != nil {
 			return fmt.Errorf("failed to generate arguments for %s function: %w", fn.Name, err)
@@ -256,6 +262,12 @@ func (cmd *genTestSnapshotsCommand) genProcedure(proc *schema.ProcedureInfo) err
 	}
 
 	if currentRequest == nil || cmd.args.Strategy == internal.WriteFileStrategyOverride {
+		if currentRequest == nil {
+			slog.Debug("can not find the request.json file at "+snapshotDir, slog.String("procedure", proc.Name))
+		} else {
+			slog.Debug("override request and response files", slog.String("procedure", proc.Name))
+		}
+
 		args, err := cmd.genOperationArguments(proc.Arguments)
 		if err != nil {
 			return fmt.Errorf("failed to generate arguments for %s procedure: %w", proc.Name, err)

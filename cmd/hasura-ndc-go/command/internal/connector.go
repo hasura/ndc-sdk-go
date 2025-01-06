@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"runtime/trace"
+	"slices"
 	"strings"
 
 	"github.com/hasura/ndc-sdk-go/schema"
@@ -221,6 +222,8 @@ func (cg *connectorGenerator) renderOperationHandlers(values []string) string {
 	}
 	var sb strings.Builder
 	sb.WriteRune('{')
+	slices.Sort(values)
+
 	for i, v := range values {
 		if i > 0 {
 			sb.WriteString(", ")
@@ -402,7 +405,7 @@ var enumValues_%s = []%s{%s}
 func Parse%s(input string) (%s, error) {
   result := %s(input)
   if !slices.Contains(enumValues_%s, result) {
-    return %s(""), errors.New("failed to parse %s, expect one of %s")
+    return %s(""), errors.New("failed to parse %s, expect one of [%s]")
   }
 
   return result, nil
@@ -446,7 +449,7 @@ func (s *%s) FromValue(value any) error {
   *s = result
   return nil
 }
-`, pascalName, scalarKey, pascalName, scalarKey, scalarKey, pascalName, scalarKey, scalarKey, strings.Join(enumConstants, ", "),
+`, pascalName, scalarKey, pascalName, scalarKey, scalarKey, pascalName, scalarKey, scalarKey, strings.Join(scalarRep.OneOf, ", "),
 				scalarKey, pascalName, scalarKey, pascalName, scalarKey, pascalName,
 			))
 		default:

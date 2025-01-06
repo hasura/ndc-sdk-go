@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/utils"
 	"github.com/iancoleman/strcase"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/tools/go/packages"
@@ -69,37 +70,35 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 			tempDirs = append(tempDirs, entry.Name())
 		}
 	}
-	var directories []string
+
+	directories := make(map[string]bool)
 	for _, dir := range tempDirs {
 		for _, globPath := range []string{path.Join(filePath, dir, "*.go"), path.Join(filePath, dir, "**", "*.go")} {
 			goFiles, err := filepath.Glob(globPath)
 			if err != nil {
 				return nil, fmt.Errorf("failed to read subdirectories of %s/%s: %w", filePath, dir, err)
 			}
-			// cleanup types.generated.go files
-			fileCount := 0
+
 			for _, fp := range goFiles {
 				if !strings.HasSuffix(fp, typeMethodsOutputFile) {
-					fileCount++
+					directories[filepath.Dir(fp)] = true
 					continue
 				}
-				if err := os.Remove(fp); err != nil {
+
+				// cleanup types.generated.go files
+				if err := os.Remove(fp); err != nil && !os.IsNotExist(err) {
 					return nil, fmt.Errorf("failed to delete %s: %w", fp, err)
 				}
-			}
-			if fileCount > 0 {
-				directories = append(directories, dir)
-				break
 			}
 		}
 	}
 
 	if len(directories) > 0 {
-		log.Info().Interface("directories", directories).Msgf("parsing connector schema...")
+		log.Debug().Interface("directories", utils.GetSortedKeys(directories)).Msgf("parsing connector schema")
 
 		var packageList []*packages.Package
 		fset := token.NewFileSet()
-		for _, folder := range directories {
+		for folder := range directories {
 			_, parseCodeTask := trace.NewTask(ctx, fmt.Sprintf("parse_%s_code", folder))
 			folderPath := path.Join(filePath, folder)
 			cfg := &packages.Config{
