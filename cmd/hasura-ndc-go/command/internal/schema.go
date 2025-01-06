@@ -243,6 +243,7 @@ func (oi ObjectInfo) Schema() *schema.ObjectType {
 	result := &schema.ObjectType{
 		Description: oi.Description,
 		Fields:      oi.SchemaFields,
+		ForeignKeys: schema.ObjectTypeForeignKeys{},
 	}
 	return result
 }
