@@ -3,6 +3,7 @@ package schema
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
 )
 
@@ -19,21 +20,29 @@ func isNullJSON(value []byte) bool {
 	return len(value) == 0 || string(value) == "null"
 }
 
-func getStringValueByKey(collection map[string]any, key string) string {
+func getStringValueByKey(collection map[string]any, key string) (string, error) {
 	if len(collection) == 0 {
-		return ""
+		return "", nil
 	}
 
 	anyValue, ok := collection[key]
-	if !ok || isNil(anyValue) {
-		return ""
+	if !ok || anyValue == nil {
+		return "", nil
 	}
 
 	if arg, ok := anyValue.(string); ok {
-		return arg
+		return arg, nil
 	}
 
-	return ""
+	if arg, ok := anyValue.(*string); ok {
+		if arg == nil {
+			return "", nil
+		}
+
+		return *arg, nil
+	}
+
+	return "", fmt.Errorf("expected string, got %v", anyValue)
 }
 
 func unmarshalStringFromJsonMap(collection map[string]json.RawMessage, key string, required bool) (string, error) {

@@ -114,6 +114,7 @@ type GetAuthorArguments struct {
 	*BaseAuthor
 
 	ID string `json:"id"`
+	// Where schema.Expression `json:"where"`
 }
 
 type GetAuthorResult struct {
