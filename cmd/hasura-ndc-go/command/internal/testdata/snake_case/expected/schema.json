@@ -2,6 +2,25 @@
   "collections": [],
   "functions": [
     {
+      "arguments": {
+        "Limit": {
+          "type": {
+            "name": "Float64",
+            "type": "named"
+          }
+        }
+      },
+      "description": "GetArticles",
+      "name": "get_articles",
+      "result_type": {
+        "element_type": {
+          "name": "GetArticlesResult",
+          "type": "named"
+        },
+        "type": "array"
+      }
+    },
+    {
       "arguments": {},
       "description": "return an scalar boolean",
       "name": "get_bool",
@@ -1412,25 +1431,6 @@
           "name": "HelloResult",
           "type": "named"
         }
-      }
-    },
-    {
-      "arguments": {
-        "Limit": {
-          "type": {
-            "name": "Float64",
-            "type": "named"
-          }
-        }
-      },
-      "description": "GetArticles",
-      "name": "get_articles",
-      "result_type": {
-        "element_type": {
-          "name": "GetArticlesResult",
-          "type": "named"
-        },
-        "type": "array"
       }
     }
   ],
@@ -3019,15 +3019,6 @@
       }
     },
     {
-      "arguments": {},
-      "description": "Increase",
-      "name": "increase",
-      "result_type": {
-        "name": "Int32",
-        "type": "named"
-      }
-    },
-    {
       "arguments": {
         "name": {
           "type": {
@@ -3066,6 +3057,15 @@
           "type": "named"
         },
         "type": "array"
+      }
+    },
+    {
+      "arguments": {},
+      "description": "Increase",
+      "name": "increase",
+      "result_type": {
+        "name": "Int32",
+        "type": "named"
       }
     }
   ],

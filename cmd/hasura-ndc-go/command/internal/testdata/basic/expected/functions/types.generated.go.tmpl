@@ -826,6 +826,10 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
   if err != nil {
     return err
   }
+  j.Where, err = utils.DecodeObjectValueDefault[schema.Expression](input, "where")
+  if err != nil {
+    return err
+  }
   return nil
 }
 // ToMap encodes the struct to a value map
@@ -1103,6 +1107,7 @@ func (j GetTypesArguments) ToMap() map[string]any {
   r["uint_empty"] = j.UintEmpty
   r["url_empty"] = j.URLEmpty
   r["uuid_empty"] = j.UUIDEmpty
+  r["where"] = j.Where
 
   return r
 }

@@ -154,5 +154,6 @@ var (
 )
 
 const (
-	packageSDKUtils = "github.com/hasura/ndc-sdk-go/utils"
+	packageSDKUtils  = "github.com/hasura/ndc-sdk-go/utils"
+	packageSDKSchema = "github.com/hasura/ndc-sdk-go/schema"
 )

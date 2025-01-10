@@ -3,17 +3,17 @@
   "functions": [
     {
       "arguments": {},
-      "name": "simpleObject",
+      "name": "hello",
       "result_type": {
-        "name": "SimpleResult",
+        "name": "String",
         "type": "named"
       }
     },
     {
       "arguments": {},
-      "name": "hello",
+      "name": "simpleObject",
       "result_type": {
-        "name": "String",
+        "name": "SimpleResult",
         "type": "named"
       }
     }

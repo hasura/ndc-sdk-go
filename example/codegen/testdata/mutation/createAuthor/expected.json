@@ -4,7 +4,36 @@
       "result": {
         "created_at": "0001-01-01T00:00:00Z",
         "id": 1,
-        "name": "q2Ia7pg5VL"
+        "name": "q2Ia7pg5VL",
+        "where": {
+          "expressions": [
+            {
+              "column": {
+                "name": "name",
+                "type": "column"
+              },
+              "operator": "_eq",
+              "type": "binary_comparison_operator",
+              "value": {
+                "type": "scalar",
+                "value": "hello"
+              }
+            },
+            {
+              "column": {
+                "name": "id",
+                "type": "column"
+              },
+              "operator": "_eq",
+              "type": "binary_comparison_operator",
+              "value": {
+                "type": "scalar",
+                "value": "1"
+              }
+            }
+          ],
+          "type": "and"
+        }
       },
       "type": "procedure"
     }

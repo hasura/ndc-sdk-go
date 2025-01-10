@@ -696,6 +696,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
           "uuid_empty": schema.ObjectField{
             Type: schema.NewNullableType(schema.NewNamedType("UUID")).Encode(),
           },
+          "where": schema.ObjectField{
+            Type: schema.NewNamedType("JSON").Encode(),
+          },
         },
       },
       "GetTypesArgumentsArrayObject": schema.ObjectType{
@@ -1361,6 +1364,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
           "uuid_empty": {
             Type: schema.NewNullableType(schema.NewNamedType("UUID")).Encode(),
           },
+          "where": {
+            Type: schema.NewNullableType(schema.NewPredicateType("Author")).Encode(),
+          },
         },
       },
       {
@@ -1406,6 +1412,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
         Arguments: map[string]schema.ArgumentInfo{
           "name": {
             Type: schema.NewNamedType("String").Encode(),
+          },
+          "where": {
+            Type: schema.NewNullableType(schema.NewPredicateType("Author")).Encode(),
           },
         },
       },
