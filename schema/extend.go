@@ -1654,7 +1654,7 @@ func (j *Expression) FromValue(input map[string]any) error {
 			return fmt.Errorf("field expressions in Expression: expected array, got %v", rawExpressions)
 		}
 
-		var expressions []Expression
+		expressions := []Expression{}
 		for i, rawItem := range rawExpressionsArray {
 			if rawItem == nil {
 				continue
@@ -1814,7 +1814,9 @@ func (j Expression) AsAnd() (*ExpressionAnd, error) {
 	}
 	expressions, ok := rawExpressions.([]Expression)
 	if !ok {
-		return nil, fmt.Errorf("invalid ExpressionAnd.expression type; expected: []Expression, got: %+v", rawExpressions)
+		if err := mapstructure.Decode(rawExpressions, &expressions); err != nil {
+			return nil, fmt.Errorf("invalid ExpressionAnd.expression type; expected: []Expression, got: %v", rawExpressions)
+		}
 	}
 
 	return &ExpressionAnd{
@@ -1829,6 +1831,7 @@ func (j Expression) AsOr() (*ExpressionOr, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if t != ExpressionTypeOr {
 		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeOr, t)
 	}
@@ -1837,9 +1840,12 @@ func (j Expression) AsOr() (*ExpressionOr, error) {
 	if !ok {
 		return nil, errors.New("ExpressionOr.expression is required")
 	}
+
 	expressions, ok := rawExpressions.([]Expression)
 	if !ok {
-		return nil, fmt.Errorf("invalid ExpressionOr.expression type; expected: []Expression, got: %+v", rawExpressions)
+		if err := mapstructure.Decode(rawExpressions, &expressions); err != nil {
+			return nil, fmt.Errorf("invalid ExpressionOr.expression type; expected: []Expression, got: %v", rawExpressions)
+		}
 	}
 
 	return &ExpressionOr{
@@ -1862,9 +1868,12 @@ func (j Expression) AsNot() (*ExpressionNot, error) {
 	if !ok {
 		return nil, errors.New("ExpressionNot.expression is required")
 	}
+
 	expression, ok := rawExpression.(Expression)
 	if !ok {
-		return nil, fmt.Errorf("invalid ExpressionNot.expression type; expected: Expression, got: %+v", rawExpression)
+		if err := mapstructure.Decode(rawExpression, &expression); err != nil {
+			return nil, fmt.Errorf("invalid ExpressionNot.expression type; expected: Expression, got: %+v", rawExpression)
+		}
 	}
 
 	return &ExpressionNot{
@@ -1879,6 +1888,7 @@ func (j Expression) AsUnaryComparisonOperator() (*ExpressionUnaryComparisonOpera
 	if err != nil {
 		return nil, err
 	}
+
 	if t != ExpressionTypeUnaryComparisonOperator {
 		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeUnaryComparisonOperator, t)
 	}
@@ -1887,6 +1897,7 @@ func (j Expression) AsUnaryComparisonOperator() (*ExpressionUnaryComparisonOpera
 	if !ok {
 		return nil, errors.New("ExpressionUnaryComparisonOperator.operator is required")
 	}
+
 	operator, ok := rawOperator.(UnaryComparisonOperator)
 	if !ok {
 		operatorStr, ok := rawOperator.(string)
@@ -1901,6 +1912,7 @@ func (j Expression) AsUnaryComparisonOperator() (*ExpressionUnaryComparisonOpera
 	if !ok {
 		return nil, errors.New("ExpressionUnaryComparisonOperator.column is required")
 	}
+
 	column, ok := rawColumn.(ComparisonTarget)
 	if !ok {
 		return nil, fmt.Errorf("invalid ExpressionUnaryComparisonOperator.column type; expected: ComparisonTarget, got: %v", rawColumn)
@@ -2000,6 +2012,7 @@ func (j Expression) InterfaceT() (ExpressionEncoder, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	switch t {
 	case ExpressionTypeAnd:
 		return j.AsAnd()
