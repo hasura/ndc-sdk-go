@@ -53,6 +53,10 @@ func (j *GetAuthorArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	j.Where, err = utils.DecodeObjectValueDefault[schema.Expression](input, "where")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -81,6 +85,9 @@ func (j CreateArticleResult) ToMap() map[string]any {
 func (j CreateAuthorArguments) ToMap() map[string]any {
 	r := make(map[string]any)
 	r = utils.MergeMap(r, j.BaseAuthor.ToMap())
+	if j.Where != nil {
+		r["where"] = j.Where
+	}
 
 	return r
 }
@@ -91,6 +98,7 @@ func (j CreateAuthorResult) ToMap() map[string]any {
 	r["created_at"] = j.CreatedAt
 	r["id"] = j.ID
 	r["name"] = j.Name
+	r["where"] = j.Where
 
 	return r
 }
@@ -111,6 +119,7 @@ func (j GetAuthorResult) ToMap() map[string]any {
 		r = utils.MergeMap(r, (*j.CreateAuthorResult).ToMap())
 	}
 	r["disabled"] = j.Disabled
+	r["where"] = j.Where
 
 	return r
 }

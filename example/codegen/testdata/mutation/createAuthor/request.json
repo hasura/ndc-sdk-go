@@ -5,7 +5,36 @@
       "type": "procedure",
       "name": "createAuthor",
       "arguments": {
-        "name": "q2Ia7pg5VL"
+        "name": "q2Ia7pg5VL",
+        "where": {
+          "expressions": [
+            {
+              "column": {
+                "name": "name",
+                "type": "column"
+              },
+              "operator": "_eq",
+              "type": "binary_comparison_operator",
+              "value": {
+                "type": "scalar",
+                "value": "hello"
+              }
+            },
+            {
+              "column": {
+                "name": "id",
+                "type": "column"
+              },
+              "operator": "_eq",
+              "type": "binary_comparison_operator",
+              "value": {
+                "type": "scalar",
+                "value": "1"
+              }
+            }
+          ],
+          "type": "and"
+        }
       },
       "fields": {
         "fields": {
@@ -19,6 +48,10 @@
           },
           "name": {
             "column": "name",
+            "type": "column"
+          },
+          "where": {
+            "column": "where",
             "type": "column"
           }
         },

@@ -3,6 +3,8 @@ package internal
 import (
 	"fmt"
 	"go/types"
+	"slices"
+	"strings"
 
 	"github.com/hasura/ndc-sdk-go/schema"
 )
@@ -148,6 +150,41 @@ func (t NamedType) FullName() string {
 
 func (t *NamedType) String() string {
 	return t.NativeType.String()
+}
+
+// PredicateType the information of a predicate type
+type PredicateType struct {
+	ObjectName string
+}
+
+var _ Type = &PredicateType{}
+
+func NewPredicateType(name string) *PredicateType {
+	return &PredicateType{name}
+}
+
+func (t *PredicateType) Kind() schema.TypeEnum {
+	return schema.TypePredicate
+}
+
+func (t *PredicateType) IsAnonymous() bool {
+	return false
+}
+
+func (t *PredicateType) Schema() schema.TypeEncoder {
+	return schema.NewPredicateType(t.ObjectName)
+}
+
+func (t PredicateType) SchemaName(_ bool) string {
+	return t.String()
+}
+
+func (t PredicateType) FullName() string {
+	return t.String()
+}
+
+func (t *PredicateType) String() string {
+	return "Predicate<" + t.ObjectName + ">"
 }
 
 // TypeInfo represents the serialization information of a type.
@@ -328,15 +365,26 @@ func (rcs RawConnectorSchema) Schema() *schema.SchemaResponse {
 	for key, item := range rcs.Scalars {
 		result.ScalarTypes[key] = item.Schema
 	}
+
 	for _, obj := range rcs.Objects {
 		result.ObjectTypes[obj.Type.SchemaName] = *obj.Schema()
 	}
+
 	for _, function := range rcs.Functions {
 		result.Functions = append(result.Functions, function.Schema())
 	}
+
+	slices.SortFunc(result.Functions, func(a, b schema.FunctionInfo) int {
+		return strings.Compare(a.Name, b.Name)
+	})
+
 	for _, procedure := range rcs.Procedures {
 		result.Procedures = append(result.Procedures, procedure.Schema())
 	}
+
+	slices.SortFunc(result.Procedures, func(a, b schema.ProcedureInfo) int {
+		return strings.Compare(a.Name, b.Name)
+	})
 
 	return result
 }
@@ -382,6 +430,12 @@ func getTypeArgumentName(input Type, packagePath string, isAbsolute bool) string
 		return "[]" + getTypeArgumentName(t.ElementType, packagePath, isAbsolute)
 	case *NamedType:
 		return t.NativeType.getArgumentName(packagePath, isAbsolute)
+	case *PredicateType:
+		if isAbsolute {
+			return fmt.Sprintf("%s.%s", packageSDKSchema, "Expression")
+		}
+
+		return "schema.Expression"
 	default:
 		panic(fmt.Errorf("getTypeArgumentName: invalid type %v", input))
 	}
@@ -395,6 +449,8 @@ func getTypePackagePaths(input Type, currentPackagePath string) []string {
 		return getTypePackagePaths(t.ElementType, currentPackagePath)
 	case *NamedType:
 		return t.NativeType.GetPackagePaths(currentPackagePath)
+	case *PredicateType:
+		return []string{packageSDKSchema}
 	default:
 		panic(fmt.Errorf("getTypePackagePaths: invalid type %v", input))
 	}

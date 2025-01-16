@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-codegen-test/types"
 	"github.com/hasura/ndc-sdk-go/scalar"
+	"github.com/hasura/ndc-sdk-go/schema"
 )
 
 type Text string
@@ -45,7 +46,8 @@ func FunctionHello(ctx context.Context, state *types.State) (*HelloResult, error
 
 // A create author argument
 type CreateAuthorArguments struct {
-	Name string `json:"name"`
+	Name  string            `json:"name"`
+	Where schema.Expression `json:"where" ndc:"predicate=Author"`
 }
 
 // A create authors argument
@@ -297,7 +299,8 @@ type GetTypesArguments struct {
 	ArrayTimeEmpty       []time.Time        `json:"array_time_empty,omitempty"`
 	ArrayTimePtrEmpty    []*time.Time       `json:"array_time_ptr_empty,omitempty"`
 
-	IgnoredField string `json:"-"`
+	IgnoredField string            `json:"-"`
+	Where        schema.Expression `json:"where" ndc:"predicate=Author"`
 }
 
 func FunctionGetTypes(ctx context.Context, state *types.State, arguments *GetTypesArguments) (*GetTypesArguments, error) {

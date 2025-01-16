@@ -65,6 +65,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					"name": schema.ObjectField{
 						Type: schema.NewNamedType("String").Encode(),
 					},
+					"where": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewPredicateType("Author")).Encode(),
+					},
 				},
 			},
 			"CreateAuthorResult": schema.ObjectType{
@@ -77,6 +80,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 					"name": schema.ObjectField{
 						Type: schema.NewNamedType("String").Encode(),
+					},
+					"where": schema.ObjectField{
+						Type: schema.NewNamedType("JSON").Encode(),
 					},
 				},
 			},
@@ -123,6 +129,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 					"name": schema.ObjectField{
 						Type: schema.NewNamedType("String").Encode(),
+					},
+					"where": schema.ObjectField{
+						Type: schema.NewNamedType("JSON").Encode(),
 					},
 				},
 			},
@@ -841,6 +850,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					"name": {
 						Type: schema.NewNamedType("String").Encode(),
 					},
+					"where": {
+						Type: schema.NewNullableType(schema.NewPredicateType("Author")).Encode(),
+					},
 				},
 			},
 			{
@@ -852,6 +864,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 					"name": {
 						Type: schema.NewNamedType("String").Encode(),
+					},
+					"where": {
+						Type: schema.NewNullableType(schema.NewPredicateType("Author")).Encode(),
 					},
 				},
 			},
@@ -1556,6 +1571,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 				Arguments: map[string]schema.ArgumentInfo{
 					"name": {
 						Type: schema.NewNamedType("String").Encode(),
+					},
+					"where": {
+						Type: schema.NewNullableType(schema.NewPredicateType("Author")).Encode(),
 					},
 				},
 			},

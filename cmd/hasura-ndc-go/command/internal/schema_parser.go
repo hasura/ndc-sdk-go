@@ -218,7 +218,7 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 		// ignore 2 first parameters (context and state)
 		if params.Len() == 3 {
 			arg := params.At(2)
-			argumentParser := NewTypeParser(sp, &Field{}, arg.Type(), &opInfo.Kind)
+			argumentParser := NewTypeParser(sp, &Field{}, arg.Type(), NDCTagInfo{}, &opInfo.Kind)
 			argumentInfo, err := argumentParser.ParseArgumentTypes([]string{})
 			if err != nil {
 				return err
@@ -236,7 +236,7 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 			}
 		}
 
-		typeParser := NewTypeParser(sp, &Field{}, resultTuple.At(0).Type(), nil)
+		typeParser := NewTypeParser(sp, &Field{}, resultTuple.At(0).Type(), NDCTagInfo{}, nil)
 		resultType, err := typeParser.Parse([]string{})
 		if err != nil {
 			return err

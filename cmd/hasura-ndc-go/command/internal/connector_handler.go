@@ -27,7 +27,7 @@ func (chb connectorHandlerBuilder) Render() {
 	bs.imports["log/slog"] = ""
 	bs.imports["slices"] = ""
 	bs.imports["github.com/hasura/ndc-sdk-go/connector"] = ""
-	bs.imports["github.com/hasura/ndc-sdk-go/schema"] = ""
+	bs.imports[packageSDKSchema] = ""
 	bs.imports["go.opentelemetry.io/otel/trace"] = ""
 	bs.imports[packageSDKUtils] = ""
 
