@@ -20,6 +20,8 @@ type TestConnectorOptions struct {
 	InlineConfig           bool
 	TestDataDir            string
 	SkipResponseValidation bool
+	// optional server options
+	ServerOptions []connector.ServeOption
 }
 
 // TestConnector the native test runner for the data connector.
@@ -35,7 +37,7 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 		},
 		Configuration: options.Configuration,
 		InlineConfig:  options.InlineConfig,
-	}, connector.WithoutRecovery())
+	}, append(options.ServerOptions, connector.WithoutRecovery())...)
 	assert.NilError(t, err)
 
 	httpServer := server.BuildTestServer()
