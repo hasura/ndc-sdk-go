@@ -164,6 +164,14 @@ func TestQueryGetTypes(t *testing.T) {
 						"type": "literal",
 						"value": "1m"
 					},
+					"DurationString": {
+						"type": "literal",
+						"value": "1h"
+					},
+					"DurationInt64": {
+						"type": "literal",
+						"value": 2000000000000
+					},
 					"UUIDPtr": {
 						"type": "literal",
 						"value": "b085b0b9-007c-440e-9661-0d8f2de98a5b"
@@ -812,6 +820,14 @@ func TestQueryGetTypes(t *testing.T) {
 										"column": "Duration",
 										"type": "column"
 									},
+									"DurationString": {
+										"column": "DurationString",
+										"type": "column"
+									},
+									"DurationInt64": {
+										"column": "DurationInt64",
+										"type": "column"
+									},
 									"NamedArray": {
 										"column": "NamedArray",
 										"fields": {
@@ -1339,28 +1355,30 @@ func TestQueryGetTypes(t *testing.T) {
 				"collection_relationships": {}
 			}`,
 			response: arguments.GetTypesArguments{
-				UUID:         uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5a"),
-				Bool:         true,
-				String:       "hello",
-				Int:          1,
-				Int8:         2,
-				Int16:        3,
-				Int32:        4,
-				Int64:        5,
-				Uint:         6,
-				Uint8:        7,
-				Uint16:       8,
-				Uint32:       9,
-				Uint64:       10,
-				Float32:      1.1,
-				Float64:      2.2,
-				Time:         time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC),
-				Text:         "text",
-				CustomScalar: commentText,
-				Enum:         types.SomeEnumFoo,
-				BigInt:       10000,
-				Date:         *scalar.NewDate(2024, 04, 02),
-				Duration:     scalar.NewDuration(time.Minute),
+				UUID:           uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5a"),
+				Bool:           true,
+				String:         "hello",
+				Int:            1,
+				Int8:           2,
+				Int16:          3,
+				Int32:          4,
+				Int64:          5,
+				Uint:           6,
+				Uint8:          7,
+				Uint16:         8,
+				Uint32:         9,
+				Uint64:         10,
+				Float32:        1.1,
+				Float64:        2.2,
+				Time:           time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC),
+				Text:           "text",
+				CustomScalar:   commentText,
+				Enum:           types.SomeEnumFoo,
+				BigInt:         10000,
+				Date:           *scalar.NewDate(2024, 04, 02),
+				Duration:       scalar.NewDuration(time.Minute),
+				DurationString: scalar.NewDurationString(time.Hour),
+				DurationInt64:  scalar.NewDurationInt64(2 * time.Minute),
 				URL: func() scalar.URL {
 					r, _ := scalar.NewURL("https://example.com")
 					return *r

@@ -190,24 +190,27 @@ type HelloArguments struct {
 
 The basic scalar types supported are:
 
-| Name        | Native type                 | Description                                                                           | JSON representation |
-| ----------- | --------------------------- | ------------------------------------------------------------------------------------- | ------------------- |
-| Boolean     | bool                        | A 8-bit signed integer with a minimum value of -2^7 and a maximum value of 2^7 - 1    | boolean             |
-| String      | string                      | String                                                                                | string              |
-| Int8        | int8, uin8                  | A 8-bit signed integer with a minimum value of -2^7 and a maximum value of 2^7 - 1    | int8                |
-| Int16       | int16, uint16               | A 16-bit signed integer with a minimum value of -2^15 and a maximum value of 2^15 - 1 | int16               |
-| Int32       | int32, uint32               | A 32-bit signed integer with a minimum value of -2^31 and a maximum value of 2^31 - 1 | int32               |
-| Int64       | int64, uint64               | A 64-bit signed integer with a minimum value of -2^63 and a maximum value of 2^63 - 1 | int64               |
-| Bigint      | scalar.BigInt               | A 64-bit signed integer with a minimum value of -2^63 and a maximum value of 2^63 - 1 | string              |
-| Float32     | float32                     | An IEEE-754 single-precision floating-point number                                    | float32             |
-| Float64     | float64                     | An IEEE-754 double-precision floating-point number                                    | float64             |
-| UUID        | github.com/google/uuid.UUID | UUID string (8-4-4-4-12)                                                              | uuid                |
-| Date        | scalar.Date                 | ISO 8601 date                                                                         | string              |
-| TimestampTZ | time.Time                   | ISO 8601 timestamp-with-timezone                                                      | string              |
-| Enum        |                             | Enumeration values                                                                    | string              |
-| Bytes       | scalar.Bytes                | Base64-encoded bytes                                                                  | string              |
-| JSON        | any, map[K]V                | Arbitrary JSON                                                                        | json                |
-| RawJSON     | json.RawMessage             | Raw arbitrary JSON                                                                    | json                |
+| Name           | Native type                 | Description                                                                           | JSON representation |
+| -------------- | --------------------------- | ------------------------------------------------------------------------------------- | ------------------- |
+| Boolean        | bool                        | A 8-bit signed integer with a minimum value of -2^7 and a maximum value of 2^7 - 1    | boolean             |
+| String         | string                      | String                                                                                | string              |
+| Int8           | int8, uin8                  | A 8-bit signed integer with a minimum value of -2^7 and a maximum value of 2^7 - 1    | int8                |
+| Int16          | int16, uint16               | A 16-bit signed integer with a minimum value of -2^15 and a maximum value of 2^15 - 1 | int16               |
+| Int32          | int32, uint32               | A 32-bit signed integer with a minimum value of -2^31 and a maximum value of 2^31 - 1 | int32               |
+| Int64          | int64, uint64               | A 64-bit signed integer with a minimum value of -2^63 and a maximum value of 2^63 - 1 | int64               |
+| Bigint         | scalar.BigInt               | A 64-bit signed integer with a minimum value of -2^63 and a maximum value of 2^63 - 1 | string              |
+| Float32        | float32                     | An IEEE-754 single-precision floating-point number                                    | float32             |
+| Float64        | float64                     | An IEEE-754 double-precision floating-point number                                    | float64             |
+| UUID           | github.com/google/uuid.UUID | UUID string (8-4-4-4-12)                                                              | uuid                |
+| Date           | scalar.Date                 | ISO 8601 date                                                                         | string              |
+| TimestampTZ    | time.Time                   | ISO 8601 timestamp-with-timezone                                                      | string              |
+| Enum           |                             | Enumeration values                                                                    | string              |
+| Bytes          | scalar.Bytes                | Base64-encoded bytes                                                                  | string              |
+| JSON           | any, map[K]V                | Arbitrary JSON                                                                        | json                |
+| RawJSON        | json.RawMessage             | Raw arbitrary JSON                                                                    | json                |
+| Duration       | scalar.Duration             | Duration string or integer                                                            | json                |
+| DurationString | scalar.DurationString       | Duration in string format                                                             | string              |
+| Duration       | scalar.Duration             | Duration in 64-bit integer format                                                     | int64               |
 
 > [!NOTE]
 > We don't recommend to use the `RawJSON` scalar for `function` arguments because the decoder will re-encode the value to `[]byte` that isn't performance-wise.
