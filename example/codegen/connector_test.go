@@ -170,7 +170,7 @@ func TestQueryGetTypes(t *testing.T) {
 					},
 					"DurationInt64": {
 						"type": "literal",
-						"value": 2000000000000
+						"value": 120000000000
 					},
 					"UUIDPtr": {
 						"type": "literal",
