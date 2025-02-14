@@ -245,11 +245,12 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 				return NewNullableType(NewPredicateType(tp.tagInfo.PredicateObjectName)), nil
 			}
 		case "github.com/hasura/ndc-sdk-go/scalar":
-			switch innerType.Name() {
-			case "Date", "BigInt", "Bytes", "URL", "Duration":
+			scalarName := ScalarName(innerType.Name())
+			switch scalarName {
+			case ScalarDate, ScalarBigInt, ScalarBytes, ScalarURL, ScalarDuration, ScalarDurationString, ScalarDurationInt64:
 				typeInfo.SchemaName = innerType.Name()
 				scalarType = &Scalar{
-					Schema: defaultScalarTypes[ScalarName(innerType.Name())],
+					Schema: defaultScalarTypes[scalarName],
 				}
 			default:
 				return nil, fmt.Errorf("unsupported scalar type %s.%s", innerPkg.Path(), innerType.Name())

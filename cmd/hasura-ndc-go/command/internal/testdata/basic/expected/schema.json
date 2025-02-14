@@ -571,6 +571,18 @@
             "type": "named"
           }
         },
+        "DurationInt64": {
+          "type": {
+            "name": "DurationInt64",
+            "type": "named"
+          }
+        },
+        "DurationString": {
+          "type": {
+            "name": "DurationString",
+            "type": "named"
+          }
+        },
         "Enum": {
           "type": {
             "name": "SomeEnum",
@@ -2845,6 +2857,18 @@
             "type": "named"
           }
         },
+        "DurationInt64": {
+          "type": {
+            "name": "DurationInt64",
+            "type": "named"
+          }
+        },
+        "DurationString": {
+          "type": {
+            "name": "DurationString",
+            "type": "named"
+          }
+        },
         "Enum": {
           "type": {
             "name": "SomeEnum",
@@ -4666,6 +4690,20 @@
       "comparison_operators": {},
       "representation": {
         "type": "json"
+      }
+    },
+    "DurationInt64": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "int64"
+      }
+    },
+    "DurationString": {
+      "aggregate_functions": {},
+      "comparison_operators": {},
+      "representation": {
+        "type": "string"
       }
     },
     "Float32": {

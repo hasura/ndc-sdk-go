@@ -3,13 +3,13 @@ module github.com/hasura/ndc-sdk-go
 go 1.21
 
 require (
-	github.com/alecthomas/kong v1.6.0
+	github.com/alecthomas/kong v1.8.1
 	github.com/go-logr/logr v1.4.2
 	github.com/go-viper/mapstructure/v2 v2.2.1
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/prometheus/client_golang v1.20.5
-	github.com/prometheus/common v0.61.0
+	github.com/prometheus/common v0.62.0
 	go.opentelemetry.io/contrib/bridges/otelslog v0.4.0
 	go.opentelemetry.io/contrib/propagators/b3 v1.29.0
 	go.opentelemetry.io/otel v1.29.0
@@ -27,7 +27,7 @@ require (
 	go.opentelemetry.io/otel/sdk/log v0.5.0
 	go.opentelemetry.io/otel/sdk/metric v1.29.0
 	go.opentelemetry.io/otel/trace v1.29.0
-	gotest.tools/v3 v3.5.1
+	gotest.tools/v3 v3.5.2
 )
 
 require (
@@ -47,5 +47,5 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20240822170219-fc7c04adadcd // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240822170219-fc7c04adadcd // indirect
 	google.golang.org/grpc v1.65.0 // indirect
-	google.golang.org/protobuf v1.35.2 // indirect
+	google.golang.org/protobuf v1.36.1 // indirect
 )
