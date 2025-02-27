@@ -32,15 +32,19 @@ func UpdateConnectorSchema(args UpdateArguments, start time.Time) {
 		log.Fatal().Err(err).Msg("failed to generate connector schema")
 	}
 
-	if err := execGetLatestSDK("."); err != nil {
-		log.Error().Err(err).Msg("failed to upgrade the latest SDK version")
+	if !args.SkipVersionUpgrade {
+		if err := execGetLatestSDK("."); err != nil {
+			log.Error().Err(err).Msg("failed to upgrade the latest SDK version")
+		}
+		if err := execGoModTidy("."); err != nil {
+			log.Error().Err(err).Msg("failed to tidy modules")
+		}
 	}
-	if err := execGoModTidy("."); err != nil {
-		log.Error().Err(err).Msg("failed to tidy modules")
-	}
+
 	if err := execGoFormat("."); err != nil {
 		log.Error().Err(err).Msg("failed to format code")
 	}
+
 	log.Info().Str("exec_time", time.Since(start).Round(time.Millisecond).String()).
 		Msg("generated successfully")
 }

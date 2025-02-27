@@ -23,13 +23,14 @@ import (
 
 // ConnectorGenerationArguments represent input arguments of the ConnectorGenerator.
 type ConnectorGenerationArguments struct {
-	Path         string   `help:"The path of the root directory where the go.mod file is present" short:"p" env:"HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH" default:"."`
-	ConnectorDir string   `help:"The directory where the connector.go file is placed" default:"."`
-	Directories  []string `help:"Folders contain NDC operation functions" short:"d"`
-	Trace        string   `help:"Enable tracing and write to target file path."`
-	SchemaFormat string   `help:"The output format for the connector schema. Accept: json, go" enum:"json,go" default:"json"`
-	Style        string   `help:"The naming style for functions and procedures. Accept: camel-case, snake-case" enum:"camel-case,snake-case" default:"camel-case"`
-	TypeOnly     bool     `help:"Generate type only" default:"false"`
+	Path               string   `help:"The path of the root directory where the go.mod file is present" short:"p" env:"HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH" default:"."`
+	ConnectorDir       string   `help:"The directory where the connector.go file is placed" default:"."`
+	Directories        []string `help:"Folders contain NDC operation functions" short:"d"`
+	Trace              string   `help:"Enable tracing and write to target file path."`
+	SchemaFormat       string   `help:"The output format for the connector schema. Accept: json, go" enum:"json,go" default:"json"`
+	Style              string   `help:"The naming style for functions and procedures. Accept: camel-case, snake-case" enum:"camel-case,snake-case" default:"camel-case"`
+	TypeOnly           bool     `help:"Generate type only" default:"false"`
+	SkipVersionUpgrade bool     `help:"Skip upgrading the SDK version. You need to upgrade manually if required" env:"SKIP_VERSION_UPGRADE" default:"false"`
 }
 
 type connectorTypeBuilder struct {
