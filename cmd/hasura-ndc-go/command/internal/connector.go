@@ -16,7 +16,7 @@ import (
 
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
-	"github.com/iancoleman/strcase"
+	"github.com/huandu/xstrings"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/tools/go/packages"
 )
@@ -408,10 +408,10 @@ func (j `)
 			sb.imports[packageSDKUtils] = ""
 
 			sb.builder.WriteString("const (\n")
-			pascalName := strcase.ToCamel(scalar.NativeType.Name)
+			pascalName := xstrings.ToPascalCase(scalar.NativeType.Name)
 			enumConstants := make([]string, len(scalarRep.OneOf))
 			for i, enum := range scalarRep.OneOf {
-				enumConst := fmt.Sprintf("%s%s", pascalName, strcase.ToCamel(enum))
+				enumConst := fmt.Sprintf("%s%s", pascalName, xstrings.ToPascalCase(enum))
 				enumConstants[i] = enumConst
 				sb.builder.WriteString(fmt.Sprintf("  %s %s = \"%s\"\n", enumConst, scalarKey, enum))
 			}

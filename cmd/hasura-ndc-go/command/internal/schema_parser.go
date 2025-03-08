@@ -275,7 +275,7 @@ func (sp SchemaParser) formatOperationName(name string) string {
 	case StyleSnakeCase:
 		return xstrings.ToSnakeCase(name)
 	default:
-		return xstrings.ToSnakeCase(name)
+		return xstrings.ToCamelCase(name)
 	}
 }
 

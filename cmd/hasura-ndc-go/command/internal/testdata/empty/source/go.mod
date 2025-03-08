@@ -2,7 +2,11 @@ module github.com/hasura/ndc-codegen-empty-test
 
 go 1.21
 
-require github.com/hasura/ndc-sdk-go v1.4.1
+require (
+	github.com/hasura/ndc-sdk-go v1.4.1
+	go.opentelemetry.io/otel v1.29.0
+	golang.org/x/sync v0.10.0
+)
 
 require (
 	github.com/alecthomas/kong v1.8.1 // indirect
@@ -22,7 +26,6 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	go.opentelemetry.io/contrib/bridges/otelslog v0.4.0 // indirect
 	go.opentelemetry.io/contrib/propagators/b3 v1.29.0 // indirect
-	go.opentelemetry.io/otel v1.29.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.5.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.5.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.29.0 // indirect
