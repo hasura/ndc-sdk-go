@@ -28,7 +28,7 @@ type ConnectorGenerationArguments struct {
 	Directories        []string `help:"Folders contain NDC operation functions" short:"d"`
 	Trace              string   `help:"Enable tracing and write to target file path."`
 	SchemaFormat       string   `help:"The output format for the connector schema. Accept: json, go" enum:"json,go" default:"json"`
-	Style              string   `help:"The naming style for functions and procedures. Accept: camel-case, snake-case" enum:"camel-case,snake-case" default:"camel-case"`
+	Style              string   `help:"The naming style for functions and procedures. Accept: camel-case, snake-case" env:"HASURA_PLUGIN_CONNECTOR_NAMING_STYLE" enum:"camel-case,snake-case" default:"camel-case"`
 	TypeOnly           bool     `help:"Generate type only" default:"false"`
 	SkipVersionUpgrade bool     `help:"Skip upgrading the SDK version. You need to upgrade manually if required" env:"SKIP_VERSION_UPGRADE" default:"false"`
 }

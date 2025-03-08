@@ -54,6 +54,10 @@ func encodeObject(input any, fieldPath string) (map[string]any, error) {
 	case map[string]any:
 		return value, nil
 	case MapEncoder:
+		if value == nil {
+			return nil, nil
+		}
+
 		return value.ToMap(), nil
 	case Scalar:
 		return nil, &schema.ErrorResponse{
