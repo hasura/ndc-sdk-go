@@ -30,6 +30,7 @@ test: test-sdk test-hasura-ndc-go test-example-codegen
 
 .PHONY: go-tidy
 go-tidy:
+	cp go.work.testing go.work
 	go mod tidy
 	cd $(ROOT_DIR)/cmd/hasura-ndc-go && go mod tidy
 	cd $(ROOT_DIR)/cmd/hasura-ndc-go/command/internal/testdata/basic/source && go mod tidy

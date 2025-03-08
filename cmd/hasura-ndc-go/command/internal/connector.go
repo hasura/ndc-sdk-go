@@ -16,7 +16,7 @@ import (
 
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
-	"github.com/iancoleman/strcase"
+	"github.com/huandu/xstrings"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/tools/go/packages"
 )
@@ -28,7 +28,7 @@ type ConnectorGenerationArguments struct {
 	Directories        []string `help:"Folders contain NDC operation functions" short:"d"`
 	Trace              string   `help:"Enable tracing and write to target file path."`
 	SchemaFormat       string   `help:"The output format for the connector schema. Accept: json, go" enum:"json,go" default:"json"`
-	Style              string   `help:"The naming style for functions and procedures. Accept: camel-case, snake-case" enum:"camel-case,snake-case" default:"camel-case"`
+	Style              string   `help:"The naming style for functions and procedures. Accept: camel-case, snake-case" env:"HASURA_PLUGIN_CONNECTOR_NAMING_STYLE" enum:"camel-case,snake-case" default:"camel-case"`
 	TypeOnly           bool     `help:"Generate type only" default:"false"`
 	SkipVersionUpgrade bool     `help:"Skip upgrading the SDK version. You need to upgrade manually if required" env:"SKIP_VERSION_UPGRADE" default:"false"`
 }
@@ -408,10 +408,10 @@ func (j `)
 			sb.imports[packageSDKUtils] = ""
 
 			sb.builder.WriteString("const (\n")
-			pascalName := strcase.ToCamel(scalar.NativeType.Name)
+			pascalName := xstrings.ToPascalCase(scalar.NativeType.Name)
 			enumConstants := make([]string, len(scalarRep.OneOf))
 			for i, enum := range scalarRep.OneOf {
-				enumConst := fmt.Sprintf("%s%s", pascalName, strcase.ToCamel(enum))
+				enumConst := fmt.Sprintf("%s%s", pascalName, xstrings.ToPascalCase(enum))
 				enumConstants[i] = enumConst
 				sb.builder.WriteString(fmt.Sprintf("  %s %s = \"%s\"\n", enumConst, scalarKey, enum))
 			}
