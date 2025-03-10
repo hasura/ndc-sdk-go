@@ -16,7 +16,7 @@ import (
 
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
-	"github.com/iancoleman/strcase"
+	"github.com/huandu/xstrings"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/tools/go/packages"
 )
@@ -273,9 +273,9 @@ func (sp *SchemaParser) getNamedType(ty types.Type) *types.Named {
 func (sp SchemaParser) formatOperationName(name string) string {
 	switch sp.namingStyle {
 	case StyleSnakeCase:
-		return strcase.ToSnake(name)
+		return xstrings.ToSnakeCase(name)
 	default:
-		return strcase.ToLowerCamel(name)
+		return xstrings.ToCamelCase(name)
 	}
 }
 

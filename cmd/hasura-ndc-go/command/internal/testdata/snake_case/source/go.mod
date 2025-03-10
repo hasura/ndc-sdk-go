@@ -5,9 +5,6 @@ go 1.21
 require (
 	github.com/google/uuid v1.6.0
 	github.com/hasura/ndc-sdk-go v1.6.3
-	go.opentelemetry.io/otel v1.29.0
-	go.opentelemetry.io/otel/trace v1.29.0
-	golang.org/x/sync v0.10.0
 )
 
 require (
@@ -27,6 +24,7 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	go.opentelemetry.io/contrib/bridges/otelslog v0.4.0 // indirect
 	go.opentelemetry.io/contrib/propagators/b3 v1.29.0 // indirect
+	go.opentelemetry.io/otel v1.29.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.5.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.5.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.29.0 // indirect
@@ -40,6 +38,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.29.0 // indirect
 	go.opentelemetry.io/otel/sdk/log v0.5.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.29.0 // indirect
+	go.opentelemetry.io/otel/trace v1.29.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
 	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
