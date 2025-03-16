@@ -64,7 +64,7 @@ var enumValues_AuthorStatus = []AuthorStatus{AuthorStatusActive, AuthorStatusIna
 func ParseAuthorStatus(input string) (AuthorStatus, error) {
 	result := AuthorStatus(input)
 	if !slices.Contains(enumValues_AuthorStatus, result) {
-		return AuthorStatus(""), errors.New("failed to parse AuthorStatus, expect one of AuthorStatusActive, AuthorStatusInactive")
+		return AuthorStatus(""), errors.New("failed to parse AuthorStatus, expect one of [active, inactive]")
 	}
 
 	return result, nil

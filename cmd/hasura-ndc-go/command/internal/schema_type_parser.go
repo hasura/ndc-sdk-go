@@ -6,9 +6,7 @@ import (
 	"go/types"
 	"strings"
 
-	"github.com/fatih/structtag"
 	"github.com/hasura/ndc-sdk-go/schema"
-	"github.com/rs/zerolog/log"
 )
 
 type TypeParser struct {
@@ -16,15 +14,17 @@ type TypeParser struct {
 	field        *Field
 	rootType     types.Type
 	argumentFor  *OperationKind
+	tagInfo      NDCTagInfo
 	// cached parent named type if the underlying type is an object
 	typeInfo *TypeInfo
 }
 
-func NewTypeParser(schemaParser *SchemaParser, field *Field, ty types.Type, argumentFor *OperationKind) *TypeParser {
+func NewTypeParser(schemaParser *SchemaParser, field *Field, ty types.Type, tagInfo NDCTagInfo, argumentFor *OperationKind) *TypeParser {
 	return &TypeParser{
 		schemaParser: schemaParser,
 		field:        field,
 		rootType:     ty,
+		tagInfo:      tagInfo,
 		argumentFor:  argumentFor,
 	}
 }
@@ -54,18 +54,24 @@ func (tp *TypeParser) parseArgumentTypes(ty types.Type, fieldPaths []string) (*O
 			Fields:       map[string]Field{},
 			SchemaFields: schema.ObjectTypeFields{},
 		}
+
 		if err := tp.parseStructType(result, inferredType, fieldPaths); err != nil {
 			return nil, err
 		}
+
 		return result, nil
 	case *types.Named:
-
 		typeObj := inferredType.Obj()
+		if typeObj == nil {
+			return nil, fmt.Errorf("named type %s does not exist", inferredType.String())
+		}
+
 		typeInfo := &TypeInfo{
 			Name:       typeObj.Name(),
 			SchemaName: typeObj.Name(),
 			TypeAST:    typeObj.Type().Underlying(),
 		}
+
 		pkg := typeObj.Pkg()
 		if pkg != nil {
 			typeInfo.PackagePath = pkg.Path()
@@ -230,12 +236,21 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 			default:
 				return nil, fmt.Errorf("unsupported type %s.%s", innerPkg.Path(), innerType.Name())
 			}
+		case packageSDKSchema:
+			if innerType.Name() == "Expression" && tp.argumentFor != nil {
+				if tp.tagInfo.PredicateObjectName == "" {
+					return nil, fmt.Errorf("%s: predicate field tag must be set `ndc:\"predicate=<object-name>\"`", strings.Join(fieldPaths, "."))
+				}
+
+				return NewNullableType(NewPredicateType(tp.tagInfo.PredicateObjectName)), nil
+			}
 		case "github.com/hasura/ndc-sdk-go/scalar":
-			switch innerType.Name() {
-			case "Date", "BigInt", "Bytes", "URL", "Duration":
+			scalarName := ScalarName(innerType.Name())
+			switch scalarName {
+			case ScalarDate, ScalarBigInt, ScalarBytes, ScalarURL, ScalarDuration, ScalarDurationString, ScalarDurationInt64:
 				typeInfo.SchemaName = innerType.Name()
 				scalarType = &Scalar{
-					Schema: defaultScalarTypes[ScalarName(innerType.Name())],
+					Schema: defaultScalarTypes[scalarName],
 				}
 			default:
 				return nil, fmt.Errorf("unsupported scalar type %s.%s", innerPkg.Path(), innerType.Name())
@@ -332,19 +347,32 @@ func (tp *TypeParser) parseStructType(objectInfo *ObjectInfo, inferredType *type
 		}
 
 		fieldTag := inferredType.Tag(i)
-		fieldKey, jsonOption := getFieldNameOrTag(fieldVar.Name(), fieldTag)
-		if jsonOption == jsonIgnore {
+
+		tagInfo, err := parseNDCTagInfo(fieldTag)
+		if err != nil {
+			return fmt.Errorf("%s: %w", strings.Join(fieldPaths, "."), err)
+		}
+
+		if tagInfo.Ignored {
 			continue
 		}
+
+		fieldKey := tagInfo.Name
+		if fieldKey == "" {
+			fieldKey = fieldVar.Name()
+		}
+
 		fieldParser := NewTypeParser(tp.schemaParser, &Field{
 			Name:     fieldVar.Name(),
 			Embedded: fieldVar.Embedded(),
 			TypeAST:  fieldVar.Type(),
-		}, fieldVar.Type(), tp.argumentFor)
+		}, fieldVar.Type(), tagInfo, tp.argumentFor)
+
 		field, err := fieldParser.Parse(append(fieldPaths, fieldVar.Name()))
 		if err != nil {
 			return err
 		}
+
 		if field == nil {
 			continue
 		}
@@ -356,9 +384,10 @@ func (tp *TypeParser) parseStructType(objectInfo *ObjectInfo, inferredType *type
 			}
 		} else {
 			fieldSchema := field.Type.Schema()
-			if jsonOption == jsonOmitEmpty && field.Type.Kind() != schema.TypeNullable {
+			if tagInfo.OmitEmpty && field.Type.Kind() != schema.TypeNullable {
 				fieldSchema = schema.NewNullableType(fieldSchema)
 			}
+
 			objectInfo.SchemaFields[fieldKey] = schema.ObjectField{
 				Type: fieldSchema.Encode(),
 			}
@@ -391,8 +420,7 @@ func (tp *TypeParser) parseTypeInfoFromComments(typeInfo *TypeInfo, scope *types
 				text = strings.TrimPrefix(text, typeInfo.Name+" ")
 			}
 
-			enumMatches := ndcEnumCommentRegex.FindStringSubmatch(text)
-
+			enumMatches := ndcEnumCommentRegex.FindStringSubmatch(strings.TrimRight(text, "."))
 			if len(enumMatches) == 2 {
 				rawEnumItems := strings.Split(enumMatches[1], ",")
 				var enums []string
@@ -538,36 +566,4 @@ func parseTypeFromString(input string) (Type, error) {
 	typeInfo.Name = parts[partsLen-1]
 
 	return NewNamedType(typeInfo.Name, typeInfo), nil
-}
-
-const (
-	jsonOmitEmpty = "omitempty"
-	jsonIgnore    = "-"
-)
-
-// Get field name and options by json tag.
-// Return the struct field name if not exist.
-func getFieldNameOrTag(name string, tag string) (string, string) {
-	if tag == "" {
-		return name, ""
-	}
-	tags, err := structtag.Parse(tag)
-	if err != nil {
-		log.Warn().Err(err).Msgf("failed to parse tag of struct field: %s", name)
-		return name, ""
-	}
-
-	jsonTag, err := tags.Get("json")
-	if err != nil {
-		log.Warn().Err(err).Msgf("json tag does not exist in struct field: %s", name)
-		return name, ""
-	}
-	if jsonTag.Value() == "-" {
-		return name, jsonIgnore
-	}
-	nameParts := strings.Split(jsonTag.Value(), ",")
-	if len(nameParts) == 1 {
-		return jsonTag.Name, ""
-	}
-	return nameParts[0], nameParts[1]
 }

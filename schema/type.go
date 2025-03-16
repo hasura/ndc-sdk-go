@@ -169,12 +169,19 @@ func (ty Type) AsNamed() (*NamedType, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if t != TypeNamed {
 		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypeNamed, t)
 	}
+
+	name, err := getStringValueByKey(ty, "name")
+	if err != nil {
+		return nil, fmt.Errorf("name in NamedType: %w", err)
+	}
+
 	return &NamedType{
 		Type: t,
-		Name: getStringValueByKey(ty, "name"),
+		Name: name,
 	}, nil
 }
 
@@ -236,9 +243,14 @@ func (ty Type) AsPredicate() (*PredicateType, error) {
 		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypePredicate, t)
 	}
 
+	name, err := getStringValueByKey(ty, "object_type_name")
+	if err != nil {
+		return nil, fmt.Errorf("object_type_name in PredicateType: %w", err)
+	}
+
 	return &PredicateType{
 		Type:           t,
-		ObjectTypeName: getStringValueByKey(ty, "object_type_name"),
+		ObjectTypeName: name,
 	}, nil
 }
 

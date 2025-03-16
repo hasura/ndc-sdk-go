@@ -16,7 +16,7 @@ import (
 
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
-	"github.com/iancoleman/strcase"
+	"github.com/huandu/xstrings"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/tools/go/packages"
 )
@@ -218,7 +218,7 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 		// ignore 2 first parameters (context and state)
 		if params.Len() == 3 {
 			arg := params.At(2)
-			argumentParser := NewTypeParser(sp, &Field{}, arg.Type(), &opInfo.Kind)
+			argumentParser := NewTypeParser(sp, &Field{}, arg.Type(), NDCTagInfo{}, &opInfo.Kind)
 			argumentInfo, err := argumentParser.ParseArgumentTypes([]string{})
 			if err != nil {
 				return err
@@ -236,7 +236,7 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 			}
 		}
 
-		typeParser := NewTypeParser(sp, &Field{}, resultTuple.At(0).Type(), nil)
+		typeParser := NewTypeParser(sp, &Field{}, resultTuple.At(0).Type(), NDCTagInfo{}, nil)
 		resultType, err := typeParser.Parse([]string{})
 		if err != nil {
 			return err
@@ -273,9 +273,9 @@ func (sp *SchemaParser) getNamedType(ty types.Type) *types.Named {
 func (sp SchemaParser) formatOperationName(name string) string {
 	switch sp.namingStyle {
 	case StyleSnakeCase:
-		return strcase.ToSnake(name)
+		return xstrings.ToSnakeCase(name)
 	default:
-		return strcase.ToLowerCamel(name)
+		return xstrings.ToCamelCase(name)
 	}
 }
 

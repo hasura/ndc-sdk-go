@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"text/template"
-
-	"github.com/iancoleman/strcase"
 )
 
 const (
@@ -26,11 +24,6 @@ func init() {
 	if err != nil {
 		panic(fmt.Errorf("failed to parse connector template: %w", err))
 	}
-
-	strcase.ConfigureAcronym("API", "Api")
-	strcase.ConfigureAcronym("REST", "Rest")
-	strcase.ConfigureAcronym("HTTP", "Http")
-	strcase.ConfigureAcronym("SQL", "sql")
 }
 
 func writeFileHeader(builder *strings.Builder, packageName string) {

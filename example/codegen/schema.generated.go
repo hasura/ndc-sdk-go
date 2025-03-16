@@ -65,6 +65,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					"name": schema.ObjectField{
 						Type: schema.NewNamedType("String").Encode(),
 					},
+					"where": schema.ObjectField{
+						Type: schema.NewNullableType(schema.NewPredicateType("Author")).Encode(),
+					},
 				},
 			},
 			"CreateAuthorResult": schema.ObjectType{
@@ -77,6 +80,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 					"name": schema.ObjectField{
 						Type: schema.NewNamedType("String").Encode(),
+					},
+					"where": schema.ObjectField{
+						Type: schema.NewNamedType("JSON").Encode(),
 					},
 				},
 			},
@@ -123,6 +129,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 					"name": schema.ObjectField{
 						Type: schema.NewNamedType("String").Encode(),
+					},
+					"where": schema.ObjectField{
+						Type: schema.NewNamedType("JSON").Encode(),
 					},
 				},
 			},
@@ -323,6 +332,12 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 					"Duration": schema.ObjectField{
 						Type: schema.NewNamedType("Duration").Encode(),
+					},
+					"DurationInt64": schema.ObjectField{
+						Type: schema.NewNamedType("DurationInt64").Encode(),
+					},
+					"DurationString": schema.ObjectField{
+						Type: schema.NewNamedType("DurationString").Encode(),
 					},
 					"Enum": schema.ObjectField{
 						Type: schema.NewNamedType("SomeEnum").Encode(),
@@ -841,6 +856,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					"name": {
 						Type: schema.NewNamedType("String").Encode(),
 					},
+					"where": {
+						Type: schema.NewNullableType(schema.NewPredicateType("Author")).Encode(),
+					},
 				},
 			},
 			{
@@ -852,6 +870,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 					"name": {
 						Type: schema.NewNamedType("String").Encode(),
+					},
+					"where": {
+						Type: schema.NewNullableType(schema.NewPredicateType("Author")).Encode(),
 					},
 				},
 			},
@@ -1059,6 +1080,12 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					},
 					"Duration": {
 						Type: schema.NewNamedType("Duration").Encode(),
+					},
+					"DurationInt64": {
+						Type: schema.NewNamedType("DurationInt64").Encode(),
+					},
+					"DurationString": {
+						Type: schema.NewNamedType("DurationString").Encode(),
 					},
 					"Enum": {
 						Type: schema.NewNamedType("SomeEnum").Encode(),
@@ -1557,6 +1584,9 @@ func GetConnectorSchema() *schema.SchemaResponse {
 					"name": {
 						Type: schema.NewNamedType("String").Encode(),
 					},
+					"where": {
+						Type: schema.NewNullableType(schema.NewPredicateType("Author")).Encode(),
+					},
 				},
 			},
 			{
@@ -1620,6 +1650,16 @@ func GetConnectorSchema() *schema.SchemaResponse {
 				AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
 				ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 				Representation:      schema.NewTypeRepresentationJSON().Encode(),
+			},
+			"DurationInt64": schema.ScalarType{
+				AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+				ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+				Representation:      schema.NewTypeRepresentationInt64().Encode(),
+			},
+			"DurationString": schema.ScalarType{
+				AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+				ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+				Representation:      schema.NewTypeRepresentationString().Encode(),
 			},
 			"Float32": schema.ScalarType{
 				AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},

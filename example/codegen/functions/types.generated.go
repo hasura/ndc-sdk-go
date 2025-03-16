@@ -53,6 +53,10 @@ func (j *GetAuthorArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	j.Where, err = utils.DecodeObjectValueDefault[schema.Expression](input, "where")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -81,6 +85,9 @@ func (j CreateArticleResult) ToMap() map[string]any {
 func (j CreateAuthorArguments) ToMap() map[string]any {
 	r := make(map[string]any)
 	r = utils.MergeMap(r, j.BaseAuthor.ToMap())
+	if j.Where != nil {
+		r["where"] = j.Where
+	}
 
 	return r
 }
@@ -91,6 +98,7 @@ func (j CreateAuthorResult) ToMap() map[string]any {
 	r["created_at"] = j.CreatedAt
 	r["id"] = j.ID
 	r["name"] = j.Name
+	r["where"] = j.Where
 
 	return r
 }
@@ -111,6 +119,7 @@ func (j GetAuthorResult) ToMap() map[string]any {
 		r = utils.MergeMap(r, (*j.CreateAuthorResult).ToMap())
 	}
 	r["disabled"] = j.Disabled
+	r["where"] = j.Where
 
 	return r
 }
@@ -148,7 +157,7 @@ func (dch DataConnectorHandler) Query(ctx context.Context, state *types.State, r
 		return nil, schema.UnprocessableContentError(err.Error(), nil)
 	}
 
-	result, err := dch.execQuery(ctx, state, request, queryFields, rawArgs)
+	result, err := dch.execQuery(context.WithValue(ctx, utils.CommandSelectionFieldKey, queryFields), state, request, queryFields, rawArgs)
 	if err != nil {
 		return nil, err
 	}
@@ -429,6 +438,7 @@ func (dch DataConnectorHandler) MutationExists(name string) bool {
 func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
 	span := trace.SpanFromContext(ctx)
 	logger := connector.GetLogger(ctx)
+	ctx = context.WithValue(ctx, utils.CommandSelectionFieldKey, operation.Fields)
 	connector_addSpanEvent(span, logger, "validate_request", map[string]any{
 		"operations_name": operation.Name,
 	})

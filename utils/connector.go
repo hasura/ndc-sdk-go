@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -10,6 +11,9 @@ import (
 
 const (
 	errFunctionValueFieldRequired = "__value field is required in query function type"
+
+	// CommandSelectionFieldKey the context key for the nested selection field in command.
+	CommandSelectionFieldKey string = "ndc-command-selection-field"
 )
 
 var ErrHandlerNotfound = errors.New("connector handler not found")
@@ -321,4 +325,16 @@ func MergeSchemas(schemas ...*schema.SchemaResponse) (*schema.SchemaResponse, []
 		}
 	}
 	return &result, errs
+}
+
+// CommandSelectionFieldFromContext gets the command's nested selection field from context.
+func CommandSelectionFieldFromContext(ctx context.Context) schema.NestedField {
+	value := ctx.Value(CommandSelectionFieldKey)
+	if value != nil {
+		if selection, ok := value.(schema.NestedField); ok {
+			return selection
+		}
+	}
+
+	return nil
 }

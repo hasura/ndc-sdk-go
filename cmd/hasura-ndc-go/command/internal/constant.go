@@ -10,24 +10,26 @@ import (
 type ScalarName string
 
 const (
-	ScalarBoolean     ScalarName = "Boolean"
-	ScalarString      ScalarName = "String"
-	ScalarInt8        ScalarName = "Int8"
-	ScalarInt16       ScalarName = "Int16"
-	ScalarInt32       ScalarName = "Int32"
-	ScalarInt64       ScalarName = "Int64"
-	ScalarFloat32     ScalarName = "Float32"
-	ScalarFloat64     ScalarName = "Float64"
-	ScalarBigInt      ScalarName = "BigInt"
-	ScalarBigDecimal  ScalarName = "BigDecimal"
-	ScalarUUID        ScalarName = "UUID"
-	ScalarDate        ScalarName = "Date"
-	ScalarDuration    ScalarName = "Duration"
-	ScalarTimestamp   ScalarName = "Timestamp"
-	ScalarTimestampTZ ScalarName = "TimestampTZ"
-	ScalarGeography   ScalarName = "Geography"
-	ScalarBytes       ScalarName = "Bytes"
-	ScalarJSON        ScalarName = "JSON"
+	ScalarBoolean        ScalarName = "Boolean"
+	ScalarString         ScalarName = "String"
+	ScalarInt8           ScalarName = "Int8"
+	ScalarInt16          ScalarName = "Int16"
+	ScalarInt32          ScalarName = "Int32"
+	ScalarInt64          ScalarName = "Int64"
+	ScalarFloat32        ScalarName = "Float32"
+	ScalarFloat64        ScalarName = "Float64"
+	ScalarBigInt         ScalarName = "BigInt"
+	ScalarBigDecimal     ScalarName = "BigDecimal"
+	ScalarUUID           ScalarName = "UUID"
+	ScalarDate           ScalarName = "Date"
+	ScalarDuration       ScalarName = "Duration"
+	ScalarDurationString ScalarName = "DurationString"
+	ScalarDurationInt64  ScalarName = "DurationInt64"
+	ScalarTimestamp      ScalarName = "Timestamp"
+	ScalarTimestampTZ    ScalarName = "TimestampTZ"
+	ScalarGeography      ScalarName = "Geography"
+	ScalarBytes          ScalarName = "Bytes"
+	ScalarJSON           ScalarName = "JSON"
 	// ScalarRawJSON is a special scalar for raw json data serialization.
 	// The underlying Go type for this scalar is json.RawMessage.
 	// Note: we don't recommend to use this scalar for function arguments
@@ -102,6 +104,16 @@ var defaultScalarTypes = map[ScalarName]schema.ScalarType{
 		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 		Representation:      schema.NewTypeRepresentationJSON().Encode(),
 	},
+	ScalarDurationString: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationString().Encode(),
+	},
+	ScalarDurationInt64: {
+		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
+		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
+		Representation:      schema.NewTypeRepresentationInt64().Encode(),
+	},
 	ScalarTimestamp: {
 		AggregateFunctions:  schema.ScalarTypeAggregateFunctions{},
 		ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
@@ -154,5 +166,6 @@ var (
 )
 
 const (
-	packageSDKUtils = "github.com/hasura/ndc-sdk-go/utils"
+	packageSDKUtils  = "github.com/hasura/ndc-sdk-go/utils"
+	packageSDKSchema = "github.com/hasura/ndc-sdk-go/schema"
 )

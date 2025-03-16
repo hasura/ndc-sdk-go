@@ -242,7 +242,11 @@ func (j AggregateFunctionDefinition) AsSum() (*AggregateFunctionDefinitionSum, e
 		return nil, fmt.Errorf("invalid AggregateFunctionDefinition type; expected %s, got %s", AggregateFunctionDefinitionTypeSum, t)
 	}
 
-	resultType := getStringValueByKey(j, "result_type")
+	resultType, err := getStringValueByKey(j, "result_type")
+	if err != nil {
+		return nil, fmt.Errorf("field result_type in AggregateFunctionDefinitionSum: %w", err)
+	}
+
 	if resultType == "" {
 		return nil, errors.New("field result_type in AggregateFunctionDefinitionSum: required")
 	}
@@ -264,10 +268,15 @@ func (j AggregateFunctionDefinition) AsAverage() (*AggregateFunctionDefinitionAv
 		return nil, fmt.Errorf("invalid AggregateFunctionDefinition type; expected %s, got %s", AggregateFunctionDefinitionTypeAverage, t)
 	}
 
-	resultType := getStringValueByKey(j, "result_type")
+	resultType, err := getStringValueByKey(j, "result_type")
+	if err != nil {
+		return nil, fmt.Errorf("field result_type in AggregateFunctionDefinitionAverage: %w", err)
+	}
+
 	if resultType == "" {
 		return nil, errors.New("field result_type in AggregateFunctionDefinitionAverage: required")
 	}
+
 	result := &AggregateFunctionDefinitionAverage{
 		Type:       t,
 		ResultType: resultType,
@@ -788,7 +797,11 @@ func (j Dimension) AsColumn() (*DimensionColumn, error) {
 	if t != DimensionTypeColumn {
 		return nil, fmt.Errorf("invalid Dimension type; expected %s, got %s", DimensionTypeColumn, t)
 	}
-	columnName := getStringValueByKey(j, "column_name")
+	columnName, err := getStringValueByKey(j, "column_name")
+	if err != nil {
+		return nil, fmt.Errorf("DimensionColumn.column_name: %w", err)
+	}
+
 	if columnName == "" {
 		return nil, errors.New("DimensionColumn.column_name is required")
 	}

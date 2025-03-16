@@ -1334,7 +1334,12 @@ func evalExpression(
 	root map[string]any,
 	item map[string]any,
 ) (bool, error) {
-	switch expression := expr.Interface().(type) {
+	exprT, err := expr.InterfaceT()
+	if err != nil {
+		return false, err
+	}
+
+	switch expression := exprT.(type) {
 	case *schema.ExpressionAnd:
 		for _, exp := range expression.Expressions {
 			ok, err := evalExpression(collectionRelationships, variables, state, exp, root, item)

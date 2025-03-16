@@ -4,7 +4,36 @@
       {
         "__value": {
           "id": 1,
-          "name": "3uPAoDW2BB"
+          "name": "3uPAoDW2BB",
+          "where": {
+            "expressions": [
+              {
+                "column": {
+                  "name": "name",
+                  "type": "column"
+                },
+                "operator": "_eq",
+                "type": "binary_comparison_operator",
+                "value": {
+                  "type": "scalar",
+                  "value": "hello"
+                }
+              },
+              {
+                "column": {
+                  "name": "id",
+                  "type": "column"
+                },
+                "operator": "_eq",
+                "type": "binary_comparison_operator",
+                "value": {
+                  "type": "scalar",
+                  "value": "1"
+                }
+              }
+            ],
+            "type": "and"
+          }
         }
       }
     ]

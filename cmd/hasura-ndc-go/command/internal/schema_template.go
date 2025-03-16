@@ -260,6 +260,8 @@ func (rcs RawConnectorSchema) writeType(schemaType schema.Type, depth uint) (str
 		result += fmt.Sprintf("NewNullableType(%s)", nested)
 	case *schema.NamedType:
 		result += fmt.Sprintf(`NewNamedType("%s")`, t.Name)
+	case *schema.PredicateType:
+		result += fmt.Sprintf(`NewPredicateType("%s")`, t.ObjectTypeName)
 	default:
 		return "", fmt.Errorf("invalid schema type: %w", err)
 	}

@@ -243,6 +243,14 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
 	if err != nil {
 		return err
 	}
+	j.DurationInt64, err = utils.DecodeObjectValue[scalar.DurationInt64](input, "DurationInt64")
+	if err != nil {
+		return err
+	}
+	j.DurationString, err = utils.DecodeObjectValue[scalar.DurationString](input, "DurationString")
+	if err != nil {
+		return err
+	}
 	j.Enum, err = utils.DecodeObjectValue[types.SomeEnum](input, "Enum")
 	if err != nil {
 		return err
@@ -928,6 +936,8 @@ func (j GetTypesArguments) ToMap() map[string]any {
 	r["Date"] = j.Date
 	r["DatePtr"] = j.DatePtr
 	r["Duration"] = j.Duration
+	r["DurationInt64"] = j.DurationInt64
+	r["DurationString"] = j.DurationString
 	r["Enum"] = j.Enum
 	r["EnumPtr"] = j.EnumPtr
 	r["Float32"] = j.Float32

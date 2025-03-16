@@ -254,6 +254,14 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
   if err != nil {
     return err
   }
+  j.DurationInt64, err = utils.DecodeObjectValue[scalar.DurationInt64](input, "DurationInt64")
+  if err != nil {
+    return err
+  }
+  j.DurationString, err = utils.DecodeObjectValue[scalar.DurationString](input, "DurationString")
+  if err != nil {
+    return err
+  }
   j.Enum, err = utils.DecodeObjectValue[SomeEnum](input, "Enum")
   if err != nil {
     return err
@@ -826,6 +834,10 @@ func (j *GetTypesArguments) FromValue(input map[string]any) error {
   if err != nil {
     return err
   }
+  j.Where, err = utils.DecodeObjectValueDefault[schema.Expression](input, "where")
+  if err != nil {
+    return err
+  }
   return nil
 }
 // ToMap encodes the struct to a value map
@@ -940,6 +952,8 @@ func (j GetTypesArguments) ToMap() map[string]any {
   r["CustomScalar"] = j.CustomScalar
   r["CustomScalarPtr"] = j.CustomScalarPtr
   r["Duration"] = j.Duration
+  r["DurationInt64"] = j.DurationInt64
+  r["DurationString"] = j.DurationString
   r["Enum"] = j.Enum
   r["EnumPtr"] = j.EnumPtr
   r["Float32"] = j.Float32
@@ -1103,6 +1117,7 @@ func (j GetTypesArguments) ToMap() map[string]any {
   r["uint_empty"] = j.UintEmpty
   r["url_empty"] = j.URLEmpty
   r["uuid_empty"] = j.UUIDEmpty
+  r["where"] = j.Where
 
   return r
 }
@@ -1203,7 +1218,7 @@ func (dch DataConnectorHandler) Query(ctx context.Context, state *types.State, r
     return nil, schema.UnprocessableContentError(err.Error(), nil)
   }
 
-  result, err := dch.execQuery(ctx, state, request, queryFields, rawArgs)
+  result, err := dch.execQuery(context.WithValue(ctx, utils.CommandSelectionFieldKey, queryFields), state, request, queryFields, rawArgs)
   if err != nil {
     return nil, err
   }
@@ -1225,8 +1240,8 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
   case "getBool":
 
       if len(queryFields) > 0 {
-          return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
-        }
+				return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
+			}
     return FunctionGetBool(ctx, state)
 
   case "getCustomHeaders":
@@ -1371,6 +1386,7 @@ func (dch DataConnectorHandler) MutationExists(name string) bool {
 func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
   span := trace.SpanFromContext(ctx)  
   logger := connector.GetLogger(ctx)
+	ctx = context.WithValue(ctx, utils.CommandSelectionFieldKey, operation.Fields)
   connector_addSpanEvent(span, logger, "validate_request", map[string]any{
     "operations_name": operation.Name,
   })
@@ -1413,8 +1429,8 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
   case "increase":
 
       if len(operation.Fields) > 0 {
-          return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
-        }
+				return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
+			}
     span.AddEvent("execute_procedure")
     result, err := Increase(ctx, state)
 

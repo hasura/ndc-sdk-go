@@ -16,20 +16,21 @@ import (
 
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
-	"github.com/iancoleman/strcase"
+	"github.com/huandu/xstrings"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/tools/go/packages"
 )
 
 // ConnectorGenerationArguments represent input arguments of the ConnectorGenerator.
 type ConnectorGenerationArguments struct {
-	Path         string   `help:"The path of the root directory where the go.mod file is present" short:"p" env:"HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH" default:"."`
-	ConnectorDir string   `help:"The directory where the connector.go file is placed" default:"."`
-	Directories  []string `help:"Folders contain NDC operation functions" short:"d"`
-	Trace        string   `help:"Enable tracing and write to target file path."`
-	SchemaFormat string   `help:"The output format for the connector schema. Accept: json, go" enum:"json,go" default:"json"`
-	Style        string   `help:"The naming style for functions and procedures. Accept: camel-case, snake-case" enum:"camel-case,snake-case" default:"camel-case"`
-	TypeOnly     bool     `help:"Generate type only" default:"false"`
+	Path               string   `help:"The path of the root directory where the go.mod file is present" short:"p" env:"HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH" default:"."`
+	ConnectorDir       string   `help:"The directory where the connector.go file is placed" default:"."`
+	Directories        []string `help:"Folders contain NDC operation functions" short:"d"`
+	Trace              string   `help:"Enable tracing and write to target file path."`
+	SchemaFormat       string   `help:"The output format for the connector schema. Accept: json, go" enum:"json,go" default:"json"`
+	Style              string   `help:"The naming style for functions and procedures. Accept: camel-case, snake-case" env:"HASURA_PLUGIN_CONNECTOR_NAMING_STYLE" enum:"camel-case,snake-case" default:"camel-case"`
+	TypeOnly           bool     `help:"Generate type only" default:"false"`
+	SkipVersionUpgrade bool     `help:"Skip upgrading the SDK version. You need to upgrade manually if required" env:"SKIP_VERSION_UPGRADE" default:"false"`
 }
 
 type connectorTypeBuilder struct {
@@ -86,9 +87,11 @@ func ParseAndGenerateConnector(args ConnectorGenerationArguments, moduleName str
 		if err != nil {
 			return fmt.Errorf("failed to create trace file at %s", args.Trace)
 		}
+
 		defer func() {
 			_ = w.Close()
 		}()
+
 		if err = trace.Start(w); err != nil {
 			return fmt.Errorf("failed to start trace: %w", err)
 		}
@@ -115,10 +118,12 @@ func ParseAndGenerateConnector(args ConnectorGenerationArguments, moduleName str
 		typeBuilders: make(map[string]*connectorTypeBuilder),
 		typeOnly:     args.TypeOnly,
 	}
+
 	connectorPkgName, err := connectorGen.loadConnectorPackage()
 	if err != nil {
 		return err
 	}
+
 	return connectorGen.generateConnector(connectorPkgName)
 }
 
@@ -315,8 +320,15 @@ func (cg *connectorGenerator) writeToMapProperty(sb *connectorTypeBuilder, field
 	switch t := ty.(type) {
 	case *NullableType:
 		sb.builder.WriteString(fmt.Sprintf("  if %s != nil {\n", selector))
-		propName := cg.writeToMapProperty(sb, field, fmt.Sprintf("(*%s)", selector), assigner, t.UnderlyingType)
+		newSelector := selector
+
+		if t.UnderlyingType.Kind() != schema.TypePredicate {
+			newSelector = fmt.Sprintf("(*%s)", selector)
+		}
+
+		propName := cg.writeToMapProperty(sb, field, newSelector, assigner, t.UnderlyingType)
 		sb.builder.WriteString("  }\n")
+
 		return propName
 	case *ArrayType:
 		varName := formatLocalFieldName(selector)
@@ -326,6 +338,7 @@ func (cg *connectorGenerator) writeToMapProperty(sb *connectorTypeBuilder, field
 		cg.writeToMapProperty(sb, field, valueName, varName+"[i]", t.ElementType)
 		sb.builder.WriteString("  }\n")
 		sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, varName))
+
 		return varName
 	case *NamedType:
 		innerObject, ok := cg.rawSchema.Objects[t.Name]
@@ -339,16 +352,23 @@ func (cg *connectorGenerator) writeToMapProperty(sb *connectorTypeBuilder, field
 			sb.builder.WriteString(fmt.Sprintf("  %s := make(map[string]any)\n", varName))
 			cg.writeObjectToMap(sb, &innerObject, selector, varName)
 			sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, varName))
+
 			return varName
 		}
 
 		if !field.Embedded {
 			sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, selector))
+
 			return selector
 		}
 
 		sb.imports[packageSDKUtils] = ""
 		sb.builder.WriteString(fmt.Sprintf("  r = utils.MergeMap(r, %s.ToMap())\n", selector))
+
+		return selector
+	case *PredicateType:
+		sb.builder.WriteString(fmt.Sprintf("  %s = %s\n", assigner, selector))
+
 		return selector
 	default:
 		panic(fmt.Errorf("failed to write the ToMap method; invalid type: %s", ty))
@@ -388,10 +408,10 @@ func (j `)
 			sb.imports[packageSDKUtils] = ""
 
 			sb.builder.WriteString("const (\n")
-			pascalName := strcase.ToCamel(scalar.NativeType.Name)
+			pascalName := xstrings.ToPascalCase(scalar.NativeType.Name)
 			enumConstants := make([]string, len(scalarRep.OneOf))
 			for i, enum := range scalarRep.OneOf {
-				enumConst := fmt.Sprintf("%s%s", pascalName, strcase.ToCamel(enum))
+				enumConst := fmt.Sprintf("%s%s", pascalName, xstrings.ToPascalCase(enum))
 				enumConstants[i] = enumConst
 				sb.builder.WriteString(fmt.Sprintf("  %s %s = \"%s\"\n", enumConst, scalarKey, enum))
 			}
@@ -549,6 +569,7 @@ func (cg *connectorGenerator) writeGetTypeValueDecoder(sb *connectorTypeBuilder,
 	fieldName := field.Name
 	typeName := ty.String()
 	fullTypeName := ty.FullName()
+
 	if strings.Contains(typeName, "complex64") || strings.Contains(typeName, "complex128") || strings.Contains(typeName, "time.Duration") {
 		panic(fmt.Errorf("unsupported type: %s", typeName))
 	}
@@ -644,68 +665,82 @@ func (cg *connectorGenerator) writeGetTypeValueDecoder(sb *connectorTypeBuilder,
 		cg.writeScalarDecodeValue(sb, fieldName, "GetArbitraryJSONPtrSlice", "", key, objectField, false)
 	case "*[]*any", "*[]*interface{}":
 		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableArbitraryJSONPtrSlice", "", key, objectField, true)
+	case fmt.Sprintf("*%s.Expression", packageSDKSchema):
+		cg.writeScalarDecodeValue(sb, fieldName, "GetNullableUUID", "", key, objectField, true)
 	default:
 		sb.imports[packageSDKUtils] = ""
 		sb.builder.WriteString("  j.")
 		sb.builder.WriteString(fieldName)
 		sb.builder.WriteString(", err = utils.")
-		switch t := ty.(type) {
-		case *NullableType:
-			var tyName string
-			var packagePaths []string
-			if t.IsAnonymous() {
-				tyName, packagePaths = cg.getAnonymousObjectTypeName(sb, field.TypeAST, true)
-			} else {
-				packagePaths = getTypePackagePaths(t.UnderlyingType, sb.packagePath)
-				tyName = getTypeArgumentName(t.UnderlyingType, sb.packagePath, false)
-			}
-			for _, pkgPath := range packagePaths {
-				sb.imports[pkgPath] = ""
-			}
-			if field.Embedded {
-				sb.builder.WriteString("DecodeNullableObject[")
-				sb.builder.WriteString(tyName)
-				sb.builder.WriteString("](input)")
-			} else {
-				sb.builder.WriteString("DecodeNullableObjectValue[")
-				sb.builder.WriteString(tyName)
-				sb.builder.WriteString(`](input, "`)
-				sb.builder.WriteString(key)
-				sb.builder.WriteString(`")`)
-			}
-		default:
-			var tyName string
-			var packagePaths []string
-			if t.IsAnonymous() {
-				tyName, packagePaths = cg.getAnonymousObjectTypeName(sb, field.TypeAST, true)
-			} else {
-				packagePaths = getTypePackagePaths(ty, sb.packagePath)
-				tyName = getTypeArgumentName(ty, sb.packagePath, false)
-			}
-			for _, pkgPath := range packagePaths {
-				sb.imports[pkgPath] = ""
+
+		t := ty
+		var tyName string
+		var packagePaths []string
+
+		if nt, ok := ty.(*NullableType); ok {
+			if nt.UnderlyingType.Kind() != schema.TypePredicate {
+				if nt.IsAnonymous() {
+					tyName, packagePaths = cg.getAnonymousObjectTypeName(sb, field.TypeAST, true)
+				} else {
+					packagePaths = getTypePackagePaths(nt.UnderlyingType, sb.packagePath)
+					tyName = getTypeArgumentName(nt.UnderlyingType, sb.packagePath, false)
+				}
+
+				for _, pkgPath := range packagePaths {
+					sb.imports[pkgPath] = ""
+				}
+
+				if field.Embedded {
+					sb.builder.WriteString("DecodeNullableObject[")
+					sb.builder.WriteString(tyName)
+					sb.builder.WriteString("](input)")
+				} else {
+					sb.builder.WriteString("DecodeNullableObjectValue[")
+					sb.builder.WriteString(tyName)
+					sb.builder.WriteString(`](input, "`)
+					sb.builder.WriteString(key)
+					sb.builder.WriteString(`")`)
+				}
+
+				break
 			}
 
-			if field.Embedded {
-				sb.builder.WriteString("DecodeObject")
-				sb.builder.WriteRune('[')
-				sb.builder.WriteString(tyName)
-				sb.builder.WriteString("](input)")
-			} else {
-				sb.builder.WriteString("DecodeObjectValue")
-				if len(objectField.Type) > 0 {
-					if typeEnum, err := objectField.Type.Type(); err == nil && typeEnum == schema.TypeNullable {
-						sb.builder.WriteString("Default")
-					}
+			t = nt.UnderlyingType
+		}
+
+		if t.IsAnonymous() {
+			tyName, packagePaths = cg.getAnonymousObjectTypeName(sb, field.TypeAST, true)
+		} else {
+			packagePaths = getTypePackagePaths(t, sb.packagePath)
+			tyName = getTypeArgumentName(t, sb.packagePath, false)
+		}
+
+		for _, pkgPath := range packagePaths {
+			sb.imports[pkgPath] = ""
+		}
+
+		if field.Embedded {
+			sb.builder.WriteString("DecodeObject")
+			sb.builder.WriteRune('[')
+			sb.builder.WriteString(tyName)
+			sb.builder.WriteString("](input)")
+		} else {
+			sb.builder.WriteString("DecodeObjectValue")
+
+			if len(objectField.Type) > 0 {
+				if typeEnum, err := objectField.Type.Type(); err == nil && typeEnum == schema.TypeNullable {
+					sb.builder.WriteString("Default")
 				}
-				sb.builder.WriteRune('[')
-				sb.builder.WriteString(tyName)
-				sb.builder.WriteString(`](input, "`)
-				sb.builder.WriteString(key)
-				sb.builder.WriteString(`")`)
 			}
+
+			sb.builder.WriteRune('[')
+			sb.builder.WriteString(tyName)
+			sb.builder.WriteString(`](input, "`)
+			sb.builder.WriteString(key)
+			sb.builder.WriteString(`")`)
 		}
 	}
+
 	writeErrorCheck(sb.builder, 1, 2)
 }
 

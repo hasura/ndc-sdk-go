@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+
+	"github.com/go-viper/mapstructure/v2"
 )
 
 var errTypeRequired = errors.New("type field is required")
@@ -67,7 +69,11 @@ func (j *Argument) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	rawArgumentType := getStringValueByKey(raw, "type")
+	rawArgumentType, err := getStringValueByKey(raw, "type")
+	if err != nil {
+		return fmt.Errorf("type in Argument: %w", err)
+	}
+
 	if rawArgumentType == "" {
 		return errors.New("field type in Argument: required")
 	}
@@ -89,10 +95,15 @@ func (j *Argument) UnmarshalJSON(b []byte) error {
 			arg["value"] = value
 		}
 	case ArgumentTypeVariable:
-		name := getStringValueByKey(raw, "name")
+		name, err := getStringValueByKey(raw, "name")
+		if err != nil {
+			return fmt.Errorf("field name in Argument: %w", err)
+		}
+
 		if name == "" {
 			return errors.New("field name in Argument is required for variable type")
 		}
+
 		arg["name"] = name
 	}
 
@@ -149,7 +160,11 @@ func (j Argument) AsVariable() (*ArgumentVariable, error) {
 		return nil, fmt.Errorf("invalid ArgumentVariable type; expected: %s, got: %s", ArgumentTypeVariable, t)
 	}
 
-	name := getStringValueByKey(j, "name")
+	name, err := getStringValueByKey(j, "name")
+	if err != nil {
+		return nil, fmt.Errorf("ArgumentVariable.name: %w", err)
+	}
+
 	if name == "" {
 		return nil, errors.New("ArgumentVariable.name is required")
 	}
@@ -287,7 +302,11 @@ func (j *RelationshipArgument) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	rawArgumentType := getStringValueByKey(raw, "type")
+	rawArgumentType, err := getStringValueByKey(raw, "type")
+	if err != nil {
+		return fmt.Errorf("field type in Argument: %w", err)
+	}
+
 	if rawArgumentType == "" {
 		return errors.New("field type in Argument: required")
 	}
@@ -309,14 +328,20 @@ func (j *RelationshipArgument) UnmarshalJSON(b []byte) error {
 			result["value"] = value
 		}
 	default:
-		name := getStringValueByKey(raw, "name")
+		name, err := getStringValueByKey(raw, "name")
+		if err != nil {
+			return fmt.Errorf("field name in Argument: %w", err)
+		}
+
 		if name == "" {
 			return fmt.Errorf("field name in Argument is required for %s type", rawArgumentType)
 		}
+
 		result["name"] = name
 	}
 
 	*j = result
+
 	return nil
 }
 
@@ -370,7 +395,11 @@ func (j RelationshipArgument) AsVariable() (*RelationshipArgumentVariable, error
 		return nil, fmt.Errorf("invalid RelationshipArgumentVariable type; expected: %s, got: %s", RelationshipArgumentTypeVariable, t)
 	}
 
-	name := getStringValueByKey(j, "name")
+	name, err := getStringValueByKey(j, "name")
+	if err != nil {
+		return nil, fmt.Errorf("RelationshipArgumentVariable.name, %w", err)
+	}
+
 	if name == "" {
 		return nil, errors.New("RelationshipArgumentVariable.name is required")
 	}
@@ -386,13 +415,20 @@ func (j RelationshipArgument) AsColumn() (*RelationshipArgumentColumn, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if t != RelationshipArgumentTypeColumn {
 		return nil, fmt.Errorf("invalid RelationshipArgumentTypeColumn type; expected: %s, got: %s", RelationshipArgumentTypeColumn, t)
 	}
-	name := getStringValueByKey(j, "name")
+
+	name, err := getStringValueByKey(j, "name")
+	if err != nil {
+		return nil, fmt.Errorf("RelationshipArgumentColumn.name: %w", err)
+	}
+
 	if name == "" {
 		return nil, errors.New("RelationshipArgumentColumn.name is required")
 	}
+
 	return &RelationshipArgumentColumn{
 		Type: t,
 		Name: name,
@@ -643,10 +679,16 @@ func (j Field) AsColumn() (*ColumnField, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if t != FieldTypeColumn {
 		return nil, fmt.Errorf("invalid Field type; expected %s, got %s", FieldTypeColumn, t)
 	}
-	column := getStringValueByKey(j, "column")
+
+	column, err := getStringValueByKey(j, "column")
+	if err != nil {
+		return nil, fmt.Errorf("ColumnField.column: %w", err)
+	}
+
 	if column == "" {
 		return nil, errors.New("ColumnField.column is required")
 	}
@@ -655,12 +697,14 @@ func (j Field) AsColumn() (*ColumnField, error) {
 		Type:   t,
 		Column: column,
 	}
+
 	rawFields, ok := j["fields"]
 	if ok && !isNil(rawFields) {
 		fields, ok := rawFields.(NestedField)
 		if !ok {
 			return nil, fmt.Errorf("invalid ColumnField.fields type; expected NestedField, got %+v", rawFields)
 		}
+
 		result.Fields = fields
 	}
 
@@ -670,6 +714,7 @@ func (j Field) AsColumn() (*ColumnField, error) {
 		if !ok {
 			return nil, fmt.Errorf("invalid ColumnField.arguments type; expected map[string]Argument, got %+v", rawArguments)
 		}
+
 		result.Arguments = arguments
 	}
 
@@ -685,7 +730,11 @@ func (j Field) AsRelationship() (*RelationshipField, error) {
 	if t != FieldTypeRelationship {
 		return nil, fmt.Errorf("invalid Field type; expected %s, got %s", FieldTypeRelationship, t)
 	}
-	relationship := getStringValueByKey(j, "relationship")
+	relationship, err := getStringValueByKey(j, "relationship")
+	if err != nil {
+		return nil, fmt.Errorf("RelationshipField.relationship: %w", err)
+	}
+
 	if relationship == "" {
 		return nil, errors.New("RelationshipField.relationship is required")
 	}
@@ -993,57 +1042,65 @@ type ComparisonValue map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *ComparisonValue) UnmarshalJSON(b []byte) error {
-	var raw map[string]json.RawMessage
+	var raw map[string]any
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
 
-	rawType, ok := raw["type"]
-	if !ok {
-		return errors.New("field type in ComparisonValue: required")
+	return j.FromValue(raw)
+}
+
+// FromValue decodes values from any map.
+func (j *ComparisonValue) FromValue(input map[string]any) error {
+	rawType, err := getStringValueByKey(input, "type")
+	if err != nil {
+		return fmt.Errorf("field type in ComparisonValue: %w", err)
 	}
 
-	var ty ComparisonValueType
-	if err := json.Unmarshal(rawType, &ty); err != nil {
+	ty, err := ParseComparisonValueType(rawType)
+	if err != nil {
 		return fmt.Errorf("field type in ComparisonValue: %w", err)
 	}
 
 	result := map[string]any{
 		"type": ty,
 	}
+
 	switch ty {
 	case ComparisonValueTypeVariable:
-		rawName, ok := raw["name"]
-		if !ok {
-			return errors.New("field name in ComparisonValue is required for variable type")
-		}
-		var name string
-		if err := json.Unmarshal(rawName, &name); err != nil {
+		name, err := getStringValueByKey(input, "name")
+		if err != nil {
 			return fmt.Errorf("field name in ComparisonValue: %w", err)
 		}
+
+		if name == "" {
+			return errors.New("field name in ComparisonValue is required for variable type")
+		}
+
 		result["name"] = name
 	case ComparisonValueTypeColumn:
-		rawColumn, ok := raw["column"]
+		rawColumn, ok := input["column"]
 		if !ok {
 			return errors.New("field column in ComparisonValue is required for column type")
 		}
+
 		var column ComparisonTarget
-		if err := json.Unmarshal(rawColumn, &column); err != nil {
+		if err := mapstructure.Decode(rawColumn, &column); err != nil {
 			return fmt.Errorf("field column in ComparisonValue: %w", err)
 		}
+
 		result["column"] = column
 	case ComparisonValueTypeScalar:
-		rawValue, ok := raw["value"]
+		value, ok := input["value"]
 		if !ok {
 			return errors.New("field value in ComparisonValue is required for scalar type")
 		}
-		var value any
-		if err := json.Unmarshal(rawValue, &value); err != nil {
-			return fmt.Errorf("field value in ComparisonValue: %w", err)
-		}
+
 		result["value"] = value
 	}
+
 	*j = result
+
 	return nil
 }
 
@@ -1123,10 +1180,15 @@ func (cv ComparisonValue) AsVariable() (*ComparisonValueVariable, error) {
 		return nil, fmt.Errorf("invalid ComparisonValue type; expected %s, got %s", ComparisonValueTypeVariable, ty)
 	}
 
-	name := getStringValueByKey(cv, "name")
+	name, err := getStringValueByKey(cv, "name")
+	if err != nil {
+		return nil, fmt.Errorf("ComparisonValueVariable.name: %w", err)
+	}
+
 	if name == "" {
 		return nil, errors.New("ComparisonValueVariable.name is required")
 	}
+
 	return &ComparisonValueVariable{
 		Type: ty,
 		Name: name,
@@ -1280,18 +1342,23 @@ type ExistsInCollection map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
-	var raw map[string]json.RawMessage
+	var raw map[string]any
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
 
-	rawType, ok := raw["type"]
-	if !ok {
-		return errors.New("field type in ExistsInCollection: required")
+	return j.FromValue(raw)
+}
+
+// FromValue decodes values from any map
+func (j *ExistsInCollection) FromValue(input map[string]any) error {
+	rawType, err := getStringValueByKey(input, "type")
+	if err != nil {
+		return fmt.Errorf("field type in ExistsInCollection: %w", err)
 	}
 
-	var ty ExistsInCollectionType
-	if err := json.Unmarshal(rawType, &ty); err != nil {
+	ty, err := ParseExistsInCollectionType(rawType)
+	if err != nil {
 		return fmt.Errorf("field type in ExistsInCollection: %w", err)
 	}
 
@@ -1299,12 +1366,13 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 		"type": ty,
 	}
 
-	rawArguments, ok := raw["arguments"]
+	rawArguments, ok := input["arguments"]
 	if ok {
 		var arguments map[string]RelationshipArgument
-		if err := json.Unmarshal(rawArguments, &arguments); err != nil {
+		if err := mapstructure.Decode(rawArguments, &arguments); err != nil {
 			return fmt.Errorf("field arguments in ExistsInCollection: %w", err)
 		}
+
 		result["arguments"] = arguments
 	} else if ty != ExistsInCollectionTypeNestedCollection {
 		return fmt.Errorf("field arguments in ExistsInCollection is required for %s type", ty)
@@ -1312,47 +1380,53 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 
 	switch ty {
 	case ExistsInCollectionTypeRelated:
-		rawRelationship, ok := raw["relationship"]
-		if !ok {
-			return errors.New("field relationship in ExistsInCollection is required for related type")
-		}
-		var relationship string
-		if err := json.Unmarshal(rawRelationship, &relationship); err != nil {
+		relationship, err := getStringValueByKey(input, "relationship")
+		if err != nil {
 			return fmt.Errorf("field name in ExistsInCollection: %w", err)
 		}
+
+		if relationship == "" {
+			return errors.New("field relationship in ExistsInCollection is required for related type")
+		}
+
 		result["relationship"] = relationship
 	case ExistsInCollectionTypeUnrelated:
-		rawCollection, ok := raw["collection"]
-		if !ok {
-			return errors.New("field collection in ExistsInCollection is required for unrelated type")
-		}
-		var collection string
-		if err := json.Unmarshal(rawCollection, &collection); err != nil {
+		collection, err := getStringValueByKey(input, "collection")
+		if err != nil {
 			return fmt.Errorf("field collection in ExistsInCollection: %w", err)
 		}
+
+		if collection == "" {
+			return errors.New("field collection in ExistsInCollection is required for unrelated type")
+		}
+
 		result["collection"] = collection
 	case ExistsInCollectionTypeNestedCollection:
-
-		rawColumnName, ok := raw["column_name"]
-		if !ok {
-			return errors.New("field column_name in ExistsInCollection is required for nested_collection type")
-		}
-		var columnName string
-		if err := json.Unmarshal(rawColumnName, &columnName); err != nil {
+		columnName, err := getStringValueByKey(input, "column_name")
+		if err != nil {
 			return fmt.Errorf("field column_name in ExistsInCollection: %w", err)
 		}
+
+		if columnName == "" {
+			return errors.New("field column_name in ExistsInCollection is required for nested_collection type")
+		}
+
 		result["column_name"] = columnName
 
-		rawFieldPath, ok := raw["field_path"]
+		rawFieldPath, ok := input["field_path"]
 		if ok {
 			var fieldPath []string
-			if err := json.Unmarshal(rawFieldPath, &fieldPath); err != nil {
+
+			if err := mapstructure.Decode(rawFieldPath, &fieldPath); err != nil {
 				return fmt.Errorf("field field_path in ExistsInCollection: %w", err)
 			}
+
 			result["field_path"] = fieldPath
 		}
 	}
+
 	*j = result
+
 	return nil
 }
 
@@ -1386,14 +1460,20 @@ func (j ExistsInCollection) AsRelated() (*ExistsInCollectionRelated, error) {
 		return nil, fmt.Errorf("invalid ExistsInCollection type; expected: %s, got: %s", ExistsInCollectionTypeRelated, t)
 	}
 
-	relationship := getStringValueByKey(j, "relationship")
+	relationship, err := getStringValueByKey(j, "relationship")
+	if err != nil {
+		return nil, fmt.Errorf("ExistsInCollectionRelated.relationship: %w", err)
+	}
+
 	if relationship == "" {
 		return nil, errors.New("ExistsInCollectionRelated.relationship is required")
 	}
+
 	rawArgs, ok := j["arguments"]
 	if !ok {
 		return nil, errors.New("ExistsInCollectionRelated.arguments is required")
 	}
+
 	args, ok := rawArgs.(map[string]RelationshipArgument)
 	if !ok {
 		return nil, fmt.Errorf("invalid ExistsInCollectionRelated.arguments type; expected: map[string]RelationshipArgument, got: %+v", rawArgs)
@@ -1416,7 +1496,11 @@ func (j ExistsInCollection) AsUnrelated() (*ExistsInCollectionUnrelated, error) 
 		return nil, fmt.Errorf("invalid ExistsInCollection type; expected: %s, got: %s", ExistsInCollectionTypeUnrelated, t)
 	}
 
-	collection := getStringValueByKey(j, "collection")
+	collection, err := getStringValueByKey(j, "collection")
+	if err != nil {
+		return nil, fmt.Errorf("ExistsInCollectionUnrelated.collection: %w", err)
+	}
+
 	if collection == "" {
 		return nil, errors.New("ExistsInCollectionUnrelated.collection is required")
 	}
@@ -1446,10 +1530,15 @@ func (j ExistsInCollection) AsNestedCollection() (*ExistsInCollectionNestedColle
 		return nil, fmt.Errorf("invalid ExistsInCollection type; expected: %s, got: %s", ExistsInCollectionTypeNestedCollection, t)
 	}
 
-	columnName := getStringValueByKey(j, "column_name")
+	columnName, err := getStringValueByKey(j, "column_name")
+	if err != nil {
+		return nil, fmt.Errorf("ExistsInCollectionNestedCollection.column_name: %w", err)
+	}
+
 	if columnName == "" {
 		return nil, errors.New("ExistsInCollectionNestedCollection.column_name is required")
 	}
+
 	var args map[string]RelationshipArgument
 	rawArgs, ok := j["arguments"]
 	if ok && rawArgs != nil {
@@ -1458,17 +1547,20 @@ func (j ExistsInCollection) AsNestedCollection() (*ExistsInCollectionNestedColle
 			return nil, fmt.Errorf("invalid ExistsInCollectionNestedCollection.arguments type; expected: map[string]RelationshipArgument, got: %+v", rawArgs)
 		}
 	}
+
 	result := &ExistsInCollectionNestedCollection{
 		Type:       t,
 		ColumnName: columnName,
 		Arguments:  args,
 	}
+
 	rawFieldPath, ok := j["field_path"]
 	if ok && rawFieldPath != nil {
 		fieldPath, ok := rawFieldPath.([]string)
 		if !ok {
 			return nil, fmt.Errorf("invalid ExistsInCollectionNestedCollection.fieldPath type; expected: []string, got: %+v", rawArgs)
 		}
+
 		result.FieldPath = fieldPath
 	}
 
@@ -1605,120 +1697,163 @@ type Expression map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *Expression) UnmarshalJSON(b []byte) error {
-	var raw map[string]json.RawMessage
+	var raw map[string]any
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
 
-	rawType, ok := raw["type"]
-	if !ok {
-		return errors.New("field type in Expression: required")
+	return j.FromValue(raw)
+}
+
+// FromValue decodes values from any map
+func (j *Expression) FromValue(input map[string]any) error {
+	rawType, err := getStringValueByKey(input, "type")
+	if err != nil {
+		return fmt.Errorf("field type in Expression: %w", err)
 	}
 
-	var ty ExpressionType
-	if err := json.Unmarshal(rawType, &ty); err != nil {
+	ty, err := ParseExpressionType(rawType)
+	if err != nil {
 		return fmt.Errorf("field type in Expression: %w", err)
 	}
 
 	result := map[string]any{
 		"type": ty,
 	}
+
 	switch ty {
 	case ExpressionTypeAnd, ExpressionTypeOr:
-		rawExpressions, ok := raw["expressions"]
-		if !ok {
+		rawExpressions, ok := input["expressions"]
+		if !ok || rawExpressions == nil {
 			return fmt.Errorf("field expressions in Expression is required for '%s' type", ty)
 		}
-		var expressions []Expression
-		if err := json.Unmarshal(rawExpressions, &expressions); err != nil {
-			return fmt.Errorf("field expressions in Expression: %w", err)
+
+		rawExpressionsArray, ok := rawExpressions.([]any)
+		if !ok {
+			return fmt.Errorf("field expressions in Expression: expected array, got %v", rawExpressions)
 		}
+
+		expressions := []Expression{}
+		for i, rawItem := range rawExpressionsArray {
+			if rawItem == nil {
+				continue
+			}
+
+			itemMap, ok := rawItem.(map[string]any)
+			if !ok {
+				return fmt.Errorf("field expressions[%d] in Expression: expected array, got %v", i, rawExpressions)
+			}
+
+			if itemMap == nil {
+				continue
+			}
+
+			expr := Expression{}
+			if err := expr.FromValue(itemMap); err != nil {
+				return fmt.Errorf("field expressions in Expression: %w", err)
+			}
+
+			expressions = append(expressions, expr)
+		}
+
 		result["expressions"] = expressions
 	case ExpressionTypeNot:
-		rawExpression, ok := raw["expression"]
+		rawExpression, ok := input["expression"]
+		if !ok || rawExpression == nil {
+			return fmt.Errorf("field expressions in Expression is required for '%s' type", ty)
+		}
+
+		exprMap, ok := rawExpression.(map[string]any)
 		if !ok {
 			return fmt.Errorf("field expressions in Expression is required for '%s' type", ty)
 		}
+
 		var expression Expression
-		if err := json.Unmarshal(rawExpression, &expression); err != nil {
+		if err := expression.FromValue(exprMap); err != nil {
 			return fmt.Errorf("field expression in Expression: %w", err)
 		}
+
 		result["expression"] = expression
-	case ExpressionTypeUnaryComparisonOperator:
-		rawOperator, ok := raw["operator"]
-		if !ok {
-			return fmt.Errorf("field operator in Expression is required for '%s' type", ty)
-		}
-		var operator UnaryComparisonOperator
-		if err := json.Unmarshal(rawOperator, &operator); err != nil {
-			return fmt.Errorf("field operator in Expression: %w", err)
-		}
-		result["operator"] = operator
-
-		rawColumn, ok := raw["column"]
-		if !ok {
-			return fmt.Errorf("field column in Expression is required for '%s' type", ty)
-		}
-		var column ComparisonTarget
-		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in Expression: %w", err)
-		}
-		result["column"] = column
-	case ExpressionTypeBinaryComparisonOperator:
-		rawOperator, ok := raw["operator"]
-		if !ok {
-			return fmt.Errorf("field operator in Expression is required for '%s' type", ty)
-		}
-		var operator string
-		if err := json.Unmarshal(rawOperator, &operator); err != nil {
+	case ExpressionTypeUnaryComparisonOperator, ExpressionTypeBinaryComparisonOperator:
+		rawOperator, err := getStringValueByKey(input, "operator")
+		if err != nil {
 			return fmt.Errorf("field operator in Expression: %w", err)
 		}
 
-		if operator == "" {
+		if rawOperator == "" {
 			return fmt.Errorf("field operator in Expression is required for '%s' type", ty)
 		}
-		result["operator"] = operator
 
-		rawColumn, ok := raw["column"]
+		result["operator"] = rawOperator
+
+		rawColumn, ok := input["column"]
 		if !ok {
 			return fmt.Errorf("field column in Expression is required for '%s' type", ty)
 		}
+
 		var column ComparisonTarget
-		if err := json.Unmarshal(rawColumn, &column); err != nil {
+		if err := mapstructure.Decode(rawColumn, &column); err != nil {
 			return fmt.Errorf("field column in Expression: %w", err)
 		}
+
 		result["column"] = column
 
-		rawValue, ok := raw["value"]
-		if !ok {
+		if ty != ExpressionTypeBinaryComparisonOperator {
+			break
+		}
+
+		rawValue, ok := input["value"]
+		if !ok || rawValue == nil {
 			return fmt.Errorf("field value in Expression is required for '%s' type", ty)
 		}
+
+		rawValueMap, ok := rawValue.(map[string]any)
+		if !ok {
+			return fmt.Errorf("field value in Expression: expected map, got %v", rawValue)
+		}
+
 		var value ComparisonValue
-		if err := json.Unmarshal(rawValue, &value); err != nil {
+		if err := value.FromValue(rawValueMap); err != nil {
 			return fmt.Errorf("field value in Expression: %w", err)
 		}
+
 		result["value"] = value
 	case ExpressionTypeExists:
-		rawPredicate, ok := raw["predicate"]
-		if ok {
-			var predicate Expression
-			if err := json.Unmarshal(rawPredicate, &predicate); err != nil {
+		rawPredicate, ok := input["predicate"]
+		if ok && rawPredicate != nil {
+			rawPredicateMap, ok := rawPredicate.(map[string]any)
+			if !ok {
+				return fmt.Errorf("field predicate in Expression: expected map, got %v", rawPredicate)
+			}
+
+			predicate := Expression{}
+			if err := predicate.FromValue(rawPredicateMap); err != nil {
 				return fmt.Errorf("field predicate in Expression: %w", err)
 			}
+
 			result["predicate"] = predicate
 		}
 
-		rawInCollection, ok := raw["in_collection"]
-		if !ok {
+		rawInCollection, ok := input["in_collection"]
+		if !ok || rawInCollection == nil {
 			return fmt.Errorf("field in_collection in Expression is required for '%s' type", ty)
 		}
+
+		rawInCollectionMap, ok := rawInCollection.(map[string]any)
+		if !ok || rawInCollectionMap == nil {
+			return fmt.Errorf("field in_collection in Expression is required for '%s' type", ty)
+		}
+
 		var inCollection ExistsInCollection
-		if err := json.Unmarshal(rawInCollection, &inCollection); err != nil {
+		if err := inCollection.FromValue(rawInCollectionMap); err != nil {
 			return fmt.Errorf("field in_collection in Expression: %w", err)
 		}
+
 		result["in_collection"] = inCollection
 	}
+
 	*j = result
+
 	return nil
 }
 
@@ -1758,7 +1893,9 @@ func (j Expression) AsAnd() (*ExpressionAnd, error) {
 	}
 	expressions, ok := rawExpressions.([]Expression)
 	if !ok {
-		return nil, fmt.Errorf("invalid ExpressionAnd.expression type; expected: []Expression, got: %+v", rawExpressions)
+		if err := mapstructure.Decode(rawExpressions, &expressions); err != nil {
+			return nil, fmt.Errorf("invalid ExpressionAnd.expression type; expected: []Expression, got: %v", rawExpressions)
+		}
 	}
 
 	return &ExpressionAnd{
@@ -1773,6 +1910,7 @@ func (j Expression) AsOr() (*ExpressionOr, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if t != ExpressionTypeOr {
 		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeOr, t)
 	}
@@ -1781,9 +1919,12 @@ func (j Expression) AsOr() (*ExpressionOr, error) {
 	if !ok {
 		return nil, errors.New("ExpressionOr.expression is required")
 	}
+
 	expressions, ok := rawExpressions.([]Expression)
 	if !ok {
-		return nil, fmt.Errorf("invalid ExpressionOr.expression type; expected: []Expression, got: %+v", rawExpressions)
+		if err := mapstructure.Decode(rawExpressions, &expressions); err != nil {
+			return nil, fmt.Errorf("invalid ExpressionOr.expression type; expected: []Expression, got: %v", rawExpressions)
+		}
 	}
 
 	return &ExpressionOr{
@@ -1806,9 +1947,12 @@ func (j Expression) AsNot() (*ExpressionNot, error) {
 	if !ok {
 		return nil, errors.New("ExpressionNot.expression is required")
 	}
+
 	expression, ok := rawExpression.(Expression)
 	if !ok {
-		return nil, fmt.Errorf("invalid ExpressionNot.expression type; expected: Expression, got: %+v", rawExpression)
+		if err := mapstructure.Decode(rawExpression, &expression); err != nil {
+			return nil, fmt.Errorf("invalid ExpressionNot.expression type; expected: Expression, got: %+v", rawExpression)
+		}
 	}
 
 	return &ExpressionNot{
@@ -1823,6 +1967,7 @@ func (j Expression) AsUnaryComparisonOperator() (*ExpressionUnaryComparisonOpera
 	if err != nil {
 		return nil, err
 	}
+
 	if t != ExpressionTypeUnaryComparisonOperator {
 		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeUnaryComparisonOperator, t)
 	}
@@ -1831,6 +1976,7 @@ func (j Expression) AsUnaryComparisonOperator() (*ExpressionUnaryComparisonOpera
 	if !ok {
 		return nil, errors.New("ExpressionUnaryComparisonOperator.operator is required")
 	}
+
 	operator, ok := rawOperator.(UnaryComparisonOperator)
 	if !ok {
 		operatorStr, ok := rawOperator.(string)
@@ -1845,6 +1991,7 @@ func (j Expression) AsUnaryComparisonOperator() (*ExpressionUnaryComparisonOpera
 	if !ok {
 		return nil, errors.New("ExpressionUnaryComparisonOperator.column is required")
 	}
+
 	column, ok := rawColumn.(ComparisonTarget)
 	if !ok {
 		return nil, fmt.Errorf("invalid ExpressionUnaryComparisonOperator.column type; expected: ComparisonTarget, got: %v", rawColumn)
@@ -1885,9 +2032,14 @@ func (j Expression) AsBinaryComparisonOperator() (*ExpressionBinaryComparisonOpe
 		return nil, fmt.Errorf("invalid ExpressionBinaryComparisonOperator.value type; expected: ComparisonValue, got: %+v", rawValue)
 	}
 
+	operator, err := getStringValueByKey(j, "operator")
+	if err != nil {
+		return nil, fmt.Errorf("invalid ExpressionBinaryComparisonOperator.opeartor: %w", err)
+	}
+
 	return &ExpressionBinaryComparisonOperator{
 		Type:     t,
-		Operator: getStringValueByKey(j, "operator"),
+		Operator: operator,
 		Column:   column,
 		Value:    value,
 	}, nil
@@ -1939,6 +2091,7 @@ func (j Expression) InterfaceT() (ExpressionEncoder, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	switch t {
 	case ExpressionTypeAnd:
 		return j.AsAnd()
@@ -2341,19 +2494,29 @@ func (j Aggregate) AsSingleColumn() (*AggregateSingleColumn, error) {
 		return nil, fmt.Errorf("invalid Aggregate type; expected: %s, got: %s", AggregateTypeSingleColumn, t)
 	}
 
-	column := getStringValueByKey(j, "column")
+	column, err := getStringValueByKey(j, "column")
+	if err != nil {
+		return nil, fmt.Errorf("AggregateSingleColumn.column: %w", err)
+	}
+
 	if column == "" {
 		return nil, errors.New("AggregateSingleColumn.column is required")
 	}
 
-	function := getStringValueByKey(j, "function")
+	function, err := getStringValueByKey(j, "function")
+	if err != nil {
+		return nil, fmt.Errorf("AggregateSingleColumn.function: %w", err)
+	}
+
 	if function == "" {
 		return nil, errors.New("AggregateSingleColumn.function is required")
 	}
+
 	fieldPath, err := j.getFieldPath()
 	if err != nil {
 		return nil, err
 	}
+
 	return &AggregateSingleColumn{
 		Type:      t,
 		Column:    column,
@@ -2372,7 +2535,11 @@ func (j Aggregate) AsColumnCount() (*AggregateColumnCount, error) {
 		return nil, fmt.Errorf("invalid Aggregate type; expected: %s, got: %s", AggregateTypeColumnCount, t)
 	}
 
-	column := getStringValueByKey(j, "column")
+	column, err := getStringValueByKey(j, "column")
+	if err != nil {
+		return nil, fmt.Errorf("Aggregate.column: %w", err)
+	}
+
 	if column == "" {
 		return nil, errors.New("AggregateColumnCount.column is required")
 	}
@@ -2701,22 +2868,30 @@ func (j OrderByTarget) AsColumn() (*OrderByColumn, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if t != OrderByTargetTypeColumn {
 		return nil, fmt.Errorf("invalid OrderByTarget type; expected: %s, got: %s", OrderByTargetTypeColumn, t)
 	}
 
-	name := getStringValueByKey(j, "name")
+	name, err := getStringValueByKey(j, "name")
+	if err != nil {
+		return nil, fmt.Errorf("OrderByColumn.name: %w", err)
+	}
+
 	if name == "" {
 		return nil, errors.New("OrderByColumn.name is required")
 	}
+
 	p, err := j.getPath()
 	if err != nil {
 		return nil, err
 	}
+
 	fieldPath, err := j.getFieldPath()
 	if err != nil {
 		return nil, err
 	}
+
 	return &OrderByColumn{
 		Type:      t,
 		Name:      name,
@@ -2731,19 +2906,29 @@ func (j OrderByTarget) AsSingleColumnAggregate() (*OrderBySingleColumnAggregate,
 	if err != nil {
 		return nil, err
 	}
+
 	if t != OrderByTargetTypeSingleColumnAggregate {
 		return nil, fmt.Errorf("invalid OrderByTarget type; expected: %s, got: %s", OrderByTargetTypeSingleColumnAggregate, t)
 	}
 
-	column := getStringValueByKey(j, "column")
+	column, err := getStringValueByKey(j, "column")
+	if err != nil {
+		return nil, fmt.Errorf("OrderBySingleColumnAggregate.column: %w", err)
+	}
+
 	if column == "" {
 		return nil, errors.New("OrderBySingleColumnAggregate.column is required")
 	}
 
-	function := getStringValueByKey(j, "function")
+	function, err := getStringValueByKey(j, "function")
+	if function == "" {
+		return nil, fmt.Errorf("OrderBySingleColumnAggregate.function: %w", err)
+	}
+
 	if function == "" {
 		return nil, errors.New("OrderBySingleColumnAggregate.function is required")
 	}
+
 	p, err := j.getPath()
 	if err != nil {
 		return nil, err

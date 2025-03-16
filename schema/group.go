@@ -586,14 +586,20 @@ func (cv GroupComparisonValue) AsVariable() (*GroupComparisonValueVariable, erro
 	if err != nil {
 		return nil, err
 	}
+
 	if ty != GroupComparisonValueTypeVariable {
 		return nil, fmt.Errorf("invalid GroupComparisonValue type; expected %s, got %s", GroupComparisonValueTypeVariable, ty)
 	}
 
-	name := getStringValueByKey(cv, "name")
+	name, err := getStringValueByKey(cv, "name")
+	if err != nil {
+		return nil, fmt.Errorf("GroupComparisonValueVariable.name: %w", err)
+	}
+
 	if name == "" {
 		return nil, errors.New("GroupComparisonValueVariable.name is required")
 	}
+
 	return &GroupComparisonValueVariable{
 		Type: ty,
 		Name: name,
@@ -983,14 +989,20 @@ func (j GroupExpression) AsBinaryComparisonOperator() (*GroupExpressionBinaryCom
 	if !ok {
 		return nil, errors.New("GroupExpressionBinaryComparisonOperator.value is required")
 	}
+
 	value, ok := rawValue.(GroupComparisonValue)
 	if !ok {
 		return nil, fmt.Errorf("invalid GroupExpressionBinaryComparisonOperator.value type; expected: GroupComparisonValue, got: %+v", rawValue)
 	}
 
+	operator, err := getStringValueByKey(j, "operator")
+	if err != nil {
+		return nil, fmt.Errorf("GroupExpressionBinaryComparisonOperator.operator: %w", err)
+	}
+
 	return &GroupExpressionBinaryComparisonOperator{
 		Type:     t,
-		Operator: getStringValueByKey(j, "operator"),
+		Operator: operator,
 		Target:   target,
 		Value:    value,
 	}, nil
