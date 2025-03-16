@@ -15,31 +15,26 @@ type AggregateCapabilities struct {
 }
 
 type AggregateCapabilitiesSchemaInfo struct {
-	// Schema information relevant to the aggregates.filter_by capability
-	FilterBy *AggregateFilterByCapabilitiesSchemaInfo `json:"filter_by,omitempty" yaml:"filter_by,omitempty" mapstructure:"filter_by,omitempty"`
-}
-
-type AggregateFilterByCapabilitiesSchemaInfo struct {
 	// The scalar type which should be used for the return type of count (star_count
 	// and column_count) operations.
 	CountScalarType string `json:"count_scalar_type" yaml:"count_scalar_type" mapstructure:"count_scalar_type"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *AggregateFilterByCapabilitiesSchemaInfo) UnmarshalJSON(b []byte) error {
+func (j *AggregateCapabilitiesSchemaInfo) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
 	if _, ok := raw["count_scalar_type"]; raw != nil && !ok {
-		return fmt.Errorf("field count_scalar_type in AggregateFilterByCapabilitiesSchemaInfo: required")
+		return fmt.Errorf("field count_scalar_type in AggregateCapabilitiesSchemaInfo: required")
 	}
-	type Plain AggregateFilterByCapabilitiesSchemaInfo
+	type Plain AggregateCapabilitiesSchemaInfo
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	*j = AggregateFilterByCapabilitiesSchemaInfo(plain)
+	*j = AggregateCapabilitiesSchemaInfo(plain)
 	return nil
 }
 
@@ -271,6 +266,8 @@ func (j *ExplainResponse) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// The definition of an aggregation function on a scalar type
+
 type ForeignKeyConstraint struct {
 	// The columns on which you want want to define the foreign key. This is a mapping
 	// between fields on object type to columns on the foreign collection. The column
@@ -495,6 +492,12 @@ func (j *Grouping) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
+	if plain.Limit != nil && 0 > *plain.Limit {
+		return fmt.Errorf("field %s: must be >= %v", "limit", 0)
+	}
+	if plain.Offset != nil && 0 > *plain.Offset {
+		return fmt.Errorf("field %s: must be >= %v", "offset", 0)
+	}
 	*j = Grouping(plain)
 	return nil
 }
@@ -605,6 +608,14 @@ type NestedRelationshipCapabilities struct {
 	// Does the connector support navigating a relationship from inside a nested
 	// object inside a nested array
 	Array LeafCapability `json:"array,omitempty" yaml:"array,omitempty" mapstructure:"array,omitempty"`
+
+	// Does the connector support filtering over a relationship that starts from
+	// inside a nested object
+	Filtering LeafCapability `json:"filtering,omitempty" yaml:"filtering,omitempty" mapstructure:"filtering,omitempty"`
+
+	// Does the connector support ordering over a relationship that starts from inside
+	// a nested object
+	Ordering LeafCapability `json:"ordering,omitempty" yaml:"ordering,omitempty" mapstructure:"ordering,omitempty"`
 }
 
 // The definition of an object field
@@ -769,7 +780,8 @@ type PathElement struct {
 
 	// Path to a nested field within an object column that must be navigated before
 	// the relationship is navigated. Only non-empty if the 'relationships.nested'
-	// capability is supported.
+	// capability is supported (plus perhaps one of the sub-capabilities, depending on
+	// the feature using the PathElement).
 	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path,omitempty"`
 
 	// A predicate expression to apply to the target collection
@@ -980,6 +992,23 @@ func (j *QueryRequest) UnmarshalJSON(b []byte) error {
 // Else, there should always be exactly one RowSet
 type QueryResponse []RowSet
 
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Query) UnmarshalJSON(b []byte) error {
+	type Plain Query
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	if plain.Limit != nil && 0 > *plain.Limit {
+		return fmt.Errorf("field %s: must be >= %v", "limit", 0)
+	}
+	if plain.Offset != nil && 0 > *plain.Offset {
+		return fmt.Errorf("field %s: must be >= %v", "offset", 0)
+	}
+	*j = Query(plain)
+	return nil
+}
+
 type Relationship struct {
 	// Values to be provided to any collection arguments
 	Arguments RelationshipArguments `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
@@ -1105,6 +1134,9 @@ type ScalarType struct {
 	// must be defined scalar types declared in ScalarTypesCapabilities.
 	ComparisonOperators map[string]ComparisonOperatorDefinition `json:"comparison_operators" yaml:"comparison_operators" mapstructure:"comparison_operators"`
 
+	// A map from extraction function names to their definitions.
+	ExtractionFunctions ScalarTypeExtractionFunctions `json:"extraction_functions,omitempty" yaml:"extraction_functions,omitempty" mapstructure:"extraction_functions,omitempty"`
+
 	// A description of valid values for this scalar type.
 	Representation TypeRepresentation `json:"representation" yaml:"representation" mapstructure:"representation"`
 }
@@ -1115,6 +1147,9 @@ type ScalarTypeAggregateFunctions map[string]AggregateFunctionDefinition
 
 // A map from comparison operator names to their definitions. Argument type names
 // must be defined scalar types declared in ScalarTypesCapabilities.
+
+// A map from extraction function names to their definitions.
+type ScalarTypeExtractionFunctions map[string]ExtractionFunctionDefinition
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *ScalarType) UnmarshalJSON(b []byte) error {
@@ -1135,6 +1170,9 @@ func (j *ScalarType) UnmarshalJSON(b []byte) error {
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
+	}
+	if v, ok := raw["extraction_functions"]; !ok || v == nil {
+		plain.ExtractionFunctions = map[string]ExtractionFunctionDefinition{}
 	}
 	*j = ScalarType(plain)
 	return nil

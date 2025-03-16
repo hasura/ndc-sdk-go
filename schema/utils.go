@@ -45,7 +45,7 @@ func getStringValueByKey(collection map[string]any, key string) (string, error) 
 	return "", fmt.Errorf("expected string, got %v", anyValue)
 }
 
-func unmarshalStringFromJsonMap(collection map[string]json.RawMessage, key string, required bool) (string, error) {
+func unmarshalStringFromJsonMap(collection map[string]json.RawMessage, key string, required bool) (string, error) { //nolint:unparam
 	emptyFn := func() (string, error) {
 		if !required {
 			return "", nil

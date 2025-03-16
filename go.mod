@@ -1,6 +1,8 @@
 module github.com/hasura/ndc-sdk-go
 
-go 1.21
+go 1.22.0
+
+toolchain go1.24.0
 
 require (
 	github.com/alecthomas/kong v1.8.1

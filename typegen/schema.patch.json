@@ -1,6 +1,15 @@
 [
   {
     "op": "remove",
+    "path": "/definitions/Capabilities/properties/relationships/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/Capabilities/properties/relationships/$ref",
+    "value": "#/definitions/RelationshipCapabilities"
+  },
+  {
+    "op": "remove",
     "path": "/definitions/QueryCapabilities/properties/aggregates/anyOf"
   },
   {
@@ -235,21 +244,30 @@
   },
   {
     "op": "remove",
+    "path": "/definitions/NestedRelationshipCapabilities/properties/filtering/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/NestedRelationshipCapabilities/properties/filtering/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/NestedRelationshipCapabilities/properties/ordering/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/NestedRelationshipCapabilities/properties/ordering/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
     "path": "/definitions/SchemaResponse/properties/capabilities/anyOf"
   },
   {
     "op": "add",
     "path": "/definitions/SchemaResponse/properties/capabilities/$ref",
     "value": "#/definitions/CapabilitySchemaInfo"
-  },
-  {
-    "op": "remove",
-    "path": "/definitions/AggregateCapabilitiesSchemaInfo/properties/filter_by/anyOf"
-  },
-  {
-    "op": "add",
-    "path": "/definitions/AggregateCapabilitiesSchemaInfo/properties/filter_by/$ref",
-    "value": "#/definitions/AggregateFilterByCapabilitiesSchemaInfo"
   },
   {
     "op": "remove",
