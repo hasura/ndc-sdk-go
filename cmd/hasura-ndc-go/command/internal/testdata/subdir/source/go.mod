@@ -1,6 +1,6 @@
 module github.com/hasura/ndc-codegen-subdir-test
 
-go 1.21
+go 1.23
 
 require (
 	github.com/hasura/ndc-sdk-go v1.4.1

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math"
 	"reflect"
 	"regexp"
 	"slices"
@@ -32,15 +31,17 @@ type Author struct {
 }
 
 type InstitutionLocation struct {
-	City     string   `json:"city"`
-	Country  string   `json:"country"`
-	Campuses []string `json:"campuses"`
+	CountryID int      `json:"country_id"`
+	City      string   `json:"city"`
+	Country   string   `json:"country"`
+	Campuses  []string `json:"campuses"`
 }
 
 type InstitutionStaff struct {
-	FirstName    string   `json:"first_name"`
-	LastName     string   `json:"last_name"`
-	Specialities []string `json:"specialities"`
+	FirstName     string   `json:"first_name"`
+	LastName      string   `json:"last_name"`
+	Specialities  []string `json:"specialities"`
+	BornCountryID int      `json:"born_country_id"`
 }
 
 type Institution struct {
@@ -71,221 +72,6 @@ func (s *State) GetLatestArticle() *Article {
 	}
 
 	return &latestArticle
-}
-
-var ndcSchema = schema.SchemaResponse{
-	ScalarTypes: schema.SchemaResponseScalarTypes{
-		"Int": schema.ScalarType{
-			AggregateFunctions: schema.ScalarTypeAggregateFunctions{
-				"max": schema.NewAggregateFunctionDefinitionMax().Encode(),
-				"min": schema.NewAggregateFunctionDefinitionMin().Encode(),
-			},
-			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
-				"eq": schema.NewComparisonOperatorEqual().Encode(),
-				"in": schema.NewComparisonOperatorIn().Encode(),
-			},
-			Representation: schema.NewTypeRepresentationInt32().Encode(),
-		},
-		"String": {
-			AggregateFunctions: schema.ScalarTypeAggregateFunctions{},
-			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
-				"eq":   schema.NewComparisonOperatorEqual().Encode(),
-				"in":   schema.NewComparisonOperatorIn().Encode(),
-				"like": schema.NewComparisonOperatorCustom(schema.NewNamedType("String")).Encode(),
-			},
-			Representation: schema.NewTypeRepresentationString().Encode(),
-		},
-	},
-	ObjectTypes: schema.SchemaResponseObjectTypes{
-		"article": schema.NewObjectType(
-			schema.ObjectTypeFields{
-				"author_id": schema.ObjectField{
-					Description: utils.ToPtr("The article's author ID"),
-					Type:        schema.NewNamedType("Int").Encode(),
-				},
-				"id": {
-					Description: utils.ToPtr("The article's primary key"),
-					Type:        schema.NewNamedType("Int").Encode(),
-				},
-				"title": {
-					Description: utils.ToPtr("The article's title"),
-					Type:        schema.NewNamedType("String").Encode(),
-				},
-			},
-			schema.ObjectTypeForeignKeys{
-				"Article_AuthorID": schema.ForeignKeyConstraint{
-					ColumnMapping: schema.ForeignKeyConstraintColumnMapping{
-						"author_id": []string{"id"},
-					},
-					ForeignCollection: "authors",
-				},
-			},
-			utils.ToPtr("An article"),
-		),
-		"author": schema.NewObjectType(
-			schema.ObjectTypeFields{
-				"first_name": {
-					Description: utils.ToPtr("The author's first name"),
-					Type:        schema.NewNamedType("String").Encode(),
-				},
-				"id": {
-					Description: utils.ToPtr("The author's primary key"),
-					Type:        schema.NewNamedType("Int").Encode(),
-				},
-				"last_name": {
-					Description: utils.ToPtr("The author's last name"),
-					Type:        schema.NewNamedType("String").Encode(),
-				},
-			},
-			nil,
-			utils.ToPtr("An author"),
-		),
-		"institution": schema.NewObjectType(
-			schema.ObjectTypeFields{
-				"departments": schema.ObjectField{
-					Description: utils.ToPtr("The institution's departments"),
-					Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
-				},
-				"id": schema.ObjectField{
-					Description: utils.ToPtr("The institution's primary key"),
-					Type:        schema.NewNamedType("Int").Encode(),
-				},
-				"location": schema.ObjectField{
-					Description: utils.ToPtr("The institution's location"),
-					Type:        schema.NewNamedType("location").Encode(),
-				},
-				"name": schema.ObjectField{
-					Description: utils.ToPtr("The institution's name"),
-					Type:        schema.NewNamedType("String").Encode(),
-				},
-				"staff": schema.ObjectField{
-					Description: utils.ToPtr("The institution's staff"),
-					Type:        schema.NewArrayType(schema.NewNamedType("staff_member")).Encode(),
-				},
-			},
-			nil,
-			utils.ToPtr("An institution"),
-		),
-		"location": schema.NewObjectType(
-			schema.ObjectTypeFields{
-				"campuses": schema.ObjectField{
-					Description: utils.ToPtr("The location's campuses"),
-					Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
-				},
-				"city": schema.ObjectField{
-					Description: utils.ToPtr("The location's city"),
-					Type:        schema.NewNamedType("String").Encode(),
-				},
-				"country": schema.ObjectField{
-					Description: utils.ToPtr("The location's country"),
-					Type:        schema.NewNamedType("String").Encode(),
-				},
-			}, nil,
-			utils.ToPtr("A location"),
-		),
-		"staff_member": schema.NewObjectType(
-			schema.ObjectTypeFields{
-				"first_name": schema.ObjectField{
-					Description: utils.ToPtr("The staff member's first name"),
-					Type:        schema.NewNamedType("String").Encode(),
-				},
-				"last_name": schema.ObjectField{
-					Description: utils.ToPtr("The staff member's last name"),
-					Type:        schema.NewNamedType("String").Encode(),
-				},
-				"specialities": schema.ObjectField{
-					Description: utils.ToPtr("The staff member's specialities"),
-					Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
-				},
-			},
-			nil,
-			utils.ToPtr("A staff member"),
-		),
-	},
-	Collections: []schema.CollectionInfo{
-		{
-			Name:        "articles",
-			Description: utils.ToPtr("A collection of articles"),
-			Arguments:   schema.CollectionInfoArguments{},
-			Type:        "article",
-			UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
-				"ArticleByID": schema.UniquenessConstraint{
-					UniqueColumns: []string{"id"},
-				},
-			},
-		},
-		{
-			Name:        "authors",
-			Description: utils.ToPtr("A collection of authors"),
-			Arguments:   schema.CollectionInfoArguments{},
-			Type:        "author",
-			UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
-				"AuthorByID": schema.UniquenessConstraint{
-					UniqueColumns: []string{"id"},
-				},
-			},
-		},
-		{
-			Name:        "institutions",
-			Description: utils.ToPtr("A collection of institutions"),
-			Arguments:   schema.CollectionInfoArguments{},
-			Type:        "institution",
-			UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
-				"InstitutionByID": schema.UniquenessConstraint{
-					UniqueColumns: []string{"id"},
-				},
-			},
-		},
-		{
-			Name:        "articles_by_author",
-			Description: utils.ToPtr("Articles parameterized by author"),
-			Arguments: schema.CollectionInfoArguments{
-				"author_id": schema.ArgumentInfo{
-					Type: schema.NewNamedType("Int").Encode(),
-				},
-			},
-			Type:                  "article",
-			UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{},
-		},
-	},
-	Functions: []schema.FunctionInfo{
-		{
-			Name:        "latest_article_id",
-			Description: utils.ToPtr("Get the ID of the most recent article"),
-			Arguments:   schema.FunctionInfoArguments{},
-			ResultType:  schema.NewNullableNamedType("Int").Encode(),
-		},
-		{
-			Name:        "latest_article",
-			Description: utils.ToPtr("Get the most recent article"),
-			Arguments:   schema.FunctionInfoArguments{},
-			ResultType:  schema.NewNullableNamedType("article").Encode(),
-		},
-	},
-	Procedures: []schema.ProcedureInfo{
-		{
-			Name:        "upsert_article",
-			Description: utils.ToPtr("Insert or update an article"),
-			Arguments: schema.ProcedureInfoArguments{
-				"article": schema.ArgumentInfo{
-					Description: utils.ToPtr("The article to insert or update"),
-					Type:        schema.NewNamedType("article").Encode(),
-				},
-			},
-			ResultType: schema.NewNullableNamedType("article").Encode(),
-		},
-		{
-			Name:        "delete_articles",
-			Description: utils.ToPtr("Delete articles which match a predicate"),
-			Arguments: schema.ProcedureInfoArguments{
-				"where": schema.ArgumentInfo{
-					Description: utils.ToPtr("The predicate"),
-					Type:        schema.NewPredicateType("article").Encode(),
-				},
-			},
-			ResultType: schema.NewArrayType(schema.NewNamedType("article")).Encode(),
-		},
-	},
 }
 
 type Connector struct{}
@@ -329,23 +115,7 @@ func (mc *Connector) HealthCheck(ctx context.Context, configuration *Configurati
 }
 
 func (mc *Connector) GetCapabilities(configuration *Configuration) schema.CapabilitiesResponseMarshaler {
-	return &schema.CapabilitiesResponse{
-		Version: schema.SchemaVersion,
-		Capabilities: schema.Capabilities{
-			Query: schema.QueryCapabilities{
-				Aggregates: &schema.AggregateCapabilities{},
-				Variables:  schema.LeafCapability{},
-				NestedFields: schema.NestedFieldCapabilities{
-					FilterBy: &schema.NestedFieldFilterByCapabilities{},
-					OrderBy:  schema.LeafCapability{},
-				},
-			},
-			Relationships: &schema.RelationshipCapabilities{
-				OrderByAggregate:    schema.LeafCapability{},
-				RelationComparisons: schema.LeafCapability{},
-			},
-		},
-	}
+	return capabilities
 }
 
 func (mc *Connector) GetSchema(ctx context.Context, configuration *Configuration, state *State) (schema.SchemaResponseMarshaler, error) {
@@ -725,21 +495,6 @@ func sortCollection(
 	return results, nil
 }
 
-func paginate[R any](collection []R, limit *int, offset *int) []R {
-	var start int
-	if offset != nil {
-		start = *offset
-	}
-	collectionLength := len(collection)
-	if collectionLength <= start {
-		return nil
-	}
-	if limit == nil {
-		return collection[start:]
-	}
-	return collection[start:int(math.Min(float64(collectionLength), float64(start+*limit)))]
-}
-
 func evalOrderBy(
 	collectionRelationships map[string]schema.Relationship,
 	variables map[string]any,
@@ -779,91 +534,6 @@ func evalOrderBy(
 	return ordering, nil
 }
 
-func boolToInt(v bool) int {
-	if v {
-		return 1
-	}
-	return 0
-}
-
-func compare(v1 any, v2 any) (int, error) {
-	if v1 == v2 || (v1 == nil && v2 == nil) {
-		return 0, nil
-	}
-	if v1 == nil {
-		return -1, nil
-	}
-	if v2 == nil {
-		return 1, nil
-	}
-
-	value1 := reflect.ValueOf(v1)
-	kindV1 := value1.Kind()
-	value2 := reflect.ValueOf(v2)
-	kindV2 := value2.Kind()
-
-	errInvalidType := schema.InternalServerError(fmt.Sprintf("cannot compare values with different types: %s <> %s", kindV1, kindV2), nil)
-	if kindV1 != kindV2 {
-		return 0, errInvalidType
-	}
-
-	if kindV1 == reflect.Pointer {
-		return compare(value1.Elem().Interface(), value2.Elem().Interface())
-	}
-
-	switch value1 := v1.(type) {
-	case bool:
-		value2, ok := v2.(bool)
-		if !ok {
-			return 0, errInvalidType
-		}
-		return boolToInt(value1) - boolToInt(value2), nil
-	case int:
-		value2, ok := v2.(int)
-		if !ok {
-			return 0, errInvalidType
-		}
-		return value1 - value2, nil
-	case int8:
-		value2, ok := v2.(int8)
-		if !ok {
-			return 0, errInvalidType
-		}
-		return int(value1 - value2), nil
-	case int16:
-		value2, ok := v2.(int16)
-		if !ok {
-			return 0, errInvalidType
-		}
-		return int(value1 - value2), nil
-	case int32:
-		value2, ok := v2.(int32)
-		if !ok {
-			return 0, errInvalidType
-		}
-		return int(value1 - value2), nil
-	case int64:
-		value2, ok := v2.(int64)
-
-		if !ok {
-			return 0, errInvalidType
-		}
-		return int(value1 - value2), nil
-	case string:
-		value2, ok := v2.(string)
-		if !ok {
-			return 0, errInvalidType
-		}
-		return strings.Compare(value1, value2), nil
-	default:
-		rawV1, err := json.Marshal(v1)
-		if err != nil {
-			return 0, errInvalidType
-		}
-		return 0, schema.InternalServerError(fmt.Sprintf("cannot compare values with type: %s, value: %s", kindV1, string(rawV1)), nil)
-	}
-}
-
 func evalOrderByElement(
 	collectionRelationships map[string]schema.Relationship,
 	variables map[string]any,
@@ -874,52 +544,18 @@ func evalOrderByElement(
 	switch target := element.Target.Interface().(type) {
 	case *schema.OrderByColumn:
 		return evalOrderByColumn(collectionRelationships, variables, state, item, target.Path, target.Name)
-	case *schema.OrderBySingleColumnAggregate:
-		return evalOrderBySingleColumnAggregate(collectionRelationships, variables, state, item, target.Path, target.Column, target.Function)
-	case *schema.OrderByStarCountAggregate:
-		return evalOrderByStarCountAggregate(collectionRelationships, variables, state, item, target.Path)
+	case *schema.OrderByAggregate:
+		rows, err := evalPath(collectionRelationships, variables, state, target.Path, item)
+		if err != nil {
+			return nil, err
+		}
+
+		return evalAggregate(target.Aggregate, rows)
 	default:
 		return nil, schema.UnprocessableContentError("invalid order by field", map[string]any{
 			"value": element.Target,
 		})
 	}
-}
-
-func evalOrderByStarCountAggregate(
-	collectionRelationships map[string]schema.Relationship,
-	variables map[string]any,
-	state *State,
-	item map[string]any,
-	path []schema.PathElement,
-) (int, error) {
-	rows, err := evalPath(collectionRelationships, variables, state, path, item)
-
-	return len(rows), err
-}
-
-func evalOrderBySingleColumnAggregate(
-	collectionRelationships map[string]schema.Relationship,
-	variables map[string]any,
-	state *State,
-	item map[string]any,
-	path []schema.PathElement,
-	column string,
-	function string,
-) (any, error) {
-	rows, err := evalPath(collectionRelationships, variables, state, path, item)
-	if err != nil {
-		return nil, err
-	}
-
-	var values []any
-	for _, row := range rows {
-		value, ok := row[column]
-		if !ok {
-			return nil, schema.UnprocessableContentError("invalid column name: "+column, nil)
-		}
-		values = append(values, value)
-	}
-	return evalAggregateFunction(function, values)
 }
 
 func evalOrderByColumn(

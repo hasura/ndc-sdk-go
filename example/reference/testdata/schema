@@ -1,8 +1,162 @@
 {
   "scalar_types": {
+    "Date": {
+      "representation": {
+        "type": "date"
+      },
+      "aggregate_functions": {},
+      "comparison_operators": {
+        "eq": {
+          "type": "equal"
+        },
+        "in": {
+          "type": "in"
+        }
+      },
+      "extraction_functions": {
+        "day": {
+          "type": "day",
+          "result_type": "Int"
+        },
+        "month": {
+          "type": "month",
+          "result_type": "Int"
+        },
+        "year": {
+          "type": "year",
+          "result_type": "Int"
+        }
+      }
+    },
+    "Float": {
+      "representation": {
+        "type": "float64"
+      },
+      "aggregate_functions": {
+        "avg": {
+          "type": "average",
+          "result_type": "Float"
+        },
+        "max": {
+          "type": "max"
+        },
+        "min": {
+          "type": "min"
+        },
+        "sum": {
+          "type": "sum",
+          "result_type": "Float"
+        }
+      },
+      "comparison_operators": {
+        "eq": {
+          "type": "equal"
+        },
+        "gt": {
+          "type": "greater_than"
+        },
+        "gte": {
+          "type": "greater_than_or_equal"
+        },
+        "in": {
+          "type": "in"
+        },
+        "lt": {
+          "type": "less_than"
+        },
+        "lte": {
+          "type": "less_than_or_equal"
+        }
+      },
+      "extraction_functions": {}
+    },
     "Int": {
       "representation": {
         "type": "int32"
+      },
+      "aggregate_functions": {
+        "avg": {
+          "type": "average",
+          "result_type": "Float"
+        },
+        "max": {
+          "type": "max"
+        },
+        "min": {
+          "type": "min"
+        },
+        "sum": {
+          "type": "sum",
+          "result_type": "Int64"
+        }
+      },
+      "comparison_operators": {
+        "eq": {
+          "type": "equal"
+        },
+        "gt": {
+          "type": "greater_than"
+        },
+        "gte": {
+          "type": "greater_than_or_equal"
+        },
+        "in": {
+          "type": "in"
+        },
+        "lt": {
+          "type": "less_than"
+        },
+        "lte": {
+          "type": "less_than_or_equal"
+        }
+      },
+      "extraction_functions": {}
+    },
+    "Int64": {
+      "representation": {
+        "type": "int64"
+      },
+      "aggregate_functions": {
+        "avg": {
+          "type": "average",
+          "result_type": "Float"
+        },
+        "max": {
+          "type": "max"
+        },
+        "min": {
+          "type": "min"
+        },
+        "sum": {
+          "type": "sum",
+          "result_type": "Int64"
+        }
+      },
+      "comparison_operators": {
+        "eq": {
+          "type": "equal"
+        },
+        "gt": {
+          "type": "greater_than"
+        },
+        "gte": {
+          "type": "greater_than_or_equal"
+        },
+        "in": {
+          "type": "in"
+        },
+        "lt": {
+          "type": "less_than"
+        },
+        "lte": {
+          "type": "less_than_or_equal"
+        }
+      },
+      "extraction_functions": {}
+    },
+    "String": {
+      "representation": {
+        "type": "string"
       },
       "aggregate_functions": {
         "max": {
@@ -13,25 +167,32 @@
         }
       },
       "comparison_operators": {
+        "contains": {
+          "type": "contains"
+        },
+        "ends_with": {
+          "type": "ends_with"
+        },
         "eq": {
           "type": "equal"
         },
-        "in": {
-          "type": "in"
-        }
-      }
-    },
-    "String": {
-      "representation": {
-        "type": "string"
-      },
-      "aggregate_functions": {},
-      "comparison_operators": {
-        "eq": {
-          "type": "equal"
+        "gt": {
+          "type": "greater_than"
+        },
+        "gte": {
+          "type": "greater_than_or_equal"
+        },
+        "icontains": {
+          "type": "contains_insensitive"
+        },
+        "iends_with": {
+          "type": "ends_with_insensitive"
         },
         "in": {
           "type": "in"
+        },
+        "istarts_with": {
+          "type": "starts_with_insensitive"
         },
         "like": {
           "type": "custom",
@@ -39,8 +200,18 @@
             "type": "named",
             "name": "String"
           }
+        },
+        "lt": {
+          "type": "less_than"
+        },
+        "lte": {
+          "type": "less_than_or_equal"
+        },
+        "starts_with": {
+          "type": "starts_with"
         }
-      }
+      },
+      "extraction_functions": {}
     }
   },
   "object_types": {
@@ -59,6 +230,13 @@
           "type": {
             "type": "named",
             "name": "Int"
+          }
+        },
+        "published_date": {
+          "description": "The article's date of publication",
+          "type": {
+            "type": "named",
+            "name": "Date"
           }
         },
         "title": {
@@ -107,6 +285,67 @@
       },
       "foreign_keys": {}
     },
+    "city": {
+      "description": "A city",
+      "fields": {
+        "name": {
+          "description": "The institution's name",
+          "type": {
+            "type": "named",
+            "name": "String"
+          }
+        }
+      },
+      "foreign_keys": {}
+    },
+    "country": {
+      "description": "A country",
+      "fields": {
+        "area_km2": {
+          "description": "The country's area size in square kilometers",
+          "type": {
+            "type": "named",
+            "name": "Int"
+          }
+        },
+        "cities": {
+          "description": "The cities in the country",
+          "type": {
+            "type": "array",
+            "element_type": {
+              "type": "named",
+              "name": "city"
+            }
+          },
+          "arguments": {
+            "limit": {
+              "type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "type": "named",
+                  "name": "Int"
+                }
+              }
+            }
+          }
+        },
+        "id": {
+          "description": "The country's primary key",
+          "type": {
+            "type": "named",
+            "name": "Int"
+          }
+        },
+        "name": {
+          "description": "The country's name",
+          "type": {
+            "type": "named",
+            "name": "String"
+          }
+        }
+      },
+      "foreign_keys": {}
+    },
     "institution": {
       "description": "An institution",
       "fields": {
@@ -117,6 +356,17 @@
             "element_type": {
               "type": "named",
               "name": "String"
+            }
+          },
+          "arguments": {
+            "limit": {
+              "type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "type": "named",
+                  "name": "Int"
+                }
+              }
             }
           }
         },
@@ -149,6 +399,17 @@
               "type": "named",
               "name": "staff_member"
             }
+          },
+          "arguments": {
+            "limit": {
+              "type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "type": "named",
+                  "name": "Int"
+                }
+              }
+            }
           }
         }
       },
@@ -165,6 +426,17 @@
               "type": "named",
               "name": "String"
             }
+          },
+          "arguments": {
+            "limit": {
+              "type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "type": "named",
+                  "name": "Int"
+                }
+              }
+            }
           }
         },
         "city": {
@@ -180,13 +452,36 @@
             "type": "named",
             "name": "String"
           }
+        },
+        "country_id": {
+          "description": "The location's country ID",
+          "type": {
+            "type": "named",
+            "name": "Int"
+          }
         }
       },
-      "foreign_keys": {}
+      "foreign_keys": {
+        "Location_CountryID": {
+          "column_mapping": {
+            "country_id": [
+              "id"
+            ]
+          },
+          "foreign_collection": "countries"
+        }
+      }
     },
     "staff_member": {
       "description": "A staff member",
       "fields": {
+        "born_country_id": {
+          "description": "The ID of the country the staff member was born in",
+          "type": {
+            "type": "named",
+            "name": "Int"
+          }
+        },
         "first_name": {
           "description": "The staff member's first name",
           "type": {
@@ -209,10 +504,30 @@
               "type": "named",
               "name": "String"
             }
+          },
+          "arguments": {
+            "limit": {
+              "type": {
+                "type": "nullable",
+                "underlying_type": {
+                  "type": "named",
+                  "name": "Int"
+                }
+              }
+            }
           }
         }
       },
-      "foreign_keys": {}
+      "foreign_keys": {
+        "Staff_BornCountryID": {
+          "column_mapping": {
+            "born_country_id": [
+              "id"
+            ]
+          },
+          "foreign_collection": "countries"
+        }
+      }
     }
   },
   "collections": [
@@ -249,6 +564,19 @@
       "type": "institution",
       "uniqueness_constraints": {
         "InstitutionByID": {
+          "unique_columns": [
+            "id"
+          ]
+        }
+      }
+    },
+    {
+      "name": "countries",
+      "description": "A collection of countries",
+      "arguments": {},
+      "type": "country",
+      "uniqueness_constraints": {
+        "CountryByID": {
           "unique_columns": [
             "id"
           ]
@@ -338,5 +666,11 @@
       }
     }
   ],
-  "capabilities": null
+  "capabilities": {
+    "query": {
+      "aggregates": {
+        "count_scalar_type": "Int"
+      }
+    }
+  }
 }

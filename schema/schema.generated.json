@@ -365,21 +365,14 @@
       }
     },
     "CapabilitySchemaInfo": {
-      "title": "Capability Schema Info",
-      "type": "object",
       "properties": {
         "query": {
-          "description": "Schema information relevant to query capabilities",
-          "anyOf": [
-            {
-              "$ref": "#/definitions/QueryCapabilitiesSchemaInfo"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/definitions/QueryCapabilitiesSchemaInfo",
+          "description": "Schema information relevant to query capabilities"
         }
-      }
+      },
+      "title": "Capability Schema Info",
+      "type": "object"
     },
     "CollectionInfo": {
       "title": "Collection Info",
@@ -1944,6 +1937,11 @@
     },
     "LeafCapability": {
       "description": "A unit value to indicate a particular leaf capability is supported. This is an empty struct to allow for future sub-capabilities.",
+      "properties": {
+        "delete_this": {
+          "type": "string"
+        }
+      },
       "type": "object"
     },
     "MutationCapabilities": {
@@ -2570,28 +2568,8 @@
       "type": "object"
     },
     "QueryRequest": {
-      "title": "Query Request",
       "description": "This is the request body of the query POST endpoint",
-      "type": "object",
-      "required": [
-        "arguments",
-        "collection",
-        "collection_relationships",
-        "query"
-      ],
       "properties": {
-        "collection": {
-          "description": "The name of a collection",
-          "type": "string"
-        },
-        "query": {
-          "description": "The query syntax tree",
-          "allOf": [
-            {
-              "$ref": "#/definitions/Query"
-            }
-          ]
-        },
         "arguments": {
           "description": "Values to be provided to any collection arguments",
           "type": "object",
@@ -2599,12 +2577,20 @@
             "$ref": "#/definitions/Argument"
           }
         },
+        "collection": {
+          "description": "The name of a collection",
+          "type": "string"
+        },
         "collection_relationships": {
           "description": "Any relationships between collections involved in the query request. Only used if the 'relationships' capability is supported.",
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/Relationship"
           }
+        },
+        "query": {
+          "$ref": "#/definitions/Query",
+          "description": "The query syntax tree"
         },
         "variables": {
           "description": "One set of named variables for each rowset to fetch. Each variable set should be subtituted in turn, and a fresh set of rows returned. Only used if the 'query.variables' capability is supported.",
@@ -2617,7 +2603,15 @@
             "additionalProperties": true
           }
         }
-      }
+      },
+      "required": [
+        "arguments",
+        "collection",
+        "collection_relationships",
+        "query"
+      ],
+      "title": "Query Request",
+      "type": "object"
     },
     "QueryResponse": {
       "title": "Query Response",

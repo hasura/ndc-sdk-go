@@ -50,7 +50,6 @@ $SED_CMD 's/type RowSetRowsElem map\[string\]interface{}//g' $GENERATED_SCHEMA_G
 $SED_CMD 's/RowSetRowsElem/map[string]any/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type MutationOperationResultsReturningElem map\[string\]interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/MutationOperationResultsReturningElem/map[string]any/g' $GENERATED_SCHEMA_GO
-$SED_CMD 's/Query interface{}/Query Query/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type Expression interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type ComparisonTarget interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type BinaryComparisonOperator interface{}//g' $GENERATED_SCHEMA_GO
@@ -102,6 +101,7 @@ $SED_CMD 's/type ScalarTypeAggregateFunctions map\[string\]interface{}/type Scal
 $SED_CMD 's/type ExtractionFunctionDefinition interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type ScalarTypeExtractionFunctions map\[string\]interface{}/type ScalarTypeExtractionFunctions map[string]ExtractionFunctionDefinition/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/plain.ExtractionFunctions = map\[string\]interface{}{}/plain.ExtractionFunctions = map[string]ExtractionFunctionDefinition{}/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/^.*DeleteThis .*$//g' $GENERATED_SCHEMA_GO
 
 rm -f "$GENERATED_SCHEMA_GO.bak"
 

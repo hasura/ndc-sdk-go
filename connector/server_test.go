@@ -22,15 +22,15 @@ type mockState struct{}
 type mockConnector struct{}
 
 var mockCapabilities = schema.CapabilitiesResponse{
-	Version: "^0.2.0",
+	Version: schema.SchemaVersion,
 	Capabilities: schema.Capabilities{
 		Query: schema.QueryCapabilities{
 			Aggregates: &schema.AggregateCapabilities{},
-			Variables:  schema.LeafCapability{},
+			Variables:  &schema.LeafCapability{},
 		},
 		Relationships: &schema.RelationshipCapabilities{
-			OrderByAggregate:    schema.LeafCapability{},
-			RelationComparisons: schema.LeafCapability{},
+			OrderByAggregate:    &schema.LeafCapability{},
+			RelationComparisons: &schema.LeafCapability{},
 		},
 	},
 }

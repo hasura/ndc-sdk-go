@@ -286,7 +286,7 @@ func TestQueryRequest(t *testing.T) {
 						Elements: []OrderByElement{
 							{
 								OrderDirection: OrderDirectionAsc,
-								Target:         NewOrderByColumn("location", []PathElement{}, []string{"country"}).Encode(),
+								Target:         NewOrderByColumn("location", []PathElement{}, nil, []string{"country"}).Encode(),
 							},
 						},
 					},
@@ -296,60 +296,73 @@ func TestQueryRequest(t *testing.T) {
 		{
 			"order_by_aggregate",
 			[]byte(`{
-				"collection": "authors",
-				"arguments": {},
-				"query": {
-						"fields": {
-								"articles_aggregate": {
-										"type": "relationship",
-										"arguments": {},
-										"relationship": "author_articles",
-										"query": {
-												"aggregates": {
-														"count": {
-																"type": "star_count"
-														}
-												}
-										}
-								}
-						},
-						"order_by": {
-								"elements": [
-										{
-												"order_direction": "desc",
-												"target": {
-														"type": "star_count_aggregate",
-														"path": [
-																{
-																		"arguments": {},
-																		"relationship": "author_articles",
-																		"predicate": {
-																				"type": "and",
-																				"expressions": []
-																		}
-																}
-														]
-												}
-										}
-								]
-						}
-				},
-				"collection_relationships": {
-						"author_articles": {
-								"arguments": {},
-								"column_mapping": {
-										"id": ["author_id"]
-								},
-								"relationship_type": "array",
-								"target_collection": "articles"
-						}
-				}
-		}`),
+  "collection": "authors",
+  "arguments": {},
+  "query": {
+    "fields": {
+      "first_name": {
+        "type": "column",
+        "column": "first_name"
+      },
+      "last_name": {
+        "type": "column",
+        "column": "last_name"
+      },
+      "articles_aggregate": {
+        "type": "relationship",
+        "arguments": {},
+        "relationship": "author_articles",
+        "query": {
+          "aggregates": {
+            "count": {
+              "type": "star_count"
+            }
+          }
+        }
+      }
+    },
+    "order_by": {
+      "elements": [
+        {
+          "order_direction": "desc",
+          "target": {
+            "type": "aggregate",
+            "aggregate": {
+              "type": "star_count"
+            },
+            "path": [
+              {
+                "arguments": {},
+                "relationship": "author_articles",
+                "predicate": {
+                  "type": "and",
+                  "expressions": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "collection_relationships": {
+    "author_articles": {
+      "arguments": {},
+      "column_mapping": {
+        "id": ["author_id"]
+      },
+      "relationship_type": "array",
+      "target_collection": "articles"
+    }
+  }
+}`),
 			QueryRequest{
 				Collection: "authors",
 				Arguments:  QueryRequestArguments{},
 				Query: Query{
 					Fields: QueryFields{
+						"first_name": NewColumnField("first_name", nil).Encode(),
+						"last_name":  NewColumnField("last_name", nil).Encode(),
 						"articles_aggregate": NewRelationshipField(Query{
 							Aggregates: QueryAggregates{
 								"count": NewAggregateStarCount().Encode(),
@@ -360,7 +373,7 @@ func TestQueryRequest(t *testing.T) {
 						Elements: []OrderByElement{
 							{
 								OrderDirection: OrderDirectionDesc,
-								Target: NewOrderByStarCountAggregate([]PathElement{
+								Target: NewOrderByAggregate(NewAggregateStarCount(), []PathElement{
 									{
 										Arguments:    PathElementArguments{},
 										Relationship: "author_articles",
@@ -387,61 +400,63 @@ func TestQueryRequest(t *testing.T) {
 		{
 			"order_by_aggregate_function",
 			[]byte(`{
-				"collection": "authors",
-				"arguments": {},
-				"query": {
-						"fields": {
-								"articles_aggregate": {
-										"type": "relationship",
-										"arguments": {},
-										"relationship": "author_articles",
-										"query": {
-												"aggregates": {
-														"max_id": {
-																"type": "single_column",
-																"column": "id",
-																"function": "max"
-														}
-												}
-										}
-								}
-						},
-						"order_by": {
-								"elements": [
-										{
-												"order_direction": "asc",
-												"target": {
-														"type": "single_column_aggregate",
-														"column": "id",
-														"function": "max",
-														"path": [
-																{
-																		"arguments": {},
-																		"relationship": "author_articles",
-																		"predicate": {
-																				"type": "and",
-																				"expressions": []
-																		}
-																}
-														],
-														"field_path": []
-												}
-										}
-								]
-						}
-				},
-				"collection_relationships": {
-						"author_articles": {
-								"arguments": {},
-								"column_mapping": {
-										"id": ["author_id"]
-								},
-								"relationship_type": "array",
-								"source_collection_or_type": "author",
-								"target_collection": "articles"
-						}
-				}
-		}`),
+  "collection": "authors",
+  "arguments": {},
+  "query": {
+    "fields": {
+      "articles_aggregate": {
+        "type": "relationship",
+        "arguments": {},
+        "relationship": "author_articles",
+        "query": {
+          "aggregates": {
+            "max_id": {
+              "type": "single_column",
+              "column": "id",
+              "function": "max"
+            }
+          }
+        }
+      }
+    },
+    "order_by": {
+      "elements": [
+        {
+          "order_direction": "asc",
+          "target": {
+            "type": "aggregate",
+            "aggregate": {
+              "type": "single_column",
+              "column": "id",
+              "function": "max"
+            },
+            "path": [
+              {
+                "arguments": {},
+                "relationship": "author_articles",
+                "predicate": {
+                  "type": "and",
+                  "expressions": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "collection_relationships": {
+    "author_articles": {
+      "arguments": {},
+      "column_mapping": {
+        "id": ["author_id"]
+      },
+      "relationship_type": "array",
+      "source_collection_or_type": "author",
+      "target_collection": "articles"
+    }
+  }
+}`),
 			QueryRequest{
 				Collection: "authors",
 				Arguments:  QueryRequestArguments{},
@@ -457,13 +472,13 @@ func TestQueryRequest(t *testing.T) {
 						Elements: []OrderByElement{
 							{
 								OrderDirection: OrderDirectionAsc,
-								Target: NewOrderBySingleColumnAggregate("id", "max", []PathElement{
+								Target: NewOrderByAggregate(NewAggregateSingleColumn("id", "max", nil), []PathElement{
 									{
 										Arguments:    PathElementArguments{},
 										Relationship: "author_articles",
 										Predicate:    NewExpressionAnd().Encode(),
 									},
-								}, []string{}).Encode(),
+								}).Encode(),
 							},
 						},
 					},
@@ -555,7 +570,10 @@ func TestQueryRequest(t *testing.T) {
 							NewComparisonValueScalar("s"),
 						),
 						NewExistsInCollectionNestedCollection("staff", map[string]RelationshipArgument{
-							"limit": NewRelationshipArgumentLiteral(nil).Encode(),
+							"limit": map[string]any{
+								"type":  "literal",
+								"value": nil,
+							},
 						}, nil),
 					).Encode(),
 				},

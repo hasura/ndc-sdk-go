@@ -8,7 +8,7 @@ import "reflect"
 
 type AggregateCapabilities struct {
 	// Does the connector support filtering based on aggregated values
-	FilterBy LeafCapability `json:"filter_by,omitempty" yaml:"filter_by,omitempty" mapstructure:"filter_by,omitempty"`
+	FilterBy *LeafCapability `json:"filter_by,omitempty" yaml:"filter_by,omitempty" mapstructure:"filter_by,omitempty"`
 
 	// Does the connector support aggregations over groups
 	GroupBy *GroupByCapabilities `json:"group_by,omitempty" yaml:"group_by,omitempty" mapstructure:"group_by,omitempty"`
@@ -130,7 +130,7 @@ func (j *Capabilities) UnmarshalJSON(b []byte) error {
 
 type CapabilitySchemaInfo struct {
 	// Schema information relevant to query capabilities
-	Query Query `json:"query,omitempty" yaml:"query,omitempty" mapstructure:"query,omitempty"`
+	Query *QueryCapabilitiesSchemaInfo `json:"query,omitempty" yaml:"query,omitempty" mapstructure:"query,omitempty"`
 }
 
 type CollectionInfo struct {
@@ -220,18 +220,18 @@ func (j *ErrorResponse) UnmarshalJSON(b []byte) error {
 type ExistsCapabilities struct {
 	// Does the connector support named scopes in column references inside EXISTS
 	// predicates
-	NamedScopes LeafCapability `json:"named_scopes,omitempty" yaml:"named_scopes,omitempty" mapstructure:"named_scopes,omitempty"`
+	NamedScopes *LeafCapability `json:"named_scopes,omitempty" yaml:"named_scopes,omitempty" mapstructure:"named_scopes,omitempty"`
 
 	// Does the connector support ExistsInCollection::NestedCollection
-	NestedCollections LeafCapability `json:"nested_collections,omitempty" yaml:"nested_collections,omitempty" mapstructure:"nested_collections,omitempty"`
+	NestedCollections *LeafCapability `json:"nested_collections,omitempty" yaml:"nested_collections,omitempty" mapstructure:"nested_collections,omitempty"`
 
 	// Does the connector support filtering over nested scalar arrays using
 	// existential quantification. This means the connector must support
 	// ExistsInCollection::NestedScalarCollection.
-	NestedScalarCollections LeafCapability `json:"nested_scalar_collections,omitempty" yaml:"nested_scalar_collections,omitempty" mapstructure:"nested_scalar_collections,omitempty"`
+	NestedScalarCollections *LeafCapability `json:"nested_scalar_collections,omitempty" yaml:"nested_scalar_collections,omitempty" mapstructure:"nested_scalar_collections,omitempty"`
 
 	// Does the connector support ExistsInCollection::Unrelated
-	Unrelated LeafCapability `json:"unrelated,omitempty" yaml:"unrelated,omitempty" mapstructure:"unrelated,omitempty"`
+	Unrelated *LeafCapability `json:"unrelated,omitempty" yaml:"unrelated,omitempty" mapstructure:"unrelated,omitempty"`
 }
 
 type ExplainResponse struct {
@@ -366,13 +366,13 @@ type GroupAggregates map[string]interface{}
 
 type GroupByCapabilities struct {
 	// Does the connector support post-grouping predicates
-	Filter LeafCapability `json:"filter,omitempty" yaml:"filter,omitempty" mapstructure:"filter,omitempty"`
+	Filter *LeafCapability `json:"filter,omitempty" yaml:"filter,omitempty" mapstructure:"filter,omitempty"`
 
 	// Does the connector support post-grouping ordering
-	Order LeafCapability `json:"order,omitempty" yaml:"order,omitempty" mapstructure:"order,omitempty"`
+	Order *LeafCapability `json:"order,omitempty" yaml:"order,omitempty" mapstructure:"order,omitempty"`
 
 	// Does the connector support post-grouping pagination
-	Paginate LeafCapability `json:"paginate,omitempty" yaml:"paginate,omitempty" mapstructure:"paginate,omitempty"`
+	Paginate *LeafCapability `json:"paginate,omitempty" yaml:"paginate,omitempty" mapstructure:"paginate,omitempty"`
 }
 
 type GroupOrderBy struct {
@@ -504,14 +504,15 @@ func (j *Grouping) UnmarshalJSON(b []byte) error {
 
 // A unit value to indicate a particular leaf capability is supported. This is an
 // empty struct to allow for future sub-capabilities.
-type LeafCapability map[string]interface{}
+type LeafCapability struct {
+}
 
 type MutationCapabilities struct {
 	// Does the connector support explaining mutations
-	Explain LeafCapability `json:"explain,omitempty" yaml:"explain,omitempty" mapstructure:"explain,omitempty"`
+	Explain *LeafCapability `json:"explain,omitempty" yaml:"explain,omitempty" mapstructure:"explain,omitempty"`
 
 	// Does the connector support executing multiple mutations in a transaction.
-	Transactional LeafCapability `json:"transactional,omitempty" yaml:"transactional,omitempty" mapstructure:"transactional,omitempty"`
+	Transactional *LeafCapability `json:"transactional,omitempty" yaml:"transactional,omitempty" mapstructure:"transactional,omitempty"`
 }
 
 type MutationRequest struct {
@@ -575,27 +576,27 @@ type NestedArrayFilterByCapabilities struct {
 	// Does the connector support filtering over nested arrays by checking if the
 	// array contains a value. This must be supported for all types that can be
 	// contained in an array that implement an 'eq' comparison operator.
-	Contains LeafCapability `json:"contains,omitempty" yaml:"contains,omitempty" mapstructure:"contains,omitempty"`
+	Contains *LeafCapability `json:"contains,omitempty" yaml:"contains,omitempty" mapstructure:"contains,omitempty"`
 
 	// Does the connector support filtering over nested arrays by checking if the
 	// array is empty. This must be supported no matter what type is contained in the
 	// array.
-	IsEmpty LeafCapability `json:"is_empty,omitempty" yaml:"is_empty,omitempty" mapstructure:"is_empty,omitempty"`
+	IsEmpty *LeafCapability `json:"is_empty,omitempty" yaml:"is_empty,omitempty" mapstructure:"is_empty,omitempty"`
 }
 
 type NestedFieldCapabilities struct {
 	// Does the connector support aggregating values within nested fields
-	Aggregates LeafCapability `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
+	Aggregates *LeafCapability `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
 
 	// Does the connector support filtering by values of nested fields
 	FilterBy *NestedFieldFilterByCapabilities `json:"filter_by,omitempty" yaml:"filter_by,omitempty" mapstructure:"filter_by,omitempty"`
 
 	// Does the connector support nested collection queries using
 	// `NestedField::NestedCollection`
-	NestedCollections LeafCapability `json:"nested_collections,omitempty" yaml:"nested_collections,omitempty" mapstructure:"nested_collections,omitempty"`
+	NestedCollections *LeafCapability `json:"nested_collections,omitempty" yaml:"nested_collections,omitempty" mapstructure:"nested_collections,omitempty"`
 
 	// Does the connector support ordering by values of nested fields
-	OrderBy LeafCapability `json:"order_by" yaml:"order_by" mapstructure:"order_by"`
+	OrderBy *LeafCapability `json:"order_by" yaml:"order_by" mapstructure:"order_by"`
 }
 
 type NestedFieldFilterByCapabilities struct {
@@ -607,15 +608,15 @@ type NestedFieldFilterByCapabilities struct {
 type NestedRelationshipCapabilities struct {
 	// Does the connector support navigating a relationship from inside a nested
 	// object inside a nested array
-	Array LeafCapability `json:"array,omitempty" yaml:"array,omitempty" mapstructure:"array,omitempty"`
+	Array *LeafCapability `json:"array,omitempty" yaml:"array,omitempty" mapstructure:"array,omitempty"`
 
 	// Does the connector support filtering over a relationship that starts from
 	// inside a nested object
-	Filtering LeafCapability `json:"filtering,omitempty" yaml:"filtering,omitempty" mapstructure:"filtering,omitempty"`
+	Filtering *LeafCapability `json:"filtering,omitempty" yaml:"filtering,omitempty" mapstructure:"filtering,omitempty"`
 
 	// Does the connector support ordering over a relationship that starts from inside
 	// a nested object
-	Ordering LeafCapability `json:"ordering,omitempty" yaml:"ordering,omitempty" mapstructure:"ordering,omitempty"`
+	Ordering *LeafCapability `json:"ordering,omitempty" yaml:"ordering,omitempty" mapstructure:"ordering,omitempty"`
 }
 
 // The definition of an object field
@@ -893,13 +894,13 @@ type QueryCapabilities struct {
 	Exists ExistsCapabilities `json:"exists,omitempty" yaml:"exists,omitempty" mapstructure:"exists,omitempty"`
 
 	// Does the connector support explaining queries
-	Explain LeafCapability `json:"explain,omitempty" yaml:"explain,omitempty" mapstructure:"explain,omitempty"`
+	Explain *LeafCapability `json:"explain,omitempty" yaml:"explain,omitempty" mapstructure:"explain,omitempty"`
 
 	// Does the connector support nested fields
 	NestedFields NestedFieldCapabilities `json:"nested_fields,omitempty" yaml:"nested_fields,omitempty" mapstructure:"nested_fields,omitempty"`
 
 	// Does the connector support queries which use variables
-	Variables LeafCapability `json:"variables" yaml:"variables" mapstructure:"variables"`
+	Variables *LeafCapability `json:"variables" yaml:"variables" mapstructure:"variables"`
 }
 
 type QueryCapabilitiesSchemaInfo struct {
@@ -1037,11 +1038,11 @@ type RelationshipCapabilities struct {
 	Nested *NestedRelationshipCapabilities `json:"nested,omitempty" yaml:"nested,omitempty" mapstructure:"nested,omitempty"`
 
 	// Does the connector support ordering by an aggregated array relationship?
-	OrderByAggregate LeafCapability `json:"order_by_aggregate" yaml:"order_by_aggregate" mapstructure:"order_by_aggregate"`
+	OrderByAggregate *LeafCapability `json:"order_by_aggregate" yaml:"order_by_aggregate" mapstructure:"order_by_aggregate"`
 
 	// Does the connector support comparisons that involve related collections (ie.
 	// joins)?
-	RelationComparisons LeafCapability `json:"relation_comparisons" yaml:"relation_comparisons" mapstructure:"relation_comparisons"`
+	RelationComparisons *LeafCapability `json:"relation_comparisons" yaml:"relation_comparisons" mapstructure:"relation_comparisons"`
 }
 
 // A mapping between columns on the source row to columns on the target collection.

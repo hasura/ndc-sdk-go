@@ -2691,15 +2691,13 @@ func NewAggregateColumnCount(column string, distinct bool, fieldPath []string) *
 type OrderByTargetType string
 
 const (
-	OrderByTargetTypeColumn                OrderByTargetType = "column"
-	OrderByTargetTypeSingleColumnAggregate OrderByTargetType = "single_column_aggregate"
-	OrderByTargetTypeStarCountAggregate    OrderByTargetType = "star_count_aggregate"
+	OrderByTargetTypeColumn    OrderByTargetType = "column"
+	OrderByTargetTypeAggregate OrderByTargetType = "aggregate"
 )
 
 var enumValues_OrderByTargetType = []OrderByTargetType{
 	OrderByTargetTypeColumn,
-	OrderByTargetTypeSingleColumnAggregate,
-	OrderByTargetTypeStarCountAggregate,
+	OrderByTargetTypeAggregate,
 }
 
 // ParseOrderByTargetType parses a ordering target type argument type from string.
@@ -2763,22 +2761,12 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 	if !ok {
 		return fmt.Errorf("field path in OrderByTarget is required for `%s` type", ty)
 	}
+
 	var pathElem []PathElement
 	if err := json.Unmarshal(rawPath, &pathElem); err != nil {
 		return fmt.Errorf("field path in OrderByTarget: %w", err)
 	}
 	result["path"] = pathElem
-
-	if ty == OrderByTargetTypeColumn || ty == OrderByTargetTypeSingleColumnAggregate {
-		rawFieldPath, ok := raw["field_path"]
-		var fieldPath []string
-		if ok {
-			if err := json.Unmarshal(rawFieldPath, &fieldPath); err != nil {
-				return fmt.Errorf("field field_path in OrderByTarget: %w", err)
-			}
-			result["field_path"] = fieldPath
-		}
-	}
 
 	switch ty {
 	case OrderByTargetTypeColumn:
@@ -2786,35 +2774,52 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 		if !ok {
 			return errors.New("field name in OrderByTarget is required for column type")
 		}
+
 		var name string
+
 		if err := json.Unmarshal(rawName, &name); err != nil {
 			return fmt.Errorf("field name in OrderByTarget: %w", err)
 		}
+
 		result["name"] = name
 
-	case OrderByTargetTypeSingleColumnAggregate:
-		rawColumn, ok := raw["column"]
-		if !ok {
-			return errors.New("field column in OrderByTarget is required for single_column_aggregate type")
-		}
-		var column string
-		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in OrderByTarget: %w", err)
-		}
-		result["column"] = column
+		rawFieldPath, ok := raw["field_path"]
+		if ok {
+			var fieldPath []string
 
-		rawFunction, ok := raw["function"]
+			if err := json.Unmarshal(rawFieldPath, &fieldPath); err != nil {
+				return fmt.Errorf("field field_path in OrderByTarget: %w", err)
+			}
+
+			result["field_path"] = fieldPath
+		}
+
+		rawArguments, ok := raw["arguments"]
+		if ok {
+			var arguments map[string]Argument
+
+			if err := json.Unmarshal(rawArguments, &arguments); err != nil {
+				return fmt.Errorf("field arguments in OrderByTarget: %w", err)
+			}
+
+			result["arguments"] = arguments
+		}
+	case OrderByTargetTypeAggregate:
+		rawAggregate, ok := raw["aggregate"]
 		if !ok {
-			return errors.New("field function in OrderByTarget is required for single_column_aggregate type")
+			return errors.New("field aggregate in OrderByTarget is required for the aggregate type")
 		}
-		var function string
-		if err := json.Unmarshal(rawFunction, &function); err != nil {
-			return fmt.Errorf("field function in OrderByTarget: %w", err)
+
+		var aggregate Aggregate
+		if err := json.Unmarshal(rawAggregate, &aggregate); err != nil {
+			return fmt.Errorf("field aggregate in OrderByTarget: %w", err)
 		}
-		result["function"] = function
-	case OrderByTargetTypeStarCountAggregate:
+
+		result["aggregate"] = aggregate
 	}
+
 	*j = result
+
 	return nil
 }
 
@@ -2892,41 +2897,35 @@ func (j OrderByTarget) AsColumn() (*OrderByColumn, error) {
 		return nil, err
 	}
 
-	return &OrderByColumn{
+	result := &OrderByColumn{
 		Type:      t,
 		Name:      name,
 		Path:      p,
 		FieldPath: fieldPath,
-	}, nil
+	}
+
+	rawArguments, ok := j["arguments"]
+	if ok {
+		arguments, ok := rawArguments.(map[string]Argument)
+		if !ok {
+			return nil, fmt.Errorf("invalid OrderByTarget aggregate; expected map, got %v", rawArguments)
+		}
+
+		result.Arguments = arguments
+	}
+
+	return result, nil
 }
 
-// AsSingleColumnAggregate tries to convert the instance to OrderBySingleColumnAggregate type.
-func (j OrderByTarget) AsSingleColumnAggregate() (*OrderBySingleColumnAggregate, error) {
+// AsAggregate tries to convert the instance to OrderByAggregate type.
+func (j OrderByTarget) AsAggregate() (*OrderByAggregate, error) {
 	t, err := j.Type()
 	if err != nil {
 		return nil, err
 	}
 
-	if t != OrderByTargetTypeSingleColumnAggregate {
-		return nil, fmt.Errorf("invalid OrderByTarget type; expected: %s, got: %s", OrderByTargetTypeSingleColumnAggregate, t)
-	}
-
-	column, err := getStringValueByKey(j, "column")
-	if err != nil {
-		return nil, fmt.Errorf("OrderBySingleColumnAggregate.column: %w", err)
-	}
-
-	if column == "" {
-		return nil, errors.New("OrderBySingleColumnAggregate.column is required")
-	}
-
-	function, err := getStringValueByKey(j, "function")
-	if function == "" {
-		return nil, fmt.Errorf("OrderBySingleColumnAggregate.function: %w", err)
-	}
-
-	if function == "" {
-		return nil, errors.New("OrderBySingleColumnAggregate.function is required")
+	if t != OrderByTargetTypeAggregate {
+		return nil, fmt.Errorf("invalid OrderByTarget type; expected: %s, got: %s", OrderByTargetTypeAggregate, t)
 	}
 
 	p, err := j.getPath()
@@ -2934,37 +2933,20 @@ func (j OrderByTarget) AsSingleColumnAggregate() (*OrderBySingleColumnAggregate,
 		return nil, err
 	}
 
-	fieldPath, err := j.getFieldPath()
-	if err != nil {
-		return nil, err
+	rawAggregate, ok := j["aggregate"]
+	if !ok {
+		return nil, errors.New("invalid OrderByTarget aggregate; aggregate is required")
 	}
 
-	return &OrderBySingleColumnAggregate{
+	aggregate, ok := rawAggregate.(Aggregate)
+	if !ok {
+		return nil, fmt.Errorf("invalid OrderByTarget aggregate; expected map, got %v", rawAggregate)
+	}
+
+	return &OrderByAggregate{
 		Type:      t,
-		Column:    column,
-		Function:  function,
 		Path:      p,
-		FieldPath: fieldPath,
-	}, nil
-}
-
-// AsStarCountAggregate tries to convert the instance to OrderByStarCountAggregate type.
-func (j OrderByTarget) AsStarCountAggregate() (*OrderByStarCountAggregate, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-	if t != OrderByTargetTypeStarCountAggregate {
-		return nil, fmt.Errorf("invalid OrderByTarget type; expected: %s, got: %s", OrderByTargetTypeStarCountAggregate, t)
-	}
-
-	p, err := j.getPath()
-	if err != nil {
-		return nil, err
-	}
-	return &OrderByStarCountAggregate{
-		Type: t,
-		Path: p,
+		Aggregate: aggregate,
 	}, nil
 }
 
@@ -2984,10 +2966,8 @@ func (j OrderByTarget) InterfaceT() (OrderByTargetEncoder, error) {
 	switch t {
 	case OrderByTargetTypeColumn:
 		return j.AsColumn()
-	case OrderByTargetTypeSingleColumnAggregate:
-		return j.AsSingleColumnAggregate()
-	case OrderByTargetTypeStarCountAggregate:
-		return j.AsStarCountAggregate()
+	case OrderByTargetTypeAggregate:
+		return j.AsAggregate()
 	default:
 		return nil, fmt.Errorf("invalid OrderByTarget type: %s", t)
 	}
@@ -3007,21 +2987,24 @@ type OrderByColumn struct {
 	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
 	// Any field path to a nested field within the column
 	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
+	// Arguments to satisfy the column specified by 'name'
+	Arguments map[string]Argument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"arguments"`
 }
 
 // NewOrderByColumn creates an OrderByColumn instance.
-func NewOrderByColumn(name string, path []PathElement, fieldPath []string) *OrderByColumn {
+func NewOrderByColumn(name string, path []PathElement, arguments map[string]Argument, fieldPath []string) *OrderByColumn {
 	return &OrderByColumn{
 		Type:      OrderByTargetTypeColumn,
 		Name:      name,
 		FieldPath: fieldPath,
 		Path:      path,
+		Arguments: arguments,
 	}
 }
 
 // NewOrderByColumnName creates an OrderByColumn instance with column name only.
 func NewOrderByColumnName(name string) *OrderByColumn {
-	return NewOrderByColumn(name, []PathElement{}, nil)
+	return NewOrderByColumn(name, []PathElement{}, nil, nil)
 }
 
 // Encode converts the instance to raw OrderByTarget.
@@ -3031,77 +3014,47 @@ func (ob OrderByColumn) Encode() OrderByTarget {
 		"name": ob.Name,
 		"path": ob.Path,
 	}
+
 	if ob.FieldPath != nil {
 		result["field_path"] = ob.FieldPath
 	}
+
+	if ob.Arguments != nil {
+		result["arguments"] = ob.Arguments
+	}
+
 	return result
 }
 
-// OrderBySingleColumnAggregate An ordering of type [single_column_aggregate] orders rows by an aggregate computed over rows in some related collection.
-// If the respective aggregates are incomparable, the ordering should continue to the next OrderByElement.
-//
-// [single_column_aggregate]: https://hasura.github.io/ndc-spec/specification/queries/sorting.html#type-single_column_aggregate
-type OrderBySingleColumnAggregate struct {
+// OrderByAggregate The ordering is performed over the result of an aggregation.
+// Only used if the 'relationships.order_by_aggregate' capability is supported.
+type OrderByAggregate struct {
 	Type OrderByTargetType `json:"type" yaml:"name" mapstructure:"type"`
-	// The column to apply the aggregation function to
-	Column string `json:"column" yaml:"column" mapstructure:"column"`
-	// Single column aggregate function name.
-	Function string `json:"function" yaml:"function" mapstructure:"function"`
-	// Non-empty collection of relationships to traverse
+	// The aggregation method to use.
+	Aggregate Aggregate `json:"aggregate" yaml:"aggregate" mapstructure:"aggregate"`
+	// Non-empty collection of relationships to traverse. Only non-empty if the 'relationships' capability is supported.
+	// 'PathElement.field_path' will only be non-empty if the 'relationships.nested.ordering' capability is supported.
 	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
-	// Path to a nested field within an object column.
-	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
 }
 
-// NewOrderBySingleColumnAggregate creates an OrderBySingleColumnAggregate instance.
-func NewOrderBySingleColumnAggregate(column string, function string, path []PathElement, fieldPath []string) *OrderBySingleColumnAggregate {
-	return &OrderBySingleColumnAggregate{
-		Type:      OrderByTargetTypeSingleColumnAggregate,
-		Column:    column,
-		Function:  function,
+// NewOrderByAggregate creates an OrderByAggregate instance.
+func NewOrderByAggregate(aggregate AggregateEncoder, path []PathElement) *OrderByAggregate {
+	return &OrderByAggregate{
+		Type:      OrderByTargetTypeAggregate,
+		Aggregate: aggregate.Encode(),
 		Path:      path,
-		FieldPath: fieldPath,
 	}
 }
 
 // Encode converts the instance to raw OrderByTarget.
-func (ob OrderBySingleColumnAggregate) Encode() OrderByTarget {
+func (ob OrderByAggregate) Encode() OrderByTarget {
 	result := OrderByTarget{
-		"type":     ob.Type,
-		"column":   ob.Column,
-		"function": ob.Function,
-		"path":     ob.Path,
+		"type":      ob.Type,
+		"aggregate": ob.Aggregate,
+		"path":      ob.Path,
 	}
-	if ob.FieldPath != nil {
-		result["field_path"] = ob.FieldPath
-	}
+
 	return result
-}
-
-// OrderByStarCountAggregate An ordering of type [star_count_aggregate] orders rows by a count of rows in some related collection.
-// If the respective aggregates are incomparable, the ordering should continue to the next OrderByElement.
-//
-// [star_count_aggregate]: https://hasura.github.io/ndc-spec/specification/queries/sorting.html#type-star_count_aggregate
-type OrderByStarCountAggregate struct {
-	Type OrderByTargetType `json:"type" yaml:"type" mapstructure:"type"`
-	// Non-empty collection of relationships to traverse
-	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
-}
-
-// NewOrderByStarCountAggregate creates an OrderByStarCountAggregate instance.
-func NewOrderByStarCountAggregate(path []PathElement) *OrderByStarCountAggregate {
-	return &OrderByStarCountAggregate{
-		Type: OrderByTargetTypeStarCountAggregate,
-		Path: path,
-	}
-}
-
-// Encode converts the instance to raw OrderByTarget.
-func (ob OrderByStarCountAggregate) Encode() OrderByTarget {
-	return OrderByTarget{
-		"type": ob.Type,
-		"path": ob.Path,
-	}
 }
 
 // NestedFieldType represents a nested field type enum.

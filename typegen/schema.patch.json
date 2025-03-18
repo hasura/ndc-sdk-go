@@ -295,5 +295,32 @@
     "op": "add",
     "path": "/definitions/QueryCapabilitiesSchemaInfo/properties/aggregates/$ref",
     "value": "#/definitions/AggregateCapabilitiesSchemaInfo"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/LeafCapability/properties",
+    "value": {
+      "delete_this": {
+        "type": "string"
+      }
+    }
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/QueryRequest/properties/query/allOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/QueryRequest/properties/query/$ref",
+    "value": "#/definitions/Query"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/CapabilitySchemaInfo/properties/query/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/CapabilitySchemaInfo/properties/query/$ref",
+    "value": "#/definitions/QueryCapabilitiesSchemaInfo"
   }
 ]

@@ -2110,14 +2110,34 @@ func (j AggregateFunctionDefinitionCustom) Encode() AggregateFunctionDefinition 
 type ComparisonOperatorDefinitionType string
 
 const (
-	ComparisonOperatorDefinitionTypeEqual  ComparisonOperatorDefinitionType = "equal"
-	ComparisonOperatorDefinitionTypeIn     ComparisonOperatorDefinitionType = "in"
-	ComparisonOperatorDefinitionTypeCustom ComparisonOperatorDefinitionType = "custom"
+	ComparisonOperatorDefinitionTypeEqual                 ComparisonOperatorDefinitionType = "equal"
+	ComparisonOperatorDefinitionTypeIn                    ComparisonOperatorDefinitionType = "in"
+	ComparisonOperatorDefinitionTypeLessThan              ComparisonOperatorDefinitionType = "less_than"
+	ComparisonOperatorDefinitionTypeLessThanOrEqual       ComparisonOperatorDefinitionType = "less_than_or_equal"
+	ComparisonOperatorDefinitionTypeGreaterThan           ComparisonOperatorDefinitionType = "greater_than"
+	ComparisonOperatorDefinitionTypeGreaterThanOrEqual    ComparisonOperatorDefinitionType = "greater_than_or_equal"
+	ComparisonOperatorDefinitionTypeContains              ComparisonOperatorDefinitionType = "contains"
+	ComparisonOperatorDefinitionTypeContainsInsensitive   ComparisonOperatorDefinitionType = "contains_insensitive"
+	ComparisonOperatorDefinitionTypeStartsWith            ComparisonOperatorDefinitionType = "starts_with"
+	ComparisonOperatorDefinitionTypeStartsWithInsensitive ComparisonOperatorDefinitionType = "starts_with_insensitive"
+	ComparisonOperatorDefinitionTypeEndsWith              ComparisonOperatorDefinitionType = "ends_with"
+	ComparisonOperatorDefinitionTypeEndsWithInsensitive   ComparisonOperatorDefinitionType = "ends_with_insensitive"
+	ComparisonOperatorDefinitionTypeCustom                ComparisonOperatorDefinitionType = "custom"
 )
 
 var enumValues_ComparisonOperatorDefinitionType = []ComparisonOperatorDefinitionType{
 	ComparisonOperatorDefinitionTypeEqual,
 	ComparisonOperatorDefinitionTypeIn,
+	ComparisonOperatorDefinitionTypeLessThan,
+	ComparisonOperatorDefinitionTypeLessThanOrEqual,
+	ComparisonOperatorDefinitionTypeGreaterThan,
+	ComparisonOperatorDefinitionTypeGreaterThanOrEqual,
+	ComparisonOperatorDefinitionTypeContains,
+	ComparisonOperatorDefinitionTypeContainsInsensitive,
+	ComparisonOperatorDefinitionTypeStartsWith,
+	ComparisonOperatorDefinitionTypeStartsWithInsensitive,
+	ComparisonOperatorDefinitionTypeEndsWith,
+	ComparisonOperatorDefinitionTypeEndsWithInsensitive,
 	ComparisonOperatorDefinitionTypeCustom,
 }
 
@@ -2175,10 +2195,8 @@ func (j *ComparisonOperatorDefinition) UnmarshalJSON(b []byte) error {
 	result := map[string]any{
 		"type": ty,
 	}
-	switch ty {
-	case ComparisonOperatorDefinitionTypeEqual:
-	case ComparisonOperatorDefinitionTypeIn:
-	case ComparisonOperatorDefinitionTypeCustom:
+
+	if ty == ComparisonOperatorDefinitionTypeCustom {
 		rawArgumentType, ok := raw["argument_type"]
 		if !ok {
 			return errors.New("field argument_type in ComparisonOperatorDefinition is required for custom type")
@@ -2189,6 +2207,7 @@ func (j *ComparisonOperatorDefinition) UnmarshalJSON(b []byte) error {
 		}
 		result["argument_type"] = argumentType
 	}
+
 	*j = result
 	return nil
 }
@@ -2223,9 +2242,7 @@ func (j ComparisonOperatorDefinition) AsEqual() (*ComparisonOperatorEqual, error
 		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeEqual, t)
 	}
 
-	return &ComparisonOperatorEqual{
-		Type: t,
-	}, nil
+	return &ComparisonOperatorEqual{}, nil
 }
 
 // AsIn tries to convert the instance to ComparisonOperatorIn type.
@@ -2238,9 +2255,137 @@ func (j ComparisonOperatorDefinition) AsIn() (*ComparisonOperatorIn, error) {
 		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeIn, t)
 	}
 
-	return &ComparisonOperatorIn{
-		Type: t,
-	}, nil
+	return &ComparisonOperatorIn{}, nil
+}
+
+// AsLessThan tries to convert the instance to ComparisonOperatorLessThan type.
+func (j ComparisonOperatorDefinition) AsLessThan() (*ComparisonOperatorLessThan, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != ComparisonOperatorDefinitionTypeLessThan {
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeLessThan, t)
+	}
+
+	return &ComparisonOperatorLessThan{}, nil
+}
+
+// AsLessThanOrEqual tries to convert the instance to ComparisonOperatorLessThanOrEqual type.
+func (j ComparisonOperatorDefinition) AsLessThanOrEqual() (*ComparisonOperatorLessThanOrEqual, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != ComparisonOperatorDefinitionTypeLessThanOrEqual {
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeLessThanOrEqual, t)
+	}
+
+	return &ComparisonOperatorLessThanOrEqual{}, nil
+}
+
+// AsGreaterThan tries to convert the instance to ComparisonOperatorGreaterThan type.
+func (j ComparisonOperatorDefinition) AsGreaterThan() (*ComparisonOperatorGreaterThan, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != ComparisonOperatorDefinitionTypeGreaterThan {
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeGreaterThan, t)
+	}
+
+	return &ComparisonOperatorGreaterThan{}, nil
+}
+
+// AsGreaterThanOrEqual tries to convert the instance to ComparisonOperatorGreaterThanOrEqual type.
+func (j ComparisonOperatorDefinition) AsGreaterThanOrEqual() (*ComparisonOperatorGreaterThanOrEqual, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != ComparisonOperatorDefinitionTypeGreaterThanOrEqual {
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeGreaterThanOrEqual, t)
+	}
+
+	return &ComparisonOperatorGreaterThanOrEqual{}, nil
+}
+
+// AsContains tries to convert the instance to ComparisonOperatorContains type.
+func (j ComparisonOperatorDefinition) AsContains() (*ComparisonOperatorContains, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != ComparisonOperatorDefinitionTypeContains {
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeContains, t)
+	}
+
+	return &ComparisonOperatorContains{}, nil
+}
+
+// AsContainsInsensitive tries to convert the instance to ComparisonOperatorContainsInsensitive type.
+func (j ComparisonOperatorDefinition) AsContainsInsensitive() (*ComparisonOperatorContainsInsensitive, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != ComparisonOperatorDefinitionTypeContainsInsensitive {
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeContainsInsensitive, t)
+	}
+
+	return &ComparisonOperatorContainsInsensitive{}, nil
+}
+
+// AsStartsWith tries to convert the instance to ComparisonOperatorStartsWith type.
+func (j ComparisonOperatorDefinition) AsStartsWith() (*ComparisonOperatorStartsWith, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != ComparisonOperatorDefinitionTypeStartsWith {
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeStartsWith, t)
+	}
+
+	return &ComparisonOperatorStartsWith{}, nil
+}
+
+// AsStartsWithInsensitive tries to convert the instance to ComparisonOperatorStartsWithInsensitive type.
+func (j ComparisonOperatorDefinition) AsStartsWithInsensitive() (*ComparisonOperatorStartsWithInsensitive, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != ComparisonOperatorDefinitionTypeStartsWithInsensitive {
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeStartsWithInsensitive, t)
+	}
+
+	return &ComparisonOperatorStartsWithInsensitive{}, nil
+}
+
+// AsEndsWith tries to convert the instance to ComparisonOperatorEndsWith type.
+func (j ComparisonOperatorDefinition) AsEndsWith() (*ComparisonOperatorEndsWith, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != ComparisonOperatorDefinitionTypeEndsWith {
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeEndsWith, t)
+	}
+
+	return &ComparisonOperatorEndsWith{}, nil
+}
+
+// AsEndsWithInsensitive tries to convert the instance to ComparisonOperatorEndsWithInsensitive type.
+func (j ComparisonOperatorDefinition) AsEndsWithInsensitive() (*ComparisonOperatorEndsWithInsensitive, error) {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+	if t != ComparisonOperatorDefinitionTypeEndsWithInsensitive {
+		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeEndsWithInsensitive, t)
+	}
+
+	return &ComparisonOperatorEndsWithInsensitive{}, nil
 }
 
 // AsCustom tries to convert the instance to ComparisonOperatorIn type.
@@ -2264,7 +2409,6 @@ func (j ComparisonOperatorDefinition) AsCustom() (*ComparisonOperatorCustom, err
 	}
 
 	return &ComparisonOperatorCustom{
-		Type:         t,
 		ArgumentType: arg,
 	}, nil
 }
@@ -2287,6 +2431,26 @@ func (j ComparisonOperatorDefinition) InterfaceT() (ComparisonOperatorDefinition
 		return j.AsEqual()
 	case ComparisonOperatorDefinitionTypeIn:
 		return j.AsIn()
+	case ComparisonOperatorDefinitionTypeLessThan:
+		return j.AsLessThan()
+	case ComparisonOperatorDefinitionTypeLessThanOrEqual:
+		return j.AsLessThanOrEqual()
+	case ComparisonOperatorDefinitionTypeGreaterThan:
+		return j.AsGreaterThan()
+	case ComparisonOperatorDefinitionTypeGreaterThanOrEqual:
+		return j.AsGreaterThanOrEqual()
+	case ComparisonOperatorDefinitionTypeContains:
+		return j.AsContains()
+	case ComparisonOperatorDefinitionTypeContainsInsensitive:
+		return j.AsContainsInsensitive()
+	case ComparisonOperatorDefinitionTypeStartsWith:
+		return j.AsStartsWith()
+	case ComparisonOperatorDefinitionTypeStartsWithInsensitive:
+		return j.AsStartsWithInsensitive()
+	case ComparisonOperatorDefinitionTypeEndsWith:
+		return j.AsEndsWith()
+	case ComparisonOperatorDefinitionTypeEndsWithInsensitive:
+		return j.AsEndsWithInsensitive()
 	case ComparisonOperatorDefinitionTypeCustom:
 		return j.AsCustom()
 	default:
@@ -2300,46 +2464,189 @@ type ComparisonOperatorDefinitionEncoder interface {
 }
 
 // ComparisonOperatorEqual presents an equal comparison operator.
-type ComparisonOperatorEqual struct {
-	Type ComparisonOperatorDefinitionType `json:"type" yaml:"type" mapstructure:"type"`
-}
+type ComparisonOperatorEqual struct{}
 
 // NewComparisonOperatorEqual create a new ComparisonOperatorEqual instance.
 func NewComparisonOperatorEqual() *ComparisonOperatorEqual {
-	return &ComparisonOperatorEqual{
-		Type: ComparisonOperatorDefinitionTypeEqual,
-	}
+	return &ComparisonOperatorEqual{}
 }
 
 // Encode converts the instance to raw ComparisonOperatorDefinition.
 func (ob ComparisonOperatorEqual) Encode() ComparisonOperatorDefinition {
 	return ComparisonOperatorDefinition{
-		"type": ob.Type,
+		"type": ComparisonOperatorDefinitionTypeEqual,
 	}
 }
 
 // ComparisonOperatorIn presents an in comparison operator.
-type ComparisonOperatorIn struct {
-	Type ComparisonOperatorDefinitionType `json:"type" yaml:"type" mapstructure:"type"`
-}
+type ComparisonOperatorIn struct{}
 
 // NewComparisonOperatorIn create a new ComparisonOperatorIn instance.
 func NewComparisonOperatorIn() *ComparisonOperatorIn {
-	return &ComparisonOperatorIn{
-		Type: ComparisonOperatorDefinitionTypeIn,
-	}
+	return &ComparisonOperatorIn{}
 }
 
 // Encode converts the instance to raw ComparisonOperatorDefinition.
 func (ob ComparisonOperatorIn) Encode() ComparisonOperatorDefinition {
 	return ComparisonOperatorDefinition{
-		"type": ob.Type,
+		"type": ComparisonOperatorDefinitionTypeIn,
+	}
+}
+
+// ComparisonOperatorLessThan presents a less_than comparison operator.
+type ComparisonOperatorLessThan struct{}
+
+// NewComparisonOperatorLessThan create a new ComparisonOperatorLessThan instance.
+func NewComparisonOperatorLessThan() *ComparisonOperatorLessThan {
+	return &ComparisonOperatorLessThan{}
+}
+
+// Encode converts the instance to raw ComparisonOperatorDefinition.
+func (ob ComparisonOperatorLessThan) Encode() ComparisonOperatorDefinition {
+	return ComparisonOperatorDefinition{
+		"type": ComparisonOperatorDefinitionTypeLessThan,
+	}
+}
+
+// ComparisonOperatorLessThanOrEqual presents a less_than_or_equal comparison operator.
+type ComparisonOperatorLessThanOrEqual struct {
+	Type ComparisonOperatorDefinitionType `json:"type" yaml:"type" mapstructure:"type"`
+}
+
+// NewComparisonOperatorLessThanOrEqual create a new ComparisonOperatorLessThanOrEqual instance.
+func NewComparisonOperatorLessThanOrEqual() *ComparisonOperatorLessThanOrEqual {
+	return &ComparisonOperatorLessThanOrEqual{}
+}
+
+// Encode converts the instance to raw ComparisonOperatorDefinition.
+func (ob ComparisonOperatorLessThanOrEqual) Encode() ComparisonOperatorDefinition {
+	return ComparisonOperatorDefinition{
+		"type": ComparisonOperatorDefinitionTypeLessThanOrEqual,
+	}
+}
+
+// ComparisonOperatorGreaterThan presents a greater_than comparison operator.
+type ComparisonOperatorGreaterThan struct{}
+
+// NewComparisonOperatorGreaterThan create a new ComparisonOperatorGreaterThan instance.
+func NewComparisonOperatorGreaterThan() *ComparisonOperatorGreaterThan {
+	return &ComparisonOperatorGreaterThan{}
+}
+
+// Encode converts the instance to raw ComparisonOperatorDefinition.
+func (ob ComparisonOperatorGreaterThan) Encode() ComparisonOperatorDefinition {
+	return ComparisonOperatorDefinition{
+		"type": ComparisonOperatorDefinitionTypeGreaterThan,
+	}
+}
+
+// ComparisonOperatorGreaterThanOrEqual presents a greater_than_or_equal comparison operator.
+type ComparisonOperatorGreaterThanOrEqual struct{}
+
+// NewComparisonOperatorGreaterThanOrEqual create a new ComparisonOperatorGreaterThanOrEqual instance.
+func NewComparisonOperatorGreaterThanOrEqual() *ComparisonOperatorGreaterThanOrEqual {
+	return &ComparisonOperatorGreaterThanOrEqual{}
+}
+
+// Encode converts the instance to raw ComparisonOperatorDefinition.
+func (ob ComparisonOperatorGreaterThanOrEqual) Encode() ComparisonOperatorDefinition {
+	return ComparisonOperatorDefinition{
+		"type": ComparisonOperatorDefinitionTypeGreaterThanOrEqual,
+	}
+}
+
+// ComparisonOperatorContains presents a contains comparison operator.
+type ComparisonOperatorContains struct{}
+
+// NewComparisonOperatorContains create a new ComparisonOperatorContains instance.
+func NewComparisonOperatorContains() *ComparisonOperatorContains {
+	return &ComparisonOperatorContains{}
+}
+
+// Encode converts the instance to raw ComparisonOperatorDefinition.
+func (ob ComparisonOperatorContains) Encode() ComparisonOperatorDefinition {
+	return ComparisonOperatorDefinition{
+		"type": ComparisonOperatorDefinitionTypeContains,
+	}
+}
+
+// ComparisonOperatorContainsInsensitive presents a contains_insensitive comparison operator.
+type ComparisonOperatorContainsInsensitive struct{}
+
+// NewComparisonOperatorContainsInsensitive create a new ComparisonOperatorContainsInsensitive instance.
+func NewComparisonOperatorContainsInsensitive() *ComparisonOperatorContainsInsensitive {
+	return &ComparisonOperatorContainsInsensitive{}
+}
+
+// Encode converts the instance to raw ComparisonOperatorDefinition.
+func (ob ComparisonOperatorContainsInsensitive) Encode() ComparisonOperatorDefinition {
+	return ComparisonOperatorDefinition{
+		"type": ComparisonOperatorDefinitionTypeContainsInsensitive,
+	}
+}
+
+// ComparisonOperatorStartsWith presents a starts_with comparison operator.
+type ComparisonOperatorStartsWith struct{}
+
+// NewComparisonOperatorStartsWith create a new ComparisonOperatorStartsWith instance.
+func NewComparisonOperatorStartsWith() *ComparisonOperatorStartsWith {
+	return &ComparisonOperatorStartsWith{}
+}
+
+// Encode converts the instance to raw ComparisonOperatorDefinition.
+func (ob ComparisonOperatorStartsWith) Encode() ComparisonOperatorDefinition {
+	return ComparisonOperatorDefinition{
+		"type": ComparisonOperatorDefinitionTypeStartsWith,
+	}
+}
+
+// ComparisonOperatorStartsWithInsensitive presents a starts_with_insensitive comparison operator.
+type ComparisonOperatorStartsWithInsensitive struct{}
+
+// NewComparisonOperatorStartsWithInsensitive create a new ComparisonOperatorStartsWith instance.
+func NewComparisonOperatorStartsWithInsensitive() *ComparisonOperatorStartsWithInsensitive {
+	return &ComparisonOperatorStartsWithInsensitive{}
+}
+
+// Encode converts the instance to raw ComparisonOperatorDefinition.
+func (ob ComparisonOperatorStartsWithInsensitive) Encode() ComparisonOperatorDefinition {
+	return ComparisonOperatorDefinition{
+		"type": ComparisonOperatorDefinitionTypeStartsWithInsensitive,
+	}
+}
+
+// ComparisonOperatorEndsWith presents an ends_with comparison operator.
+type ComparisonOperatorEndsWith struct{}
+
+// NewComparisonOperatorEndsWith create a new ComparisonOperatorEndsWith instance.
+func NewComparisonOperatorEndsWith() *ComparisonOperatorEndsWith {
+	return &ComparisonOperatorEndsWith{}
+}
+
+// Encode converts the instance to raw ComparisonOperatorDefinition.
+func (ob ComparisonOperatorEndsWith) Encode() ComparisonOperatorDefinition {
+	return ComparisonOperatorDefinition{
+		"type": ComparisonOperatorDefinitionTypeEndsWith,
+	}
+}
+
+// ComparisonOperatorEndsWithInsensitive presents an ends_with_insensitive comparison operator.
+type ComparisonOperatorEndsWithInsensitive struct{}
+
+// NewComparisonOperatorEndsWithInsensitive create a new ComparisonOperatorEndsWith instance.
+func NewComparisonOperatorEndsWithInsensitive() *ComparisonOperatorEndsWith {
+	return &ComparisonOperatorEndsWith{}
+}
+
+// Encode converts the instance to raw ComparisonOperatorDefinition.
+func (ob ComparisonOperatorEndsWithInsensitive) Encode() ComparisonOperatorDefinition {
+	return ComparisonOperatorDefinition{
+		"type": ComparisonOperatorDefinitionTypeEndsWithInsensitive,
 	}
 }
 
 // ComparisonOperatorCustom presents a custom comparison operator.
 type ComparisonOperatorCustom struct {
-	Type ComparisonOperatorDefinitionType `json:"type" yaml:"type" mapstructure:"type"`
 	// The type of the argument to this operator
 	ArgumentType Type `json:"argument_type" yaml:"argument_type" mapstructure:"argument_type"`
 }
@@ -2347,7 +2654,6 @@ type ComparisonOperatorCustom struct {
 // NewComparisonOperatorCustom create a new ComparisonOperatorCustom instance.
 func NewComparisonOperatorCustom(argumentType TypeEncoder) *ComparisonOperatorCustom {
 	return &ComparisonOperatorCustom{
-		Type:         ComparisonOperatorDefinitionTypeCustom,
 		ArgumentType: argumentType.Encode(),
 	}
 }
@@ -2355,7 +2661,7 @@ func NewComparisonOperatorCustom(argumentType TypeEncoder) *ComparisonOperatorCu
 // Encode converts the instance to raw ComparisonOperatorDefinition.
 func (ob ComparisonOperatorCustom) Encode() ComparisonOperatorDefinition {
 	return ComparisonOperatorDefinition{
-		"type":          ob.Type,
+		"type":          ComparisonOperatorDefinitionTypeCustom,
 		"argument_type": ob.ArgumentType,
 	}
 }
