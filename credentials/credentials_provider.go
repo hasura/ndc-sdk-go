@@ -12,9 +12,7 @@ import (
 
 var errAuthWebhookUriRequired = errors.New("the env var HASURA_CREDENTIALS_PROVIDER_URI must be set and non-empty")
 
-var defaultClient = CredentialClient{
-	httpClient: http.DefaultClient,
-}
+var defaultClient, _ = NewCredentialClient(http.DefaultClient)
 
 // AcquireCredentials calls the credentials provider webhook to get the credentials for the given key.
 // If force_refresh is true, the provider will ignore any cached credentials and fetch new ones.
@@ -79,6 +77,7 @@ func (cc *CredentialClient) AcquireCredentials(key string, forceRefresh bool) (s
 	if err != nil {
 		return "", fmt.Errorf("error making request: %w", err)
 	}
+
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
