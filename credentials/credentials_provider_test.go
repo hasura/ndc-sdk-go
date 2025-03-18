@@ -1,6 +1,7 @@
 package credentials
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -13,7 +14,7 @@ func TestAcquireCredentials(t *testing.T) {
 		// Unset the environment variable
 		os.Unsetenv("HASURA_CREDENTIALS_PROVIDER_URI")
 
-		_, err := AcquireCredentials("key", false)
+		_, err := AcquireCredentials(context.TODO(), "key", false)
 		if err != errAuthWebhookUriRequired {
 			t.Errorf("expected error %v, got %v", errAuthWebhookUriRequired, err)
 		}
@@ -44,7 +45,7 @@ func TestAcquireCredentials(t *testing.T) {
 			os.Setenv("HASURA_CREDENTIALS_PROVIDER_URI", server.URL)
 			os.Setenv("HASURA_CREDENTIALS_PROVIDER_BEARER_TOKEN", bearerToken)
 
-			credentials, err := AcquireCredentials("key", false)
+			credentials, err := AcquireCredentials(context.TODO(), "key", false)
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
@@ -57,7 +58,7 @@ func TestAcquireCredentials(t *testing.T) {
 		t.Run("when the request fails", func(t *testing.T) {
 			os.Setenv("HASURA_CREDENTIALS_PROVIDER_URI", "http://localhost:0000")
 
-			_, err := AcquireCredentials("key", false)
+			_, err := AcquireCredentials(context.TODO(), "key", false)
 			if err == nil {
 				t.Error("expected an error, got nil")
 			}
