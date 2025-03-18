@@ -19,7 +19,9 @@ import (
 
 var errAuthWebhookUriRequired = errors.New("the env var HASURA_CREDENTIALS_PROVIDER_URI must be set and non-empty")
 
-var defaultClient, _ = NewCredentialClient(http.DefaultClient)
+var defaultClient = CredentialClient{
+	httpClient: http.DefaultClient,
+}
 
 var tracer = otel.Tracer("CredentialProvider")
 
