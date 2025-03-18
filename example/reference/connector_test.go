@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/hasura/ndc-sdk-go/connector"
@@ -14,10 +15,12 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-const test_SpecVersion = "v0.1.6"
+const test_SpecVersion = "v0.2.0"
 
 func createTestServer(t *testing.T) *connector.Server[Configuration, State] {
-	server, err := connector.NewServer[Configuration, State](&Connector{}, &connector.ServerOptions{
+	t.Helper()
+
+	server, err := connector.NewServer(&Connector{}, &connector.ServerOptions{
 		Configuration: "{}",
 		InlineConfig:  true,
 	}, connector.WithoutRecovery())
@@ -31,13 +34,47 @@ func createTestServer(t *testing.T) *connector.Server[Configuration, State] {
 }
 
 func fetchTestSample(t *testing.T, uri string) *http.Response {
+	t.Helper()
+
 	res, err := http.Get(uri)
 	if err != nil {
 		t.Errorf("failed to fetch test sample at %s: %s", uri, err)
 		t.FailNow()
 	}
 
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("failed to fetch test sample at %s: %s", uri, res.Status)
+		t.FailNow()
+	}
+
 	return res
+}
+
+func fetchResponseSample[R any](t *testing.T, uri string) *R {
+	t.Helper()
+
+	res, err := http.Get(uri)
+	if err != nil {
+		t.Errorf("failed to fetch test sample at %s: %s", uri, err)
+		t.FailNow()
+	}
+
+	defer res.Body.Close()
+
+	rawBody, err := io.ReadAll(res.Body)
+	assert.NilError(t, err)
+
+	lines := strings.Split(string(rawBody), "\n")
+	if len(lines) < 5 {
+		return nil
+	}
+
+	bodyString := strings.Join(lines[5:], "\n")
+
+	var result R
+	assert.NilError(t, json.Unmarshal([]byte(bodyString), &result))
+
+	return &result
 }
 
 func httpPostJSON(url string, body any) (*http.Response, error) {
@@ -50,6 +87,8 @@ func httpPostJSON(url string, body any) (*http.Response, error) {
 }
 
 func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int, expectedBody B) {
+	t.Helper()
+
 	defer res.Body.Close()
 	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -159,181 +198,156 @@ func TestQuery(t *testing.T) {
 		{
 			name:        "aggregate_function",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/aggregate_function/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/aggregate_function/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/aggregate_function/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "authors_with_article_aggregate",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/authors_with_article_aggregate/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/authors_with_article_aggregate/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/authors_with_article_aggregate/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "authors_with_articles",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/authors_with_articles/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/authors_with_articles/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/authors_with_articles/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "column_count",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/column_count/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/column_count/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/column_count/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "get_max_article",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/get_max_article/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/get_max_article/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/get_max_article/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "get_all_articles",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/get_all_articles/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/get_all_articles/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/get_all_articles/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "get_max_article_id",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/get_max_article_id/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/get_max_article_id/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/get_max_article_id/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "nested_array_select",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/nested_array_select/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/nested_array_select/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/nested_array_select/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "nested_object_select",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/nested_object_select/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/nested_object_select/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/nested_object_select/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "order_by_aggregate",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/order_by_aggregate/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/order_by_aggregate/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/order_by_aggregate/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "order_by_aggregate_function",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/order_by_aggregate_function/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/order_by_aggregate_function/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/order_by_aggregate_function/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "order_by_aggregate_with_predicate",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/order_by_aggregate_with_predicate/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/order_by_aggregate_with_predicate/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/order_by_aggregate_with_predicate/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "order_by_column",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/order_by_column/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/order_by_column/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/order_by_column/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "order_by_relationship",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/order_by_relationship/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/order_by_relationship/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/order_by_relationship/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "pagination",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/pagination/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/pagination/expected.json", test_SpecVersion),
-		},
-		{
-			name:        "predicate_with_array_relationship",
-			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_array_relationship/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_array_relationship/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/pagination/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "predicate_with_eq",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_eq/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_eq/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_eq/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "predicate_with_exists",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_exists/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_exists/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_exists/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "predicate_with_in",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_in/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_in/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_in/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "predicate_with_like",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_like/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_like/expected.json", test_SpecVersion),
-		},
-		{
-			name:        "predicate_with_nondet_in_1",
-			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_nondet_in_1/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_nondet_in_1/expected.json", test_SpecVersion),
-		},
-		{
-			name:        "predicate_with_unrelated_exists",
-			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_unrelated_exists/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_unrelated_exists/expected.json", test_SpecVersion),
-		},
-		{
-			name:        "predicate_with_unrelated_exists_and_relationship",
-			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_unrelated_exists_and_relationship/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_unrelated_exists_and_relationship/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/predicate_with_like/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "star_count",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/star_count/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/star_count/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/star_count/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "table_argument",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "table_argument_aggregate",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_aggregate/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_aggregate/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_aggregate/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "table_argument_exists",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_exists/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_exists/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_exists/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "table_argument_order_by",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_order_by/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_order_by/expected.json", test_SpecVersion),
-		},
-		{
-			name:        "table_argument_predicate",
-			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_predicate/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_predicate/expected.json", test_SpecVersion),
-		},
-		{
-			name:        "table_argument_relationship_1",
-			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_relationship_1/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_relationship_1/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_order_by/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "table_argument_relationship_2",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_relationship_2/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_relationship_2/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_relationship_2/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "table_argument_unrelated_exists",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_unrelated_exists/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_unrelated_exists/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/table_argument_unrelated_exists/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "variables",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/variables/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/variables/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/query/variables/expected.snap", test_SpecVersion),
 		},
 	}
+
+	t.Parallel()
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			req := fetchTestSample(t, tc.requestURL)
-			var expected schema.QueryResponse
+			defer req.Body.Close()
+
+			var expected *schema.QueryResponse
 			var err error
+
 			if len(tc.response) > 0 {
 				err = json.Unmarshal(tc.response, &expected)
 			} else {
-				expectedRes := fetchTestSample(t, tc.responseURL)
-				err = json.NewDecoder(expectedRes.Body).Decode(&expected)
+				expected = fetchResponseSample[schema.QueryResponse](t, tc.responseURL)
 			}
+
 			if err != nil {
 				t.Errorf("failed to decode expected response: %s", err)
 				t.FailNow()
@@ -345,7 +359,7 @@ func TestQuery(t *testing.T) {
 				t.FailNow()
 			}
 
-			assertHTTPResponse[schema.QueryResponse](t, res, http.StatusOK, expected)
+			assertHTTPResponse(t, res, http.StatusOK, expected)
 		})
 	}
 }
@@ -363,31 +377,32 @@ func TestMutation(t *testing.T) {
 		{
 			name:        "upsert_article",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/mutation/upsert_article/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/mutation/upsert_article/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/mutation/upsert_article/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "upsert_article_with_relationship",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/mutation/upsert_article_with_relationship/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/mutation/upsert_article_with_relationship/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/mutation/upsert_article_with_relationship/expected.snap", test_SpecVersion),
 		},
 		{
 			name:        "delete_articles",
 			requestURL:  fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/mutation/delete_articles/request.json", test_SpecVersion),
-			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/mutation/delete_articles/expected.json", test_SpecVersion),
+			responseURL: fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/%s/ndc-reference/tests/mutation/delete_articles/expected.snap", test_SpecVersion),
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			req := fetchTestSample(t, tc.requestURL)
-			var expected schema.MutationResponse
+			var expected *schema.MutationResponse
 			var err error
+
 			if len(tc.response) > 0 {
-				err = json.Unmarshal(tc.response, &expected)
+				err = json.Unmarshal(tc.response, expected)
 			} else {
-				expectedRes := fetchTestSample(t, tc.responseURL)
-				err = json.NewDecoder(expectedRes.Body).Decode(&expected)
+				expected = fetchResponseSample[schema.MutationResponse](t, tc.responseURL)
 			}
+
 			if err != nil {
 				t.Errorf("failed to decode expected response: %s", err)
 				t.FailNow()

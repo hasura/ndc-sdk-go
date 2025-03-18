@@ -5,6 +5,7 @@
     "location": {
       "city": "London",
       "country": "UK",
+      "country_id": 1,
       "campuses": [
         "Mile End",
         "Whitechapel",
@@ -16,7 +17,8 @@
       {
         "first_name": "Peter",
         "last_name": "Landin",
-        "specialities": ["Computer Science", "Education"]
+        "specialities": ["Computer Science", "Education"],
+        "born_country_id": 1
       }
     ],
     "departments": [
@@ -31,6 +33,7 @@
     "location": {
       "city": "Gothenburg",
       "country": "Sweden",
+      "country_id": 2,
       "campuses": ["Johanneberg", "Lindholmen"]
     },
     "staff": [
@@ -41,7 +44,8 @@
           "Computer Science",
           "Functional Programming",
           "Software Testing"
-        ]
+        ],
+        "born_country_id": 2
       },
       {
         "first_name": "Koen",
@@ -50,7 +54,8 @@
           "Computer Science",
           "Functional Programming",
           "Automated Reasoning"
-        ]
+        ],
+        "born_country_id": 2
       }
     ],
     "departments": [
@@ -60,5 +65,28 @@
       "Physics",
       "Industrial and Materials Science"
     ]
+  },
+  {
+    "id": 3,
+    "name": "Stockholm University",
+    "location": {
+      "city": "Stockholm",
+      "country": "Sweden",
+      "country_id": 2,
+      "campuses": ["Frescati", "Kista"]
+    },
+    "staff": [
+      {
+        "first_name": "Jelena",
+        "last_name": "Zdravkovic",
+        "specialities": [
+          "Requirements Engineering",
+          "Enterprise Modeling",
+          "System Analysis"
+        ],
+        "born_country_id": 2
+      }
+    ],
+    "departments": ["Computer and Systems Sciences", "Physics", "Astronomy"]
   }
 ]
