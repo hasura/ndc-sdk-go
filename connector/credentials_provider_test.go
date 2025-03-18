@@ -1,6 +1,5 @@
 package connector
 
-
 import (
 	"fmt"
 	"net/http"

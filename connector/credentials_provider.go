@@ -1,8 +1,8 @@
 package connector
 
 import (
-	"os"
 	"errors"
+	"os"
 
 	"fmt"
 	"io"
