@@ -138,7 +138,6 @@ func (cc *CredentialClient) AcquireCredentials(ctx context.Context, key string, 
 
 	var payload Payload
 	err = json.NewDecoder(resp.Body).Decode(&payload)
-
 	if err != nil {
 		span.SetStatus(codes.Error, "failed to read the response")
 		span.RecordError(err)
