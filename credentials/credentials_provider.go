@@ -2,9 +2,9 @@ package credentials
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -17,7 +17,10 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-var errAuthWebhookUriRequired = errors.New("the env var HASURA_CREDENTIALS_PROVIDER_URI must be set and non-empty")
+var (
+	errAuthWebhookUriRequired = errors.New("the env var HASURA_CREDENTIALS_PROVIDER_URI must be set and non-empty")
+	errEmptyCredentials       = errors.New("empty credentials")
+)
 
 var defaultClient = CredentialClient{
 	httpClient: http.DefaultClient,
@@ -31,6 +34,11 @@ var tracer = otel.Tracer("CredentialProvider")
 // If the HASURA_CREDENTIALS_PROVIDER_BEARER_TOKEN environment variable is set, it will be used as a bearer token for the request.
 func AcquireCredentials(ctx context.Context, key string, forceRefresh bool) (string, error) {
 	return defaultClient.AcquireCredentials(ctx, key, forceRefresh)
+}
+
+// Payload is the credentials provider webhook response payload.
+type Payload struct {
+	Credentials string `json:"credentials"`
 }
 
 // CredentialClient is an HTTP client that  can requests the credentials provider webhook to get the credentials.
@@ -128,7 +136,8 @@ func (cc *CredentialClient) AcquireCredentials(ctx context.Context, key string, 
 
 	span.SetAttributes(attribute.Int("http.response.status_code", resp.StatusCode))
 
-	body, err := io.ReadAll(resp.Body)
+	var payload Payload
+	err = json.NewDecoder(resp.Body).Decode(&payload)
 	if err != nil {
 		span.SetStatus(codes.Error, "failed to read the response")
 		span.RecordError(err)
@@ -136,7 +145,12 @@ func (cc *CredentialClient) AcquireCredentials(ctx context.Context, key string, 
 		return "", fmt.Errorf("error reading response: %w", err)
 	}
 
-	span.SetAttributes(attribute.Int64("http.response.size", int64(len(body))))
+	if payload.Credentials == "" {
+		span.SetStatus(codes.Error, errEmptyCredentials.Error())
+		span.RecordError(err)
 
-	return string(body), nil
+		return "", errEmptyCredentials
+	}
+
+	return payload.Credentials, nil
 }
