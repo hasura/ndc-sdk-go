@@ -18,8 +18,10 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-var errAuthWebhookUriRequired = errors.New("the env var HASURA_CREDENTIALS_PROVIDER_URI must be set and non-empty")
-var errEmptyCredentials = errors.New("empty credentials")
+var (
+	errAuthWebhookUriRequired = errors.New("the env var HASURA_CREDENTIALS_PROVIDER_URI must be set and non-empty")
+	errEmptyCredentials       = errors.New("empty credentials")
+)
 
 var defaultClient = CredentialClient{
 	httpClient: http.DefaultClient,
