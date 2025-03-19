@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -137,23 +136,14 @@ func (cc *CredentialClient) AcquireCredentials(ctx context.Context, key string, 
 
 	span.SetAttributes(attribute.Int("http.response.status_code", resp.StatusCode))
 
-	body, err := io.ReadAll(resp.Body)
+	var payload Payload
+	err = json.NewDecoder(resp.Body).Decode(&payload)
+
 	if err != nil {
 		span.SetStatus(codes.Error, "failed to read the response")
 		span.RecordError(err)
 
 		return "", fmt.Errorf("error reading response: %w", err)
-	}
-
-	span.SetAttributes(attribute.Int64("http.response.size", int64(len(body))))
-
-	var payload Payload
-	err = json.Unmarshal(body, &payload)
-	if err != nil {
-		span.SetStatus(codes.Error, "failed to parse response")
-		span.RecordError(err)
-
-		return "", fmt.Errorf("error parsing response: %w", err)
 	}
 
 	if payload.Credentials == "" {
