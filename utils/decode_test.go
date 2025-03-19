@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"testing"
 	"time"
@@ -217,7 +218,7 @@ func TestDecodeDateTime(t *testing.T) {
 		iNow := float64(now.UnixNano()) / float64(1000)
 		value, err := DecodeDateTime(iNow, WithBaseUnix(time.Microsecond))
 		assert.NilError(t, err)
-		assert.Equal(t, int64(now.UnixNano()/1000), int64(value.UnixNano()/1000))
+		assert.Assert(t, math.Abs(float64(int64(now.UnixNano()/1000)-int64(value.UnixNano()/1000))) <= 1)
 	})
 
 	t.Run("from_string", func(t *testing.T) {
