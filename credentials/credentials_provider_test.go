@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"testing"
+
+	"go.opentelemetry.io/otel"
 )
 
 func TestAcquireCredentials(t *testing.T) {
@@ -36,7 +39,7 @@ func TestAcquireCredentials(t *testing.T) {
 					t.Errorf("expected Authorization=Bearer %s; got %s", bearerToken, r.Header.Get("Authorization"))
 				}
 
-				fmt.Fprint(w, "credentials")
+				fmt.Fprint(w, "{ \"credentials\": \"api-key\" }")
 			}))
 
 			defer server.Close()
@@ -44,18 +47,20 @@ func TestAcquireCredentials(t *testing.T) {
 			// Set the environment variable
 			os.Setenv("HASURA_CREDENTIALS_PROVIDER_URI", server.URL)
 			os.Setenv("HASURA_CREDENTIALS_PROVIDER_BEARER_TOKEN", bearerToken)
+			defer os.Unsetenv("HASURA_CREDENTIALS_PROVIDER_URI")
+			defer os.Unsetenv("HASURA_CREDENTIALS_PROVIDER_BEARER_TOKEN")
 
 			credentials, err := AcquireCredentials(context.TODO(), "key", false)
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
 
-			if credentials != "credentials" {
-				t.Errorf("expected credentials to be 'credentials', got '%s'", credentials)
+			if credentials != "api-key" {
+				t.Errorf("expected credentials to be 'api-key', got '%s'", credentials)
 			}
 		})
 
-		t.Run("when the request fails", func(t *testing.T) {
+		t.Run("when the server does not exist", func(t *testing.T) {
 			os.Setenv("HASURA_CREDENTIALS_PROVIDER_URI", "http://localhost:0000")
 
 			_, err := AcquireCredentials(context.TODO(), "key", false)
@@ -63,5 +68,29 @@ func TestAcquireCredentials(t *testing.T) {
 				t.Error("expected an error, got nil")
 			}
 		})
+	})
+
+	t.Run("when the response does not have credentials", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, "{}")
+		}))
+
+		defer server.Close()
+
+		serverUri, err := url.Parse(server.URL)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		client := &CredentialClient{
+			providerUri: serverUri,
+			httpClient:  server.Client(),
+			propagator:  otel.GetTextMapPropagator(),
+		}
+
+		_, err = client.AcquireCredentials(context.TODO(), "key", false)
+		if err != errEmptyCredentials {
+			t.Errorf("expected an empty credentails error, got: %s\n", err)
+		}
 	})
 }

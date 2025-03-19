@@ -2,6 +2,7 @@ package credentials
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -18,6 +19,7 @@ import (
 )
 
 var errAuthWebhookUriRequired = errors.New("the env var HASURA_CREDENTIALS_PROVIDER_URI must be set and non-empty")
+var errEmptyCredentials = errors.New("empty credentials")
 
 var defaultClient = CredentialClient{
 	httpClient: http.DefaultClient,
@@ -31,6 +33,11 @@ var tracer = otel.Tracer("CredentialProvider")
 // If the HASURA_CREDENTIALS_PROVIDER_BEARER_TOKEN environment variable is set, it will be used as a bearer token for the request.
 func AcquireCredentials(ctx context.Context, key string, forceRefresh bool) (string, error) {
 	return defaultClient.AcquireCredentials(ctx, key, forceRefresh)
+}
+
+// Payload is the credentials provider webhook response payload.
+type Payload struct {
+	Credentials string `json:"credentials"`
 }
 
 // CredentialClient is an HTTP client that  can requests the credentials provider webhook to get the credentials.
@@ -138,5 +145,21 @@ func (cc *CredentialClient) AcquireCredentials(ctx context.Context, key string, 
 
 	span.SetAttributes(attribute.Int64("http.response.size", int64(len(body))))
 
-	return string(body), nil
+	var payload Payload
+	err = json.Unmarshal(body, &payload)
+	if err != nil {
+		span.SetStatus(codes.Error, "failed to parse response")
+		span.RecordError(err)
+
+		return "", fmt.Errorf("error parsing response: %w", err)
+	}
+
+	if payload.Credentials == "" {
+		span.SetStatus(codes.Error, errEmptyCredentials.Error())
+		span.RecordError(err)
+
+		return "", errEmptyCredentials
+	}
+
+	return payload.Credentials, nil
 }
