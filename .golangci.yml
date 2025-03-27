@@ -8,7 +8,6 @@ linters:
     - gocognit
     - godot
     - nestif
-    - gomnd
     - funlen
     - gomoddirectives
     - depguard
@@ -34,7 +33,7 @@ linters:
     - noctx
     - tagalign
     - gochecknoinits
-    - execinquery
+    - exportloopref
     - recvcheck
 issues:
   exclude-files:

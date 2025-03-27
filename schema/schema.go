@@ -5,6 +5,9 @@ import (
 	"fmt"
 )
 
+// SchemaVersion holds the current supported version of the NDC Go SDK.
+const SchemaVersion = "0.2.0"
+
 // SchemaResponseMarshaler abstract the response for /schema handler.
 type SchemaResponseMarshaler interface {
 	MarshalSchemaJSON() ([]byte, error)

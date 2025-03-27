@@ -201,37 +201,48 @@ func evalObjectWithColumnSelection(fields map[string]schema.Field, data map[stri
 }
 
 // ResolveArgumentVariables resolve variables in arguments if exist.
+// Deprecated: use ResolveArguments instead.
 func ResolveArgumentVariables(arguments map[string]schema.Argument, variables map[string]any) (map[string]any, error) {
+	return ResolveArguments(arguments, variables)
+}
+
+// ResolveArguments resolve variables into request arguments if exist.
+func ResolveArguments(arguments map[string]schema.Argument, variables map[string]any) (map[string]any, error) {
 	results := make(map[string]any)
 	for key, argument := range arguments {
-		argT, err := argument.InterfaceT()
-		switch arg := argT.(type) {
-		case *schema.ArgumentLiteral:
-			results[key] = arg.Value
-		case *schema.ArgumentVariable:
-			value, ok := variables[arg.Name]
-			if !ok {
-				return nil, &schema.ErrorResponse{
-					Message: "failed to resolve argument",
-					Details: map[string]any{
-						"reason": fmt.Sprintf("variable %s not found", arg.Name),
-						"path":   "." + key,
-					},
-				}
-			}
-			results[key] = value
-		default:
-			return nil, &schema.ErrorResponse{
-				Message: "failed to resolve argument",
-				Details: map[string]any{
-					"reason": err.Error(),
-					"path":   "." + key,
-				},
-			}
+		value, err := ResolveArgument(argument, variables)
+		if err != nil {
+			return nil, schema.UnprocessableContentError(fmt.Sprintf("failed to resolve argument %s: %s", key, err), map[string]any{
+				"path": "." + key,
+			})
 		}
+
+		results[key] = value
 	}
 
 	return results, nil
+}
+
+// ResolveArgument resolve variables into the argument if exist.
+func ResolveArgument(argument schema.Argument, variables map[string]any) (any, error) {
+	argT, err := argument.InterfaceT()
+	if err != nil {
+		return nil, err
+	}
+
+	switch arg := argT.(type) {
+	case *schema.ArgumentLiteral:
+		return arg.Value, nil
+	case *schema.ArgumentVariable:
+		value, ok := variables[arg.Name]
+		if !ok {
+			return nil, fmt.Errorf("variable `%s` does not exist", arg.Name)
+		}
+
+		return value, nil
+	default:
+		return nil, fmt.Errorf("unsupported argument type: %+v", arg)
+	}
 }
 
 // EvalFunctionSelectionFieldValue evaluates the __value field in a function query

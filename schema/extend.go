@@ -55,31 +55,11 @@ func (j *ArgumentType) UnmarshalJSON(b []byte) error {
 }
 
 // Argument is provided by reference to a variable or as a literal value
-//
-// TODO: may change Argument to a generic map in the future.
-type Argument struct {
-	Type  ArgumentType `json:"type" yaml:"type" mapstructure:"type"`
-	Name  string       `json:"name" yaml:"name" mapstructure:"name"`
-	Value any          `json:"value" yaml:"value" mapstructure:"value"`
-}
+type Argument map[string]any
 
 // ArgumentEncoder abstracts the interface for Argument.
 type ArgumentEncoder interface {
 	Encode() Argument
-}
-
-// MarshalJSON implements json.Marshaler.
-func (j Argument) MarshalJSON() ([]byte, error) {
-	result := map[string]any{
-		"type": j.Type,
-	}
-	switch j.Type {
-	case ArgumentTypeLiteral:
-		result["value"] = j.Value
-	case ArgumentTypeVariable:
-		result["name"] = j.Name
-	}
-	return json.Marshal(result)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -103,16 +83,16 @@ func (j *Argument) UnmarshalJSON(b []byte) error {
 		return fmt.Errorf("field type in Argument: %w", err)
 	}
 
-	arg := Argument{
-		Type: argumentType,
+	arg := map[string]any{
+		"type": argumentType,
 	}
 
-	switch arg.Type {
+	switch argumentType {
 	case ArgumentTypeLiteral:
 		if value, ok := raw["value"]; !ok {
 			return errors.New("field value in Argument is required for literal type")
 		} else {
-			arg.Value = value
+			arg["value"] = value
 		}
 	case ArgumentTypeVariable:
 		name, err := getStringValueByKey(raw, "name")
@@ -124,32 +104,74 @@ func (j *Argument) UnmarshalJSON(b []byte) error {
 			return errors.New("field name in Argument is required for variable type")
 		}
 
-		arg.Name = name
+		arg["name"] = name
 	}
 
 	*j = arg
 	return nil
 }
 
+// Type gets the type enum of the current type.
+func (j Argument) Type() (ArgumentType, error) {
+	t, ok := j["type"]
+	if !ok {
+		return ArgumentType(""), errTypeRequired
+	}
+	switch raw := t.(type) {
+	case string:
+		v, err := ParseArgumentType(raw)
+		if err != nil {
+			return ArgumentType(""), err
+		}
+		return v, nil
+	case ArgumentType:
+		return raw, nil
+	default:
+		return ArgumentType(""), fmt.Errorf("invalid Field type: %+v", t)
+	}
+}
+
 // AsLiteral converts the instance to ArgumentLiteral.
 func (j Argument) AsLiteral() (*ArgumentLiteral, error) {
-	if j.Type != ArgumentTypeLiteral {
-		return nil, fmt.Errorf("invalid ArgumentLiteral type; expected: %s, got: %s", ArgumentTypeLiteral, j.Type)
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
 	}
+
+	if t != ArgumentTypeLiteral {
+		return nil, fmt.Errorf("invalid ArgumentLiteral type; expected: %s, got: %s", ArgumentTypeLiteral, t)
+	}
+	value := j["value"]
+
 	return &ArgumentLiteral{
-		Type:  j.Type,
-		Value: j.Value,
+		Type:  t,
+		Value: value,
 	}, nil
 }
 
 // AsVariable converts the instance to ArgumentVariable.
 func (j Argument) AsVariable() (*ArgumentVariable, error) {
-	if j.Type != ArgumentTypeVariable {
-		return nil, fmt.Errorf("invalid ArgumentVariable type; expected: %s, got: %s", ArgumentTypeVariable, j.Type)
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
 	}
+
+	if t != ArgumentTypeVariable {
+		return nil, fmt.Errorf("invalid ArgumentVariable type; expected: %s, got: %s", ArgumentTypeVariable, t)
+	}
+
+	name, err := getStringValueByKey(j, "name")
+	if err != nil {
+		return nil, fmt.Errorf("ArgumentVariable.name: %w", err)
+	}
+
+	if name == "" {
+		return nil, errors.New("ArgumentVariable.name is required")
+	}
+
 	return &ArgumentVariable{
-		Type: j.Type,
-		Name: j.Name,
+		Type: t,
+		Name: name,
 	}, nil
 }
 
@@ -161,13 +183,18 @@ func (j Argument) Interface() ArgumentEncoder {
 
 // InterfaceT converts the comparison value to its generic interface safely with explicit error.
 func (j Argument) InterfaceT() (ArgumentEncoder, error) {
-	switch j.Type {
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+
+	switch t {
 	case ArgumentTypeLiteral:
 		return j.AsLiteral()
 	case ArgumentTypeVariable:
 		return j.AsVariable()
 	default:
-		return nil, fmt.Errorf("invalid Argument type: %s", j.Type)
+		return nil, err
 	}
 }
 
@@ -188,8 +215,8 @@ func NewArgumentLiteral(value any) *ArgumentLiteral {
 // Encode converts the instance to raw Field.
 func (j ArgumentLiteral) Encode() Argument {
 	return Argument{
-		Type:  j.Type,
-		Value: j.Value,
+		"type":  j.Type,
+		"value": j.Value,
 	}
 }
 
@@ -210,8 +237,8 @@ func NewArgumentVariable(name string) *ArgumentVariable {
 // Encode converts the instance to raw Field.
 func (j ArgumentVariable) Encode() Argument {
 	return Argument{
-		Type: j.Type,
-		Name: j.Name,
+		"type": j.Type,
+		"name": j.Name,
 	}
 }
 
@@ -260,14 +287,8 @@ func (j *RelationshipArgumentType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// RelationshipArgument is provided by reference to a variable or as a literal value
-//
-// TODO: may change RelationshipArgument to a generic map in the future.
-type RelationshipArgument struct {
-	Type  RelationshipArgumentType `json:"type" yaml:"type" mapstructure:"type"`
-	Name  string                   `json:"name" yaml:"name" mapstructure:"name"`
-	Value any                      `json:"value" yaml:"value" mapstructure:"value"`
-}
+// RelationshipArgument is provided by reference to a variable or as a literal value.
+type RelationshipArgument map[string]any
 
 // RelationshipArgumentEncoder abstracts the interface for RelationshipArgument.
 type RelationshipArgumentEncoder interface {
@@ -295,16 +316,16 @@ func (j *RelationshipArgument) UnmarshalJSON(b []byte) error {
 		return fmt.Errorf("field type in Argument: %w", err)
 	}
 
-	arg := RelationshipArgument{
-		Type: argumentType,
+	result := map[string]any{
+		"type": argumentType,
 	}
 
-	switch arg.Type {
+	switch argumentType {
 	case RelationshipArgumentTypeLiteral:
 		if value, ok := raw["value"]; !ok {
 			return errors.New("field value in Argument is required for literal type")
 		} else {
-			arg.Value = value
+			result["value"] = value
 		}
 	default:
 		name, err := getStringValueByKey(raw, "name")
@@ -316,44 +337,101 @@ func (j *RelationshipArgument) UnmarshalJSON(b []byte) error {
 			return fmt.Errorf("field name in Argument is required for %s type", rawArgumentType)
 		}
 
-		arg.Name = name
+		result["name"] = name
 	}
 
-	*j = arg
+	*j = result
 
 	return nil
 }
 
+// Type gets the type enum of the current type.
+func (j RelationshipArgument) Type() (RelationshipArgumentType, error) {
+	t, ok := j["type"]
+	if !ok {
+		return RelationshipArgumentType(""), errTypeRequired
+	}
+	switch raw := t.(type) {
+	case string:
+		v, err := ParseRelationshipArgumentType(raw)
+		if err != nil {
+			return RelationshipArgumentType(""), err
+		}
+		return v, nil
+	case RelationshipArgumentType:
+		return raw, nil
+	default:
+		return RelationshipArgumentType(""), fmt.Errorf("invalid Field type: %+v", t)
+	}
+}
+
 // AsLiteral converts the instance to RelationshipArgumentLiteral.
 func (j RelationshipArgument) AsLiteral() (*RelationshipArgumentLiteral, error) {
-	if j.Type != RelationshipArgumentTypeLiteral {
-		return nil, fmt.Errorf("invalid RelationshipArgumentLiteral type; expected: %s, got: %s", RelationshipArgumentTypeLiteral, j.Type)
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
 	}
+
+	if t != RelationshipArgumentTypeLiteral {
+		return nil, fmt.Errorf("invalid RelationshipArgumentLiteral type; expected: %s, got: %s", RelationshipArgumentTypeLiteral, t)
+	}
+
+	value := j["value"]
+
 	return &RelationshipArgumentLiteral{
-		Type:  j.Type,
-		Value: j.Value,
+		Type:  t,
+		Value: value,
 	}, nil
 }
 
 // AsVariable converts the instance to RelationshipArgumentVariable.
 func (j RelationshipArgument) AsVariable() (*RelationshipArgumentVariable, error) {
-	if j.Type != RelationshipArgumentTypeVariable {
-		return nil, fmt.Errorf("invalid RelationshipArgumentVariable type; expected: %s, got: %s", RelationshipArgumentTypeVariable, j.Type)
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
+	}
+
+	if t != RelationshipArgumentTypeVariable {
+		return nil, fmt.Errorf("invalid RelationshipArgumentVariable type; expected: %s, got: %s", RelationshipArgumentTypeVariable, t)
+	}
+
+	name, err := getStringValueByKey(j, "name")
+	if err != nil {
+		return nil, fmt.Errorf("RelationshipArgumentVariable.name, %w", err)
+	}
+
+	if name == "" {
+		return nil, errors.New("RelationshipArgumentVariable.name is required")
 	}
 	return &RelationshipArgumentVariable{
-		Type: j.Type,
-		Name: j.Name,
+		Type: t,
+		Name: name,
 	}, nil
 }
 
 // AsColumn converts the instance to RelationshipArgumentColumn.
 func (j RelationshipArgument) AsColumn() (*RelationshipArgumentColumn, error) {
-	if j.Type != RelationshipArgumentTypeColumn {
-		return nil, fmt.Errorf("invalid RelationshipArgumentTypeColumn type; expected: %s, got: %s", RelationshipArgumentTypeColumn, j.Type)
+	t, err := j.Type()
+	if err != nil {
+		return nil, err
 	}
+
+	if t != RelationshipArgumentTypeColumn {
+		return nil, fmt.Errorf("invalid RelationshipArgumentTypeColumn type; expected: %s, got: %s", RelationshipArgumentTypeColumn, t)
+	}
+
+	name, err := getStringValueByKey(j, "name")
+	if err != nil {
+		return nil, fmt.Errorf("RelationshipArgumentColumn.name: %w", err)
+	}
+
+	if name == "" {
+		return nil, errors.New("RelationshipArgumentColumn.name is required")
+	}
+
 	return &RelationshipArgumentColumn{
-		Type: j.Type,
-		Name: j.Name,
+		Type: t,
+		Name: name,
 	}, nil
 }
 
@@ -365,7 +443,8 @@ func (j RelationshipArgument) Interface() RelationshipArgumentEncoder {
 
 // InterfaceT converts the comparison value to its generic interface safely with explicit error.
 func (j RelationshipArgument) InterfaceT() (RelationshipArgumentEncoder, error) {
-	switch j.Type {
+	ty, err := j.Type()
+	switch ty {
 	case RelationshipArgumentTypeLiteral:
 		return j.AsLiteral()
 	case RelationshipArgumentTypeVariable:
@@ -373,7 +452,7 @@ func (j RelationshipArgument) InterfaceT() (RelationshipArgumentEncoder, error) 
 	case RelationshipArgumentTypeColumn:
 		return j.AsColumn()
 	default:
-		return nil, fmt.Errorf("invalid RelationshipArgument type: %s", j.Type)
+		return nil, err
 	}
 }
 
@@ -394,8 +473,8 @@ func NewRelationshipArgumentLiteral(value any) *RelationshipArgumentLiteral {
 // Encode converts the instance to raw Field.
 func (j RelationshipArgumentLiteral) Encode() RelationshipArgument {
 	return RelationshipArgument{
-		Type:  j.Type,
-		Value: j.Value,
+		"type":  j.Type,
+		"value": j.Value,
 	}
 }
 
@@ -416,8 +495,8 @@ func NewRelationshipArgumentColumn(name string) *RelationshipArgumentColumn {
 // Encode converts the instance to raw Field.
 func (j RelationshipArgumentColumn) Encode() RelationshipArgument {
 	return RelationshipArgument{
-		Type: j.Type,
-		Name: j.Name,
+		"type": j.Type,
+		"name": j.Name,
 	}
 }
 
@@ -438,8 +517,8 @@ func NewRelationshipArgumentVariable(name string) *RelationshipArgumentVariable 
 // Encode converts the instance to raw Field.
 func (j RelationshipArgumentVariable) Encode() RelationshipArgument {
 	return RelationshipArgument{
-		Type: j.Type,
-		Name: j.Name,
+		"type": j.Type,
+		"name": j.Name,
 	}
 }
 
@@ -881,7 +960,7 @@ var enumValues_ExpressionType = []ExpressionType{
 	ExpressionTypeExists,
 }
 
-// ParseExpressionType parses a comparison target type argument type from string.
+// ParseExpressionType parses an expression type argument type from string.
 func ParseExpressionType(input string) (ExpressionType, error) {
 	result := ExpressionType(input)
 	if !result.IsValid() {
@@ -2612,15 +2691,13 @@ func NewAggregateColumnCount(column string, distinct bool, fieldPath []string) *
 type OrderByTargetType string
 
 const (
-	OrderByTargetTypeColumn                OrderByTargetType = "column"
-	OrderByTargetTypeSingleColumnAggregate OrderByTargetType = "single_column_aggregate"
-	OrderByTargetTypeStarCountAggregate    OrderByTargetType = "star_count_aggregate"
+	OrderByTargetTypeColumn    OrderByTargetType = "column"
+	OrderByTargetTypeAggregate OrderByTargetType = "aggregate"
 )
 
 var enumValues_OrderByTargetType = []OrderByTargetType{
 	OrderByTargetTypeColumn,
-	OrderByTargetTypeSingleColumnAggregate,
-	OrderByTargetTypeStarCountAggregate,
+	OrderByTargetTypeAggregate,
 }
 
 // ParseOrderByTargetType parses a ordering target type argument type from string.
@@ -2684,22 +2761,12 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 	if !ok {
 		return fmt.Errorf("field path in OrderByTarget is required for `%s` type", ty)
 	}
+
 	var pathElem []PathElement
 	if err := json.Unmarshal(rawPath, &pathElem); err != nil {
 		return fmt.Errorf("field path in OrderByTarget: %w", err)
 	}
 	result["path"] = pathElem
-
-	if ty == OrderByTargetTypeColumn || ty == OrderByTargetTypeSingleColumnAggregate {
-		rawFieldPath, ok := raw["field_path"]
-		var fieldPath []string
-		if ok {
-			if err := json.Unmarshal(rawFieldPath, &fieldPath); err != nil {
-				return fmt.Errorf("field field_path in OrderByTarget: %w", err)
-			}
-			result["field_path"] = fieldPath
-		}
-	}
 
 	switch ty {
 	case OrderByTargetTypeColumn:
@@ -2707,35 +2774,52 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 		if !ok {
 			return errors.New("field name in OrderByTarget is required for column type")
 		}
+
 		var name string
+
 		if err := json.Unmarshal(rawName, &name); err != nil {
 			return fmt.Errorf("field name in OrderByTarget: %w", err)
 		}
+
 		result["name"] = name
 
-	case OrderByTargetTypeSingleColumnAggregate:
-		rawColumn, ok := raw["column"]
-		if !ok {
-			return errors.New("field column in OrderByTarget is required for single_column_aggregate type")
-		}
-		var column string
-		if err := json.Unmarshal(rawColumn, &column); err != nil {
-			return fmt.Errorf("field column in OrderByTarget: %w", err)
-		}
-		result["column"] = column
+		rawFieldPath, ok := raw["field_path"]
+		if ok {
+			var fieldPath []string
 
-		rawFunction, ok := raw["function"]
+			if err := json.Unmarshal(rawFieldPath, &fieldPath); err != nil {
+				return fmt.Errorf("field field_path in OrderByTarget: %w", err)
+			}
+
+			result["field_path"] = fieldPath
+		}
+
+		rawArguments, ok := raw["arguments"]
+		if ok {
+			var arguments map[string]Argument
+
+			if err := json.Unmarshal(rawArguments, &arguments); err != nil {
+				return fmt.Errorf("field arguments in OrderByTarget: %w", err)
+			}
+
+			result["arguments"] = arguments
+		}
+	case OrderByTargetTypeAggregate:
+		rawAggregate, ok := raw["aggregate"]
 		if !ok {
-			return errors.New("field function in OrderByTarget is required for single_column_aggregate type")
+			return errors.New("field aggregate in OrderByTarget is required for the aggregate type")
 		}
-		var function string
-		if err := json.Unmarshal(rawFunction, &function); err != nil {
-			return fmt.Errorf("field function in OrderByTarget: %w", err)
+
+		var aggregate Aggregate
+		if err := json.Unmarshal(rawAggregate, &aggregate); err != nil {
+			return fmt.Errorf("field aggregate in OrderByTarget: %w", err)
 		}
-		result["function"] = function
-	case OrderByTargetTypeStarCountAggregate:
+
+		result["aggregate"] = aggregate
 	}
+
 	*j = result
+
 	return nil
 }
 
@@ -2813,41 +2897,35 @@ func (j OrderByTarget) AsColumn() (*OrderByColumn, error) {
 		return nil, err
 	}
 
-	return &OrderByColumn{
+	result := &OrderByColumn{
 		Type:      t,
 		Name:      name,
 		Path:      p,
 		FieldPath: fieldPath,
-	}, nil
+	}
+
+	rawArguments, ok := j["arguments"]
+	if ok {
+		arguments, ok := rawArguments.(map[string]Argument)
+		if !ok {
+			return nil, fmt.Errorf("invalid OrderByTarget aggregate; expected map, got %v", rawArguments)
+		}
+
+		result.Arguments = arguments
+	}
+
+	return result, nil
 }
 
-// AsSingleColumnAggregate tries to convert the instance to OrderBySingleColumnAggregate type.
-func (j OrderByTarget) AsSingleColumnAggregate() (*OrderBySingleColumnAggregate, error) {
+// AsAggregate tries to convert the instance to OrderByAggregate type.
+func (j OrderByTarget) AsAggregate() (*OrderByAggregate, error) {
 	t, err := j.Type()
 	if err != nil {
 		return nil, err
 	}
 
-	if t != OrderByTargetTypeSingleColumnAggregate {
-		return nil, fmt.Errorf("invalid OrderByTarget type; expected: %s, got: %s", OrderByTargetTypeSingleColumnAggregate, t)
-	}
-
-	column, err := getStringValueByKey(j, "column")
-	if err != nil {
-		return nil, fmt.Errorf("OrderBySingleColumnAggregate.column: %w", err)
-	}
-
-	if column == "" {
-		return nil, errors.New("OrderBySingleColumnAggregate.column is required")
-	}
-
-	function, err := getStringValueByKey(j, "function")
-	if function == "" {
-		return nil, fmt.Errorf("OrderBySingleColumnAggregate.function: %w", err)
-	}
-
-	if function == "" {
-		return nil, errors.New("OrderBySingleColumnAggregate.function is required")
+	if t != OrderByTargetTypeAggregate {
+		return nil, fmt.Errorf("invalid OrderByTarget type; expected: %s, got: %s", OrderByTargetTypeAggregate, t)
 	}
 
 	p, err := j.getPath()
@@ -2855,37 +2933,20 @@ func (j OrderByTarget) AsSingleColumnAggregate() (*OrderBySingleColumnAggregate,
 		return nil, err
 	}
 
-	fieldPath, err := j.getFieldPath()
-	if err != nil {
-		return nil, err
+	rawAggregate, ok := j["aggregate"]
+	if !ok {
+		return nil, errors.New("invalid OrderByTarget aggregate; aggregate is required")
 	}
 
-	return &OrderBySingleColumnAggregate{
+	aggregate, ok := rawAggregate.(Aggregate)
+	if !ok {
+		return nil, fmt.Errorf("invalid OrderByTarget aggregate; expected map, got %v", rawAggregate)
+	}
+
+	return &OrderByAggregate{
 		Type:      t,
-		Column:    column,
-		Function:  function,
 		Path:      p,
-		FieldPath: fieldPath,
-	}, nil
-}
-
-// AsStarCountAggregate tries to convert the instance to OrderByStarCountAggregate type.
-func (j OrderByTarget) AsStarCountAggregate() (*OrderByStarCountAggregate, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-	if t != OrderByTargetTypeStarCountAggregate {
-		return nil, fmt.Errorf("invalid OrderByTarget type; expected: %s, got: %s", OrderByTargetTypeStarCountAggregate, t)
-	}
-
-	p, err := j.getPath()
-	if err != nil {
-		return nil, err
-	}
-	return &OrderByStarCountAggregate{
-		Type: t,
-		Path: p,
+		Aggregate: aggregate,
 	}, nil
 }
 
@@ -2905,10 +2966,8 @@ func (j OrderByTarget) InterfaceT() (OrderByTargetEncoder, error) {
 	switch t {
 	case OrderByTargetTypeColumn:
 		return j.AsColumn()
-	case OrderByTargetTypeSingleColumnAggregate:
-		return j.AsSingleColumnAggregate()
-	case OrderByTargetTypeStarCountAggregate:
-		return j.AsStarCountAggregate()
+	case OrderByTargetTypeAggregate:
+		return j.AsAggregate()
 	default:
 		return nil, fmt.Errorf("invalid OrderByTarget type: %s", t)
 	}
@@ -2928,21 +2987,24 @@ type OrderByColumn struct {
 	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
 	// Any field path to a nested field within the column
 	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
+	// Arguments to satisfy the column specified by 'name'
+	Arguments map[string]Argument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"arguments"`
 }
 
 // NewOrderByColumn creates an OrderByColumn instance.
-func NewOrderByColumn(name string, path []PathElement, fieldPath []string) *OrderByColumn {
+func NewOrderByColumn(name string, path []PathElement, arguments map[string]Argument, fieldPath []string) *OrderByColumn {
 	return &OrderByColumn{
 		Type:      OrderByTargetTypeColumn,
 		Name:      name,
 		FieldPath: fieldPath,
 		Path:      path,
+		Arguments: arguments,
 	}
 }
 
 // NewOrderByColumnName creates an OrderByColumn instance with column name only.
 func NewOrderByColumnName(name string) *OrderByColumn {
-	return NewOrderByColumn(name, []PathElement{}, nil)
+	return NewOrderByColumn(name, []PathElement{}, nil, nil)
 }
 
 // Encode converts the instance to raw OrderByTarget.
@@ -2952,331 +3014,47 @@ func (ob OrderByColumn) Encode() OrderByTarget {
 		"name": ob.Name,
 		"path": ob.Path,
 	}
+
 	if ob.FieldPath != nil {
 		result["field_path"] = ob.FieldPath
 	}
+
+	if ob.Arguments != nil {
+		result["arguments"] = ob.Arguments
+	}
+
 	return result
 }
 
-// OrderBySingleColumnAggregate An ordering of type [single_column_aggregate] orders rows by an aggregate computed over rows in some related collection.
-// If the respective aggregates are incomparable, the ordering should continue to the next OrderByElement.
-//
-// [single_column_aggregate]: https://hasura.github.io/ndc-spec/specification/queries/sorting.html#type-single_column_aggregate
-type OrderBySingleColumnAggregate struct {
+// OrderByAggregate The ordering is performed over the result of an aggregation.
+// Only used if the 'relationships.order_by_aggregate' capability is supported.
+type OrderByAggregate struct {
 	Type OrderByTargetType `json:"type" yaml:"name" mapstructure:"type"`
-	// The column to apply the aggregation function to
-	Column string `json:"column" yaml:"column" mapstructure:"column"`
-	// Single column aggregate function name.
-	Function string `json:"function" yaml:"function" mapstructure:"function"`
-	// Non-empty collection of relationships to traverse
+	// The aggregation method to use.
+	Aggregate Aggregate `json:"aggregate" yaml:"aggregate" mapstructure:"aggregate"`
+	// Non-empty collection of relationships to traverse. Only non-empty if the 'relationships' capability is supported.
+	// 'PathElement.field_path' will only be non-empty if the 'relationships.nested.ordering' capability is supported.
 	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
-	// Path to a nested field within an object column.
-	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
 }
 
-// NewOrderBySingleColumnAggregate creates an OrderBySingleColumnAggregate instance.
-func NewOrderBySingleColumnAggregate(column string, function string, path []PathElement, fieldPath []string) *OrderBySingleColumnAggregate {
-	return &OrderBySingleColumnAggregate{
-		Type:      OrderByTargetTypeSingleColumnAggregate,
-		Column:    column,
-		Function:  function,
+// NewOrderByAggregate creates an OrderByAggregate instance.
+func NewOrderByAggregate(aggregate AggregateEncoder, path []PathElement) *OrderByAggregate {
+	return &OrderByAggregate{
+		Type:      OrderByTargetTypeAggregate,
+		Aggregate: aggregate.Encode(),
 		Path:      path,
-		FieldPath: fieldPath,
 	}
 }
 
 // Encode converts the instance to raw OrderByTarget.
-func (ob OrderBySingleColumnAggregate) Encode() OrderByTarget {
+func (ob OrderByAggregate) Encode() OrderByTarget {
 	result := OrderByTarget{
-		"type":     ob.Type,
-		"column":   ob.Column,
-		"function": ob.Function,
-		"path":     ob.Path,
+		"type":      ob.Type,
+		"aggregate": ob.Aggregate,
+		"path":      ob.Path,
 	}
-	if ob.FieldPath != nil {
-		result["field_path"] = ob.FieldPath
-	}
+
 	return result
-}
-
-// OrderByStarCountAggregate An ordering of type [star_count_aggregate] orders rows by a count of rows in some related collection.
-// If the respective aggregates are incomparable, the ordering should continue to the next OrderByElement.
-//
-// [star_count_aggregate]: https://hasura.github.io/ndc-spec/specification/queries/sorting.html#type-star_count_aggregate
-type OrderByStarCountAggregate struct {
-	Type OrderByTargetType `json:"type" yaml:"type" mapstructure:"type"`
-	// Non-empty collection of relationships to traverse
-	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
-}
-
-// NewOrderByStarCountAggregate creates an OrderByStarCountAggregate instance.
-func NewOrderByStarCountAggregate(path []PathElement) *OrderByStarCountAggregate {
-	return &OrderByStarCountAggregate{
-		Type: OrderByTargetTypeStarCountAggregate,
-		Path: path,
-	}
-}
-
-// Encode converts the instance to raw OrderByTarget.
-func (ob OrderByStarCountAggregate) Encode() OrderByTarget {
-	return OrderByTarget{
-		"type": ob.Type,
-		"path": ob.Path,
-	}
-}
-
-// ComparisonOperatorDefinitionType represents a binary comparison operator type enum.
-type ComparisonOperatorDefinitionType string
-
-const (
-	ComparisonOperatorDefinitionTypeEqual  ComparisonOperatorDefinitionType = "equal"
-	ComparisonOperatorDefinitionTypeIn     ComparisonOperatorDefinitionType = "in"
-	ComparisonOperatorDefinitionTypeCustom ComparisonOperatorDefinitionType = "custom"
-)
-
-var enumValues_ComparisonOperatorDefinitionType = []ComparisonOperatorDefinitionType{
-	ComparisonOperatorDefinitionTypeEqual,
-	ComparisonOperatorDefinitionTypeIn,
-	ComparisonOperatorDefinitionTypeCustom,
-}
-
-// ParseComparisonOperatorDefinitionType parses a type of a comparison operator definition.
-func ParseComparisonOperatorDefinitionType(input string) (ComparisonOperatorDefinitionType, error) {
-	result := ComparisonOperatorDefinitionType(input)
-	if !result.IsValid() {
-		return ComparisonOperatorDefinitionType(""), fmt.Errorf("failed to parse ComparisonOperatorDefinitionType, expect one of %v, got %s", enumValues_ComparisonOperatorDefinitionType, input)
-	}
-
-	return result, nil
-}
-
-// IsValid checks if the value is invalid.
-func (j ComparisonOperatorDefinitionType) IsValid() bool {
-	return slices.Contains(enumValues_ComparisonOperatorDefinitionType, j)
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *ComparisonOperatorDefinitionType) UnmarshalJSON(b []byte) error {
-	var rawValue string
-	if err := json.Unmarshal(b, &rawValue); err != nil {
-		return err
-	}
-
-	value, err := ParseComparisonOperatorDefinitionType(rawValue)
-	if err != nil {
-		return err
-	}
-
-	*j = value
-	return nil
-}
-
-// ComparisonOperatorDefinition the definition of a comparison operator on a scalar type.
-type ComparisonOperatorDefinition map[string]any
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *ComparisonOperatorDefinition) UnmarshalJSON(b []byte) error {
-	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-
-	rawType, ok := raw["type"]
-	if !ok {
-		return errors.New("field type in ComparisonOperatorDefinition: required")
-	}
-
-	var ty ComparisonOperatorDefinitionType
-	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in ComparisonOperatorDefinition: %w", err)
-	}
-
-	result := map[string]any{
-		"type": ty,
-	}
-	switch ty {
-	case ComparisonOperatorDefinitionTypeEqual:
-	case ComparisonOperatorDefinitionTypeIn:
-	case ComparisonOperatorDefinitionTypeCustom:
-		rawArgumentType, ok := raw["argument_type"]
-		if !ok {
-			return errors.New("field argument_type in ComparisonOperatorDefinition is required for custom type")
-		}
-		var argumentType Type
-		if err := json.Unmarshal(rawArgumentType, &argumentType); err != nil {
-			return fmt.Errorf("field argument_type in ComparisonOperatorDefinition: %w", err)
-		}
-		result["argument_type"] = argumentType
-	}
-	*j = result
-	return nil
-}
-
-// Type gets the type enum of the current type.
-func (j ComparisonOperatorDefinition) Type() (ComparisonOperatorDefinitionType, error) {
-	t, ok := j["type"]
-	if !ok {
-		return ComparisonOperatorDefinitionType(""), errTypeRequired
-	}
-	switch raw := t.(type) {
-	case string:
-		v, err := ParseComparisonOperatorDefinitionType(raw)
-		if err != nil {
-			return ComparisonOperatorDefinitionType(""), err
-		}
-		return v, nil
-	case ComparisonOperatorDefinitionType:
-		return raw, nil
-	default:
-		return ComparisonOperatorDefinitionType(""), fmt.Errorf("invalid ComparisonOperatorDefinition type: %+v", t)
-	}
-}
-
-// AsEqual tries to convert the instance to ComparisonOperatorEqual type.
-func (j ComparisonOperatorDefinition) AsEqual() (*ComparisonOperatorEqual, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-	if t != ComparisonOperatorDefinitionTypeEqual {
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeEqual, t)
-	}
-
-	return &ComparisonOperatorEqual{
-		Type: t,
-	}, nil
-}
-
-// AsIn tries to convert the instance to ComparisonOperatorIn type.
-func (j ComparisonOperatorDefinition) AsIn() (*ComparisonOperatorIn, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-	if t != ComparisonOperatorDefinitionTypeIn {
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeIn, t)
-	}
-
-	return &ComparisonOperatorIn{
-		Type: t,
-	}, nil
-}
-
-// AsCustom tries to convert the instance to ComparisonOperatorIn type.
-func (j ComparisonOperatorDefinition) AsCustom() (*ComparisonOperatorCustom, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-	if t != ComparisonOperatorDefinitionTypeCustom {
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeCustom, t)
-	}
-
-	rawArg, ok := j["argument_type"]
-	if !ok {
-		return nil, errors.New("ComparisonOperatorCustom.argument_type is required")
-	}
-
-	arg, ok := rawArg.(Type)
-	if !ok {
-		return nil, fmt.Errorf("invalid ComparisonOperatorCustom.argument_type type; expected: Type, got: %+v", rawArg)
-	}
-
-	return &ComparisonOperatorCustom{
-		Type:         t,
-		ArgumentType: arg,
-	}, nil
-}
-
-// Interface tries to convert the instance to ComparisonOperatorDefinitionEncoder interface.
-func (j ComparisonOperatorDefinition) Interface() ComparisonOperatorDefinitionEncoder {
-	result, _ := j.InterfaceT()
-	return result
-}
-
-// InterfaceT tries to convert the instance to ComparisonOperatorDefinitionEncoder interface safely with explicit error.
-func (j ComparisonOperatorDefinition) InterfaceT() (ComparisonOperatorDefinitionEncoder, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	switch t {
-	case ComparisonOperatorDefinitionTypeEqual:
-		return j.AsEqual()
-	case ComparisonOperatorDefinitionTypeIn:
-		return j.AsIn()
-	case ComparisonOperatorDefinitionTypeCustom:
-		return j.AsCustom()
-	default:
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type: %s", t)
-	}
-}
-
-// ComparisonOperatorDefinitionEncoder abstracts the serialization interface for ComparisonOperatorDefinition.
-type ComparisonOperatorDefinitionEncoder interface {
-	Encode() ComparisonOperatorDefinition
-}
-
-// ComparisonOperatorEqual presents an equal comparison operator.
-type ComparisonOperatorEqual struct {
-	Type ComparisonOperatorDefinitionType `json:"type" yaml:"type" mapstructure:"type"`
-}
-
-// NewComparisonOperatorEqual create a new ComparisonOperatorEqual instance.
-func NewComparisonOperatorEqual() *ComparisonOperatorEqual {
-	return &ComparisonOperatorEqual{
-		Type: ComparisonOperatorDefinitionTypeEqual,
-	}
-}
-
-// Encode converts the instance to raw ComparisonOperatorDefinition.
-func (ob ComparisonOperatorEqual) Encode() ComparisonOperatorDefinition {
-	return ComparisonOperatorDefinition{
-		"type": ob.Type,
-	}
-}
-
-// ComparisonOperatorIn presents an in comparison operator.
-type ComparisonOperatorIn struct {
-	Type ComparisonOperatorDefinitionType `json:"type" yaml:"type" mapstructure:"type"`
-}
-
-// NewComparisonOperatorIn create a new ComparisonOperatorIn instance.
-func NewComparisonOperatorIn() *ComparisonOperatorIn {
-	return &ComparisonOperatorIn{
-		Type: ComparisonOperatorDefinitionTypeIn,
-	}
-}
-
-// Encode converts the instance to raw ComparisonOperatorDefinition.
-func (ob ComparisonOperatorIn) Encode() ComparisonOperatorDefinition {
-	return ComparisonOperatorDefinition{
-		"type": ob.Type,
-	}
-}
-
-// ComparisonOperatorCustom presents a custom comparison operator.
-type ComparisonOperatorCustom struct {
-	Type ComparisonOperatorDefinitionType `json:"type" yaml:"type" mapstructure:"type"`
-	// The type of the argument to this operator
-	ArgumentType Type `json:"argument_type" yaml:"argument_type" mapstructure:"argument_type"`
-}
-
-// NewComparisonOperatorCustom create a new ComparisonOperatorCustom instance.
-func NewComparisonOperatorCustom(argumentType TypeEncoder) *ComparisonOperatorCustom {
-	return &ComparisonOperatorCustom{
-		Type:         ComparisonOperatorDefinitionTypeCustom,
-		ArgumentType: argumentType.Encode(),
-	}
-}
-
-// Encode converts the instance to raw ComparisonOperatorDefinition.
-func (ob ComparisonOperatorCustom) Encode() ComparisonOperatorDefinition {
-	return ComparisonOperatorDefinition{
-		"type":          ob.Type,
-		"argument_type": ob.ArgumentType,
-	}
 }
 
 // NestedFieldType represents a nested field type enum.
@@ -3529,5 +3307,21 @@ func (ob NestedArray) Encode() NestedField {
 	return NestedField{
 		"type":   ob.Type,
 		"fields": ob.Fields,
+	}
+}
+
+// NewObjectType creates a new object type
+func NewObjectType(fields ObjectTypeFields, foreignKeys ObjectTypeForeignKeys, description *string) ObjectType {
+	if fields == nil {
+		fields = ObjectTypeFields{}
+	}
+	if foreignKeys == nil {
+		foreignKeys = ObjectTypeForeignKeys{}
+	}
+
+	return ObjectType{
+		Fields:      fields,
+		ForeignKeys: foreignKeys,
+		Description: description,
 	}
 }
