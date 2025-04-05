@@ -27,7 +27,8 @@
             "type": "named"
           }
         }
-      }
+      },
+      "foreign_keys": {}
     },
     "DemographyResult": {
       "fields": {
@@ -46,7 +47,8 @@
             "type": "named"
           }
         }
-      }
+      },
+      "foreign_keys": {}
     },
     "SimpleResult": {
       "fields": {
@@ -56,7 +58,8 @@
             "type": "named"
           }
         }
-      }
+      },
+      "foreign_keys": {}
     }
   },
   "procedures": [

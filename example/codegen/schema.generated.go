@@ -32,6 +32,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNullableType(schema.NewArrayType(schema.NewNamedType("String"))).Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"BaseAuthor": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -39,6 +40,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("String").Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"CreateArticleArgumentsAuthor": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -49,6 +51,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("Int32").Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"CreateArticleResult": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -59,6 +62,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("Int32").Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"CreateAuthorArguments": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -69,6 +73,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNullableType(schema.NewPredicateType("Author")).Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"CreateAuthorResult": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -85,6 +90,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("JSON").Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"CustomHeadersResult_Author": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -95,6 +101,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"CustomHeadersResult_array_nullable_BaseAuthor": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -105,6 +112,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"GetArticlesResult": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -115,6 +123,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("Int32").Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"GetAuthorResult": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -134,6 +143,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("JSON").Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"GetCustomHeadersInput": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -144,6 +154,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("Int32").Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"GetCustomHeadersOther_int": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -151,6 +162,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("Int32").Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"GetCustomHeadersOther_int64": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -158,6 +170,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("Int64").Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"GetCustomHeadersResult_HelloResult_int64": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -171,6 +184,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNullableType(schema.NewNamedType("GetCustomHeadersOther_int64")).Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"GetTypesArguments": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -787,6 +801,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNullableType(schema.NewNamedType("UUID")).Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"GetTypesArgumentsArrayObject": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -794,6 +809,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("String").Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"GetTypesArgumentsArrayObjectPtr": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -801,6 +817,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("String").Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"GetTypesArgumentsObject": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -814,6 +831,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("UUID").Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"GetTypesArgumentsObjectPtr": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -824,6 +842,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("Int32").Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 			"HelloResult": schema.ObjectType{
 				Fields: schema.ObjectTypeFields{
@@ -843,6 +862,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 						Type: schema.NewNamedType("String").Encode(),
 					},
 				},
+				ForeignKeys: schema.ObjectTypeForeignKeys{},
 			},
 		},
 		Functions: []schema.FunctionInfo{

@@ -137,7 +137,6 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 
 		return NewNamedType(typeInfo.SchemaName, typeInfo), nil
 	case *types.Named:
-
 		innerType := inferredType.Obj()
 		if innerType == nil {
 			return nil, fmt.Errorf("failed to parse named type: %s", inferredType.String())
@@ -160,6 +159,7 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 			tp.schemaParser.rawSchema.SetScalar(scalarName, Scalar{
 				Schema: errorScalar,
 			})
+
 			return NewNullableType(NewNamedType(scalarName, typeInfo)), nil
 		}
 
@@ -171,11 +171,13 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 		typeInfo.PackageName = innerPkg.Name()
 		typeInfo.PackagePath = innerPkg.Path()
 		typeParams := inferredType.TypeParams()
+
 		if typeParams != nil && typeParams.Len() > 0 {
 			// unwrap the generic type parameters such as Foo[T]
 			if err := parseTypeParameters(typeInfo, inferredType.String()); err != nil {
 				return nil, err
 			}
+
 			typeInfo.TypeAST = inferredType.Underlying()
 		}
 
@@ -183,6 +185,7 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 			if tp.argumentFor != nil && *tp.argumentFor == OperationFunction {
 				tp.schemaParser.rawSchema.setFunctionArgument(object)
 			}
+
 			return NewNamedType(typeInfo.SchemaName, typeInfo), nil
 		}
 
@@ -194,12 +197,15 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 		if err != nil {
 			return nil, err
 		}
+
 		if scalarType != nil {
 			if len(scalarType.Schema.Representation) == 0 {
 				// requires representation since NDC spec v0.1.2
 				scalarType.Schema = defaultScalarTypes[ScalarJSON]
 			}
+
 			tp.schemaParser.rawSchema.SetScalar(typeInfo.SchemaName, *scalarType)
+
 			return NewNamedType(typeInfo.SchemaName, typeInfo), nil
 		}
 
@@ -332,10 +338,12 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 		})
 
 		return NewNamedType(string(ScalarJSON), typeInfo), nil
+	case *types.Alias:
+		return tp.parseType(inferredType.Underlying(), fieldPaths)
 	case *types.Chan, *types.Signature, *types.Tuple, *types.Union:
 		return nil, nil
 	default:
-		return nil, fmt.Errorf("unsupported type: %s", ty.String())
+		return nil, fmt.Errorf("%s: unsupported type: %s", strings.Join(fieldPaths, "."), ty.String())
 	}
 }
 
@@ -376,6 +384,7 @@ func (tp *TypeParser) parseStructType(objectInfo *ObjectInfo, inferredType *type
 		if field == nil {
 			continue
 		}
+
 		embeddedObject, ok := tp.schemaParser.rawSchema.Objects[field.Type.SchemaName(false)]
 		if field.Embedded && ok {
 			// flatten embedded object fields to the parent object
@@ -392,6 +401,7 @@ func (tp *TypeParser) parseStructType(objectInfo *ObjectInfo, inferredType *type
 				Type: fieldSchema.Encode(),
 			}
 		}
+
 		objectInfo.Fields[fieldKey] = *field
 	}
 
@@ -403,6 +413,7 @@ func (tp *TypeParser) parseSliceType(ty types.Type, fieldPaths []string) (Type, 
 	if err != nil {
 		return nil, err
 	}
+
 	return NewArrayType(innerType), nil
 }
 
@@ -410,6 +421,7 @@ func (tp *TypeParser) parseTypeInfoFromComments(typeInfo *TypeInfo, scope *types
 	var scalarType *Scalar
 	comments := make([]string, 0)
 	commentGroup := findCommentsFromPos(tp.schemaParser.FindPackageByPath(typeInfo.PackagePath), scope, typeInfo.Name)
+
 	if commentGroup != nil {
 		for i, line := range commentGroup.List {
 			text := strings.TrimSpace(strings.TrimLeft(line.Text, "/"))
@@ -502,6 +514,7 @@ func (tp *TypeParser) parseTypeInfoFromComments(typeInfo *TypeInfo, scope *types
 	if desc != "" {
 		typeInfo.Description = &desc
 	}
+
 	return scalarType, nil
 }
 
@@ -510,9 +523,11 @@ func parseTypeParameters(rootType *TypeInfo, input string) error {
 	if paramsString[0] == '[' {
 		paramsString = paramsString[1:]
 	}
+
 	if paramsString[len(paramsString)-1] == ']' {
 		paramsString = paramsString[:len(paramsString)-1]
 	}
+
 	rawParams := strings.Split(paramsString, ",")
 
 	for _, param := range rawParams {
@@ -520,6 +535,7 @@ func parseTypeParameters(rootType *TypeInfo, input string) error {
 		if param == "" {
 			continue
 		}
+
 		ty, err := parseTypeFromString(param)
 		if err != nil {
 			return err
@@ -528,6 +544,7 @@ func parseTypeParameters(rootType *TypeInfo, input string) error {
 		rootType.SchemaName += "_" + ty.SchemaName(true)
 		rootType.TypeParameters = append(rootType.TypeParameters, ty)
 	}
+
 	return nil
 }
 
@@ -541,6 +558,7 @@ func parseTypeFromString(input string) (Type, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		return NewNullableType(underlyingType), nil
 	}
 	if len(input) >= 2 && input[0:2] == "[]" {
@@ -548,10 +566,12 @@ func parseTypeFromString(input string) (Type, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		return NewArrayType(elementType), nil
 	}
 
 	parts := strings.Split(input, ".")
+
 	partsLen := len(parts)
 	if partsLen == 1 {
 		return NewNamedType(parts[0], &TypeInfo{

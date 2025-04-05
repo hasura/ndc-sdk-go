@@ -164,7 +164,7 @@ func (cmd *genTestSnapshotsCommand) genFunction(fn *schema.FunctionInfo) error {
 			Collection: fn.Name,
 			Query: schema.Query{
 				Fields: schema.QueryFields{
-					"__value": schema.NewColumnField("__value", fields).Encode(),
+					"__value": schema.NewColumnField("__value").WithNestedField(fields).Encode(),
 				},
 			},
 			Arguments:               args,
@@ -394,7 +394,7 @@ func (cmd *genTestSnapshotsCommand) genNestFieldAndValueInternal(rawType schema.
 			if err != nil {
 				return nil, nil, false, err
 			}
-			fields[key] = schema.NewColumnField(key, innerType)
+			fields[key] = schema.NewColumnField(key).WithNestedField(innerType)
 			values[key] = value
 		}
 		if len(fields) == 0 {
