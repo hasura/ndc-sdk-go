@@ -18,8 +18,8 @@ func TestAcquireCredentials(t *testing.T) {
 		os.Unsetenv("HASURA_CREDENTIALS_PROVIDER_URI")
 
 		_, err := AcquireCredentials(context.TODO(), "key", false)
-		if err != errAuthWebhookUriRequired {
-			t.Errorf("expected error %v, got %v", errAuthWebhookUriRequired, err)
+		if err != ErrAuthWebhookUriRequired {
+			t.Errorf("expected error %v, got %v", ErrAuthWebhookUriRequired, err)
 		}
 	})
 
@@ -89,7 +89,7 @@ func TestAcquireCredentials(t *testing.T) {
 		}
 
 		_, err = client.AcquireCredentials(context.TODO(), "key", false)
-		if err != errEmptyCredentials {
+		if err != ErrEmptyCredentials {
 			t.Errorf("expected an empty credentails error, got: %s\n", err)
 		}
 	})

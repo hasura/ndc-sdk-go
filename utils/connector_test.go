@@ -43,7 +43,7 @@ func TestEvalNestedFields(t *testing.T) {
 				Name: "John",
 			},
 			Selection: schema.NewNestedObject(map[string]schema.FieldEncoder{
-				"id": schema.NewColumnField("id", nil),
+				"id": schema.NewColumnField("id"),
 			}).Encode(),
 			Expected: map[string]any{
 				"id": "1",
@@ -75,10 +75,10 @@ func TestEvalNestedFields(t *testing.T) {
 				},
 			},
 			Selection: schema.NewNestedObject(map[string]schema.FieldEncoder{
-				"id": schema.NewColumnField("id", nil),
-				"articles": schema.NewColumnField("articles", schema.NewNestedArray(schema.NewNestedObject(map[string]schema.FieldEncoder{
-					"id":         schema.NewColumnField("id", nil),
-					"created_at": schema.NewColumnField("created_at", nil),
+				"id": schema.NewColumnField("id"),
+				"articles": schema.NewColumnField("articles").WithNestedField(schema.NewNestedArray(schema.NewNestedObject(map[string]schema.FieldEncoder{
+					"id":         schema.NewColumnField("id"),
+					"created_at": schema.NewColumnField("created_at"),
 				}))),
 			}).Encode(),
 			Expected: map[string]any{
@@ -111,10 +111,10 @@ func TestEvalNestedFields(t *testing.T) {
 				},
 			},
 			Selection: schema.NewNestedObject(map[string]schema.FieldEncoder{
-				"id":   schema.NewColumnField("id", nil),
-				"Name": schema.NewColumnField("name", nil),
-				"articles": schema.NewColumnField("articles", schema.NewNestedArray(schema.NewNestedObject(map[string]schema.FieldEncoder{
-					"name": schema.NewColumnField("Name", nil),
+				"id":   schema.NewColumnField("id"),
+				"Name": schema.NewColumnField("name"),
+				"articles": schema.NewColumnField("articles").WithNestedField(schema.NewNestedArray(schema.NewNestedObject(map[string]schema.FieldEncoder{
+					"name": schema.NewColumnField("Name"),
 				}))),
 			}).Encode(),
 			Expected: map[string]any{

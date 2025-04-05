@@ -1917,15 +1917,8 @@
           "description": "Optionally specify how groups should be ordered Only used if the 'query.aggregates.group_by.order' capability is supported."
         },
         "predicate": {
-          "description": "Optionally specify a predicate to apply after grouping rows. Only used if the 'query.aggregates.group_by.filter' capability is supported.",
-          "anyOf": [
-            {
-              "$ref": "#/definitions/GroupExpression"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/definitions/GroupExpression",
+          "description": "Optionally specify a predicate to apply after grouping rows. Only used if the 'query.aggregates.group_by.filter' capability is supported."
         }
       },
       "required": [
@@ -2377,13 +2370,14 @@
       ]
     },
     "PathElement": {
-      "title": "Path Element",
-      "type": "object",
-      "required": [
-        "arguments",
-        "relationship"
-      ],
       "properties": {
+        "arguments": {
+          "description": "Values to be provided to any collection arguments",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/RelationshipArgument"
+          }
+        },
         "field_path": {
           "description": "Path to a nested field within an object column that must be navigated before the relationship is navigated. Only non-empty if the 'relationships.nested' capability is supported (plus perhaps one of the sub-capabilities, depending on the feature using the PathElement).",
           "type": [
@@ -2394,29 +2388,21 @@
             "type": "string"
           }
         },
+        "predicate": {
+          "$ref": "#/definitions/Expression",
+          "description": "A predicate expression to apply to the target collection"
+        },
         "relationship": {
           "description": "The name of the relationship to follow",
           "type": "string"
-        },
-        "arguments": {
-          "description": "Values to be provided to any collection arguments",
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/RelationshipArgument"
-          }
-        },
-        "predicate": {
-          "description": "A predicate expression to apply to the target collection",
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Expression"
-            },
-            {
-              "type": "null"
-            }
-          ]
         }
-      }
+      },
+      "required": [
+        "arguments",
+        "relationship"
+      ],
+      "title": "Path Element",
+      "type": "object"
     },
     "ProcedureInfo": {
       "title": "Procedure Info",
@@ -2478,7 +2464,7 @@
           }
         },
         "groups": {
-          "$ref": "#/definitions/Query",
+          "$ref": "#/definitions/Grouping",
           "description": "Optionally group and aggregate the selected rows. Only used if the 'query.aggregates.group_by' capability is supported."
         },
         "limit": {
@@ -2511,15 +2497,8 @@
           ]
         },
         "predicate": {
-          "description": "Optionally specify a predicate to apply to the rows",
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Expression"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/definitions/Expression",
+          "description": "Optionally specify a predicate to apply to the rows"
         }
       },
       "title": "Query",

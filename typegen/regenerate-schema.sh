@@ -50,7 +50,6 @@ $SED_CMD 's/type RowSetRowsElem map\[string\]interface{}//g' $GENERATED_SCHEMA_G
 $SED_CMD 's/RowSetRowsElem/map[string]any/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type MutationOperationResultsReturningElem map\[string\]interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/MutationOperationResultsReturningElem/map[string]any/g' $GENERATED_SCHEMA_GO
-$SED_CMD 's/type Expression interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type ComparisonTarget interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type BinaryComparisonOperator interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/Where interface{}/Where Expression/g' $GENERATED_SCHEMA_GO
@@ -58,7 +57,6 @@ $SED_CMD 's/type Aggregate interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type OrderByTarget interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/QueryAggregates map\[string\]interface{}/QueryAggregates map[string]Aggregate/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/RelationshipArguments map\[string\]interface{}/RelationshipArguments map[string]RelationshipArgument/g' $GENERATED_SCHEMA_GO
-$SED_CMD 's/Predicate interface{}/Predicate Expression/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type OrderByElementTarget interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/OrderByElementTarget/OrderByTarget/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/PathElementArguments map\[string\]interface{}/PathElementArguments map[string]RelationshipArgument/g' $GENERATED_SCHEMA_GO
@@ -88,7 +86,16 @@ $SED_CMD 's/type ArrayComparison interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type Dimension interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type GroupComparisonTarget interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type GroupComparisonValue interface{}//g' $GENERATED_SCHEMA_GO
+
+$SED_CMD 's/type Expression interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type GroupExpression interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type GroupingPredicate interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/Predicate GroupingPredicate/Predicate GroupExpression/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type QueryPredicate interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/Predicate QueryPredicate/Predicate Expression/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type PathElementPredicate interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/Predicate PathElementPredicate/Predicate Expression/g' $GENERATED_SCHEMA_GO
+
 $SED_CMD 's/type RowFieldValue interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/\[\]GroupingDimensionsElem/[]Dimension/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type GroupingDimensionsElem interface{}//g' $GENERATED_SCHEMA_GO
@@ -101,6 +108,7 @@ $SED_CMD 's/type ScalarTypeAggregateFunctions map\[string\]interface{}/type Scal
 $SED_CMD 's/type ExtractionFunctionDefinition interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type ScalarTypeExtractionFunctions map\[string\]interface{}/type ScalarTypeExtractionFunctions map[string]ExtractionFunctionDefinition/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/plain.ExtractionFunctions = map\[string\]interface{}{}/plain.ExtractionFunctions = map[string]ExtractionFunctionDefinition{}/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/enumValues_UnaryComparisonOperator = \[\]interface{}{/enumValues_UnaryComparisonOperator = \[\]UnaryComparisonOperator{/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/^.*DeleteThis .*$//g' $GENERATED_SCHEMA_GO
 
 rm -f "$GENERATED_SCHEMA_GO.bak"

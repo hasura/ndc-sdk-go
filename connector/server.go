@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/otel/attribute"
@@ -49,24 +50,28 @@ type HTTPServerConfig struct {
 type Server[Configuration any, State any] struct {
 	*serveOptions
 
-	context       context.Context
-	stop          context.CancelFunc
-	connector     Connector[Configuration, State]
-	state         *State
-	configuration *Configuration
-	options       *ServerOptions
-	telemetry     *TelemetryState
+	context               context.Context
+	stop                  context.CancelFunc
+	connector             Connector[Configuration, State]
+	state                 *State
+	configuration         *Configuration
+	options               *ServerOptions
+	telemetry             *TelemetryState
+	ndcVersionConstraints *semver.Constraints
 }
 
 // NewServer creates a Server instance.
 func NewServer[Configuration any, State any](connector Connector[Configuration, State], options *ServerOptions, others ...ServeOption) (*Server[Configuration, State], error) {
 	defaultOptions := defaultServeOptions()
+
 	for _, opts := range others {
 		opts(defaultOptions)
 	}
+
 	if options.ServiceName == "" {
 		options.OTLPConfig.ServiceName = defaultOptions.serviceName
 	}
+
 	defaultOptions.logger.Debug(
 		"initialize OpenTelemetry",
 		slog.Any("otlp", options.OTLPConfig),
@@ -83,6 +88,7 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 	}
 
 	ctx = context.WithValue(ctx, logContextKey, telemetry.Logger)
+
 	configuration, err := connector.ParseConfiguration(ctx, options.Configuration)
 	if err != nil {
 		return nil, err
@@ -93,48 +99,34 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 		return nil, err
 	}
 
-	return &Server[Configuration, State]{
-		context:       ctx,
-		stop:          stop,
-		connector:     connector,
-		state:         state,
-		configuration: configuration,
-		options:       options,
-		telemetry:     telemetry,
-		serveOptions:  defaultOptions,
-	}, nil
-}
-
-func (s *Server[Configuration, State]) withAuth(handler http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		logger := GetLogger(r.Context())
-		if s.options.ServiceTokenSecret != "" && r.Header.Get("Authorization") != ("Bearer "+s.options.ServiceTokenSecret) {
-			writeJson(w, logger, http.StatusUnauthorized, schema.ErrorResponse{
-				Message: "Unauthorized",
-				Details: map[string]any{
-					"cause": "Bearer token does not match.",
-				},
-			})
-
-			s.telemetry.queryCounter.Add(r.Context(), 1, metric.WithAttributes(
-				failureStatusAttribute,
-				httpStatusAttribute(http.StatusUnauthorized),
-			))
-			return
-		}
-
-		handler(w, r)
+	ndcVersionConstraint, err := semver.NewConstraint("^" + schema.NDCVersion)
+	if err != nil {
+		return nil, err
 	}
+
+	return &Server[Configuration, State]{
+		context:               ctx,
+		stop:                  stop,
+		connector:             connector,
+		state:                 state,
+		configuration:         configuration,
+		options:               options,
+		telemetry:             telemetry,
+		serveOptions:          defaultOptions,
+		ndcVersionConstraints: ndcVersionConstraint,
+	}, nil
 }
 
 // GetCapabilities get the connector's capabilities. Implement a handler for the /capabilities endpoint, GET method.
 func (s *Server[Configuration, State]) GetCapabilities(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r.Context())
+
 	capabilities := s.connector.GetCapabilities(s.configuration)
 	if capabilities == nil {
 		writeError(w, logger, schema.InternalServerError("capabilities is empty", nil))
 		return
 	}
+
 	writeJsonFunc(w, logger, http.StatusOK, func() ([]byte, error) {
 		return capabilities.MarshalCapabilitiesJSON()
 	})
@@ -175,6 +167,7 @@ func (s *Server[Configuration, State]) Query(w http.ResponseWriter, r *http.Requ
 	logger := GetLogger(r.Context())
 	span := trace.SpanFromContext(r.Context())
 	var body schema.QueryRequest
+
 	if err := s.unmarshalBodyJSON(w, r, s.telemetry.queryCounter, &body); err != nil {
 		return
 	}
@@ -192,8 +185,10 @@ func (s *Server[Configuration, State]) Query(w http.ResponseWriter, r *http.Requ
 			failureStatusAttribute,
 			httpStatusAttribute(status),
 		))
+
 		return
 	}
+
 	execQuerySpan.End()
 
 	writeJson(w, logger, http.StatusOK, response)
@@ -210,6 +205,7 @@ func (s *Server[Configuration, State]) QueryExplain(w http.ResponseWriter, r *ht
 	span := trace.SpanFromContext(r.Context())
 
 	var body schema.QueryRequest
+
 	if err := s.unmarshalBodyJSON(w, r, s.telemetry.queryExplainCounter, &body); err != nil {
 		return
 	}
@@ -231,8 +227,10 @@ func (s *Server[Configuration, State]) QueryExplain(w http.ResponseWriter, r *ht
 			httpStatusAttribute(status),
 			collectionAttr,
 		))
+
 		return
 	}
+
 	execSpan.End()
 
 	writeJson(w, logger, http.StatusOK, response)
@@ -248,11 +246,13 @@ func (s *Server[Configuration, State]) MutationExplain(w http.ResponseWriter, r 
 	logger := GetLogger(r.Context())
 	span := trace.SpanFromContext(r.Context())
 	var body schema.MutationRequest
+
 	if err := s.unmarshalBodyJSON(w, r, s.telemetry.mutationExplainCounter, &body); err != nil {
 		return
 	}
 
 	var operationNames []string
+
 	for _, op := range body.Operations {
 		operationNames = append(operationNames, op.Name)
 	}
@@ -274,8 +274,10 @@ func (s *Server[Configuration, State]) MutationExplain(w http.ResponseWriter, r 
 			httpStatusAttribute(status),
 			operationAttr,
 		))
+
 		return
 	}
+
 	execSpan.End()
 
 	writeJson(w, logger, http.StatusOK, response)
@@ -292,6 +294,7 @@ func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.R
 	span := trace.SpanFromContext(r.Context())
 
 	var body schema.MutationRequest
+
 	if err := s.unmarshalBodyJSON(w, r, s.telemetry.mutationCounter, &body); err != nil {
 		return
 	}
@@ -306,6 +309,7 @@ func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.R
 
 	execCtx, execSpan := s.telemetry.Tracer.Start(r.Context(), "ndc_execute_mutation")
 	defer execSpan.End()
+
 	response, err := s.connector.Mutation(execCtx, s.configuration, s.state, &body)
 	if err != nil {
 		status := writeError(w, logger, err)
@@ -317,8 +321,10 @@ func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.R
 			httpStatusAttribute(status),
 			operationAttr,
 		))
+
 		return
 	}
+
 	execSpan.End()
 
 	writeJson(w, logger, http.StatusOK, response)
@@ -350,16 +356,23 @@ func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, 
 }
 
 func (s *Server[Configuration, State]) buildHandler() *http.ServeMux {
+	middlewares := []http.HandlerFunc{s.withNDCVersionCheck}
+	if s.options.ServiceTokenSecret != "" {
+		middlewares = append(middlewares, s.withAuth)
+	}
+
 	router := newRouter(s.telemetry.Logger, s.telemetry, !s.withoutRecovery)
-	router.Use(apiPathCapabilities, http.MethodGet, s.withAuth(s.GetCapabilities))
-	router.Use(apiPathSchema, http.MethodGet, s.withAuth(s.GetSchema))
-	router.Use(apiPathQuery, http.MethodPost, s.withAuth(s.Query))
-	router.Use(apiPathQueryExplain, http.MethodPost, s.withAuth(s.QueryExplain))
-	router.Use(apiPathMutationExplain, http.MethodPost, s.withAuth(s.MutationExplain))
-	router.Use(apiPathMutation, http.MethodPost, s.withAuth(s.Mutation))
+
+	router.Use(apiPathCapabilities, http.MethodGet, append(middlewares, s.GetCapabilities)...)
+	router.Use(apiPathSchema, http.MethodGet, append(middlewares, s.GetSchema)...)
+	router.Use(apiPathQuery, http.MethodPost, append(middlewares, s.Query)...)
+	router.Use(apiPathQueryExplain, http.MethodPost, append(middlewares, s.QueryExplain)...)
+	router.Use(apiPathMutationExplain, http.MethodPost, append(middlewares, s.MutationExplain)...)
+	router.Use(apiPathMutation, http.MethodPost, append(middlewares, s.Mutation)...)
 	router.Use(apiPathHealth, http.MethodGet, s.Health)
+
 	if s.options.MetricsExporter == string(otelMetricsExporterPrometheus) && s.options.PrometheusPort == nil {
-		router.Use(apiPathMetrics, http.MethodGet, s.withAuth(promhttp.Handler().ServeHTTP))
+		router.Use(apiPathMetrics, http.MethodGet, s.withAuth, promhttp.Handler().ServeHTTP)
 	}
 
 	return router.Build()

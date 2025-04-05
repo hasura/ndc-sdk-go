@@ -22,7 +22,7 @@ type mockState struct{}
 type mockConnector struct{}
 
 var mockCapabilities = schema.CapabilitiesResponse{
-	Version: schema.SchemaVersion,
+	Version: schema.NDCVersion,
 	Capabilities: schema.Capabilities{
 		Query: schema.QueryCapabilities{
 			Aggregates: &schema.AggregateCapabilities{},
@@ -42,7 +42,8 @@ var mockSchema = schema.SchemaResponse{
 			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
 				"like": schema.NewComparisonOperatorCustom(schema.NewNamedType("String")).Encode(),
 			},
-			Representation: schema.NewTypeRepresentationString().Encode(),
+			Representation:      schema.NewTypeRepresentationString().Encode(),
+			ExtractionFunctions: schema.ScalarTypeExtractionFunctions{},
 		},
 		"Int": schema.ScalarType{
 			AggregateFunctions: schema.ScalarTypeAggregateFunctions{
@@ -51,6 +52,7 @@ var mockSchema = schema.SchemaResponse{
 			},
 			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{},
 			Representation:      schema.NewTypeRepresentationInt32().Encode(),
+			ExtractionFunctions: schema.ScalarTypeExtractionFunctions{},
 		},
 	},
 	ObjectTypes: schema.SchemaResponseObjectTypes{
@@ -140,6 +142,7 @@ func (mc *mockConnector) MutationExplain(ctx context.Context, configuration *moc
 		Details: schema.ExplainResponseDetails{},
 	}, nil
 }
+
 func (mc *mockConnector) Mutation(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.MutationRequest) (*schema.MutationResponse, error) {
 	results := []schema.MutationOperationResults{}
 	for _, operation := range request.Operations {
@@ -154,10 +157,12 @@ func (mc *mockConnector) Mutation(ctx context.Context, configuration *mockConfig
 		OperationResults: results,
 	}, nil
 }
+
 func (mc *mockConnector) Query(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.QueryRequest) (schema.QueryResponse, error) {
 	if request.Collection != "articles" {
 		return nil, schema.BadRequestError(fmt.Sprintf("collection not found: %s", request.Collection), nil)
 	}
+
 	return schema.QueryResponse{
 		{
 			Aggregates: schema.RowSetAggregates{},
@@ -173,15 +178,29 @@ func (mc *mockConnector) Query(ctx context.Context, configuration *mockConfigura
 }
 
 func httpPostJSON(url string, body any) (*http.Response, error) {
+	return httpPostJSONWithNDCVersion(url, schema.NDCVersion, body)
+}
+
+func httpPostJSONWithNDCVersion(url string, ndcVersion string, body any) (*http.Response, error) {
 	bodyBytes, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 
-	return http.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(schema.XHasuraNDCVersion, ndcVersion)
+
+	return http.DefaultClient.Do(req)
 }
 
 func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int, expectedBody B) {
+	defer res.Body.Close()
+
 	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		t.Error("failed to read response body")
@@ -203,9 +222,8 @@ func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int,
 }
 
 func TestNewServer(t *testing.T) {
-
 	t.Run("start server", func(t *testing.T) {
-		s, err := NewServer[mockConfiguration, mockState](&mockConnector{}, &ServerOptions{})
+		s, err := NewServer(&mockConnector{}, &ServerOptions{})
 		if err != nil {
 			t.Errorf("NewServerWithoutConfig: expected no error, got %s", err)
 			t.FailNow()
@@ -216,6 +234,7 @@ func TestNewServer(t *testing.T) {
 				t.Errorf("error happened when running http server: %s", err)
 			}
 		}()
+
 		time.Sleep(2 * time.Second)
 		s.stop()
 	})
@@ -242,6 +261,7 @@ func TestServerAuth(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
+
 		assertHTTPResponse(t, res, http.StatusUnauthorized, schema.ErrorResponse{
 			Message: "Unauthorized",
 			Details: map[string]any{
@@ -269,7 +289,7 @@ func TestServerAuth(t *testing.T) {
 }
 
 func TestServerConnector(t *testing.T) {
-	server, err := NewServer[mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
+	server, err := NewServer(&mockConnector{}, &ServerOptions{
 		Configuration: "{}",
 		InlineConfig:  true,
 	})
@@ -288,12 +308,14 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
+
 		assertHTTPResponse(t, res, http.StatusOK, mockCapabilities)
 	})
 
 	t.Run("GET /health", func(t *testing.T) {
 		res, err := http.Get(fmt.Sprintf("%s/health", httpServer.URL))
 		assert.NilError(t, err)
+		defer res.Body.Close()
 		assert.Equal(t, res.StatusCode, http.StatusOK)
 	})
 
@@ -303,6 +325,9 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
+
+		defer res.Body.Close()
+
 		if res.StatusCode != http.StatusNotFound {
 			t.Errorf("\n%s: expected 404 got status %d", "/metrics", res.StatusCode)
 			t.FailNow()
@@ -321,6 +346,7 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
+
 		assertHTTPResponse(t, res, http.StatusOK, schema.QueryResponse{
 			{
 				Rows: []map[string]any{
@@ -340,6 +366,7 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
+
 		assertHTTPResponse(t, res, http.StatusUnprocessableEntity, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
@@ -360,8 +387,28 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
+
 		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "collection not found: test",
+			Details: map[string]any{},
+		})
+	})
+
+	t.Run("POST_query_invalid_ndc_version", func(t *testing.T) {
+		res, err := httpPostJSONWithNDCVersion(fmt.Sprintf("%s/query", httpServer.URL), "unknown", schema.QueryRequest{
+			Collection:              "test",
+			Arguments:               schema.QueryRequestArguments{},
+			CollectionRelationships: schema.QueryRequestCollectionRelationships{},
+			Query:                   schema.Query{},
+			Variables:               []schema.QueryRequestVariablesElem{},
+		})
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+			t.FailNow()
+		}
+
+		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
+			Message: "Invalid X-Hasura-NDC-Version header, expected a semver version string, got: unknown",
 			Details: map[string]any{},
 		})
 	})
@@ -380,6 +427,7 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
+
 		assertHTTPResponse(t, res, http.StatusOK, schema.MutationResponse{
 			OperationResults: []schema.MutationOperationResults{
 				schema.NewProcedureResult(nil).Encode(),
@@ -393,6 +441,7 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
+
 		assertHTTPResponse(t, res, http.StatusUnprocessableEntity, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
@@ -415,8 +464,30 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
+
 		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
 			Message: "operation not found: test",
+			Details: map[string]any{},
+		})
+	})
+
+	t.Run("POST_mutation_invalid_ndc_version", func(t *testing.T) {
+		res, err := httpPostJSONWithNDCVersion(fmt.Sprintf("%s/mutation", httpServer.URL), "v0.1.6", schema.MutationRequest{
+			Operations: []schema.MutationOperation{
+				{
+					Type: "procedure",
+					Name: "test",
+				},
+			},
+			CollectionRelationships: schema.MutationRequestCollectionRelationships{},
+		})
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+			t.FailNow()
+		}
+
+		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
+			Message: "NDC version range ^v0.2.0 does not match implemented version v0.1.6",
 			Details: map[string]any{},
 		})
 	})
@@ -433,6 +504,7 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
+
 		assertHTTPResponse(t, res, http.StatusOK, schema.ExplainResponse{
 			Details: schema.ExplainResponseDetails{},
 		})
@@ -444,11 +516,25 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
+
 		assertHTTPResponse(t, res, http.StatusUnprocessableEntity, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": "field arguments in QueryRequest: required",
 			},
+		})
+	})
+
+	t.Run("POST_query_explain_invalid_ndc_version", func(t *testing.T) {
+		res, err := httpPostJSONWithNDCVersion(fmt.Sprintf("%s/query/explain", httpServer.URL), "unknown", map[string]any{})
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+			t.FailNow()
+		}
+
+		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
+			Message: "Invalid X-Hasura-NDC-Version header, expected a semver version string, got: unknown",
+			Details: map[string]any{},
 		})
 	})
 
@@ -461,6 +547,7 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
+
 		assertHTTPResponse(t, res, http.StatusOK, schema.ExplainResponse{
 			Details: schema.ExplainResponseDetails{},
 		})
@@ -472,11 +559,25 @@ func TestServerConnector(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
+
 		assertHTTPResponse(t, res, http.StatusUnprocessableEntity, schema.ErrorResponse{
 			Message: "failed to decode json request body",
 			Details: map[string]any{
 				"cause": "field collection_relationships in MutationRequest: required",
 			},
+		})
+	})
+
+	t.Run("POST_mutation_explain_invalid_ndc_version", func(t *testing.T) {
+		res, err := httpPostJSONWithNDCVersion(fmt.Sprintf("%s/mutation/explain", httpServer.URL), "unknown", map[string]any{})
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+			t.FailNow()
+		}
+
+		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
+			Message: "Invalid X-Hasura-NDC-Version header, expected a semver version string, got: unknown",
+			Details: map[string]any{},
 		})
 	})
 }
@@ -505,6 +606,7 @@ func TestConnectorWithPrometheusEnabled(t *testing.T) {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
 		}
+
 		if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusInternalServerError {
 			t.Errorf("\n%s: got status %d", "/metrics", res.StatusCode)
 			t.FailNow()

@@ -9,10 +9,10 @@ import (
 )
 
 var connectorCapabilities = schema.CapabilitiesResponse{
-	Version: schema.SchemaVersion,
+	Version: schema.NDCVersion,
 	Capabilities: schema.Capabilities{
 		Query: schema.QueryCapabilities{
-			Variables: schema.LeafCapability{},
+			Variables: &schema.LeafCapability{},
 		},
 		Mutation: schema.MutationCapabilities{},
 	},

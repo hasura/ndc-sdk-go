@@ -280,12 +280,30 @@
   },
   {
     "op": "remove",
+    "path": "/definitions/Grouping/properties/predicate/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/Grouping/properties/predicate/$ref",
+    "value": "#/definitions/GroupExpression"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/Query/properties/predicate/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/Query/properties/predicate/$ref",
+    "value": "#/definitions/Expression"
+  },
+  {
+    "op": "remove",
     "path": "/definitions/Query/properties/groups/anyOf"
   },
   {
     "op": "add",
     "path": "/definitions/Query/properties/groups/$ref",
-    "value": "#/definitions/Query"
+    "value": "#/definitions/Grouping"
   },
   {
     "op": "remove",
@@ -322,5 +340,14 @@
     "op": "add",
     "path": "/definitions/CapabilitySchemaInfo/properties/query/$ref",
     "value": "#/definitions/QueryCapabilitiesSchemaInfo"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/PathElement/properties/predicate/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/PathElement/properties/predicate/$ref",
+    "value": "#/definitions/Expression"
   }
 ]

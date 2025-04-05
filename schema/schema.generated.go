@@ -469,11 +469,14 @@ type Grouping struct {
 
 	// Optionally specify a predicate to apply after grouping rows. Only used if the
 	// 'query.aggregates.group_by.filter' capability is supported.
-	Predicate Expression `json:"predicate,omitempty" yaml:"predicate,omitempty" mapstructure:"predicate,omitempty"`
+	Predicate GroupExpression `json:"predicate,omitempty" yaml:"predicate,omitempty" mapstructure:"predicate,omitempty"`
 }
 
 // Aggregates to compute in each group
 type GroupingAggregates map[string]Aggregate
+
+// Optionally specify a predicate to apply after grouping rows. Only used if the
+// 'query.aggregates.group_by.filter' capability is supported.
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *Grouping) UnmarshalJSON(b []byte) error {
@@ -795,6 +798,8 @@ type PathElement struct {
 // Values to be provided to any collection arguments
 type PathElementArguments map[string]RelationshipArgument
 
+// A predicate expression to apply to the target collection
+
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *PathElement) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
@@ -867,7 +872,7 @@ type Query struct {
 
 	// Optionally group and aggregate the selected rows. Only used if the
 	// 'query.aggregates.group_by' capability is supported.
-	Groups *Query `json:"groups,omitempty" yaml:"groups,omitempty" mapstructure:"groups,omitempty"`
+	Groups *Grouping `json:"groups,omitempty" yaml:"groups,omitempty" mapstructure:"groups,omitempty"`
 
 	// Optionally limit to N results
 	Limit *int `json:"limit,omitempty" yaml:"limit,omitempty" mapstructure:"limit,omitempty"`
@@ -931,6 +936,8 @@ func (j *QueryCapabilities) UnmarshalJSON(b []byte) error {
 
 // Fields of the query
 type QueryFields map[string]Field
+
+// Optionally specify a predicate to apply to the rows
 
 // This is the request body of the query POST endpoint
 type QueryRequest struct {
@@ -1317,7 +1324,7 @@ type UnaryComparisonOperator string
 
 const UnaryComparisonOperatorIsNull UnaryComparisonOperator = "is_null"
 
-var enumValues_UnaryComparisonOperator = []interface{}{
+var enumValues_UnaryComparisonOperator = []UnaryComparisonOperator{
 	"is_null",
 }
 

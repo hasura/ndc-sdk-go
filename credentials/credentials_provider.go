@@ -18,8 +18,8 @@ import (
 )
 
 var (
-	errAuthWebhookUriRequired = errors.New("the env var HASURA_CREDENTIALS_PROVIDER_URI must be set and non-empty")
-	errEmptyCredentials       = errors.New("empty credentials")
+	ErrAuthWebhookUriRequired = errors.New("the env var HASURA_CREDENTIALS_PROVIDER_URI must be set and non-empty")
+	ErrEmptyCredentials       = errors.New("empty credentials")
 )
 
 var defaultClient = CredentialClient{
@@ -61,7 +61,7 @@ func NewCredentialClient(httpClient *http.Client) (*CredentialClient, error) {
 func (cc *CredentialClient) reload() error {
 	rawProviderUri, providerUriExists := os.LookupEnv("HASURA_CREDENTIALS_PROVIDER_URI")
 	if !providerUriExists || rawProviderUri == "" {
-		return errAuthWebhookUriRequired
+		return ErrAuthWebhookUriRequired
 	}
 
 	providerUri, err := url.Parse(rawProviderUri)
@@ -146,10 +146,10 @@ func (cc *CredentialClient) AcquireCredentials(ctx context.Context, key string, 
 	}
 
 	if payload.Credentials == "" {
-		span.SetStatus(codes.Error, errEmptyCredentials.Error())
+		span.SetStatus(codes.Error, ErrEmptyCredentials.Error())
 		span.RecordError(err)
 
-		return "", errEmptyCredentials
+		return "", ErrEmptyCredentials
 	}
 
 	return payload.Credentials, nil

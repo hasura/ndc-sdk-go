@@ -22,8 +22,7 @@ type GetArticlesResult struct {
 func GetArticles(ctx context.Context, state *types.State, arguments *GetArticlesArguments) ([]GetArticlesResult, error) {
 	return []GetArticlesResult{
 		{
-			ID:   "1",
-			Name: "Article 1",
+			ID: "1",
 		},
 	}, nil
 }

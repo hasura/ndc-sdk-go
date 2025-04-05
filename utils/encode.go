@@ -20,6 +20,7 @@ func EncodeObject(input any) (map[string]any, error) {
 	if input == nil {
 		return nil, nil
 	}
+
 	return encodeObject(input, "")
 }
 
@@ -33,16 +34,19 @@ func EncodeNullableObjectSlice[T any](inputs *[]T) ([]map[string]any, error) {
 	if inputs == nil {
 		return nil, nil
 	}
+
 	return encodeObjectSlice(*inputs, "")
 }
 
 func encodeObjectSlice[T any](input []T, fieldPath string) ([]map[string]any, error) {
 	results := make([]map[string]any, len(input))
+
 	for i, item := range input {
 		result, err := encodeObject(item, fmt.Sprintf("%s[%d]", fieldPath, i))
 		if err != nil {
 			return nil, err
 		}
+
 		results[i] = result
 	}
 
@@ -76,34 +80,55 @@ func encodeObject(input any, fieldPath string) (map[string]any, error) {
 			},
 		}
 	default:
-		inputValue := reflect.ValueOf(input)
-		kind := inputValue.Kind()
-		switch kind {
-		case reflect.Pointer:
-			v, ok := UnwrapPointerFromReflectValue(inputValue)
-			if !ok {
-				return nil, nil
+		return encodeObjectReflection(reflect.ValueOf(input), fieldPath)
+	}
+}
+
+func encodeObjectReflection(inputValue reflect.Value, fieldPath string) (map[string]any, error) {
+	kind := inputValue.Kind()
+
+	switch kind {
+	case reflect.Pointer:
+		v, ok := UnwrapPointerFromReflectValue(inputValue)
+		if !ok {
+			return nil, nil
+		}
+
+		return encodeObjectReflection(v, fieldPath)
+	case reflect.Struct:
+		return encodeStruct(inputValue), nil
+	case reflect.Map:
+		result := make(map[string]any)
+		iter := inputValue.MapRange()
+
+		for iter.Next() {
+			k := iter.Key()
+			v := iter.Value()
+
+			key, err := DecodeString(k)
+			if err != nil {
+				return nil, &schema.ErrorResponse{
+					Message: fmt.Sprintf("cannot encode map; the object key must be a string, got: %v", k.Interface()),
+					Details: map[string]any{
+						"path": fieldPath,
+					},
+				}
 			}
-			return encodeObject(v.Interface(), fieldPath)
-		case reflect.Struct:
-			return encodeStruct(inputValue), nil
-		case reflect.Map:
-			result := make(map[string]any)
-			iter := inputValue.MapRange()
-			for iter.Next() {
-				k := iter.Key()
-				v := iter.Value()
-				result[fmt.Sprint(k.Interface())] = v.Interface()
+
+			value, ok := encodeField(v)
+			if ok {
+				result[key] = value
 			}
-			return result, nil
-		default:
-			return nil, &schema.ErrorResponse{
-				Message: "cannot encode object",
-				Details: map[string]any{
-					"reason": fmt.Sprintf("expected object, got %s", kind),
-					"path":   fieldPath,
-				},
-			}
+		}
+
+		return result, nil
+	default:
+		return nil, &schema.ErrorResponse{
+			Message: "cannot encode object",
+			Details: map[string]any{
+				"reason": fmt.Sprintf("expected object, got %s", kind),
+				"path":   fieldPath,
+			},
 		}
 	}
 }
@@ -115,14 +140,13 @@ func encodeField(input reflect.Value) (any, bool) {
 	switch input.Kind() {
 	case reflect.Complex64, reflect.Complex128:
 		return nil, false
-	case reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Float32, reflect.Float64, reflect.String, reflect.Map:
+	case reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Float32, reflect.Float64, reflect.String, reflect.Map, reflect.Int64:
 		return input.Interface(), true
-	case reflect.Int64:
-		return strconv.FormatInt(input.Int(), 10), true
 	case reflect.Uint64:
 		return strconv.FormatUint(input.Uint(), 10), true
 	case reflect.Struct:
 		inputType := input.Type()
+
 		switch inputType.PkgPath() {
 		case "time":
 			switch inputType.Name() {
@@ -138,8 +162,10 @@ func encodeField(input reflect.Value) (any, bool) {
 				if len(results) == 0 {
 					return nil, true
 				}
+
 				return results[0].Interface(), true
 			}
+
 			// determine if the type implements the Scalar interface
 			if input.MethodByName("ScalarName").IsValid() {
 				return input.Interface(), true
@@ -148,31 +174,45 @@ func encodeField(input reflect.Value) (any, bool) {
 			return encodeStruct(input), true
 		}
 	case reflect.Pointer:
+		if input.IsNil() {
+			return nil, true
+		}
+
 		return encodeField(input.Elem())
 	case reflect.Array, reflect.Slice:
+		if input.IsNil() {
+			return nil, true
+		}
+
 		valueLength := input.Len()
-		var result []any
-		for i := 0; i < valueLength; i++ {
+		result := []any{}
+
+		for i := range valueLength {
 			item, ok := encodeField(input.Index(i))
 			if ok {
 				result = append(result, item)
 			}
 		}
+
 		return result, true
 	}
+
 	return nil, false
 }
 
 func encodeStruct(input reflect.Value) map[string]any {
 	result := make(map[string]any)
-	for i := 0; i < input.NumField(); i++ {
+
+	for i := range input.NumField() {
 		fieldValue := input.Field(i)
 		fieldType := input.Type().Field(i)
 		fieldJSONTag := fieldType.Tag.Get("json")
 		fieldName := fieldType.Name
+
 		if fieldJSONTag == "-" {
 			continue
 		}
+
 		if fieldJSONTag != "" {
 			fieldName = strings.Split(fieldJSONTag, ",")[0]
 		}
@@ -182,6 +222,7 @@ func encodeStruct(input reflect.Value) map[string]any {
 			result[fieldName] = value
 		}
 	}
+
 	return result
 }
 

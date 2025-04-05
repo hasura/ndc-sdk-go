@@ -75,7 +75,7 @@ func (cw *customResponseWriter) Write(body []byte) (int, error) {
 
 // implements a simple router to reuse for both configuration and connector servers.
 type router struct {
-	routes          map[string]map[string]http.HandlerFunc
+	routes          map[string]map[string][]http.HandlerFunc
 	logger          *slog.Logger
 	telemetry       *TelemetryState
 	recoveryEnabled bool
@@ -83,24 +83,25 @@ type router struct {
 
 func newRouter(logger *slog.Logger, telemetry *TelemetryState, enableRecovery bool) *router {
 	return &router{
-		routes:          make(map[string]map[string]http.HandlerFunc),
+		routes:          make(map[string]map[string][]http.HandlerFunc),
 		logger:          logger,
 		telemetry:       telemetry,
 		recoveryEnabled: enableRecovery,
 	}
 }
 
-func (rt *router) Use(path string, method string, handler http.HandlerFunc) {
+func (rt *router) Use(path string, method string, handlers ...http.HandlerFunc) {
 	if _, ok := rt.routes[path]; !ok {
-		rt.routes[path] = make(map[string]http.HandlerFunc)
+		rt.routes[path] = make(map[string][]http.HandlerFunc)
 	}
-	rt.routes[path][method] = handler
+
+	rt.routes[path][method] = handlers
 }
 
 func (rt *router) Build() *http.ServeMux {
 	mux := http.NewServeMux()
 
-	handleFunc := func(handlers map[string]http.HandlerFunc) http.HandlerFunc {
+	handleFunc := func(handlers map[string][]http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			startTime := time.Now()
 			isDebug := rt.logger.Enabled(r.Context(), slog.LevelDebug)
@@ -122,6 +123,7 @@ func (rt *router) Build() *http.ServeMux {
 					trace.WithSpanKind(trace.SpanKindServer),
 				)
 			}
+
 			defer span.End()
 
 			// Add HTTP semantic attributes to the server span
@@ -132,11 +134,13 @@ func (rt *router) Build() *http.ServeMux {
 				attribute.String("url.scheme", r.URL.Scheme),
 				attribute.Int64("http.request.body.size", r.ContentLength),
 			)
+
 			if isDebug {
 				requestLogData["headers"] = r.Header
 				if spanOk {
 					SetSpanHeaderAttributes(span, "http.request.header", r.Header)
 				}
+
 				if r.Body != nil {
 					bodyBytes, err := io.ReadAll(r.Body)
 					if err != nil {
@@ -196,7 +200,7 @@ func (rt *router) Build() *http.ServeMux {
 				}()
 			}
 
-			h, ok := handlers[r.Method]
+			handlers, ok := handlers[r.Method]
 			if !ok {
 				http.NotFound(w, r)
 				rt.logger.Error(
@@ -221,6 +225,7 @@ func (rt *router) Build() *http.ServeMux {
 					err := schema.ErrorResponse{
 						Message: fmt.Sprintf("Invalid content type %s, accept %s only", contentType, contentTypeJson),
 					}
+
 					writeJson(w, rt.logger, http.StatusUnprocessableEntity, err)
 
 					rt.logger.Error(
@@ -233,6 +238,7 @@ func (rt *router) Build() *http.ServeMux {
 							"body":   err,
 						}),
 					)
+
 					span.SetAttributes(attribute.Int("http.response.status_code", http.StatusUnprocessableEntity))
 					span.SetStatus(codes.Error, "invalid content type: "+contentType)
 
@@ -243,13 +249,22 @@ func (rt *router) Build() *http.ServeMux {
 			logger := rt.logger.With(slog.String("request_id", requestID))
 			req := r.WithContext(context.WithValue(ctx, logContextKey, logger))
 			writer := &customResponseWriter{ResponseWriter: w}
-			h(writer, req)
+
+			for _, h := range handlers {
+				h(writer, req)
+
+				// stop the loop if the status code was written
+				if writer.statusCode > 0 {
+					break
+				}
+			}
 
 			span.SetAttributes(attribute.Int("http.response.status_code", writer.statusCode))
 			span.SetAttributes(attribute.Int("http.response.body.size", writer.bodyLength))
 			responseLogData := map[string]any{
 				"status": writer.statusCode,
 			}
+
 			if isDebug || writer.statusCode >= 400 {
 				responseLogData["headers"] = writer.Header()
 				if len(writer.body) > 0 {
@@ -257,6 +272,7 @@ func (rt *router) Build() *http.ServeMux {
 					span.SetAttributes(attribute.String("response.body", string(writer.body)))
 				}
 			}
+
 			SetSpanHeaderAttributes(span, "http.response.header", w.Header())
 
 			if writer.statusCode >= http.StatusBadRequest {
@@ -266,10 +282,14 @@ func (rt *router) Build() *http.ServeMux {
 					slog.Any("request", requestLogData),
 					slog.Any("response", responseLogData),
 				)
+
 				span.SetStatus(codes.Error, http.StatusText(writer.statusCode))
+
 				return
 			}
+
 			printSuccess := logger.Info
+
 			if slices.Contains(debugApiPaths, r.URL.Path) {
 				printSuccess = logger.Debug
 			}

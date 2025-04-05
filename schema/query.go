@@ -5,25 +5,56 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+
+	"github.com/go-viper/mapstructure/v2"
 )
 
 // MarshalJSON implements json.Marshaler.
 func (j RowSet) MarshalJSON() ([]byte, error) {
+	return json.Marshal(j.ToMap())
+}
+
+// ToMap encodes the struct to a value map
+func (j RowSet) ToMap() map[string]any {
 	result := map[string]any{}
+
 	if len(j.Aggregates) > 0 {
 		result["aggregates"] = j.Aggregates
 	}
+
 	if j.Rows != nil {
 		result["rows"] = j.Rows
 	}
 
-	return json.Marshal(result)
+	if j.Groups != nil {
+		groups := make([]map[string]any, len(j.Groups))
+
+		for i, group := range j.Groups {
+			groups[i] = group.ToMap()
+		}
+
+		result["groups"] = groups
+	}
+
+	return result
+}
+
+// ToMap encodes the struct to a value map
+func (j Group) ToMap() map[string]any {
+	result := map[string]any{
+		"aggregates": j.Aggregates,
+		"dimensions": j.Dimensions,
+	}
+
+	return result
 }
 
 // UnmarshalJSONMap decodes FunctionInfo from a JSON map.
 func (j *FunctionInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 	rawArguments, ok := raw["arguments"]
+
 	var arguments FunctionInfoArguments
+
 	if ok && !isNullJSON(rawArguments) {
 		if err := json.Unmarshal(rawArguments, &arguments); err != nil {
 			return fmt.Errorf("FunctionInfo.arguments: %w", err)
@@ -34,16 +65,21 @@ func (j *FunctionInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 	if !ok || isNullJSON(rawName) {
 		return errors.New("FunctionInfo.name: required")
 	}
+
 	var name string
+
 	if err := json.Unmarshal(rawName, &name); err != nil {
 		return fmt.Errorf("FunctionInfo.name: %w", err)
 	}
+
 	if name == "" {
 		return errors.New("FunctionInfo.name: required")
 	}
 
 	rawDescription, ok := raw["description"]
+
 	var description *string
+
 	if ok && !isNullJSON(rawDescription) {
 		if err := json.Unmarshal(rawDescription, &description); err != nil {
 			return fmt.Errorf("FunctionInfo.description: %w", err)
@@ -54,7 +90,9 @@ func (j *FunctionInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 	if !ok || isNullJSON(rawResultType) {
 		return errors.New("FunctionInfo.result_type: required")
 	}
+
 	var resultType Type
+
 	if err := json.Unmarshal(rawResultType, &resultType); err != nil {
 		return fmt.Errorf("FunctionInfo.result_type: %w", err)
 	}
@@ -65,6 +103,7 @@ func (j *FunctionInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 		ResultType:  resultType,
 		Description: description,
 	}
+
 	return nil
 }
 
@@ -89,6 +128,7 @@ func ParseArrayComparisonType(input string) (ArrayComparisonType, error) {
 	if !result.IsValid() {
 		return ArrayComparisonType(""), fmt.Errorf("failed to parse ArrayComparisonType, expect one of %v, got %s", enumValues_ArrayComparisonType, input)
 	}
+
 	return result, nil
 }
 
@@ -110,11 +150,13 @@ func (j *ArrayComparisonType) UnmarshalJSON(b []byte) error {
 	}
 
 	*j = value
+
 	return nil
 }
 
 // ArrayComparisonEncoder abstracts a generic interface of ArrayComparison
 type ArrayComparisonEncoder interface {
+	Type() ArrayComparisonType
 	Encode() ArrayComparison
 }
 
@@ -123,17 +165,27 @@ type ArrayComparison map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *ArrayComparison) UnmarshalJSON(b []byte) error {
-	var raw map[string]json.RawMessage
+	var raw map[string]any
+
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
 
-	var ty ArrayComparisonType
-	rawType, ok := raw["type"]
-	if !ok {
-		return errors.New("field type in ArrayComparison: required")
+	if raw == nil {
+		return nil
 	}
-	err := json.Unmarshal(rawType, &ty)
+
+	return j.FromValue(raw)
+}
+
+// FromValue maps the raw object value to the instance.
+func (j *ArrayComparison) FromValue(raw map[string]any) error {
+	rawType, err := getStringValueByKey(raw, "type")
+	if err != nil {
+		return fmt.Errorf("field type in ArrayComparison: %w", err)
+	}
+
+	ty, err := ParseArrayComparisonType(rawType)
 	if err != nil {
 		return fmt.Errorf("field type in ArrayComparison: %w", err)
 	}
@@ -144,21 +196,17 @@ func (j *ArrayComparison) UnmarshalJSON(b []byte) error {
 
 	switch ty {
 	case ArrayComparisonTypeContains:
-		rawValue, ok := raw["value"]
-		if !ok {
-			return errors.New("field value in ArrayComparison: required")
+		ac, err := ArrayComparison(raw).asContains()
+		if err != nil {
+			return err
 		}
 
-		var value ComparisonValue
-		if err := json.Unmarshal(rawValue, &value); err != nil {
-			return fmt.Errorf("field value in ArrayComparison: %w", err)
-		}
-
-		results["value"] = value
+		results = ac.Encode()
 	default:
 	}
 
 	*j = results
+
 	return nil
 }
 
@@ -168,12 +216,14 @@ func (j ArrayComparison) Type() (ArrayComparisonType, error) {
 	if !ok {
 		return ArrayComparisonType(""), errTypeRequired
 	}
+
 	switch raw := t.(type) {
 	case string:
 		v, err := ParseArrayComparisonType(raw)
 		if err != nil {
 			return ArrayComparisonType(""), err
 		}
+
 		return v, nil
 	case ArrayComparisonType:
 		return raw, nil
@@ -188,21 +238,33 @@ func (j ArrayComparison) AsContains() (*ArrayComparisonContains, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if t != ArrayComparisonTypeContains {
 		return nil, fmt.Errorf("invalid ArrayComparison type; expected %s, got %s", ArrayComparisonTypeContains, t)
 	}
+
+	return j.asContains()
+}
+
+func (j ArrayComparison) asContains() (*ArrayComparisonContains, error) {
 	rawValue, ok := j["value"]
 	if !ok {
-		return nil, errors.New("GroupOrderByTarget.index is required")
+		return nil, errors.New("field value in GroupOrderByTarget is required")
 	}
 
 	value, ok := rawValue.(ComparisonValue)
 	if !ok {
-		return nil, fmt.Errorf("invalid ArrayComparisonContains.value, expected ComparisonValue, got %v", rawValue)
+		rawValueMap, ok := rawValue.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("field value in ArrayComparisonContains: expected object, got %v", rawValue)
+		}
+
+		if err := value.FromValue(rawValueMap); err != nil {
+			return nil, fmt.Errorf("field value in ArrayComparisonContains: %w", err)
+		}
 	}
 
 	result := &ArrayComparisonContains{
-		Type:  t,
 		Value: value,
 	}
 
@@ -215,13 +277,12 @@ func (j ArrayComparison) AsIsEmpty() (*ArrayComparisonIsEmpty, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if t != ArrayComparisonTypeIsEmpty {
 		return nil, fmt.Errorf("invalid ArrayComparison type; expected %s, got %s", ArrayComparisonTypeIsEmpty, t)
 	}
 
-	result := &ArrayComparisonIsEmpty{
-		Type: t,
-	}
+	result := &ArrayComparisonIsEmpty{}
 
 	return result, nil
 }
@@ -229,6 +290,7 @@ func (j ArrayComparison) AsIsEmpty() (*ArrayComparisonIsEmpty, error) {
 // Interface converts the comparison value to its generic interface.
 func (j ArrayComparison) Interface() ArrayComparisonEncoder {
 	result, _ := j.InterfaceT()
+
 	return result
 }
 
@@ -251,45 +313,53 @@ func (j ArrayComparison) InterfaceT() (ArrayComparisonEncoder, error) {
 
 // ArrayComparisonContains check if the array contains the specified value. Only used if the 'query.nested_fields.filter_by.nested_arrays.contains' capability is supported.
 type ArrayComparisonContains struct {
-	Type  ArrayComparisonType `json:"type" yaml:"type" mapstructure:"type"`
-	Value ComparisonValue     `json:"value" yaml:"value" mapstructure:"value"`
+	Value ComparisonValue `json:"value" yaml:"value" mapstructure:"value"`
 }
 
 // NewArrayComparisonContains creates an ArrayComparisonContains instance.
 func NewArrayComparisonContains(value ComparisonValueEncoder) *ArrayComparisonContains {
 	return &ArrayComparisonContains{
-		Type:  ArrayComparisonTypeContains,
 		Value: value.Encode(),
 	}
+}
+
+// Type return the type name of the instance.
+func (j ArrayComparisonContains) Type() ArrayComparisonType {
+	return ArrayComparisonTypeContains
 }
 
 // Encode converts the instance to raw ArrayComparison.
 func (j ArrayComparisonContains) Encode() ArrayComparison {
 	result := ArrayComparison{
-		"type":  j.Type,
+		"type":  j.Type(),
 		"value": j.Value,
 	}
+
 	return result
 }
 
-// ArrayComparisonIsEmpty checks if the array is empty. Only used if the 'query.nested_fields.filter_by.nested_arrays.is_empty' capability is supported.
+// ArrayComparisonIsEmpty checks if the array is empty.
+// Only used if the 'query.nested_fields.filter_by.nested_arrays.is_empty' capability is supported.
 type ArrayComparisonIsEmpty struct {
-	Type  ArrayComparisonType `json:"type" yaml:"type" mapstructure:"type"`
-	Value ComparisonValue     `json:"value" yaml:"value" mapstructure:"value"`
+	Value ComparisonValue `json:"value" yaml:"value" mapstructure:"value"`
 }
 
 // NewArrayComparisonIsEmpty creates an ArrayComparisonIsEmpty instance.
 func NewArrayComparisonIsEmpty() *ArrayComparisonIsEmpty {
-	return &ArrayComparisonIsEmpty{
-		Type: ArrayComparisonTypeIsEmpty,
-	}
+	return &ArrayComparisonIsEmpty{}
+}
+
+// Type return the type name of the instance.
+func (j ArrayComparisonIsEmpty) Type() ArrayComparisonType {
+	return ArrayComparisonTypeIsEmpty
 }
 
 // Encode converts the instance to raw ArrayComparison.
 func (j ArrayComparisonIsEmpty) Encode() ArrayComparison {
 	result := ArrayComparison{
-		"type": j.Type,
+		"type": j.Type(),
 	}
+
 	return result
 }
 
@@ -310,6 +380,7 @@ func ParseDimensionType(input string) (DimensionType, error) {
 	if !result.IsValid() {
 		return DimensionType(""), fmt.Errorf("failed to parse DimensionType, expect one of %v, got %s", enumValues_DimensionType, input)
 	}
+
 	return result, nil
 }
 
@@ -321,6 +392,7 @@ func (j DimensionType) IsValid() bool {
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *DimensionType) UnmarshalJSON(b []byte) error {
 	var rawValue string
+
 	if err := json.Unmarshal(b, &rawValue); err != nil {
 		return err
 	}
@@ -331,11 +403,13 @@ func (j *DimensionType) UnmarshalJSON(b []byte) error {
 	}
 
 	*j = value
+
 	return nil
 }
 
 // DimensionEncoder abstracts a generic interface of Dimension
 type DimensionEncoder interface {
+	Type() DimensionType
 	Encode() Dimension
 }
 
@@ -345,15 +419,18 @@ type Dimension map[string]any
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *Dimension) UnmarshalJSON(b []byte) error {
 	var raw map[string]json.RawMessage
+
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
 
 	var ty DimensionType
+
 	rawType, ok := raw["type"]
 	if !ok {
 		return errors.New("field type in DimensionColumn: required")
 	}
+
 	err := json.Unmarshal(rawType, &ty)
 	if err != nil {
 		return fmt.Errorf("field type in DimensionColumn: %w", err)
@@ -365,17 +442,56 @@ func (j *Dimension) UnmarshalJSON(b []byte) error {
 
 	switch ty {
 	case DimensionTypeColumn:
-		rawValue, ok := raw["value"]
-		if !ok {
-			return errors.New("field value in ArrayComparison: required")
+		columnName, err := unmarshalStringFromJsonMap(raw, "column_name", true)
+		if err != nil {
+			return fmt.Errorf("field column_name in DimensionColumn: %w", err)
 		}
 
-		var value ComparisonValue
-		if err := json.Unmarshal(rawValue, &value); err != nil {
-			return fmt.Errorf("field value in ArrayComparison: %w", err)
+		results["column_name"] = columnName
+
+		rawPath, ok := raw["path"]
+		if !ok || isNullJSON(rawPath) {
+			return errors.New("field path in DimensionColumn is required")
 		}
 
-		results["value"] = value
+		var pathElem []PathElement
+
+		if err = json.Unmarshal(rawPath, &pathElem); err != nil {
+			return fmt.Errorf("invalid path in DimensionColumn: %w", err)
+		}
+
+		results["path"] = pathElem
+
+		rawFieldPath, ok := raw["field_path"]
+		if ok && !isNullJSON(rawFieldPath) {
+			var fieldPaths []string
+
+			if err := json.Unmarshal(rawFieldPath, &fieldPaths); err != nil {
+				return fmt.Errorf("field field_path in DimensionColumn: %w", err)
+			}
+
+			results["field_path"] = fieldPaths
+		}
+
+		rawArguments, ok := raw["arguments"]
+		if ok && !isNullJSON(rawArguments) {
+			var arguments map[string]Argument
+
+			if err := json.Unmarshal(rawArguments, &arguments); err != nil {
+				return fmt.Errorf("invalid arguments in DimensionColumn: %w", err)
+			}
+
+			results["arguments"] = arguments
+		}
+
+		extraction, err := unmarshalStringFromJsonMap(raw, "extraction", false)
+		if err != nil {
+			return fmt.Errorf("field extraction in DimensionColumn: %w", err)
+		}
+
+		if extraction != "" {
+			results["extraction"] = extraction
+		}
 	default:
 	}
 
@@ -389,12 +505,14 @@ func (j Dimension) Type() (DimensionType, error) {
 	if !ok {
 		return DimensionType(""), errTypeRequired
 	}
+
 	switch raw := t.(type) {
 	case string:
 		v, err := ParseDimensionType(raw)
 		if err != nil {
 			return DimensionType(""), err
 		}
+
 		return v, nil
 	case DimensionType:
 		return raw, nil
@@ -409,51 +527,57 @@ func (j Dimension) AsColumn() (*DimensionColumn, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if t != DimensionTypeColumn {
 		return nil, fmt.Errorf("invalid Dimension type; expected %s, got %s", DimensionTypeColumn, t)
 	}
+
 	columnName, err := getStringValueByKey(j, "column_name")
 	if err != nil {
-		return nil, fmt.Errorf("DimensionColumn.column_name: %w", err)
+		return nil, fmt.Errorf("field column_name in DimensionColumn: %w", err)
 	}
 
 	if columnName == "" {
-		return nil, errors.New("DimensionColumn.column_name is required")
+		return nil, errors.New("field column_name in DimensionColumn is required")
+	}
+
+	rawPath, ok := j["path"]
+	if !ok || rawPath == nil {
+		return nil, errors.New("field path in DimensionColumn is required")
+	}
+
+	pathElem, ok := rawPath.([]PathElement)
+	if !ok {
+		pathElem = []PathElement{}
+
+		if err = mapstructure.Decode(rawPath, &pathElem); err != nil {
+			return nil, fmt.Errorf("invalid path in DimensionColumn: %w", err)
+		}
+	}
+
+	fieldPath, err := getStringSliceByKey(j, "field_path")
+	if err != nil {
+		return nil, fmt.Errorf("field field_path in DimensionColumn: %w", err)
+	}
+
+	arguments, err := getArgumentMapByKey(j, "arguments")
+	if err != nil {
+		return nil, fmt.Errorf("invalid arguments in DimensionColumn: %w", err)
 	}
 
 	result := &DimensionColumn{
-		Type:       t,
 		ColumnName: columnName,
-	}
-	rawPath, ok := j["path"]
-	if !ok {
-		return nil, errors.New("DimensionColumn.path is required")
-	}
-	if rawPath != nil {
-		p, ok := rawPath.([]PathElement)
-		if !ok {
-			return nil, fmt.Errorf("invalid DimensionColumn.path, expected []PathElement, got %v", rawPath)
-		}
-		result.Path = p
+		FieldPath:  fieldPath,
+		Path:       pathElem,
+		Arguments:  arguments,
 	}
 
-	rawArguments, ok := j["arguments"]
-	if ok && rawArguments != nil {
-		arguments, ok := rawArguments.(map[string]Argument)
-		if !ok {
-			return nil, fmt.Errorf("invalid DimensionColumn.arguments, expected map[string]Argument, got %v", rawArguments)
-		}
-		result.Arguments = arguments
+	extraction, err := getStringValueByKey(j, "extraction")
+	if err != nil {
+		return nil, fmt.Errorf("field extraction in DimensionColumn: %w", err)
 	}
 
-	rawFieldPath, ok := j["field_path"]
-	if ok && rawFieldPath != nil {
-		fieldPath, ok := rawFieldPath.([]string)
-		if !ok {
-			return nil, fmt.Errorf("invalid DimensionColumn.field_path, expected []string, got %v", rawFieldPath)
-		}
-		result.FieldPath = fieldPath
-	}
+	result.Extraction = extraction
 
 	return result, nil
 }
@@ -461,6 +585,7 @@ func (j Dimension) AsColumn() (*DimensionColumn, error) {
 // Interface converts the comparison value to its generic interface.
 func (j Dimension) Interface() DimensionEncoder {
 	result, _ := j.InterfaceT()
+
 	return result
 }
 
@@ -481,36 +606,100 @@ func (j Dimension) InterfaceT() (DimensionEncoder, error) {
 
 // DimensionColumn represents a dimension column
 type DimensionColumn struct {
-	Type DimensionType `json:"type" yaml:"type" mapstructure:"type"`
 	// Any (object) relationships to traverse to reach this column. Only non-empty if the 'relationships' capability is supported.
 	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
 	// The name of the column
 	ColumnName string `json:"column_name" yaml:"column_name" mapstructure:"column_name"`
 	// Arguments to satisfy the column specified by 'column_name'
-	Arguments map[string]Argument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
-	// Path to a nested field within an object column
-	FieldPath []string `json:"field_path" yaml:"field_path" mapstructure:"field_path"`
+	Arguments map[string]Argument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"arguments"`
+	// Path to a nested field within an object column.
+	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
+	// The name of the extraction function to apply to the selected value, if any.
+	Extraction string `json:"extraction,omitempty" yaml:"extraction,omitempty" mapstructure:"extraction"`
 }
 
 // NewDimensionColumn creates a DimensionColumn instance.
-func NewDimensionColumn(columnName string, arguments map[string]Argument, fieldPath []string, path []PathElement) *DimensionColumn {
-	return &DimensionColumn{
-		Type:       DimensionTypeColumn,
-		ColumnName: columnName,
-		Arguments:  arguments,
-		Path:       path,
-		FieldPath:  fieldPath,
+func NewDimensionColumn(columnName string, path []PathElement) *DimensionColumn {
+	if path == nil {
+		path = []PathElement{}
 	}
+
+	return &DimensionColumn{
+		ColumnName: columnName,
+		Path:       path,
+	}
+}
+
+// WithFieldPath return a new column field with field_path set.
+func (f DimensionColumn) WithFieldPath(fieldPath []string) *DimensionColumn {
+	f.FieldPath = fieldPath
+
+	return &f
+}
+
+// WithExtraction return a new column field with extraction set.
+func (f DimensionColumn) WithExtraction(extraction string) *DimensionColumn {
+	f.Extraction = extraction
+
+	return &f
+}
+
+// WithArguments return a new column field with arguments set.
+func (f DimensionColumn) WithArguments(arguments map[string]ArgumentEncoder) *DimensionColumn {
+	args := make(map[string]Argument)
+
+	for key, arg := range arguments {
+		if arg == nil {
+			continue
+		}
+
+		args[key] = arg.Encode()
+	}
+
+	f.Arguments = args
+
+	return &f
+}
+
+// WithArgument return a new column field with an arguments set.
+func (f DimensionColumn) WithArgument(key string, argument ArgumentEncoder) *DimensionColumn {
+	if argument == nil {
+		delete(f.Arguments, key)
+	} else {
+		if f.Arguments == nil {
+			f.Arguments = make(map[string]Argument)
+		}
+
+		f.Arguments[key] = argument.Encode()
+	}
+
+	return &f
+}
+
+// Type return the type name of the instance.
+func (j DimensionColumn) Type() DimensionType {
+	return DimensionTypeColumn
 }
 
 // Encode converts the instance to a raw Dimension.
 func (j DimensionColumn) Encode() Dimension {
 	result := Dimension{
-		"type":        j.Type,
+		"type":        j.Type(),
 		"path":        j.Path,
 		"column_name": j.ColumnName,
-		"arguments":   j.Arguments,
-		"field_path":  j.FieldPath,
 	}
+
+	if j.Arguments != nil {
+		result["arguments"] = j.Arguments
+	}
+
+	if j.FieldPath != nil {
+		result["field_path"] = j.Extraction
+	}
+
+	if j.Extraction != "" {
+		result["extraction"] = j.Extraction
+	}
+
 	return result
 }

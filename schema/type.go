@@ -7,6 +7,15 @@ import (
 	"slices"
 )
 
+const (
+	// XHasuraNDCVersion is the name of header that the engine includes in every request.
+	// It indicates the expected NDC spec version from the engine.
+	XHasuraNDCVersion = "X-Hasura-NDC-Version"
+
+	// NDCVersion holds the current supported version of the NDC Go SDK.
+	NDCVersion = "v0.2.0"
+)
+
 /*
  * Types track the valid representations of values as JSON
  */
@@ -65,6 +74,7 @@ type Type map[string]any
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *Type) UnmarshalJSON(b []byte) error {
 	var raw map[string]json.RawMessage
+
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
@@ -75,6 +85,7 @@ func (j *Type) UnmarshalJSON(b []byte) error {
 	}
 
 	var ty TypeEnum
+
 	if err := json.Unmarshal(rawType, &ty); err != nil {
 		return fmt.Errorf("field type in Type: %w", err)
 	}
@@ -82,55 +93,71 @@ func (j *Type) UnmarshalJSON(b []byte) error {
 	result := map[string]any{
 		"type": ty,
 	}
+
 	switch ty {
 	case TypeNamed:
 		rawName, ok := raw["name"]
 		if !ok {
 			return errors.New("field name in Type is required for named type")
 		}
+
 		var name string
 		if err := json.Unmarshal(rawName, &name); err != nil {
 			return fmt.Errorf("field name in Type: %w", err)
 		}
+
 		if name == "" {
 			return errors.New("field name in Type: required")
 		}
+
 		result["name"] = name
 	case TypeNullable:
 		rawUnderlyingType, ok := raw["underlying_type"]
 		if !ok {
 			return errors.New("field underlying_type in Type is required for nullable type")
 		}
+
 		var underlyingType Type
+
 		if err := json.Unmarshal(rawUnderlyingType, &underlyingType); err != nil {
 			return fmt.Errorf("field underlying_type in Type: %w", err)
 		}
+
 		result["underlying_type"] = underlyingType
 	case TypeArray:
 		rawElementType, ok := raw["element_type"]
 		if !ok {
 			return errors.New("field element_type in Type is required for array type")
 		}
+
 		var elementType Type
+
 		if err := json.Unmarshal(rawElementType, &elementType); err != nil {
 			return fmt.Errorf("field element_type in Type: %w", err)
 		}
+
 		result["element_type"] = elementType
 	case TypePredicate:
 		rawName, ok := raw["object_type_name"]
 		if !ok {
 			return errors.New("field object_type_name in Type is required for predicate type")
 		}
+
 		var objectTypeName string
+
 		if err := json.Unmarshal(rawName, &objectTypeName); err != nil {
 			return fmt.Errorf("field object_type_name in Type: %w", err)
 		}
+
 		if objectTypeName == "" {
 			return errors.New("field object_type_name in Type: required")
 		}
+
 		result["object_type_name"] = objectTypeName
 	}
+
 	*j = result
+
 	return nil
 }
 
@@ -139,7 +166,9 @@ func (ty Type) IsZero() bool {
 	if len(ty) == 0 {
 		return true
 	}
+
 	_, ok := ty["type"]
+
 	return !ok
 }
 
@@ -147,14 +176,16 @@ func (ty Type) IsZero() bool {
 func (ty Type) Type() (TypeEnum, error) {
 	t, ok := ty["type"]
 	if !ok {
-		return TypeEnum(""), errTypeRequired
+		return "", errTypeRequired
 	}
+
 	switch raw := t.(type) {
 	case string:
 		v, err := ParseTypeEnum(raw)
 		if err != nil {
 			return TypeEnum(""), err
 		}
+
 		return v, nil
 	case TypeEnum:
 		return raw, nil
@@ -180,7 +211,6 @@ func (ty Type) AsNamed() (*NamedType, error) {
 	}
 
 	return &NamedType{
-		Type: t,
 		Name: name,
 	}, nil
 }
@@ -191,6 +221,7 @@ func (ty Type) AsNullable() (*NullableType, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if t != TypeNullable {
 		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypeNullable, t)
 	}
@@ -199,12 +230,13 @@ func (ty Type) AsNullable() (*NullableType, error) {
 	if !ok {
 		return nil, errors.New("underlying_type is required")
 	}
+
 	underlyingType, ok := rawUnderlyingType.(Type)
 	if !ok {
 		return nil, errors.New("underlying_type is not Type type")
 	}
+
 	return &NullableType{
-		Type:           t,
 		UnderlyingType: underlyingType,
 	}, nil
 }
@@ -215,6 +247,7 @@ func (ty Type) AsArray() (*ArrayType, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if t != TypeArray {
 		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypeArray, t)
 	}
@@ -223,12 +256,13 @@ func (ty Type) AsArray() (*ArrayType, error) {
 	if !ok {
 		return nil, errors.New("element_type is required in Type")
 	}
+
 	elementType, ok := rawElementType.(Type)
 	if !ok {
 		return nil, errors.New("element_type is not Type type")
 	}
+
 	return &ArrayType{
-		Type:        t,
 		ElementType: elementType,
 	}, nil
 }
@@ -239,6 +273,7 @@ func (ty Type) AsPredicate() (*PredicateType, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if t != TypePredicate {
 		return nil, fmt.Errorf("invalid Type type; expected %s, got %s", TypePredicate, t)
 	}
@@ -249,7 +284,6 @@ func (ty Type) AsPredicate() (*PredicateType, error) {
 	}
 
 	return &PredicateType{
-		Type:           t,
 		ObjectTypeName: name,
 	}, nil
 }
@@ -257,6 +291,7 @@ func (ty Type) AsPredicate() (*PredicateType, error) {
 // Interface converts the instance to the TypeEncoder interface.
 func (ty Type) Interface() TypeEncoder {
 	result, _ := ty.InterfaceT()
+
 	return result
 }
 
@@ -286,21 +321,23 @@ func (ty Type) String() string {
 	if ty.IsZero() {
 		return "zero_type"
 	}
+
 	t, err := ty.InterfaceT()
 	if err != nil {
 		return err.Error()
 	}
+
 	return fmt.Sprint(t)
 }
 
 // TypeEncoder abstracts the Type interface.
 type TypeEncoder interface {
+	Type() TypeEnum
 	Encode() Type
 }
 
 // NamedType represents a named type.
 type NamedType struct {
-	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
 	// The name can refer to a primitive type or a scalar type
 	Name string `json:"name" yaml:"name" mapstructure:"name"`
 }
@@ -308,15 +345,19 @@ type NamedType struct {
 // NewNamedType creates a new NamedType instance.
 func NewNamedType(name string) *NamedType {
 	return &NamedType{
-		Type: TypeNamed,
 		Name: name,
 	}
+}
+
+// Type return the type name of the instance.
+func (ty NamedType) Type() TypeEnum {
+	return TypeNamed
 }
 
 // Encode returns the raw Type instance.
 func (ty NamedType) Encode() Type {
 	return map[string]any{
-		"type": ty.Type,
+		"type": ty.Type(),
 		"name": ty.Name,
 	}
 }
@@ -328,15 +369,18 @@ func (ty NamedType) String() string {
 
 // NullableType represents a nullable type.
 type NullableType struct {
-	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
 	// The type of the non-null inhabitants of this type
 	UnderlyingType Type `json:"underlying_type" yaml:"underlying_type" mapstructure:"underlying_type"`
 }
 
 // NewNullableType creates a new NullableType instance with underlying type.
-func NewNullableType(underlyingType TypeEncoder) *NullableType {
+func NewNullableType[T TypeEncoder](underlyingType T) *NullableType {
+	t, ok := any(underlyingType).(*NullableType)
+	if ok {
+		return t
+	}
+
 	return &NullableType{
-		Type:           TypeNullable,
 		UnderlyingType: underlyingType.Encode(),
 	}
 }
@@ -344,15 +388,19 @@ func NewNullableType(underlyingType TypeEncoder) *NullableType {
 // NewNullableNamedType creates a new NullableType instance with underlying named type.
 func NewNullableNamedType(name string) *NullableType {
 	return &NullableType{
-		Type:           TypeNullable,
 		UnderlyingType: NewNamedType(name).Encode(),
 	}
+}
+
+// Type return the type name of the instance.
+func (ty NullableType) Type() TypeEnum {
+	return TypeNullable
 }
 
 // Encode returns the raw Type instance.
 func (ty NullableType) Encode() Type {
 	return map[string]any{
-		"type":            ty.Type,
+		"type":            ty.Type(),
 		"underlying_type": ty.UnderlyingType,
 	}
 }
@@ -364,15 +412,26 @@ func (ty NullableType) String() string {
 
 // ArrayType represents an array type.
 type ArrayType struct {
-	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
 	// The type of the elements of the array
 	ElementType Type `json:"element_type" yaml:"element_type" mapstructure:"element_type"`
+}
+
+// NewArrayType creates a new ArrayType instance.
+func NewArrayType[T TypeEncoder](elementType T) *ArrayType {
+	return &ArrayType{
+		ElementType: elementType.Encode(),
+	}
+}
+
+// Type return the type name of the instance.
+func (ty ArrayType) Type() TypeEnum {
+	return TypeArray
 }
 
 // Encode returns the raw Type instance.
 func (ty ArrayType) Encode() Type {
 	return map[string]any{
-		"type":         ty.Type,
+		"type":         ty.Type(),
 		"element_type": ty.ElementType,
 	}
 }
@@ -382,17 +441,8 @@ func (ty ArrayType) String() string {
 	return fmt.Sprintf("Array<%s>", ty.ElementType)
 }
 
-// NewArrayType creates a new ArrayType instance.
-func NewArrayType(elementType TypeEncoder) *ArrayType {
-	return &ArrayType{
-		Type:        TypeArray,
-		ElementType: elementType.Encode(),
-	}
-}
-
 // PredicateType represents a predicate type for a given object type.
 type PredicateType struct {
-	Type TypeEnum `json:"type" yaml:"type" mapstructure:"type"`
 	// The name can refer to a primitive type or a scalar type
 	ObjectTypeName string `json:"object_type_name" yaml:"object_type_name" mapstructure:"object_type_name"`
 }
@@ -400,15 +450,19 @@ type PredicateType struct {
 // NewPredicateType creates a new PredicateType instance.
 func NewPredicateType(objectTypeName string) *PredicateType {
 	return &PredicateType{
-		Type:           TypePredicate,
 		ObjectTypeName: objectTypeName,
 	}
+}
+
+// Type return the type name of the instance.
+func (ty PredicateType) Type() TypeEnum {
+	return TypePredicate
 }
 
 // Encode returns the raw Type instance.
 func (ty PredicateType) Encode() Type {
 	return map[string]any{
-		"type":             ty.Type,
+		"type":             ty.Type(),
 		"object_type_name": ty.ObjectTypeName,
 	}
 }
@@ -423,6 +477,7 @@ func GetUnderlyingNamedType(input Type) *NamedType {
 	if len(input) == 0 {
 		return nil
 	}
+
 	switch ty := input.Interface().(type) {
 	case *NullableType:
 		return GetUnderlyingNamedType(ty.UnderlyingType)
@@ -440,6 +495,7 @@ func UnwrapNullableType(input Type) Type {
 	if input == nil || input.IsZero() {
 		return nil
 	}
+
 	switch ty := input.Interface().(type) {
 	case *NullableType:
 		return UnwrapNullableType(ty.UnderlyingType)

@@ -14,7 +14,7 @@ The SDK fully supports [NDC Specification v0.1.6](https://hasura.github.io/ndc-s
 
 ## Prerequisites
 
-- Go 1.23+
+- Go 1.24+
 
 > Downgrade to SDK v1.x If you are using Go v1.21+
 

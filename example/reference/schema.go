@@ -6,7 +6,8 @@ import (
 )
 
 var capabilities = schema.CapabilitiesResponse{
-	Version: schema.SchemaVersion,
+	// the reference connector in the Rust SDK doesn't have the 'v' prefix
+	Version: schema.NDCVersion[1:],
 	Capabilities: schema.Capabilities{
 		Query: schema.QueryCapabilities{
 			Aggregates: &schema.AggregateCapabilities{
@@ -36,10 +37,7 @@ var capabilities = schema.CapabilitiesResponse{
 				Unrelated:               &schema.LeafCapability{},
 			},
 		},
-		Mutation: schema.MutationCapabilities{
-			Explain:       &schema.LeafCapability{},
-			Transactional: &schema.LeafCapability{},
-		},
+		Mutation: schema.MutationCapabilities{},
 		Relationships: &schema.RelationshipCapabilities{
 			OrderByAggregate:    &schema.LeafCapability{},
 			RelationComparisons: &schema.LeafCapability{},
@@ -54,23 +52,97 @@ var capabilities = schema.CapabilitiesResponse{
 
 var ndcSchema = schema.SchemaResponse{
 	ScalarTypes: schema.SchemaResponseScalarTypes{
+		"Date": {
+			AggregateFunctions: schema.ScalarTypeAggregateFunctions{},
+			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
+				"eq": schema.NewComparisonOperatorEqual().Encode(),
+				"in": schema.NewComparisonOperatorIn().Encode(),
+			},
+			ExtractionFunctions: schema.ScalarTypeExtractionFunctions{
+				"day":   schema.NewExtractionFunctionDefinitionDay("Int").Encode(),
+				"month": schema.NewExtractionFunctionDefinitionMonth("Int").Encode(),
+				"year":  schema.NewExtractionFunctionDefinitionYear("Int").Encode(),
+			},
+			Representation: schema.TypeRepresentation{"type": schema.TypeRepresentationType("date")},
+		},
+		"Float": {
+			AggregateFunctions: schema.ScalarTypeAggregateFunctions{
+				"avg": schema.NewAggregateFunctionDefinitionAverage("Float").Encode(),
+				"max": schema.NewAggregateFunctionDefinitionMax().Encode(),
+				"min": schema.NewAggregateFunctionDefinitionMin().Encode(),
+				"sum": schema.NewAggregateFunctionDefinitionSum("Float").Encode(),
+			},
+			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
+				"eq":  schema.NewComparisonOperatorEqual().Encode(),
+				"gt":  schema.NewComparisonOperatorGreaterThan().Encode(),
+				"gte": schema.NewComparisonOperatorGreaterThanOrEqual().Encode(),
+				"in":  schema.NewComparisonOperatorIn().Encode(),
+				"lt":  schema.NewComparisonOperatorLessThan().Encode(),
+				"lte": schema.NewComparisonOperatorLessThanOrEqual().Encode(),
+			},
+			ExtractionFunctions: schema.ScalarTypeExtractionFunctions{},
+			Representation:      schema.NewTypeRepresentationFloat64().Encode(),
+		},
 		"Int": schema.ScalarType{
+			AggregateFunctions: schema.ScalarTypeAggregateFunctions{
+				"avg": schema.NewAggregateFunctionDefinitionAverage("Float").Encode(),
+				"max": schema.NewAggregateFunctionDefinitionMax().Encode(),
+				"min": schema.NewAggregateFunctionDefinitionMin().Encode(),
+				"sum": schema.NewAggregateFunctionDefinitionSum("Int64").Encode(),
+			},
+			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
+				"eq":  schema.NewComparisonOperatorEqual().Encode(),
+				"gt":  schema.NewComparisonOperatorGreaterThan().Encode(),
+				"gte": schema.NewComparisonOperatorGreaterThanOrEqual().Encode(),
+				"in":  schema.NewComparisonOperatorIn().Encode(),
+				"lt":  schema.NewComparisonOperatorLessThan().Encode(),
+				"lte": schema.NewComparisonOperatorLessThanOrEqual().Encode(),
+			},
+			Representation: schema.NewTypeRepresentationInt32().Encode(),
+		},
+		"Int64": {
+			AggregateFunctions: schema.ScalarTypeAggregateFunctions{
+				"avg": {
+					"result_type": string("Float"),
+					"type":        schema.AggregateFunctionDefinitionType("average"),
+				},
+				"max": {"type": schema.AggregateFunctionDefinitionType("max")},
+				"min": {"type": schema.AggregateFunctionDefinitionType("min")},
+				"sum": {
+					"result_type": string("Int64"),
+					"type":        schema.AggregateFunctionDefinitionType("sum"),
+				},
+			},
+			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
+				"eq":  schema.NewComparisonOperatorEqual().Encode(),
+				"gt":  schema.NewComparisonOperatorGreaterThan().Encode(),
+				"gte": schema.NewComparisonOperatorGreaterThanOrEqual().Encode(),
+				"in":  schema.NewComparisonOperatorIn().Encode(),
+				"lt":  schema.NewComparisonOperatorLessThan().Encode(),
+				"lte": schema.NewComparisonOperatorLessThanOrEqual().Encode(),
+			},
+			ExtractionFunctions: schema.ScalarTypeExtractionFunctions{},
+			Representation:      schema.TypeRepresentation{"type": schema.TypeRepresentationType("int64")},
+		},
+		"String": {
 			AggregateFunctions: schema.ScalarTypeAggregateFunctions{
 				"max": schema.NewAggregateFunctionDefinitionMax().Encode(),
 				"min": schema.NewAggregateFunctionDefinitionMin().Encode(),
 			},
 			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
-				"eq": schema.NewComparisonOperatorEqual().Encode(),
-				"in": schema.NewComparisonOperatorIn().Encode(),
-			},
-			Representation: schema.NewTypeRepresentationInt32().Encode(),
-		},
-		"String": {
-			AggregateFunctions: schema.ScalarTypeAggregateFunctions{},
-			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
-				"eq":   schema.NewComparisonOperatorEqual().Encode(),
-				"in":   schema.NewComparisonOperatorIn().Encode(),
-				"like": schema.NewComparisonOperatorCustom(schema.NewNamedType("String")).Encode(),
+				"contains":     schema.NewComparisonOperatorContains().Encode(),
+				"ends_with":    schema.NewComparisonOperatorEndsWith().Encode(),
+				"eq":           schema.NewComparisonOperatorEqual().Encode(),
+				"gt":           schema.NewComparisonOperatorGreaterThan().Encode(),
+				"gte":          schema.NewComparisonOperatorGreaterThanOrEqual().Encode(),
+				"icontains":    schema.NewComparisonOperatorContainsInsensitive().Encode(),
+				"iends_with":   schema.NewComparisonOperatorEndsWithInsensitive().Encode(),
+				"in":           schema.NewComparisonOperatorIn().Encode(),
+				"like":         schema.NewComparisonOperatorCustom(schema.NewNamedType("String")).Encode(),
+				"lt":           schema.NewComparisonOperatorLessThan().Encode(),
+				"lte":          schema.NewComparisonOperatorLessThanOrEqual().Encode(),
+				"starts_with":  schema.NewComparisonOperatorStartsWith().Encode(),
+				"istarts_with": schema.NewComparisonOperatorStartsWithInsensitive().Encode(),
 			},
 			Representation: schema.NewTypeRepresentationString().Encode(),
 		},
@@ -85,6 +157,10 @@ var ndcSchema = schema.SchemaResponse{
 				"id": {
 					Description: utils.ToPtr("The article's primary key"),
 					Type:        schema.NewNamedType("Int").Encode(),
+				},
+				"published_date": {
+					Description: utils.ToPtr("The article's date of publication"),
+					Type:        schema.NewNamedType("Date").Encode(),
 				},
 				"title": {
 					Description: utils.ToPtr("The article's title"),
@@ -119,9 +195,51 @@ var ndcSchema = schema.SchemaResponse{
 			nil,
 			utils.ToPtr("An author"),
 		),
+		"city": {
+			Description: utils.ToPtr("A city"),
+			Fields: schema.ObjectTypeFields{
+				"name": {
+					Description: utils.ToPtr("The institution's name"),
+					Type:        schema.NewNamedType("String").Encode(),
+				},
+			},
+			ForeignKeys: schema.ObjectTypeForeignKeys{},
+		},
+		"country": {
+			Description: utils.ToPtr("A country"),
+			Fields: schema.ObjectTypeFields{
+				"area_km2": {
+					Description: utils.ToPtr("The country's area size in square kilometers"),
+					Type:        schema.NewNamedType("Int").Encode(),
+				},
+				"cities": {
+					Arguments: schema.ObjectFieldArguments{
+						"limit": {
+							Type: schema.NewNullableNamedType("Int").Encode(),
+						},
+					},
+					Description: utils.ToPtr("The cities in the country"),
+					Type:        schema.NewArrayType(schema.NewNamedType("city")).Encode(),
+				},
+				"id": {
+					Description: utils.ToPtr("The country's primary key"),
+					Type:        schema.NewNamedType("Int").Encode(),
+				},
+				"name": {
+					Description: utils.ToPtr("The country's name"),
+					Type:        schema.NewNamedType("String").Encode(),
+				},
+			},
+			ForeignKeys: schema.ObjectTypeForeignKeys{},
+		},
 		"institution": schema.NewObjectType(
 			schema.ObjectTypeFields{
 				"departments": schema.ObjectField{
+					Arguments: schema.ObjectFieldArguments{
+						"limit": {
+							Type: schema.NewNullableNamedType("Int").Encode(),
+						},
+					},
 					Description: utils.ToPtr("The institution's departments"),
 					Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
 				},
@@ -140,6 +258,11 @@ var ndcSchema = schema.SchemaResponse{
 				"staff": schema.ObjectField{
 					Description: utils.ToPtr("The institution's staff"),
 					Type:        schema.NewArrayType(schema.NewNamedType("staff_member")).Encode(),
+					Arguments: schema.ObjectFieldArguments{
+						"limit": {
+							Type: schema.NewNullableNamedType("Int").Encode(),
+						},
+					},
 				},
 			},
 			nil,
@@ -150,6 +273,11 @@ var ndcSchema = schema.SchemaResponse{
 				"campuses": schema.ObjectField{
 					Description: utils.ToPtr("The location's campuses"),
 					Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
+					Arguments: schema.ObjectFieldArguments{
+						"limit": {
+							Type: schema.NewNullableNamedType("Int").Encode(),
+						},
+					},
 				},
 				"city": schema.ObjectField{
 					Description: utils.ToPtr("The location's city"),
@@ -159,11 +287,27 @@ var ndcSchema = schema.SchemaResponse{
 					Description: utils.ToPtr("The location's country"),
 					Type:        schema.NewNamedType("String").Encode(),
 				},
-			}, nil,
+				"country_id": {
+					Description: utils.ToPtr("The location's country ID"),
+					Type:        schema.NewNamedType("Int").Encode(),
+				},
+			},
+			schema.ObjectTypeForeignKeys{
+				"Location_CountryID": {
+					ColumnMapping: schema.ForeignKeyConstraintColumnMapping{
+						"country_id": {"id"},
+					},
+					ForeignCollection: "countries",
+				},
+			},
 			utils.ToPtr("A location"),
 		),
 		"staff_member": schema.NewObjectType(
 			schema.ObjectTypeFields{
+				"born_country_id": {
+					Description: utils.ToPtr("The ID of the country the staff member was born in"),
+					Type:        schema.NewNamedType("Int").Encode(),
+				},
 				"first_name": schema.ObjectField{
 					Description: utils.ToPtr("The staff member's first name"),
 					Type:        schema.NewNamedType("String").Encode(),
@@ -175,9 +319,21 @@ var ndcSchema = schema.SchemaResponse{
 				"specialities": schema.ObjectField{
 					Description: utils.ToPtr("The staff member's specialities"),
 					Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
+					Arguments: schema.ObjectFieldArguments{
+						"limit": {
+							Type: schema.NewNullableNamedType("Int").Encode(),
+						},
+					},
 				},
 			},
-			nil,
+			schema.ObjectTypeForeignKeys{
+				"Staff_BornCountryID": {
+					ColumnMapping: schema.ForeignKeyConstraintColumnMapping{
+						"born_country_id": {"id"},
+					},
+					ForeignCollection: "countries",
+				},
+			},
 			utils.ToPtr("A staff member"),
 		),
 	},
@@ -211,6 +367,17 @@ var ndcSchema = schema.SchemaResponse{
 			Type:        "institution",
 			UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
 				"InstitutionByID": schema.UniquenessConstraint{
+					UniqueColumns: []string{"id"},
+				},
+			},
+		},
+		{
+			Name:        "countries",
+			Description: utils.ToPtr("A collection of countries"),
+			Arguments:   schema.CollectionInfoArguments{},
+			Type:        "country",
+			UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
+				"CountryByID": schema.UniquenessConstraint{
 					UniqueColumns: []string{"id"},
 				},
 			},
