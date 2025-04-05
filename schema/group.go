@@ -7,7 +7,7 @@ import (
 	"slices"
 )
 
-// GroupOrderByTargetType represents a type of GroupOrderByTarget
+// GroupOrderByTargetType represents a type of GroupOrderByTarget.
 type GroupOrderByTargetType string
 
 const (
@@ -24,7 +24,13 @@ var enumValues_GroupOrderByTargetType = []GroupOrderByTargetType{
 func ParseGroupOrderByTargetType(input string) (GroupOrderByTargetType, error) {
 	result := GroupOrderByTargetType(input)
 	if !result.IsValid() {
-		return GroupOrderByTargetType(""), fmt.Errorf("failed to parse GroupOrderByTargetType, expect one of %v, got %s", enumValues_GroupOrderByTargetType, input)
+		return GroupOrderByTargetType(
+				"",
+			), fmt.Errorf(
+				"failed to parse GroupOrderByTargetType, expect one of %v, got %s",
+				enumValues_GroupOrderByTargetType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -52,13 +58,13 @@ func (j *GroupOrderByTargetType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// GroupOrderByTargetEncoder abstracts a generic interface of GroupOrderByTarget
+// GroupOrderByTargetEncoder abstracts a generic interface of GroupOrderByTarget.
 type GroupOrderByTargetEncoder interface {
 	Type() GroupOrderByTargetType
 	Encode() GroupOrderByTarget
 }
 
-// GroupOrderByTarget groups order by target
+// GroupOrderByTarget groups order by target.
 type GroupOrderByTarget map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -149,7 +155,11 @@ func (j GroupOrderByTarget) AsDimension() (*GroupOrderByTargetDimension, error) 
 	}
 
 	if t != GroupOrderByTargetTypeDimension {
-		return nil, fmt.Errorf("invalid GroupOrderByTarget type; expected %s, got %s", GroupOrderByTargetTypeDimension, t)
+		return nil, fmt.Errorf(
+			"invalid GroupOrderByTarget type; expected %s, got %s",
+			GroupOrderByTargetTypeDimension,
+			t,
+		)
 	}
 
 	rawIndex, ok := j["index"]
@@ -177,7 +187,11 @@ func (j GroupOrderByTarget) AsAggregate() (*GroupOrderByTargetAggregate, error) 
 	}
 
 	if t != GroupOrderByTargetTypeAggregate {
-		return nil, fmt.Errorf("invalid GroupOrderByTarget type; expected %s, got %s", GroupOrderByTargetTypeAggregate, t)
+		return nil, fmt.Errorf(
+			"invalid GroupOrderByTarget type; expected %s, got %s",
+			GroupOrderByTargetTypeAggregate,
+			t,
+		)
 	}
 
 	rawAggregate, ok := j["aggregate"]
@@ -187,7 +201,10 @@ func (j GroupOrderByTarget) AsAggregate() (*GroupOrderByTargetAggregate, error) 
 
 	aggregate, ok := rawAggregate.(Aggregate)
 	if !ok {
-		return nil, fmt.Errorf("invalid GroupOrderByTargetAggregate.index, expected Aggregate, got %v", rawAggregate)
+		return nil, fmt.Errorf(
+			"invalid GroupOrderByTargetAggregate.index, expected Aggregate, got %v",
+			rawAggregate,
+		)
 	}
 
 	result := &GroupOrderByTargetAggregate{
@@ -221,7 +238,7 @@ func (j GroupOrderByTarget) InterfaceT() (GroupOrderByTargetEncoder, error) {
 	}
 }
 
-// GroupOrderByTargetDimension represents a dimension object of GroupOrderByTarget
+// GroupOrderByTargetDimension represents a dimension object of GroupOrderByTarget.
 type GroupOrderByTargetDimension struct {
 	// The index of the dimension to order by, selected from the dimensions provided in the `Grouping` request.
 	Index uint `json:"index" mapstructure:"index" yaml:"index"`
@@ -249,7 +266,7 @@ func (ob GroupOrderByTargetDimension) Encode() GroupOrderByTarget {
 	return result
 }
 
-// GroupOrderByTargetAggregate represents an aggregate object of GroupOrderByTarget
+// GroupOrderByTargetAggregate represents an aggregate object of GroupOrderByTarget.
 type GroupOrderByTargetAggregate struct {
 	// Aggregation method to apply.
 	Aggregate Aggregate `json:"aggregate" mapstructure:"aggregate" yaml:"aggregate"`
@@ -277,7 +294,7 @@ func (ob GroupOrderByTargetAggregate) Encode() GroupOrderByTarget {
 	return result
 }
 
-// GroupComparisonTargetType represents a type of GroupComparisonTarget
+// GroupComparisonTargetType represents a type of GroupComparisonTarget.
 type GroupComparisonTargetType string
 
 const (
@@ -292,7 +309,13 @@ var enumValues_GroupComparisonTargetType = []GroupComparisonTargetType{
 func ParseGroupComparisonTargetType(input string) (GroupComparisonTargetType, error) {
 	result := GroupComparisonTargetType(input)
 	if !result.IsValid() {
-		return GroupComparisonTargetType(""), fmt.Errorf("failed to parse GroupComparisonTargetType, expect one of %v, got %s", enumValues_GroupComparisonTargetType, input)
+		return GroupComparisonTargetType(
+				"",
+			), fmt.Errorf(
+				"failed to parse GroupComparisonTargetType, expect one of %v, got %s",
+				enumValues_GroupComparisonTargetType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -320,7 +343,7 @@ func (j *GroupComparisonTargetType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// GroupComparisonTargetEncoder abstracts a generic interface of GroupComparisonTarget
+// GroupComparisonTargetEncoder abstracts a generic interface of GroupComparisonTarget.
 type GroupComparisonTargetEncoder interface {
 	Type() GroupComparisonTargetType
 	Encode() GroupComparisonTarget
@@ -404,7 +427,11 @@ func (j GroupComparisonTarget) AsAggregate() (*GroupComparisonTargetAggregate, e
 	}
 
 	if t != GroupComparisonTargetTypeAggregate {
-		return nil, fmt.Errorf("invalid GroupComparisonTarget type; expected %s, got %s", GroupOrderByTargetTypeDimension, t)
+		return nil, fmt.Errorf(
+			"invalid GroupComparisonTarget type; expected %s, got %s",
+			GroupOrderByTargetTypeDimension,
+			t,
+		)
 	}
 
 	rawAggregate, ok := j["aggregate"]
@@ -414,7 +441,10 @@ func (j GroupComparisonTarget) AsAggregate() (*GroupComparisonTargetAggregate, e
 
 	aggregate, ok := rawAggregate.(Aggregate)
 	if !ok {
-		return nil, fmt.Errorf("invalid GroupComparisonTargetAggregate.index, expected Aggregate, got %v", rawAggregate)
+		return nil, fmt.Errorf(
+			"invalid GroupComparisonTargetAggregate.index, expected Aggregate, got %v",
+			rawAggregate,
+		)
 	}
 
 	result := &GroupComparisonTargetAggregate{
@@ -446,7 +476,7 @@ func (j GroupComparisonTarget) InterfaceT() (GroupComparisonTargetEncoder, error
 	}
 }
 
-// GroupComparisonTargetAggregate represents an aggregate object of GroupComparisonTarget
+// GroupComparisonTargetAggregate represents an aggregate object of GroupComparisonTarget.
 type GroupComparisonTargetAggregate struct {
 	// Aggregation method to apply.
 	Aggregate Aggregate `json:"aggregate" mapstructure:"aggregate" yaml:"aggregate"`
@@ -491,7 +521,13 @@ var enumValues_GroupComparisonValueType = []GroupComparisonValueType{
 func ParseGroupComparisonValueType(input string) (GroupComparisonValueType, error) {
 	result := GroupComparisonValueType(input)
 	if !result.IsValid() {
-		return GroupComparisonValueType(""), fmt.Errorf("failed to parse GroupComparisonValueType, expect one of %v, got %s", enumValues_GroupComparisonValueType, input)
+		return GroupComparisonValueType(
+				"",
+			), fmt.Errorf(
+				"failed to parse GroupComparisonValueType, expect one of %v, got %s",
+				enumValues_GroupComparisonValueType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -525,7 +561,7 @@ type GroupComparisonValueEncoder interface {
 	Encode() GroupComparisonValue
 }
 
-// GroupComparisonValue represents a group comparison value
+// GroupComparisonValue represents a group comparison value.
 type GroupComparisonValue map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -613,7 +649,11 @@ func (cv GroupComparisonValue) AsScalar() (*GroupComparisonValueScalar, error) {
 	}
 
 	if ty != GroupComparisonValueTypeScalar {
-		return nil, fmt.Errorf("invalid GroupComparisonValue type; expected %s, got %s", GroupComparisonValueTypeScalar, ty)
+		return nil, fmt.Errorf(
+			"invalid GroupComparisonValue type; expected %s, got %s",
+			GroupComparisonValueTypeScalar,
+			ty,
+		)
 	}
 
 	value, ok := cv["value"]
@@ -634,7 +674,11 @@ func (cv GroupComparisonValue) AsVariable() (*GroupComparisonValueVariable, erro
 	}
 
 	if ty != GroupComparisonValueTypeVariable {
-		return nil, fmt.Errorf("invalid GroupComparisonValue type; expected %s, got %s", GroupComparisonValueTypeVariable, ty)
+		return nil, fmt.Errorf(
+			"invalid GroupComparisonValue type; expected %s, got %s",
+			GroupComparisonValueTypeVariable,
+			ty,
+		)
 	}
 
 	name, err := getStringValueByKey(cv, "name")
@@ -748,7 +792,13 @@ var enumValues_GroupExpressionType = []GroupExpressionType{
 func ParseGroupExpressionType(input string) (GroupExpressionType, error) {
 	result := GroupExpressionType(input)
 	if !result.IsValid() {
-		return GroupExpressionType(""), fmt.Errorf("failed to parse GroupExpressionType, expect one of %v, got %s", enumValues_GroupExpressionType, input)
+		return GroupExpressionType(
+				"",
+			), fmt.Errorf(
+				"failed to parse GroupExpressionType, expect one of %v, got %s",
+				enumValues_GroupExpressionType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -782,7 +832,7 @@ type GroupExpressionEncoder interface {
 	Encode() GroupExpression
 }
 
-// GroupExpression represents a group expression
+// GroupExpression represents a group expression.
 type GroupExpression map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -929,7 +979,11 @@ func (j GroupExpression) AsAnd() (*GroupExpressionAnd, error) {
 	}
 
 	if t != GroupExpressionTypeAnd {
-		return nil, fmt.Errorf("invalid GroupExpression type; expected: %s, got: %s", GroupExpressionTypeAnd, t)
+		return nil, fmt.Errorf(
+			"invalid GroupExpression type; expected: %s, got: %s",
+			GroupExpressionTypeAnd,
+			t,
+		)
 	}
 
 	rawExpressions, ok := j["expressions"]
@@ -939,7 +993,10 @@ func (j GroupExpression) AsAnd() (*GroupExpressionAnd, error) {
 
 	expressions, ok := rawExpressions.([]GroupExpression)
 	if !ok {
-		return nil, fmt.Errorf("invalid ExpressionAnd.expressions type; expected: []GroupExpression, got: %+v", rawExpressions)
+		return nil, fmt.Errorf(
+			"invalid ExpressionAnd.expressions type; expected: []GroupExpression, got: %+v",
+			rawExpressions,
+		)
 	}
 
 	return &GroupExpressionAnd{
@@ -955,7 +1012,11 @@ func (j GroupExpression) AsOr() (*GroupExpressionOr, error) {
 	}
 
 	if t != GroupExpressionTypeOr {
-		return nil, fmt.Errorf("invalid GroupExpression type; expected: %s, got: %s", GroupExpressionTypeOr, t)
+		return nil, fmt.Errorf(
+			"invalid GroupExpression type; expected: %s, got: %s",
+			GroupExpressionTypeOr,
+			t,
+		)
 	}
 
 	rawExpressions, ok := j["expressions"]
@@ -965,7 +1026,10 @@ func (j GroupExpression) AsOr() (*GroupExpressionOr, error) {
 
 	expressions, ok := rawExpressions.([]GroupExpression)
 	if !ok {
-		return nil, fmt.Errorf("invalid GroupExpressionOr.expression type; expected: []GroupExpression, got: %+v", rawExpressions)
+		return nil, fmt.Errorf(
+			"invalid GroupExpressionOr.expression type; expected: []GroupExpression, got: %+v",
+			rawExpressions,
+		)
 	}
 
 	return &GroupExpressionOr{
@@ -981,7 +1045,11 @@ func (j GroupExpression) AsNot() (*GroupExpressionNot, error) {
 	}
 
 	if t != GroupExpressionTypeNot {
-		return nil, fmt.Errorf("invalid GroupExpression type; expected: %s, got: %s", GroupExpressionTypeNot, t)
+		return nil, fmt.Errorf(
+			"invalid GroupExpression type; expected: %s, got: %s",
+			GroupExpressionTypeNot,
+			t,
+		)
 	}
 
 	rawExpression, ok := j["expression"]
@@ -991,7 +1059,10 @@ func (j GroupExpression) AsNot() (*GroupExpressionNot, error) {
 
 	expression, ok := rawExpression.(GroupExpression)
 	if !ok {
-		return nil, fmt.Errorf("invalid GroupExpressionNot.expression type; expected: GroupExpression, got: %+v", rawExpression)
+		return nil, fmt.Errorf(
+			"invalid GroupExpressionNot.expression type; expected: GroupExpression, got: %+v",
+			rawExpression,
+		)
 	}
 
 	return &GroupExpressionNot{
@@ -1007,7 +1078,11 @@ func (j GroupExpression) AsUnaryComparisonOperator() (*GroupExpressionUnaryCompa
 	}
 
 	if t != GroupExpressionTypeUnaryComparisonOperator {
-		return nil, fmt.Errorf("invalid GroupExpression type; expected: %s, got: %s", GroupExpressionTypeUnaryComparisonOperator, t)
+		return nil, fmt.Errorf(
+			"invalid GroupExpression type; expected: %s, got: %s",
+			GroupExpressionTypeUnaryComparisonOperator,
+			t,
+		)
 	}
 
 	rawOperator, ok := j["operator"]
@@ -1019,7 +1094,10 @@ func (j GroupExpression) AsUnaryComparisonOperator() (*GroupExpressionUnaryCompa
 	if !ok {
 		operatorStr, ok := rawOperator.(string)
 		if !ok {
-			return nil, fmt.Errorf("invalid GroupExpressionUnaryComparisonOperator.operator type; expected: UnaryComparisonOperator, got: %v", rawOperator)
+			return nil, fmt.Errorf(
+				"invalid GroupExpressionUnaryComparisonOperator.operator type; expected: UnaryComparisonOperator, got: %v",
+				rawOperator,
+			)
 		}
 
 		operator = UnaryComparisonOperator(operatorStr)
@@ -1032,7 +1110,10 @@ func (j GroupExpression) AsUnaryComparisonOperator() (*GroupExpressionUnaryCompa
 
 	target, ok := rawTarget.(GroupComparisonTarget)
 	if !ok {
-		return nil, fmt.Errorf("invalid GroupExpressionUnaryComparisonOperator.target type; expected: GroupComparisonTarget, got: %v", rawTarget)
+		return nil, fmt.Errorf(
+			"invalid GroupExpressionUnaryComparisonOperator.target type; expected: GroupComparisonTarget, got: %v",
+			rawTarget,
+		)
 	}
 
 	return &GroupExpressionUnaryComparisonOperator{
@@ -1049,7 +1130,11 @@ func (j GroupExpression) AsBinaryComparisonOperator() (*GroupExpressionBinaryCom
 	}
 
 	if t != GroupExpressionTypeBinaryComparisonOperator {
-		return nil, fmt.Errorf("invalid GroupExpression type; expected: %s, got: %s", GroupExpressionTypeBinaryComparisonOperator, t)
+		return nil, fmt.Errorf(
+			"invalid GroupExpression type; expected: %s, got: %s",
+			GroupExpressionTypeBinaryComparisonOperator,
+			t,
+		)
 	}
 
 	rawTarget, ok := j["target"]
@@ -1059,7 +1144,10 @@ func (j GroupExpression) AsBinaryComparisonOperator() (*GroupExpressionBinaryCom
 
 	target, ok := rawTarget.(GroupComparisonTarget)
 	if !ok {
-		return nil, fmt.Errorf("invalid GroupExpressionBinaryComparisonOperator.target type; expected: GroupComparisonTarget, got: %+v", rawTarget)
+		return nil, fmt.Errorf(
+			"invalid GroupExpressionBinaryComparisonOperator.target type; expected: GroupComparisonTarget, got: %+v",
+			rawTarget,
+		)
 	}
 
 	rawValue, ok := j["value"]
@@ -1069,7 +1157,10 @@ func (j GroupExpression) AsBinaryComparisonOperator() (*GroupExpressionBinaryCom
 
 	value, ok := rawValue.(GroupComparisonValue)
 	if !ok {
-		return nil, fmt.Errorf("invalid GroupExpressionBinaryComparisonOperator.value type; expected: GroupComparisonValue, got: %+v", rawValue)
+		return nil, fmt.Errorf(
+			"invalid GroupExpressionBinaryComparisonOperator.value type; expected: GroupComparisonValue, got: %+v",
+			rawValue,
+		)
 	}
 
 	operator, err := getStringValueByKey(j, "operator")
@@ -1226,7 +1317,10 @@ type GroupExpressionUnaryComparisonOperator struct {
 }
 
 // NewGroupExpressionUnaryComparisonOperator creates a GroupExpressionUnaryComparisonOperator instance.
-func NewGroupExpressionUnaryComparisonOperator[T GroupComparisonTargetEncoder](target T, operator UnaryComparisonOperator) *GroupExpressionUnaryComparisonOperator {
+func NewGroupExpressionUnaryComparisonOperator[T GroupComparisonTargetEncoder](
+	target T,
+	operator UnaryComparisonOperator,
+) *GroupExpressionUnaryComparisonOperator {
 	return &GroupExpressionUnaryComparisonOperator{
 		Target:   target.Encode(),
 		Operator: operator,
@@ -1257,7 +1351,11 @@ type GroupExpressionBinaryComparisonOperator struct {
 }
 
 // NewGroupExpressionBinaryComparisonOperator creates a GroupExpressionBinaryComparisonOperator instance.
-func NewGroupExpressionBinaryComparisonOperator[T GroupComparisonTargetEncoder, V GroupComparisonValueEncoder](target T, operator string, value V) *GroupExpressionBinaryComparisonOperator {
+func NewGroupExpressionBinaryComparisonOperator[T GroupComparisonTargetEncoder, V GroupComparisonValueEncoder](
+	target T,
+	operator string,
+	value V,
+) *GroupExpressionBinaryComparisonOperator {
 	result := &GroupExpressionBinaryComparisonOperator{
 		Target:   target.Encode(),
 		Operator: operator,

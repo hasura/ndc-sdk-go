@@ -26,10 +26,10 @@ const (
 
 // NewArguments input arguments for the new command.
 type NewArguments struct {
-	Name    string `help:"Name of the connector."       required:""                                              short:"n"`
-	Module  string `help:"Module name of the connector" required:""                                              short:"m"`
+	Name    string `help:"Name of the connector."                            required:"" short:"n"`
+	Module  string `help:"Module name of the connector"                      required:"" short:"m"`
 	Version string `help:"The version of ndc-sdk-go."`
-	Output  string `default:""                          help:"The location where source codes will be generated" short:"o"`
+	Output  string `help:"The location where source codes will be generated"             short:"o" default:""`
 }
 
 // GenerateNewProject generates a new project boilerplate.
@@ -93,51 +93,55 @@ func GenerateNewProject(args *NewArguments, silent bool) error {
 }
 
 func generateNewProjectFiles(args *NewArguments, srcPath string) error {
-	return fs.WalkDir(initTemplateFS, templateNewPath, func(filePath string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
+	return fs.WalkDir(
+		initTemplateFS,
+		templateNewPath,
+		func(filePath string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
 
-		log.Debug().Msg(filePath)
+			log.Debug().Msg(filePath)
 
-		if filePath == templateNewPath {
-			return nil
-		}
+			if filePath == templateNewPath {
+				return nil
+			}
 
-		targetPath := path.Join(srcPath, strings.TrimPrefix(filePath, templateNewPath+"/"))
-		if d.IsDir() {
-			return os.Mkdir(targetPath, 0o755)
-		}
+			targetPath := path.Join(srcPath, strings.TrimPrefix(filePath, templateNewPath+"/"))
+			if d.IsDir() {
+				return os.Mkdir(targetPath, 0o755)
+			}
 
-		fileTemplate, err := template.ParseFS(initTemplateFS, filePath)
-		if err != nil {
-			return err
-		}
+			fileTemplate, err := template.ParseFS(initTemplateFS, filePath)
+			if err != nil {
+				return err
+			}
 
-		targetPath = strings.TrimSuffix(targetPath, ".tmpl")
+			targetPath = strings.TrimSuffix(targetPath, ".tmpl")
 
-		f, err := os.Create(targetPath)
-		if err != nil {
-			return err
-		}
+			f, err := os.Create(targetPath)
+			if err != nil {
+				return err
+			}
 
-		defer func() {
-			_ = f.Close()
-		}()
+			defer func() {
+				_ = f.Close()
+			}()
 
-		w := bufio.NewWriter(f)
+			w := bufio.NewWriter(f)
 
-		err = fileTemplate.Execute(w, map[string]any{
-			"Name":    args.Name,
-			"Module":  args.Module,
-			"Version": args.Version,
-		})
-		if err != nil {
-			return err
-		}
+			err = fileTemplate.Execute(w, map[string]any{
+				"Name":    args.Name,
+				"Module":  args.Module,
+				"Version": args.Version,
+			})
+			if err != nil {
+				return err
+			}
 
-		return w.Flush()
-	})
+			return w.Flush()
+		},
+	)
 }
 
 func execGetLatestSDK(basePath string) error {

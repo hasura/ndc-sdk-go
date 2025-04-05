@@ -9,7 +9,7 @@ import (
 	"github.com/hasura/ndc-sdk-go/schema"
 )
 
-// OperationKind the operation kind of connectors
+// OperationKind the operation kind of connectors.
 type OperationKind string
 
 const (
@@ -17,13 +17,13 @@ const (
 	OperationProcedure OperationKind = "Procedure"
 )
 
-// Scalar the structured information of the scalar
+// Scalar the structured information of the scalar.
 type Scalar struct {
 	Schema     schema.ScalarType
 	NativeType *TypeInfo
 }
 
-// Type the interface of a type schema
+// Type the interface of a type schema.
 type Type interface {
 	Kind() schema.TypeEnum
 	Schema() schema.TypeEncoder
@@ -33,7 +33,7 @@ type Type interface {
 	IsAnonymous() bool
 }
 
-// NullableType the information of the nullable type
+// NullableType the information of the nullable type.
 type NullableType struct {
 	UnderlyingType Type
 }
@@ -79,7 +79,7 @@ func (t NullableType) String() string {
 	return "*" + t.UnderlyingType.String()
 }
 
-// ArrayType the information of the array type
+// ArrayType the information of the array type.
 type ArrayType struct {
 	ElementType Type
 }
@@ -121,7 +121,7 @@ func (t ArrayType) String() string {
 	return "[]" + t.ElementType.String()
 }
 
-// NamedType the information of a named type
+// NamedType the information of a named type.
 type NamedType struct {
 	Name       string
 	NativeType *TypeInfo
@@ -157,7 +157,7 @@ func (t *NamedType) String() string {
 	return t.NativeType.String()
 }
 
-// PredicateType the information of a predicate type
+// PredicateType the information of a predicate type.
 type PredicateType struct {
 	ObjectName string
 }

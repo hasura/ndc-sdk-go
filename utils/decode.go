@@ -57,7 +57,11 @@ func IsNil(value any) bool {
 }
 
 // DecodeObjectValue get and decode a value from object by key.
-func DecodeObjectValue[T any](object map[string]any, key string, decodeHooks ...mapstructure.DecodeHookFunc) (T, error) {
+func DecodeObjectValue[T any](
+	object map[string]any,
+	key string,
+	decodeHooks ...mapstructure.DecodeHookFunc,
+) (T, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		var result T
@@ -74,7 +78,11 @@ func DecodeObjectValue[T any](object map[string]any, key string, decodeHooks ...
 }
 
 // DecodeObjectValueDefault get and decode a value from object by key. Returns the empty object if the input value is null.
-func DecodeObjectValueDefault[T any](object map[string]any, key string, decodeHooks ...mapstructure.DecodeHookFunc) (T, error) {
+func DecodeObjectValueDefault[T any](
+	object map[string]any,
+	key string,
+	decodeHooks ...mapstructure.DecodeHookFunc,
+) (T, error) {
 	result, err := DecodeNullableObjectValue[T](object, key, decodeHooks...)
 	if err != nil || result == nil {
 		var emptyValue T
@@ -86,7 +94,11 @@ func DecodeObjectValueDefault[T any](object map[string]any, key string, decodeHo
 }
 
 // DecodeNullableObjectValue get and decode a nullable value from object by key.
-func DecodeNullableObjectValue[T any](object map[string]any, key string, decodeHooks ...mapstructure.DecodeHookFunc) (*T, error) {
+func DecodeNullableObjectValue[T any](
+	object map[string]any,
+	key string,
+	decodeHooks ...mapstructure.DecodeHookFunc,
+) (*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return nil, nil
@@ -127,7 +139,10 @@ func DecodeNullableValue[T any](value any, decodeHooks ...mapstructure.DecodeHoo
 }
 
 // DecodeObject tries to decode an object from a map.
-func DecodeObject[T any](value map[string]any, decodeHooks ...mapstructure.DecodeHookFunc) (T, error) {
+func DecodeObject[T any](
+	value map[string]any,
+	decodeHooks ...mapstructure.DecodeHookFunc,
+) (T, error) {
 	result := new(T)
 	if len(value) == 0 {
 		return *result, nil
@@ -145,7 +160,10 @@ func DecodeObject[T any](value map[string]any, decodeHooks ...mapstructure.Decod
 }
 
 // DecodeNullableObject tries to decode an object from a map.
-func DecodeNullableObject[T any](value map[string]any, decodeHooks ...mapstructure.DecodeHookFunc) (*T, error) {
+func DecodeNullableObject[T any](
+	value map[string]any,
+	decodeHooks ...mapstructure.DecodeHookFunc,
+) (*T, error) {
 	if value == nil {
 		return nil, nil
 	}
@@ -166,7 +184,11 @@ func DecodeNullableObject[T any](value map[string]any, decodeHooks ...mapstructu
 	return result, err
 }
 
-func decodeValue(target any, value any, decodeHooks ...mapstructure.DecodeHookFunc) error { //nolint:maintidx,gocyclo,cyclop,funlen,gocognit
+func decodeValue(
+	target any,
+	value any,
+	decodeHooks ...mapstructure.DecodeHookFunc,
+) error { //nolint:maintidx,gocyclo,cyclop,funlen,gocognit
 	if IsNil(value) {
 		return errValueRequired
 	}
@@ -569,7 +591,9 @@ func DecodeInt[T int | int8 | int16 | int32 | int64](value any) (T, error) {
 }
 
 // DecodeNullableIntReflection tries to convert an reflection value to a nullable integer.
-func DecodeNullableIntReflection[T int | int8 | int16 | int32 | int64](value reflect.Value) (*T, error) {
+func DecodeNullableIntReflection[T int | int8 | int16 | int32 | int64](
+	value reflect.Value,
+) (*T, error) {
 	return decodeNullableIntRefection(convertInt[T])(value)
 }
 
@@ -598,12 +622,16 @@ func DecodeUint[T uint | uint8 | uint16 | uint32 | uint64](value any) (T, error)
 }
 
 // DecodeNullableUintReflection tries to convert an reflection value to a nullable unsigned-integer.
-func DecodeNullableUintReflection[T uint | uint8 | uint16 | uint32 | uint64](value reflect.Value) (*T, error) {
+func DecodeNullableUintReflection[T uint | uint8 | uint16 | uint32 | uint64](
+	value reflect.Value,
+) (*T, error) {
 	return decodeNullableIntRefection(convertUint[T])(value)
 }
 
 // DecodeUintReflection tries to convert an reflection value to an unsigned-integer.
-func DecodeUintReflection[T uint | uint8 | uint16 | uint32 | uint64](value reflect.Value) (T, error) {
+func DecodeUintReflection[T uint | uint8 | uint16 | uint32 | uint64](
+	value reflect.Value,
+) (T, error) {
 	result, err := decodeNullableIntRefection(convertUint[T])(value)
 	if err != nil {
 		var t T
@@ -618,7 +646,10 @@ func DecodeUintReflection[T uint | uint8 | uint16 | uint32 | uint64](value refle
 	return *result, nil
 }
 
-func decodeNullableInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](value any, convertFn convertFunc[T]) (*T, error) {
+func decodeNullableInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](
+	value any,
+	convertFn convertFunc[T],
+) (*T, error) {
 	if value == nil {
 		return nil, nil
 	}
@@ -626,7 +657,9 @@ func decodeNullableInt[T int | int8 | int16 | int32 | int64 | uint | uint8 | uin
 	return decodeNullableIntRefection(convertFn)(reflect.ValueOf(value))
 }
 
-func decodeNullableIntRefection[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](convertFn convertFunc[T]) convertNullableFuncReflection[T] {
+func decodeNullableIntRefection[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](
+	convertFn convertFunc[T],
+) convertNullableFuncReflection[T] {
 	return func(value reflect.Value) (*T, error) {
 		inferredValue, ok := UnwrapPointerFromReflectValue(value)
 		if !ok {
@@ -642,7 +675,9 @@ func decodeNullableIntRefection[T int | int8 | int16 | int32 | int64 | uint | ui
 	}
 }
 
-func decodeIntRefection[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](convertFn convertFunc[T]) convertFuncReflection[T] {
+func decodeIntRefection[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](
+	convertFn convertFunc[T],
+) convertFuncReflection[T] {
 	return func(inferredValue reflect.Value) (T, error) {
 		var result T
 
@@ -656,26 +691,40 @@ func decodeIntRefection[T int | int8 | int16 | int32 | int64 | uint | uint8 | ui
 		case reflect.String:
 			newVal, parseErr := convertFn(inferredValue.Interface())
 			if parseErr != nil {
-				return result, fmt.Errorf("failed to convert integer, got %+v: %w", inferredValue.Interface(), parseErr)
+				return result, fmt.Errorf(
+					"failed to convert integer, got %+v: %w",
+					inferredValue.Interface(),
+					parseErr,
+				)
 			}
 
 			result = newVal
 		case reflect.Interface:
 			newVal, parseErr := parseFloat[T](inferredValue.Interface())
 			if parseErr != nil {
-				return result, fmt.Errorf("failed to convert integer, got %+v: %w", inferredValue.Interface(), parseErr)
+				return result, fmt.Errorf(
+					"failed to convert integer, got %+v: %w",
+					inferredValue.Interface(),
+					parseErr,
+				)
 			}
 
 			result = newVal
 		default:
-			return result, fmt.Errorf("failed to convert integer, got: <%s> %+v", inferredValue.Kind(), inferredValue.Interface())
+			return result, fmt.Errorf(
+				"failed to convert integer, got: <%s> %+v",
+				inferredValue.Kind(),
+				inferredValue.Interface(),
+			)
 		}
 
 		return result, nil
 	}
 }
 
-func parseFloat[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](v any) (T, error) {
+func parseFloat[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](
+	v any,
+) (T, error) {
 	rawResult, err := strconv.ParseFloat(fmt.Sprint(v), 64)
 	if err != nil {
 		var result T
@@ -907,21 +956,21 @@ type decodeTimeOptions struct {
 	TimeParser func(string) (time.Time, error)
 }
 
-// ConvertUnixTime convert an integer value to time.Time with the base unix timestamp
+// ConvertUnixTime convert an integer value to time.Time with the base unix timestamp.
 func (d decodeTimeOptions) ConvertUnixTime(value int64) time.Time {
 	t := time.Unix(0, 0)
 
 	return t.Add(d.ConvertDuration(value))
 }
 
-// ConvertFloatUnixTime convert a floating point value to time.Time with the base unix timestamp
+// ConvertFloatUnixTime convert a floating point value to time.Time with the base unix timestamp.
 func (d decodeTimeOptions) ConvertFloatUnixTime(value float64) time.Time {
 	t := time.Unix(0, 0)
 
 	return t.Add(d.ConvertFloatDuration(value))
 }
 
-// ConvertDuration convert an integer value to time.Time with the base unix timestamp
+// ConvertDuration convert an integer value to time.Time with the base unix timestamp.
 func (d decodeTimeOptions) ConvertDuration(value int64) time.Duration {
 	baseUnix := d.BaseUnix
 	if baseUnix <= 0 {
@@ -931,7 +980,7 @@ func (d decodeTimeOptions) ConvertDuration(value int64) time.Duration {
 	return baseUnix * time.Duration(value)
 }
 
-// ConvertDuration convert a floating point value to time.Time with the base unix timestamp
+// ConvertDuration convert a floating point value to time.Time with the base unix timestamp.
 func (d decodeTimeOptions) ConvertFloatDuration(value float64) time.Duration {
 	baseUnix := d.BaseUnix
 	if baseUnix <= 0 {
@@ -941,7 +990,10 @@ func (d decodeTimeOptions) ConvertFloatDuration(value float64) time.Duration {
 	return time.Duration(value * float64(baseUnix))
 }
 
-func createDecodeTimeOptions(defaultParser func(string) (time.Time, error), options ...DecodeTimeOption) decodeTimeOptions {
+func createDecodeTimeOptions(
+	defaultParser func(string) (time.Time, error),
+	options ...DecodeTimeOption,
+) decodeTimeOptions {
 	d := decodeTimeOptions{
 		BaseUnix: time.Millisecond,
 	}
@@ -968,17 +1020,17 @@ func createDecodeDurationOptions(options ...DecodeTimeOption) decodeTimeOptions 
 	return d
 }
 
-// DecodeTimeOption abstracts a time decoding option
+// DecodeTimeOption abstracts a time decoding option.
 type DecodeTimeOption func(*decodeTimeOptions)
 
-// WithBaseUnix sets the base unix value to decode date time or duration
+// WithBaseUnix sets the base unix value to decode date time or duration.
 func WithBaseUnix(base time.Duration) DecodeTimeOption {
 	return func(d *decodeTimeOptions) {
 		d.BaseUnix = base
 	}
 }
 
-// WithTimeParser sets the time parser function to decode date time
+// WithTimeParser sets the time parser function to decode date time.
 func WithTimeParser(parser func(string) (time.Time, error)) DecodeTimeOption {
 	return func(d *decodeTimeOptions) {
 		d.TimeParser = parser
@@ -1086,13 +1138,19 @@ func DecodeDateTimeReflection(value reflect.Value, options ...DecodeTimeOption) 
 }
 
 // DecodeNullableDateTimeReflection decodes a nullable time.Time value from reflection.
-func DecodeNullableDateTimeReflection(value reflect.Value, options ...DecodeTimeOption) (*time.Time, error) {
+func DecodeNullableDateTimeReflection(
+	value reflect.Value,
+	options ...DecodeTimeOption,
+) (*time.Time, error) {
 	inferredValue, ok := UnwrapPointerFromReflectValue(value)
 	if !ok {
 		return nil, nil
 	}
 
-	result, err := decodeDateTimeReflection(inferredValue, createDecodeTimeOptions(parseDateTime, options...))
+	result, err := decodeDateTimeReflection(
+		inferredValue,
+		createDecodeTimeOptions(parseDateTime, options...),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -1188,13 +1246,19 @@ func DecodeDateReflection(value reflect.Value, options ...DecodeTimeOption) (tim
 }
 
 // DecodeNullableDateReflection decodes a nullable date value from reflection.
-func DecodeNullableDateReflection(value reflect.Value, options ...DecodeTimeOption) (*time.Time, error) {
+func DecodeNullableDateReflection(
+	value reflect.Value,
+	options ...DecodeTimeOption,
+) (*time.Time, error) {
 	inferredValue, ok := UnwrapPointerFromReflectValue(value)
 	if !ok {
 		return nil, nil
 	}
 
-	result, err := decodeDateTimeReflection(inferredValue, createDecodeTimeOptions(parseDate, options...))
+	result, err := decodeDateTimeReflection(
+		inferredValue,
+		createDecodeTimeOptions(parseDate, options...),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -1291,13 +1355,19 @@ func DecodeNullableDuration(value any, options ...DecodeTimeOption) (*time.Durat
 }
 
 // DecodeNullableDurationReflection tries to convert an unknown value to a duration pointer via reflection.
-func DecodeNullableDurationReflection(value reflect.Value, options ...DecodeTimeOption) (*time.Duration, error) {
+func DecodeNullableDurationReflection(
+	value reflect.Value,
+	options ...DecodeTimeOption,
+) (*time.Duration, error) {
 	opts := createDecodeDurationOptions(options...)
 
 	return decodeNullableDurationReflection(value, opts)
 }
 
-func decodeNullableDurationReflection(value reflect.Value, opts decodeTimeOptions) (*time.Duration, error) {
+func decodeNullableDurationReflection(
+	value reflect.Value,
+	opts decodeTimeOptions,
+) (*time.Duration, error) {
 	inferredValue, ok := UnwrapPointerFromReflectValue(value)
 	if !ok {
 		return nil, nil
@@ -1395,8 +1465,7 @@ func GetArbitraryJSON(object map[string]any, key string) (any, error) {
 	return value, nil
 }
 
-// GetArbitraryJSONDefault get an arbitrary json value from object by key.
-// Return nil if the value does not exist
+// Return nil if the value does not exist.
 func GetArbitraryJSONDefault(object map[string]any, key string) (any, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -1412,7 +1481,10 @@ func GetArbitraryJSONDefault(object map[string]any, key string) (any, error) {
 }
 
 // GetNullableInt get an integer pointer from object by key.
-func GetNullableInt[T int | int8 | int16 | int32 | int64](object map[string]any, key string) (*T, error) {
+func GetNullableInt[T int | int8 | int16 | int32 | int64](
+	object map[string]any,
+	key string,
+) (*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
@@ -1428,7 +1500,10 @@ func GetNullableInt[T int | int8 | int16 | int32 | int64](object map[string]any,
 
 // GetIntDefault get an integer value from object by key.
 // Returns 0 if the field is null.
-func GetIntDefault[T int | int8 | int16 | int32 | int64](object map[string]any, key string) (T, error) {
+func GetIntDefault[T int | int8 | int16 | int32 | int64](
+	object map[string]any,
+	key string,
+) (T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return 0, nil
@@ -1463,7 +1538,10 @@ func GetInt[T int | int8 | int16 | int32 | int64](object map[string]any, key str
 }
 
 // GetNullableUint get an unsigned integer pointer from object by key.
-func GetNullableUint[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (*T, error) {
+func GetNullableUint[T uint | uint8 | uint16 | uint32 | uint64](
+	object map[string]any,
+	key string,
+) (*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
@@ -1478,7 +1556,10 @@ func GetNullableUint[T uint | uint8 | uint16 | uint32 | uint64](object map[strin
 }
 
 // GetUint get an unsigned integer value from object by key.
-func GetUint[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (T, error) {
+func GetUint[T uint | uint8 | uint16 | uint32 | uint64](
+	object map[string]any,
+	key string,
+) (T, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return 0, fmt.Errorf("field `%s` is required", key)
@@ -1494,7 +1575,10 @@ func GetUint[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, k
 
 // GetUintDefault gets an unsigned integer value from object by key.
 // Returns 0 if the field is null.
-func GetUintDefault[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (T, error) {
+func GetUintDefault[T uint | uint8 | uint16 | uint32 | uint64](
+	object map[string]any,
+	key string,
+) (T, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return 0, nil
@@ -1594,8 +1678,7 @@ func GetString(object map[string]any, key string) (string, error) {
 	return result, nil
 }
 
-// GetStringDefault get a string value from object by key.
-// Returns an empty string if the value is null
+// Returns an empty string if the value is null.
 func GetStringDefault(object map[string]any, key string) (string, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -1644,8 +1727,7 @@ func GetBoolean(object map[string]any, key string) (bool, error) {
 	return result, nil
 }
 
-// GetBooleanDefault get a bool value from object by key.
-// Returns false if the value is null
+// Returns false if the value is null.
 func GetBooleanDefault(object map[string]any, key string) (bool, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -1661,7 +1743,11 @@ func GetBooleanDefault(object map[string]any, key string) (bool, error) {
 }
 
 // GetNullableDateTime get a time.Time pointer from object by key.
-func GetNullableDateTime(object map[string]any, key string, options ...DecodeTimeOption) (*time.Time, error) {
+func GetNullableDateTime(
+	object map[string]any,
+	key string,
+	options ...DecodeTimeOption,
+) (*time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
@@ -1676,7 +1762,11 @@ func GetNullableDateTime(object map[string]any, key string, options ...DecodeTim
 }
 
 // GetDateTime get a time.Time value from object by key.
-func GetDateTime(object map[string]any, key string, options ...DecodeTimeOption) (time.Time, error) {
+func GetDateTime(
+	object map[string]any,
+	key string,
+	options ...DecodeTimeOption,
+) (time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return time.Time{}, fmt.Errorf("field `%s` is required", key)
@@ -1692,7 +1782,11 @@ func GetDateTime(object map[string]any, key string, options ...DecodeTimeOption)
 
 // GetDateTimeDefault get a time.Time value from object by key.
 // Returns the empty time if the value is empty.
-func GetDateTimeDefault(object map[string]any, key string, options ...DecodeTimeOption) (time.Time, error) {
+func GetDateTimeDefault(
+	object map[string]any,
+	key string,
+	options ...DecodeTimeOption,
+) (time.Time, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return time.Time{}, nil
@@ -1711,7 +1805,11 @@ func GetDateTimeDefault(object map[string]any, key string, options ...DecodeTime
 }
 
 // GetNullableDuration get a time.Duration pointer from object by key.
-func GetNullableDuration(object map[string]any, key string, options ...DecodeTimeOption) (*time.Duration, error) {
+func GetNullableDuration(
+	object map[string]any,
+	key string,
+	options ...DecodeTimeOption,
+) (*time.Duration, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
@@ -1726,7 +1824,11 @@ func GetNullableDuration(object map[string]any, key string, options ...DecodeTim
 }
 
 // GetDuration get a time.Duration value from object by key.
-func GetDuration(object map[string]any, key string, options ...DecodeTimeOption) (time.Duration, error) {
+func GetDuration(
+	object map[string]any,
+	key string,
+	options ...DecodeTimeOption,
+) (time.Duration, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return 0, fmt.Errorf("field `%s` is required", key)
@@ -1742,7 +1844,11 @@ func GetDuration(object map[string]any, key string, options ...DecodeTimeOption)
 
 // GetDurationDefault get a time.Duration value from object by key.
 // Returns 0 if the value is null.
-func GetDurationDefault(object map[string]any, key string, options ...DecodeTimeOption) (time.Duration, error) {
+func GetDurationDefault(
+	object map[string]any,
+	key string,
+	options ...DecodeTimeOption,
+) (time.Duration, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return 0, nil
@@ -1850,8 +1956,7 @@ func GetNullableUUID(object map[string]any, key string) (*uuid.UUID, error) {
 	return result, nil
 }
 
-// GetUUIDDefault get an UUID value from object by key.
-// Returns uuid.Nil if the value is null
+// Returns uuid.Nil if the value is null.
 func GetUUIDDefault(object map[string]any, key string) (uuid.UUID, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -1926,8 +2031,7 @@ func GetNullableRawJSON(object map[string]any, key string) (*json.RawMessage, er
 	return DecodeNullableRawJSON(value)
 }
 
-// GetRawJSONDefault get a raw json.RawMessage value from object by key.
-// Returns nil if the value is empty
+// Returns nil if the value is empty.
 func GetRawJSONDefault(object map[string]any, key string) (json.RawMessage, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -1948,9 +2052,10 @@ func GetRawJSONDefault(object map[string]any, key string) (json.RawMessage, erro
 
 func decodeAnyValue(target any, value any, decodeHooks ...mapstructure.DecodeHookFunc) error {
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:     target,
-		TagName:    "json",
-		DecodeHook: mapstructure.ComposeDecodeHookFunc(append(defaultDecodeFuncs, decodeHooks...)...),
+		Result:  target,
+		TagName: "json",
+		DecodeHook: mapstructure.ComposeDecodeHookFunc(
+			append(defaultDecodeFuncs, decodeHooks...)...),
 	})
 	if err != nil {
 		return err

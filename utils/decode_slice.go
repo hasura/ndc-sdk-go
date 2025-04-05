@@ -73,7 +73,9 @@ func DecodeNullableIntPtrSlice[T int | int8 | int16 | int32 | int64](value any) 
 }
 
 // DecodeNullableUintPtrSlice decodes an unsigned integer pointer slice from an unknown value.
-func DecodeNullableUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](value any) (*[]*T, error) {
+func DecodeNullableUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](
+	value any,
+) (*[]*T, error) {
 	return decodeNullableNumberPtrSlice(value, DecodeNullableUint[T])
 }
 
@@ -125,7 +127,10 @@ func DecodeFloatPtrSlice[T float32 | float64](value any) ([]*T, error) {
 }
 
 // GetNullableIntSlice get an integer pointer slice from object by key.
-func GetNullableIntSlice[T int | int8 | int16 | int32 | int64](object map[string]any, key string) (*[]T, error) {
+func GetNullableIntSlice[T int | int8 | int16 | int32 | int64](
+	object map[string]any,
+	key string,
+) (*[]T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
@@ -140,7 +145,10 @@ func GetNullableIntSlice[T int | int8 | int16 | int32 | int64](object map[string
 }
 
 // GetNullableUintSlice get an unsigned integer pointer slice from object by key.
-func GetNullableUintSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (*[]T, error) {
+func GetNullableUintSlice[T uint | uint8 | uint16 | uint32 | uint64](
+	object map[string]any,
+	key string,
+) (*[]T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
@@ -170,7 +178,10 @@ func GetNullableFloatSlice[T float32 | float64](object map[string]any, key strin
 }
 
 // GetIntSlice get an integer slice from object by key.
-func GetIntSlice[T int | int8 | int16 | int32 | int64](object map[string]any, key string) ([]T, error) {
+func GetIntSlice[T int | int8 | int16 | int32 | int64](
+	object map[string]any,
+	key string,
+) ([]T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, fmt.Errorf("field `%s` is required", key)
@@ -185,7 +196,10 @@ func GetIntSlice[T int | int8 | int16 | int32 | int64](object map[string]any, ke
 }
 
 // GetIntSliceDefault get an integer slice from object by key.
-func GetIntSliceDefault[T int | int8 | int16 | int32 | int64](object map[string]any, key string) ([]T, error) {
+func GetIntSliceDefault[T int | int8 | int16 | int32 | int64](
+	object map[string]any,
+	key string,
+) ([]T, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return nil, nil
@@ -204,7 +218,10 @@ func GetIntSliceDefault[T int | int8 | int16 | int32 | int64](object map[string]
 }
 
 // GetUintSlice get an unsigned integer slice from object by key.
-func GetUintSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) ([]T, error) {
+func GetUintSlice[T uint | uint8 | uint16 | uint32 | uint64](
+	object map[string]any,
+	key string,
+) ([]T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, fmt.Errorf("field `%s` is required", key)
@@ -219,7 +236,10 @@ func GetUintSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[string]a
 }
 
 // GetUintSliceDefault get an unsigned integer slice from object by key.
-func GetUintSliceDefault[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) ([]T, error) {
+func GetUintSliceDefault[T uint | uint8 | uint16 | uint32 | uint64](
+	object map[string]any,
+	key string,
+) ([]T, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return nil, nil
@@ -272,7 +292,10 @@ func GetFloatSliceDefault[T float32 | float64](object map[string]any, key string
 }
 
 // GetNullableIntPtrSlice get an integer pointer slice from object by key.
-func GetNullableIntPtrSlice[T int | int8 | int16 | int32 | int64](object map[string]any, key string) (*[]*T, error) {
+func GetNullableIntPtrSlice[T int | int8 | int16 | int32 | int64](
+	object map[string]any,
+	key string,
+) (*[]*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
@@ -287,7 +310,10 @@ func GetNullableIntPtrSlice[T int | int8 | int16 | int32 | int64](object map[str
 }
 
 // GetNullableUintPtrSlice get an unsigned integer pointer slice from object by key.
-func GetNullableUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) (*[]*T, error) {
+func GetNullableUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](
+	object map[string]any,
+	key string,
+) (*[]*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
@@ -302,7 +328,10 @@ func GetNullableUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](object m
 }
 
 // GetNullableFloatPtrSlice get a float pointer slice from object by key.
-func GetNullableFloatPtrSlice[T float32 | float64](object map[string]any, key string) (*[]*T, error) {
+func GetNullableFloatPtrSlice[T float32 | float64](
+	object map[string]any,
+	key string,
+) (*[]*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, nil
@@ -317,7 +346,10 @@ func GetNullableFloatPtrSlice[T float32 | float64](object map[string]any, key st
 }
 
 // GetIntPtrSlice get an integer slice from object by key.
-func GetIntPtrSlice[T int | int8 | int16 | int32 | int64](object map[string]any, key string) ([]*T, error) {
+func GetIntPtrSlice[T int | int8 | int16 | int32 | int64](
+	object map[string]any,
+	key string,
+) ([]*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, fmt.Errorf("field `%s` is required", key)
@@ -332,7 +364,10 @@ func GetIntPtrSlice[T int | int8 | int16 | int32 | int64](object map[string]any,
 }
 
 // GetIntPtrSliceDefault get an integer slice from object by key.
-func GetIntPtrSliceDefault[T int | int8 | int16 | int32 | int64](object map[string]any, key string) ([]*T, error) {
+func GetIntPtrSliceDefault[T int | int8 | int16 | int32 | int64](
+	object map[string]any,
+	key string,
+) ([]*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return nil, nil
@@ -351,7 +386,10 @@ func GetIntPtrSliceDefault[T int | int8 | int16 | int32 | int64](object map[stri
 }
 
 // GetUintPtrSlice get an unsigned integer slice from object by key.
-func GetUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) ([]*T, error) {
+func GetUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](
+	object map[string]any,
+	key string,
+) ([]*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok || value == nil {
 		return nil, fmt.Errorf("field `%s` is required", key)
@@ -366,7 +404,10 @@ func GetUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](object map[strin
 }
 
 // GetUintPtrSliceDefault get an unsigned integer slice from object by key.
-func GetUintPtrSliceDefault[T uint | uint8 | uint16 | uint32 | uint64](object map[string]any, key string) ([]*T, error) {
+func GetUintPtrSliceDefault[T uint | uint8 | uint16 | uint32 | uint64](
+	object map[string]any,
+	key string,
+) ([]*T, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
 		return nil, nil
@@ -419,7 +460,10 @@ func GetFloatPtrSliceDefault[T float32 | float64](object map[string]any, key str
 }
 
 // decodeNullableNumberSlice tries to convert an unknown value to a number slice.
-func decodeNullableNumberSlice[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](value any, convertFn convertNullableFuncReflection[T]) (*[]T, error) {
+func decodeNullableNumberSlice[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](
+	value any,
+	convertFn convertNullableFuncReflection[T],
+) (*[]T, error) {
 	if value == nil {
 		return nil, nil
 	}
@@ -456,7 +500,10 @@ func decodeNullableNumberSlice[T int | int8 | int16 | int32 | int64 | uint | uin
 }
 
 // decodeNullableNumberPtrSlice tries to convert an unknown value to a number slice.
-func decodeNullableNumberPtrSlice[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](value any, convertFn convertNullableFunc[T]) (*[]*T, error) {
+func decodeNullableNumberPtrSlice[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64](
+	value any,
+	convertFn convertNullableFunc[T],
+) (*[]*T, error) {
 	if value == nil {
 		return nil, nil
 	}

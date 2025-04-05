@@ -8,8 +8,7 @@ typegen:
 
 .PHONY: format
 format:
-	gofmt -w -s .
-
+	golangci-lint fmt
 
 .PHONY: test-sdk
 test-sdk:

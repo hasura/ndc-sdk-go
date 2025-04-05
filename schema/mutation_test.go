@@ -128,7 +128,11 @@ func TestUnmarshalMutationRequest(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			var mutation MutationRequest
 			assert.NilError(t, json.Unmarshal([]byte(tc.Raw), &mutation))
-			assert.DeepEqual(t, tc.Expected.CollectionRelationships, mutation.CollectionRelationships)
+			assert.DeepEqual(
+				t,
+				tc.Expected.CollectionRelationships,
+				mutation.CollectionRelationships,
+			)
 			assert.DeepEqual(t, tc.Expected.Operations[0].Type, mutation.Operations[0].Type)
 			assert.DeepEqual(t, tc.Expected.Operations[0].Name, mutation.Operations[0].Name)
 			assert.DeepEqual(t, tc.Expected.Operations[0].Fields, mutation.Operations[0].Fields)

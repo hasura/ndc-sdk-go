@@ -7,7 +7,9 @@ import (
 	"slices"
 )
 
-var errTypeRepresentationOneOfRequired = errors.New("TypeRepresentationEnum must have at least 1 item in one_of array")
+var errTypeRepresentationOneOfRequired = errors.New(
+	"TypeRepresentationEnum must have at least 1 item in one_of array",
+)
 
 // NewScalarType creates an empty ScalarType instance.
 func NewScalarType() *ScalarType {
@@ -91,7 +93,13 @@ var enumValues_TypeRepresentationType = []TypeRepresentationType{
 func ParseTypeRepresentationType(input string) (TypeRepresentationType, error) {
 	result := TypeRepresentationType(input)
 	if !result.IsValid() {
-		return TypeRepresentationType(""), fmt.Errorf("failed to parse TypeRepresentationType, expect one of %v, got: %s", enumValues_TypeRepresentationType, input)
+		return TypeRepresentationType(
+				"",
+			), fmt.Errorf(
+				"failed to parse TypeRepresentationType, expect one of %v, got: %s",
+				enumValues_TypeRepresentationType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -157,7 +165,9 @@ func (j *TypeRepresentation) UnmarshalJSON(b []byte) error {
 		}
 
 		if len(oneOf) == 0 {
-			return errors.New("TypeRepresentation requires at least 1 item in one_of field for enum type")
+			return errors.New(
+				"TypeRepresentation requires at least 1 item in one_of field for enum type",
+			)
 		}
 
 		result["one_of"] = oneOf
@@ -198,7 +208,11 @@ func (ty TypeRepresentation) AsBoolean() (*TypeRepresentationBoolean, error) {
 	}
 
 	if t != TypeRepresentationTypeBoolean {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeBoolean, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeBoolean,
+			t,
+		)
 	}
 
 	return &TypeRepresentationBoolean{}, nil
@@ -212,7 +226,11 @@ func (ty TypeRepresentation) AsString() (*TypeRepresentationString, error) {
 	}
 
 	if t != TypeRepresentationTypeString {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeString, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeString,
+			t,
+		)
 	}
 
 	return &TypeRepresentationString{}, nil
@@ -226,7 +244,11 @@ func (ty TypeRepresentation) AsInt8() (*TypeRepresentationInt8, error) {
 	}
 
 	if t != TypeRepresentationTypeInt8 {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeInt8, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeInt8,
+			t,
+		)
 	}
 
 	return &TypeRepresentationInt8{}, nil
@@ -240,7 +262,11 @@ func (ty TypeRepresentation) AsInt16() (*TypeRepresentationInt16, error) {
 	}
 
 	if t != TypeRepresentationTypeInt16 {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeInt16, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeInt16,
+			t,
+		)
 	}
 
 	return &TypeRepresentationInt16{}, nil
@@ -254,7 +280,11 @@ func (ty TypeRepresentation) AsInt32() (*TypeRepresentationInt32, error) {
 	}
 
 	if t != TypeRepresentationTypeInt32 {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeInt32, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeInt32,
+			t,
+		)
 	}
 
 	return &TypeRepresentationInt32{}, nil
@@ -268,7 +298,11 @@ func (ty TypeRepresentation) AsInt64() (*TypeRepresentationInt64, error) {
 	}
 
 	if t != TypeRepresentationTypeInt64 {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeInt64, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeInt64,
+			t,
+		)
 	}
 
 	return &TypeRepresentationInt64{}, nil
@@ -282,7 +316,11 @@ func (ty TypeRepresentation) AsFloat32() (*TypeRepresentationFloat32, error) {
 	}
 
 	if t != TypeRepresentationTypeFloat32 {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeFloat32, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeFloat32,
+			t,
+		)
 	}
 
 	return &TypeRepresentationFloat32{}, nil
@@ -296,7 +334,11 @@ func (ty TypeRepresentation) AsFloat64() (*TypeRepresentationFloat64, error) {
 	}
 
 	if t != TypeRepresentationTypeFloat64 {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeFloat64, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeFloat64,
+			t,
+		)
 	}
 
 	return &TypeRepresentationFloat64{}, nil
@@ -310,7 +352,11 @@ func (ty TypeRepresentation) AsBigInteger() (*TypeRepresentationBigInteger, erro
 	}
 
 	if t != TypeRepresentationTypeBigInteger {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeBigInteger, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeBigInteger,
+			t,
+		)
 	}
 
 	return &TypeRepresentationBigInteger{}, nil
@@ -324,7 +370,11 @@ func (ty TypeRepresentation) AsBigDecimal() (*TypeRepresentationBigDecimal, erro
 	}
 
 	if t != TypeRepresentationTypeBigDecimal {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeBigDecimal, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeBigDecimal,
+			t,
+		)
 	}
 
 	return &TypeRepresentationBigDecimal{}, nil
@@ -338,7 +388,11 @@ func (ty TypeRepresentation) AsUUID() (*TypeRepresentationUUID, error) {
 	}
 
 	if t != TypeRepresentationTypeUUID {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeUUID, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeUUID,
+			t,
+		)
 	}
 
 	return &TypeRepresentationUUID{}, nil
@@ -352,7 +406,11 @@ func (ty TypeRepresentation) AsDate() (*TypeRepresentationDate, error) {
 	}
 
 	if t != TypeRepresentationTypeDate {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeDate, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeDate,
+			t,
+		)
 	}
 
 	return &TypeRepresentationDate{}, nil
@@ -366,7 +424,11 @@ func (ty TypeRepresentation) AsTimestamp() (*TypeRepresentationTimestamp, error)
 	}
 
 	if t != TypeRepresentationTypeTimestamp {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeTimestamp, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeTimestamp,
+			t,
+		)
 	}
 
 	return &TypeRepresentationTimestamp{}, nil
@@ -380,7 +442,11 @@ func (ty TypeRepresentation) AsTimestampTZ() (*TypeRepresentationTimestampTZ, er
 	}
 
 	if t != TypeRepresentationTypeTimestampTZ {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeTimestampTZ, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeTimestampTZ,
+			t,
+		)
 	}
 
 	return &TypeRepresentationTimestampTZ{}, nil
@@ -394,7 +460,11 @@ func (ty TypeRepresentation) AsGeography() (*TypeRepresentationGeography, error)
 	}
 
 	if t != TypeRepresentationTypeGeography {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeGeography, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeGeography,
+			t,
+		)
 	}
 
 	return &TypeRepresentationGeography{}, nil
@@ -408,7 +478,11 @@ func (ty TypeRepresentation) AsGeometry() (*TypeRepresentationGeometry, error) {
 	}
 
 	if t != TypeRepresentationTypeGeometry {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeGeometry, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeGeometry,
+			t,
+		)
 	}
 
 	return &TypeRepresentationGeometry{}, nil
@@ -422,7 +496,11 @@ func (ty TypeRepresentation) AsBytes() (*TypeRepresentationBytes, error) {
 	}
 
 	if t != TypeRepresentationTypeBytes {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeBytes, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeBytes,
+			t,
+		)
 	}
 
 	return &TypeRepresentationBytes{}, nil
@@ -436,7 +514,11 @@ func (ty TypeRepresentation) AsJSON() (*TypeRepresentationJSON, error) {
 	}
 
 	if t != TypeRepresentationTypeJSON {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeJSON, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeJSON,
+			t,
+		)
 	}
 
 	return &TypeRepresentationJSON{}, nil
@@ -450,7 +532,11 @@ func (ty TypeRepresentation) AsEnum() (*TypeRepresentationEnum, error) {
 	}
 
 	if t != TypeRepresentationTypeEnum {
-		return nil, fmt.Errorf("invalid TypeRepresentation type; expected %s, got %s", TypeRepresentationTypeEnum, t)
+		return nil, fmt.Errorf(
+			"invalid TypeRepresentation type; expected %s, got %s",
+			TypeRepresentationTypeEnum,
+			t,
+		)
 	}
 
 	rawOneOf, ok := ty["one_of"]
@@ -961,7 +1047,13 @@ var enumValues_ExtractionFunctionDefinitionType = []ExtractionFunctionDefinition
 func ParseExtractionFunctionDefinitionType(input string) (ExtractionFunctionDefinitionType, error) {
 	result := ExtractionFunctionDefinitionType(input)
 	if !result.IsValid() {
-		return ExtractionFunctionDefinitionType(""), fmt.Errorf("failed to parse ExtractionFunctionDefinitionType, expect one of %v, got %s", enumValues_ExtractionFunctionDefinitionType, input)
+		return ExtractionFunctionDefinitionType(
+				"",
+			), fmt.Errorf(
+				"failed to parse ExtractionFunctionDefinitionType, expect one of %v, got %s",
+				enumValues_ExtractionFunctionDefinitionType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -1014,7 +1106,18 @@ func (j *ExtractionFunctionDefinition) UnmarshalJSON(b []byte) error {
 	}
 
 	switch ty {
-	case ExtractionFunctionDefinitionTypeNanosecond, ExtractionFunctionDefinitionTypeMicrosecond, ExtractionFunctionDefinitionTypeMillisecond, ExtractionFunctionDefinitionTypeSecond, ExtractionFunctionDefinitionTypeMinute, ExtractionFunctionDefinitionTypeHour, ExtractionFunctionDefinitionTypeDay, ExtractionFunctionDefinitionTypeWeek, ExtractionFunctionDefinitionTypeMonth, ExtractionFunctionDefinitionTypeYear, ExtractionFunctionDefinitionTypeDayOfWeek, ExtractionFunctionDefinitionTypeDayOfYear:
+	case ExtractionFunctionDefinitionTypeNanosecond,
+		ExtractionFunctionDefinitionTypeMicrosecond,
+		ExtractionFunctionDefinitionTypeMillisecond,
+		ExtractionFunctionDefinitionTypeSecond,
+		ExtractionFunctionDefinitionTypeMinute,
+		ExtractionFunctionDefinitionTypeHour,
+		ExtractionFunctionDefinitionTypeDay,
+		ExtractionFunctionDefinitionTypeWeek,
+		ExtractionFunctionDefinitionTypeMonth,
+		ExtractionFunctionDefinitionTypeYear,
+		ExtractionFunctionDefinitionTypeDayOfWeek,
+		ExtractionFunctionDefinitionTypeDayOfYear:
 		resultType, err := unmarshalStringFromJsonMap(raw, "result_type", true)
 		if err != nil {
 			return fmt.Errorf("field result_type in ExtractionFunctionDefinition: %w", err)
@@ -1024,7 +1127,9 @@ func (j *ExtractionFunctionDefinition) UnmarshalJSON(b []byte) error {
 	case ExtractionFunctionDefinitionTypeCustom:
 		rawResultType, ok := raw["result_type"]
 		if !ok {
-			return errors.New("field result_type in ExtractionFunctionDefinition is required for custom type")
+			return errors.New(
+				"field result_type in ExtractionFunctionDefinition is required for custom type",
+			)
 		}
 
 		var resultType Type
@@ -1072,7 +1177,11 @@ func (j ExtractionFunctionDefinition) AsNanosecond() (*ExtractionFunctionDefinit
 	}
 
 	if t != ExtractionFunctionDefinitionTypeNanosecond {
-		return nil, fmt.Errorf("invalid ExtractionFunctionDefinition type; expected: %s, got: %s", ExtractionFunctionDefinitionTypeNanosecond, t)
+		return nil, fmt.Errorf(
+			"invalid ExtractionFunctionDefinition type; expected: %s, got: %s",
+			ExtractionFunctionDefinitionTypeNanosecond,
+			t,
+		)
 	}
 
 	resultType, err := getStringValueByKey(j, "result_type")
@@ -1097,7 +1206,11 @@ func (j ExtractionFunctionDefinition) AsMicrosecond() (*ExtractionFunctionDefini
 	}
 
 	if t != ExtractionFunctionDefinitionTypeMicrosecond {
-		return nil, fmt.Errorf("invalid ExtractionFunctionDefinition type; expected: %s, got: %s", ExtractionFunctionDefinitionTypeMicrosecond, t)
+		return nil, fmt.Errorf(
+			"invalid ExtractionFunctionDefinition type; expected: %s, got: %s",
+			ExtractionFunctionDefinitionTypeMicrosecond,
+			t,
+		)
 	}
 
 	resultType, err := getStringValueByKey(j, "result_type")
@@ -1122,16 +1235,25 @@ func (j ExtractionFunctionDefinition) AsMillisecond() (*ExtractionFunctionDefini
 	}
 
 	if t != ExtractionFunctionDefinitionTypeMillisecond {
-		return nil, fmt.Errorf("invalid ExtractionFunctionDefinitionMillisecond type; expected: %s, got: %s", ExtractionFunctionDefinitionTypeMillisecond, t)
+		return nil, fmt.Errorf(
+			"invalid ExtractionFunctionDefinitionMillisecond type; expected: %s, got: %s",
+			ExtractionFunctionDefinitionTypeMillisecond,
+			t,
+		)
 	}
 
 	resultType, err := getStringValueByKey(j, "result_type")
 	if err != nil {
-		return nil, fmt.Errorf("invalid ExtractionFunctionDefinitionMillisecond result_type: %w", err)
+		return nil, fmt.Errorf(
+			"invalid ExtractionFunctionDefinitionMillisecond result_type: %w",
+			err,
+		)
 	}
 
 	if resultType == "" {
-		return nil, errors.New("field result_type in ExtractionFunctionDefinitionMillisecond is required")
+		return nil, errors.New(
+			"field result_type in ExtractionFunctionDefinitionMillisecond is required",
+		)
 	}
 
 	return &ExtractionFunctionDefinitionMillisecond{
@@ -1147,7 +1269,11 @@ func (j ExtractionFunctionDefinition) AsSecond() (*ExtractionFunctionDefinitionS
 	}
 
 	if t != ExtractionFunctionDefinitionTypeSecond {
-		return nil, fmt.Errorf("invalid ExtractionFunctionDefinition type; expected: %s, got: %s", ExtractionFunctionDefinitionTypeSecond, t)
+		return nil, fmt.Errorf(
+			"invalid ExtractionFunctionDefinition type; expected: %s, got: %s",
+			ExtractionFunctionDefinitionTypeSecond,
+			t,
+		)
 	}
 
 	resultType, err := getStringValueByKey(j, "result_type")
@@ -1172,7 +1298,11 @@ func (j ExtractionFunctionDefinition) AsMinute() (*ExtractionFunctionDefinitionM
 	}
 
 	if t != ExtractionFunctionDefinitionTypeMinute {
-		return nil, fmt.Errorf("invalid ExtractionFunctionDefinition type; expected: %s, got: %s", ExtractionFunctionDefinitionTypeMinute, t)
+		return nil, fmt.Errorf(
+			"invalid ExtractionFunctionDefinition type; expected: %s, got: %s",
+			ExtractionFunctionDefinitionTypeMinute,
+			t,
+		)
 	}
 
 	resultType, err := getStringValueByKey(j, "result_type")
@@ -1197,7 +1327,11 @@ func (j ExtractionFunctionDefinition) AsHour() (*ExtractionFunctionDefinitionHou
 	}
 
 	if t != ExtractionFunctionDefinitionTypeHour {
-		return nil, fmt.Errorf("invalid ExtractionFunctionDefinition type; expected: %s, got: %s", ExtractionFunctionDefinitionTypeHour, t)
+		return nil, fmt.Errorf(
+			"invalid ExtractionFunctionDefinition type; expected: %s, got: %s",
+			ExtractionFunctionDefinitionTypeHour,
+			t,
+		)
 	}
 
 	resultType, err := getStringValueByKey(j, "result_type")
@@ -1222,7 +1356,11 @@ func (j ExtractionFunctionDefinition) AsDay() (*ExtractionFunctionDefinitionDay,
 	}
 
 	if t != ExtractionFunctionDefinitionTypeDay {
-		return nil, fmt.Errorf("invalid ExtractionFunctionDefinition type; expected: %s, got: %s", ExtractionFunctionDefinitionTypeDay, t)
+		return nil, fmt.Errorf(
+			"invalid ExtractionFunctionDefinition type; expected: %s, got: %s",
+			ExtractionFunctionDefinitionTypeDay,
+			t,
+		)
 	}
 
 	resultType, err := getStringValueByKey(j, "result_type")
@@ -1247,7 +1385,11 @@ func (j ExtractionFunctionDefinition) AsWeek() (*ExtractionFunctionDefinitionWee
 	}
 
 	if t != ExtractionFunctionDefinitionTypeWeek {
-		return nil, fmt.Errorf("invalid ExtractionFunctionDefinition type; expected: %s, got: %s", ExtractionFunctionDefinitionTypeWeek, t)
+		return nil, fmt.Errorf(
+			"invalid ExtractionFunctionDefinition type; expected: %s, got: %s",
+			ExtractionFunctionDefinitionTypeWeek,
+			t,
+		)
 	}
 
 	resultType, err := getStringValueByKey(j, "result_type")
@@ -1272,7 +1414,11 @@ func (j ExtractionFunctionDefinition) AsMonth() (*ExtractionFunctionDefinitionMo
 	}
 
 	if t != ExtractionFunctionDefinitionTypeMonth {
-		return nil, fmt.Errorf("invalid ExtractionFunctionDefinition type; expected: %s, got: %s", ExtractionFunctionDefinitionTypeMonth, t)
+		return nil, fmt.Errorf(
+			"invalid ExtractionFunctionDefinition type; expected: %s, got: %s",
+			ExtractionFunctionDefinitionTypeMonth,
+			t,
+		)
 	}
 
 	resultType, err := getStringValueByKey(j, "result_type")
@@ -1297,7 +1443,11 @@ func (j ExtractionFunctionDefinition) AsQuarter() (*ExtractionFunctionDefinition
 	}
 
 	if t != ExtractionFunctionDefinitionTypeQuarter {
-		return nil, fmt.Errorf("invalid ExtractionFunctionDefinition type; expected: %s, got: %s", ExtractionFunctionDefinitionTypeQuarter, t)
+		return nil, fmt.Errorf(
+			"invalid ExtractionFunctionDefinition type; expected: %s, got: %s",
+			ExtractionFunctionDefinitionTypeQuarter,
+			t,
+		)
 	}
 
 	resultType, err := getStringValueByKey(j, "result_type")
@@ -1322,7 +1472,11 @@ func (j ExtractionFunctionDefinition) AsYear() (*ExtractionFunctionDefinitionYea
 	}
 
 	if t != ExtractionFunctionDefinitionTypeYear {
-		return nil, fmt.Errorf("invalid ExtractionFunctionDefinition type; expected: %s, got: %s", ExtractionFunctionDefinitionTypeYear, t)
+		return nil, fmt.Errorf(
+			"invalid ExtractionFunctionDefinition type; expected: %s, got: %s",
+			ExtractionFunctionDefinitionTypeYear,
+			t,
+		)
 	}
 
 	resultType, err := getStringValueByKey(j, "result_type")
@@ -1347,7 +1501,11 @@ func (j ExtractionFunctionDefinition) AsDayOfWeek() (*ExtractionFunctionDefiniti
 	}
 
 	if t != ExtractionFunctionDefinitionTypeDayOfWeek {
-		return nil, fmt.Errorf("invalid ExtractionFunctionDefinition type; expected: %s, got: %s", ExtractionFunctionDefinitionTypeDayOfWeek, t)
+		return nil, fmt.Errorf(
+			"invalid ExtractionFunctionDefinition type; expected: %s, got: %s",
+			ExtractionFunctionDefinitionTypeDayOfWeek,
+			t,
+		)
 	}
 
 	resultType, err := getStringValueByKey(j, "result_type")
@@ -1372,7 +1530,11 @@ func (j ExtractionFunctionDefinition) AsDayOfYear() (*ExtractionFunctionDefiniti
 	}
 
 	if t != ExtractionFunctionDefinitionTypeDayOfYear {
-		return nil, fmt.Errorf("invalid ExtractionFunctionDefinition type; expected: %s, got: %s", ExtractionFunctionDefinitionTypeDayOfYear, t)
+		return nil, fmt.Errorf(
+			"invalid ExtractionFunctionDefinition type; expected: %s, got: %s",
+			ExtractionFunctionDefinitionTypeDayOfYear,
+			t,
+		)
 	}
 
 	resultType, err := getStringValueByKey(j, "result_type")
@@ -1397,7 +1559,11 @@ func (j ExtractionFunctionDefinition) AsCustom() (*ExtractionFunctionDefinitionC
 	}
 
 	if t != ExtractionFunctionDefinitionTypeCustom {
-		return nil, fmt.Errorf("invalid ExtractionFunctionDefinition type; expected: %s, got: %s", ExtractionFunctionDefinitionTypeCustom, t)
+		return nil, fmt.Errorf(
+			"invalid ExtractionFunctionDefinition type; expected: %s, got: %s",
+			ExtractionFunctionDefinitionTypeCustom,
+			t,
+		)
 	}
 
 	rawResultType, ok := j["result_type"]
@@ -1407,7 +1573,10 @@ func (j ExtractionFunctionDefinition) AsCustom() (*ExtractionFunctionDefinitionC
 
 	resultType, ok := rawResultType.(Type)
 	if !ok {
-		return nil, fmt.Errorf("invalid ExtractionFunctionDefinition.result_type type; expected: Type, got: %+v", rawResultType)
+		return nil, fmt.Errorf(
+			"invalid ExtractionFunctionDefinition.result_type type; expected: Type, got: %+v",
+			rawResultType,
+		)
 	}
 
 	return &ExtractionFunctionDefinitionCustom{
@@ -1475,7 +1644,9 @@ type ExtractionFunctionDefinitionNanosecond struct {
 }
 
 // NewExtractionFunctionDefinitionNanosecond create a new ExtractionFunctionDefinitionNanosecond instance.
-func NewExtractionFunctionDefinitionNanosecond(resultType string) *ExtractionFunctionDefinitionNanosecond {
+func NewExtractionFunctionDefinitionNanosecond(
+	resultType string,
+) *ExtractionFunctionDefinitionNanosecond {
 	return &ExtractionFunctionDefinitionNanosecond{
 		ResultType: resultType,
 	}
@@ -1500,7 +1671,9 @@ type ExtractionFunctionDefinitionMicrosecond struct {
 }
 
 // NewExtractionFunctionDefinitionMicrosecond create a new ExtractionFunctionDefinitionMicrosecond instance.
-func NewExtractionFunctionDefinitionMicrosecond(resultType string) *ExtractionFunctionDefinitionMicrosecond {
+func NewExtractionFunctionDefinitionMicrosecond(
+	resultType string,
+) *ExtractionFunctionDefinitionMicrosecond {
 	return &ExtractionFunctionDefinitionMicrosecond{
 		ResultType: resultType,
 	}
@@ -1525,7 +1698,9 @@ type ExtractionFunctionDefinitionMillisecond struct {
 }
 
 // NewExtractionFunctionDefinitionMillisecond create a new ExtractionFunctionDefinitionMillisecond instance.
-func NewExtractionFunctionDefinitionMillisecond(resultType string) *ExtractionFunctionDefinitionMillisecond {
+func NewExtractionFunctionDefinitionMillisecond(
+	resultType string,
+) *ExtractionFunctionDefinitionMillisecond {
 	return &ExtractionFunctionDefinitionMillisecond{
 		ResultType: resultType,
 	}
@@ -1700,7 +1875,9 @@ type ExtractionFunctionDefinitionQuarter struct {
 }
 
 // NewExtractionFunctionDefinitionQuarter create a new ExtractionFunctionDefinitionQuarter instance.
-func NewExtractionFunctionDefinitionQuarter(resultType string) *ExtractionFunctionDefinitionQuarter {
+func NewExtractionFunctionDefinitionQuarter(
+	resultType string,
+) *ExtractionFunctionDefinitionQuarter {
 	return &ExtractionFunctionDefinitionQuarter{
 		ResultType: resultType,
 	}
@@ -1750,7 +1927,9 @@ type ExtractionFunctionDefinitionDayOfWeek struct {
 }
 
 // NewExtractionFunctionDefinitionDayOfWeek create a new ExtractionFunctionDefinitionDayOfWeek instance.
-func NewExtractionFunctionDefinitionDayOfWeek(resultType string) *ExtractionFunctionDefinitionDayOfWeek {
+func NewExtractionFunctionDefinitionDayOfWeek(
+	resultType string,
+) *ExtractionFunctionDefinitionDayOfWeek {
 	return &ExtractionFunctionDefinitionDayOfWeek{
 		ResultType: resultType,
 	}
@@ -1775,7 +1954,9 @@ type ExtractionFunctionDefinitionDayOfYear struct {
 }
 
 // NewExtractionFunctionDefinitionDayOfYear create a new ExtractionFunctionDefinitionDayOfYear instance.
-func NewExtractionFunctionDefinitionDayOfYear(resultType string) *ExtractionFunctionDefinitionDayOfYear {
+func NewExtractionFunctionDefinitionDayOfYear(
+	resultType string,
+) *ExtractionFunctionDefinitionDayOfYear {
 	return &ExtractionFunctionDefinitionDayOfYear{
 		ResultType: resultType,
 	}
@@ -1800,7 +1981,9 @@ type ExtractionFunctionDefinitionCustom struct {
 }
 
 // NewExtractionFunctionDefinitionCustom create a new ExtractionFunctionDefinitionCustom instance.
-func NewExtractionFunctionDefinitionCustom(resultType TypeEncoder) *ExtractionFunctionDefinitionCustom {
+func NewExtractionFunctionDefinitionCustom(
+	resultType TypeEncoder,
+) *ExtractionFunctionDefinitionCustom {
 	return &ExtractionFunctionDefinitionCustom{
 		ResultType: resultType.Encode(),
 	}
@@ -1819,7 +2002,7 @@ func (efd ExtractionFunctionDefinitionCustom) Encode() ExtractionFunctionDefinit
 	}
 }
 
-// AggregateFunctionDefinitionType represents a type of AggregateFunctionDefinition
+// AggregateFunctionDefinitionType represents a type of AggregateFunctionDefinition.
 type AggregateFunctionDefinitionType string
 
 const (
@@ -1842,7 +2025,13 @@ var enumValues_AggregateFunctionDefinitionType = []AggregateFunctionDefinitionTy
 func ParseAggregateFunctionDefinitionType(input string) (AggregateFunctionDefinitionType, error) {
 	result := AggregateFunctionDefinitionType(input)
 	if !result.IsValid() {
-		return AggregateFunctionDefinitionType(""), fmt.Errorf("failed to parse AggregateFunctionDefinitionType, expect one of %v, got %s", enumValues_AggregateFunctionDefinitionType, input)
+		return AggregateFunctionDefinitionType(
+				"",
+			), fmt.Errorf(
+				"failed to parse AggregateFunctionDefinitionType, expect one of %v, got %s",
+				enumValues_AggregateFunctionDefinitionType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -1870,13 +2059,13 @@ func (j *AggregateFunctionDefinitionType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// AggregateFunctionDefinitionEncoder abstracts a generic interface of AggregateFunctionDefinition
+// AggregateFunctionDefinitionEncoder abstracts a generic interface of AggregateFunctionDefinition.
 type AggregateFunctionDefinitionEncoder interface {
 	Type() AggregateFunctionDefinitionType
 	Encode() AggregateFunctionDefinition
 }
 
-// AggregateFunctionDefinition represents the definition of an aggregation function on a scalar type
+// AggregateFunctionDefinition represents the definition of an aggregation function on a scalar type.
 type AggregateFunctionDefinition map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -1967,7 +2156,11 @@ func (j AggregateFunctionDefinition) AsMin() (*AggregateFunctionDefinitionMin, e
 	}
 
 	if t != AggregateFunctionDefinitionTypeMin {
-		return nil, fmt.Errorf("invalid AggregateFunctionDefinition type; expected %s, got %s", AggregateFunctionDefinitionTypeMin, t)
+		return nil, fmt.Errorf(
+			"invalid AggregateFunctionDefinition type; expected %s, got %s",
+			AggregateFunctionDefinitionTypeMin,
+			t,
+		)
 	}
 
 	result := &AggregateFunctionDefinitionMin{}
@@ -1983,7 +2176,11 @@ func (j AggregateFunctionDefinition) AsMax() (*AggregateFunctionDefinitionMax, e
 	}
 
 	if t != AggregateFunctionDefinitionTypeMax {
-		return nil, fmt.Errorf("invalid AggregateFunctionDefinition type; expected %s, got %s", AggregateFunctionDefinitionTypeMax, t)
+		return nil, fmt.Errorf(
+			"invalid AggregateFunctionDefinition type; expected %s, got %s",
+			AggregateFunctionDefinitionTypeMax,
+			t,
+		)
 	}
 
 	result := &AggregateFunctionDefinitionMax{}
@@ -1999,7 +2196,11 @@ func (j AggregateFunctionDefinition) AsSum() (*AggregateFunctionDefinitionSum, e
 	}
 
 	if t != AggregateFunctionDefinitionTypeSum {
-		return nil, fmt.Errorf("invalid AggregateFunctionDefinition type; expected %s, got %s", AggregateFunctionDefinitionTypeSum, t)
+		return nil, fmt.Errorf(
+			"invalid AggregateFunctionDefinition type; expected %s, got %s",
+			AggregateFunctionDefinitionTypeSum,
+			t,
+		)
 	}
 
 	resultType, err := getStringValueByKey(j, "result_type")
@@ -2026,7 +2227,11 @@ func (j AggregateFunctionDefinition) AsAverage() (*AggregateFunctionDefinitionAv
 	}
 
 	if t != AggregateFunctionDefinitionTypeAverage {
-		return nil, fmt.Errorf("invalid AggregateFunctionDefinition type; expected %s, got %s", AggregateFunctionDefinitionTypeAverage, t)
+		return nil, fmt.Errorf(
+			"invalid AggregateFunctionDefinition type; expected %s, got %s",
+			AggregateFunctionDefinitionTypeAverage,
+			t,
+		)
 	}
 
 	resultType, err := getStringValueByKey(j, "result_type")
@@ -2053,7 +2258,11 @@ func (j AggregateFunctionDefinition) AsCustom() (*AggregateFunctionDefinitionCus
 	}
 
 	if t != AggregateFunctionDefinitionTypeCustom {
-		return nil, fmt.Errorf("invalid AggregateFunctionDefinition type; expected %s, got %s", AggregateFunctionDefinitionTypeCustom, t)
+		return nil, fmt.Errorf(
+			"invalid AggregateFunctionDefinition type; expected %s, got %s",
+			AggregateFunctionDefinitionTypeCustom,
+			t,
+		)
 	}
 
 	rawResultType, ok := j["result_type"]
@@ -2063,7 +2272,10 @@ func (j AggregateFunctionDefinition) AsCustom() (*AggregateFunctionDefinitionCus
 
 	resultType, ok := rawResultType.(Type)
 	if !ok {
-		return nil, fmt.Errorf("invalid result_type in AggregateFunctionDefinitionCustom, expected Type, got %v", rawResultType)
+		return nil, fmt.Errorf(
+			"invalid result_type in AggregateFunctionDefinitionCustom, expected Type, got %v",
+			rawResultType,
+		)
 	}
 
 	result := &AggregateFunctionDefinitionCustom{
@@ -2103,7 +2315,7 @@ func (j AggregateFunctionDefinition) InterfaceT() (AggregateFunctionDefinitionEn
 	}
 }
 
-// AggregateFunctionDefinitionMin represents a min aggregate function definition
+// AggregateFunctionDefinitionMin represents a min aggregate function definition.
 type AggregateFunctionDefinitionMin struct{}
 
 // NewAggregateFunctionDefinitionMin creates an AggregateFunctionDefinitionMin instance.
@@ -2125,7 +2337,7 @@ func (j AggregateFunctionDefinitionMin) Encode() AggregateFunctionDefinition {
 	return result
 }
 
-// AggregateFunctionDefinitionMax represents a max aggregate function definition
+// AggregateFunctionDefinitionMax represents a max aggregate function definition.
 type AggregateFunctionDefinitionMax struct{}
 
 // NewAggregateFunctionDefinitionMax creates an AggregateFunctionDefinitionMax instance.
@@ -2147,7 +2359,7 @@ func (j AggregateFunctionDefinitionMax) Encode() AggregateFunctionDefinition {
 	return result
 }
 
-// AggregateFunctionDefinitionAverage represents an average aggregate function definition
+// AggregateFunctionDefinitionAverage represents an average aggregate function definition.
 type AggregateFunctionDefinitionAverage struct {
 	// The scalar type of the result of this function, which should have the type representation Float64
 	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
@@ -2175,7 +2387,7 @@ func (j AggregateFunctionDefinitionAverage) Encode() AggregateFunctionDefinition
 	return result
 }
 
-// AggregateFunctionDefinitionSum represents a sum aggregate function definition
+// AggregateFunctionDefinitionSum represents a sum aggregate function definition.
 type AggregateFunctionDefinitionSum struct {
 	// The scalar type of the result of this function, which should have one of the type representations Int64 or Float64, depending on whether this function is defined on a scalar type with an integer or floating-point representation, respectively.
 	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
@@ -2203,7 +2415,7 @@ func (j AggregateFunctionDefinitionSum) Encode() AggregateFunctionDefinition {
 	return result
 }
 
-// AggregateFunctionDefinitionCustom represents a sum aggregate function definition
+// AggregateFunctionDefinitionCustom represents a sum aggregate function definition.
 type AggregateFunctionDefinitionCustom struct {
 	// The scalar or object type of the result of this function.
 	ResultType Type `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
@@ -2270,7 +2482,13 @@ var enumValues_ComparisonOperatorDefinitionType = []ComparisonOperatorDefinition
 func ParseComparisonOperatorDefinitionType(input string) (ComparisonOperatorDefinitionType, error) {
 	result := ComparisonOperatorDefinitionType(input)
 	if !result.IsValid() {
-		return ComparisonOperatorDefinitionType(""), fmt.Errorf("failed to parse ComparisonOperatorDefinitionType, expect one of %v, got %s", enumValues_ComparisonOperatorDefinitionType, input)
+		return ComparisonOperatorDefinitionType(
+				"",
+			), fmt.Errorf(
+				"failed to parse ComparisonOperatorDefinitionType, expect one of %v, got %s",
+				enumValues_ComparisonOperatorDefinitionType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -2327,7 +2545,9 @@ func (j *ComparisonOperatorDefinition) UnmarshalJSON(b []byte) error {
 	if ty == ComparisonOperatorDefinitionTypeCustom {
 		rawArgumentType, ok := raw["argument_type"]
 		if !ok {
-			return errors.New("field argument_type in ComparisonOperatorDefinition is required for custom type")
+			return errors.New(
+				"field argument_type in ComparisonOperatorDefinition is required for custom type",
+			)
 		}
 
 		var argumentType Type
@@ -2374,7 +2594,11 @@ func (j ComparisonOperatorDefinition) AsEqual() (*ComparisonOperatorEqual, error
 	}
 
 	if t != ComparisonOperatorDefinitionTypeEqual {
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeEqual, t)
+		return nil, fmt.Errorf(
+			"invalid ComparisonOperatorDefinition type; expected: %s, got: %s",
+			ComparisonOperatorDefinitionTypeEqual,
+			t,
+		)
 	}
 
 	return &ComparisonOperatorEqual{}, nil
@@ -2388,7 +2612,11 @@ func (j ComparisonOperatorDefinition) AsIn() (*ComparisonOperatorIn, error) {
 	}
 
 	if t != ComparisonOperatorDefinitionTypeIn {
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeIn, t)
+		return nil, fmt.Errorf(
+			"invalid ComparisonOperatorDefinition type; expected: %s, got: %s",
+			ComparisonOperatorDefinitionTypeIn,
+			t,
+		)
 	}
 
 	return &ComparisonOperatorIn{}, nil
@@ -2402,7 +2630,11 @@ func (j ComparisonOperatorDefinition) AsLessThan() (*ComparisonOperatorLessThan,
 	}
 
 	if t != ComparisonOperatorDefinitionTypeLessThan {
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeLessThan, t)
+		return nil, fmt.Errorf(
+			"invalid ComparisonOperatorDefinition type; expected: %s, got: %s",
+			ComparisonOperatorDefinitionTypeLessThan,
+			t,
+		)
 	}
 
 	return &ComparisonOperatorLessThan{}, nil
@@ -2416,7 +2648,11 @@ func (j ComparisonOperatorDefinition) AsLessThanOrEqual() (*ComparisonOperatorLe
 	}
 
 	if t != ComparisonOperatorDefinitionTypeLessThanOrEqual {
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeLessThanOrEqual, t)
+		return nil, fmt.Errorf(
+			"invalid ComparisonOperatorDefinition type; expected: %s, got: %s",
+			ComparisonOperatorDefinitionTypeLessThanOrEqual,
+			t,
+		)
 	}
 
 	return &ComparisonOperatorLessThanOrEqual{}, nil
@@ -2430,7 +2666,11 @@ func (j ComparisonOperatorDefinition) AsGreaterThan() (*ComparisonOperatorGreate
 	}
 
 	if t != ComparisonOperatorDefinitionTypeGreaterThan {
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeGreaterThan, t)
+		return nil, fmt.Errorf(
+			"invalid ComparisonOperatorDefinition type; expected: %s, got: %s",
+			ComparisonOperatorDefinitionTypeGreaterThan,
+			t,
+		)
 	}
 
 	return &ComparisonOperatorGreaterThan{}, nil
@@ -2444,7 +2684,11 @@ func (j ComparisonOperatorDefinition) AsGreaterThanOrEqual() (*ComparisonOperato
 	}
 
 	if t != ComparisonOperatorDefinitionTypeGreaterThanOrEqual {
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeGreaterThanOrEqual, t)
+		return nil, fmt.Errorf(
+			"invalid ComparisonOperatorDefinition type; expected: %s, got: %s",
+			ComparisonOperatorDefinitionTypeGreaterThanOrEqual,
+			t,
+		)
 	}
 
 	return &ComparisonOperatorGreaterThanOrEqual{}, nil
@@ -2458,7 +2702,11 @@ func (j ComparisonOperatorDefinition) AsContains() (*ComparisonOperatorContains,
 	}
 
 	if t != ComparisonOperatorDefinitionTypeContains {
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeContains, t)
+		return nil, fmt.Errorf(
+			"invalid ComparisonOperatorDefinition type; expected: %s, got: %s",
+			ComparisonOperatorDefinitionTypeContains,
+			t,
+		)
 	}
 
 	return &ComparisonOperatorContains{}, nil
@@ -2472,7 +2720,11 @@ func (j ComparisonOperatorDefinition) AsContainsInsensitive() (*ComparisonOperat
 	}
 
 	if t != ComparisonOperatorDefinitionTypeContainsInsensitive {
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeContainsInsensitive, t)
+		return nil, fmt.Errorf(
+			"invalid ComparisonOperatorDefinition type; expected: %s, got: %s",
+			ComparisonOperatorDefinitionTypeContainsInsensitive,
+			t,
+		)
 	}
 
 	return &ComparisonOperatorContainsInsensitive{}, nil
@@ -2486,7 +2738,11 @@ func (j ComparisonOperatorDefinition) AsStartsWith() (*ComparisonOperatorStartsW
 	}
 
 	if t != ComparisonOperatorDefinitionTypeStartsWith {
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeStartsWith, t)
+		return nil, fmt.Errorf(
+			"invalid ComparisonOperatorDefinition type; expected: %s, got: %s",
+			ComparisonOperatorDefinitionTypeStartsWith,
+			t,
+		)
 	}
 
 	return &ComparisonOperatorStartsWith{}, nil
@@ -2500,7 +2756,11 @@ func (j ComparisonOperatorDefinition) AsStartsWithInsensitive() (*ComparisonOper
 	}
 
 	if t != ComparisonOperatorDefinitionTypeStartsWithInsensitive {
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeStartsWithInsensitive, t)
+		return nil, fmt.Errorf(
+			"invalid ComparisonOperatorDefinition type; expected: %s, got: %s",
+			ComparisonOperatorDefinitionTypeStartsWithInsensitive,
+			t,
+		)
 	}
 
 	return &ComparisonOperatorStartsWithInsensitive{}, nil
@@ -2514,7 +2774,11 @@ func (j ComparisonOperatorDefinition) AsEndsWith() (*ComparisonOperatorEndsWith,
 	}
 
 	if t != ComparisonOperatorDefinitionTypeEndsWith {
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeEndsWith, t)
+		return nil, fmt.Errorf(
+			"invalid ComparisonOperatorDefinition type; expected: %s, got: %s",
+			ComparisonOperatorDefinitionTypeEndsWith,
+			t,
+		)
 	}
 
 	return &ComparisonOperatorEndsWith{}, nil
@@ -2528,7 +2792,11 @@ func (j ComparisonOperatorDefinition) AsEndsWithInsensitive() (*ComparisonOperat
 	}
 
 	if t != ComparisonOperatorDefinitionTypeEndsWithInsensitive {
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeEndsWithInsensitive, t)
+		return nil, fmt.Errorf(
+			"invalid ComparisonOperatorDefinition type; expected: %s, got: %s",
+			ComparisonOperatorDefinitionTypeEndsWithInsensitive,
+			t,
+		)
 	}
 
 	return &ComparisonOperatorEndsWithInsensitive{}, nil
@@ -2542,7 +2810,11 @@ func (j ComparisonOperatorDefinition) AsCustom() (*ComparisonOperatorCustom, err
 	}
 
 	if t != ComparisonOperatorDefinitionTypeCustom {
-		return nil, fmt.Errorf("invalid ComparisonOperatorDefinition type; expected: %s, got: %s", ComparisonOperatorDefinitionTypeCustom, t)
+		return nil, fmt.Errorf(
+			"invalid ComparisonOperatorDefinition type; expected: %s, got: %s",
+			ComparisonOperatorDefinitionTypeCustom,
+			t,
+		)
 	}
 
 	rawArg, ok := j["argument_type"]
@@ -2552,7 +2824,10 @@ func (j ComparisonOperatorDefinition) AsCustom() (*ComparisonOperatorCustom, err
 
 	arg, ok := rawArg.(Type)
 	if !ok {
-		return nil, fmt.Errorf("invalid ComparisonOperatorCustom.argument_type type; expected: Type, got: %+v", rawArg)
+		return nil, fmt.Errorf(
+			"invalid ComparisonOperatorCustom.argument_type type; expected: Type, got: %+v",
+			rawArg,
+		)
 	}
 
 	return &ComparisonOperatorCustom{

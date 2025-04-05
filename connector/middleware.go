@@ -17,14 +17,36 @@ func (s *Server[Configuration, State]) withNDCVersionCheck(w http.ResponseWriter
 
 		parsedVersion, err := semver.NewVersion(requestedVersion)
 		if err != nil {
-			writeError(w, logger, schema.BadRequestError(fmt.Sprintf("Invalid %s header, expected a semver version string, got: %s", schema.XHasuraNDCVersion, requestedVersion), nil))
+			writeError(
+				w,
+				logger,
+				schema.BadRequestError(
+					fmt.Sprintf(
+						"Invalid %s header, expected a semver version string, got: %s",
+						schema.XHasuraNDCVersion,
+						requestedVersion,
+					),
+					nil,
+				),
+			)
 			s.increaseFailureCounterMetric(r, http.StatusBadRequest)
 
 			return
 		}
 
 		if !s.ndcVersionConstraints.Check(parsedVersion) {
-			writeError(w, logger, schema.BadRequestError(fmt.Sprintf("NDC version range ^%s does not match implemented version %s", schema.NDCVersion, requestedVersion), nil))
+			writeError(
+				w,
+				logger,
+				schema.BadRequestError(
+					fmt.Sprintf(
+						"NDC version range ^%s does not match implemented version %s",
+						schema.NDCVersion,
+						requestedVersion,
+					),
+					nil,
+				),
+			)
 			s.increaseFailureCounterMetric(r, http.StatusBadRequest)
 
 			return
@@ -35,7 +57,8 @@ func (s *Server[Configuration, State]) withNDCVersionCheck(w http.ResponseWriter
 func (s *Server[Configuration, State]) withAuth(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r.Context())
 	// authorize the secret token in the request header if exists.
-	if s.options.ServiceTokenSecret != "" && r.Header.Get("Authorization") != ("Bearer "+s.options.ServiceTokenSecret) {
+	if s.options.ServiceTokenSecret != "" &&
+		r.Header.Get("Authorization") != ("Bearer "+s.options.ServiceTokenSecret) {
 		writeJson(w, logger, http.StatusUnauthorized, schema.ErrorResponse{
 			Message: "Unauthorized",
 			Details: map[string]any{
@@ -49,7 +72,10 @@ func (s *Server[Configuration, State]) withAuth(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (s *Server[Configuration, State]) increaseFailureCounterMetric(r *http.Request, statusCode int) {
+func (s *Server[Configuration, State]) increaseFailureCounterMetric(
+	r *http.Request,
+	statusCode int,
+) {
 	attributes := metric.WithAttributes(failureStatusAttribute, httpStatusAttribute(statusCode))
 
 	switch r.URL.Path {

@@ -16,7 +16,10 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-var baseTestSnapshotURL = fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/refs/tags/%s/ndc-reference/tests", schema.NDCVersion)
+var baseTestSnapshotURL = fmt.Sprintf(
+	"https://raw.githubusercontent.com/hasura/ndc-spec/refs/tags/%s/ndc-reference/tests",
+	schema.NDCVersion,
+)
 
 func TestCapabilitySchema(t *testing.T) {
 	server := createTestServer(t).BuildTestServer()
@@ -26,7 +29,10 @@ func TestCapabilitySchema(t *testing.T) {
 		res, err := http.DefaultClient.Get(server.URL + "/capabilities")
 		assert.NilError(t, err)
 
-		expected := fetchSnapshotSample[schema.CapabilitiesResponse](t, baseTestSnapshotURL+"/capabilities/expected.snap")
+		expected := fetchSnapshotSample[schema.CapabilitiesResponse](
+			t,
+			baseTestSnapshotURL+"/capabilities/expected.snap",
+		)
 
 		assertHTTPResponse(t, res, http.StatusOK, *expected)
 	})
@@ -35,7 +41,10 @@ func TestCapabilitySchema(t *testing.T) {
 		res, err := http.DefaultClient.Get(server.URL + "/schema")
 		assert.NilError(t, err)
 
-		expected := fetchSnapshotSample[schema.SchemaResponse](t, baseTestSnapshotURL+"/schema/expected.snap")
+		expected := fetchSnapshotSample[schema.SchemaResponse](
+			t,
+			baseTestSnapshotURL+"/schema/expected.snap",
+		)
 
 		assertHTTPResponse(t, res, http.StatusOK, *expected)
 	})
@@ -77,15 +86,18 @@ func TestExplain(t *testing.T) {
 	})
 
 	t.Run("mutation_explain_success", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/mutation/explain", server.URL), schema.MutationRequest{
-			Operations: []schema.MutationOperation{
-				{
-					Name: "upsert_article",
-					Type: schema.MutationOperationProcedure,
+		res, err := httpPostJSON(
+			fmt.Sprintf("%s/mutation/explain", server.URL),
+			schema.MutationRequest{
+				Operations: []schema.MutationOperation{
+					{
+						Name: "upsert_article",
+						Type: schema.MutationOperationProcedure,
+					},
 				},
+				CollectionRelationships: make(schema.MutationRequestCollectionRelationships),
 			},
-			CollectionRelationships: make(schema.MutationRequestCollectionRelationships),
-		})
+		)
 
 		assert.NilError(t, err)
 		assertHTTPResponse(t, res, http.StatusOK, schema.ExplainResponse{
@@ -94,15 +106,18 @@ func TestExplain(t *testing.T) {
 	})
 
 	t.Run("mutation_explain_invalid", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/mutation/explain", server.URL), schema.MutationRequest{
-			Operations: []schema.MutationOperation{
-				{
-					Name: "test",
-					Type: schema.MutationOperationProcedure,
+		res, err := httpPostJSON(
+			fmt.Sprintf("%s/mutation/explain", server.URL),
+			schema.MutationRequest{
+				Operations: []schema.MutationOperation{
+					{
+						Name: "test",
+						Type: schema.MutationOperationProcedure,
+					},
 				},
+				CollectionRelationships: make(schema.MutationRequestCollectionRelationships),
 			},
-			CollectionRelationships: make(schema.MutationRequestCollectionRelationships),
-		})
+		)
 
 		assert.NilError(t, err)
 		assertHTTPResponse(t, res, http.StatusUnprocessableEntity, schema.ErrorResponse{
@@ -247,7 +262,11 @@ func TestMutation(t *testing.T) {
 				t.FailNow()
 			}
 
-			res, err := http.Post(fmt.Sprintf("%s/mutation", server.URL), "application/json", req.Body)
+			res, err := http.Post(
+				fmt.Sprintf("%s/mutation", server.URL),
+				"application/json",
+				req.Body,
+			)
 			if err != nil {
 				t.Errorf("expected no error, got %s", err)
 				t.FailNow()
@@ -267,7 +286,6 @@ func createTestServer(t *testing.T) *connector.Server[Configuration, State] {
 	}, connector.WithoutRecovery(), connector.WithLogger(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))))
-
 	if err != nil {
 		t.Errorf("NewServer: expected no error, got %s", err)
 		t.FailNow()
@@ -346,7 +364,12 @@ func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int,
 	}
 
 	if res.StatusCode != statusCode {
-		t.Errorf("expected status %d, got %d. Body: %s", statusCode, res.StatusCode, string(bodyBytes))
+		t.Errorf(
+			"expected status %d, got %d. Body: %s",
+			statusCode,
+			res.StatusCode,
+			string(bodyBytes),
+		)
 		t.FailNow()
 	}
 

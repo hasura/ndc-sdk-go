@@ -34,7 +34,11 @@ const (
 // ParseMutationOperationType parses a mutation operation type argument type from string.
 func ParseMutationOperationType(input string) (*MutationOperationType, error) {
 	if input != string(MutationOperationProcedure) {
-		return nil, fmt.Errorf("failed to parse MutationOperationType, expect one of %v, got %s", []MutationOperationType{MutationOperationProcedure}, input)
+		return nil, fmt.Errorf(
+			"failed to parse MutationOperationType, expect one of %v, got %s",
+			[]MutationOperationType{MutationOperationProcedure},
+			input,
+		)
 	}
 
 	result := MutationOperationType(input)
@@ -62,13 +66,13 @@ func (j *MutationOperationType) UnmarshalJSON(b []byte) error {
 
 // MutationOperation represents a mutation operation.
 type MutationOperation struct {
-	Type MutationOperationType `json:"type" mapstructure:"type" yaml:"type"`
+	Type MutationOperationType `json:"type"             mapstructure:"type"      yaml:"type"`
 	// The name of the operation
-	Name string `json:"name" mapstructure:"name" yaml:"name"`
+	Name string `json:"name"             mapstructure:"name"      yaml:"name"`
 	// Any named procedure arguments
-	Arguments json.RawMessage `json:"arguments" mapstructure:"arguments" yaml:"arguments"`
+	Arguments json.RawMessage `json:"arguments"        mapstructure:"arguments" yaml:"arguments"`
 	// The fields to return from the result, or null to return everything
-	Fields NestedField `json:"fields,omitempty" mapstructure:"fields" yaml:"fields,omitempty"`
+	Fields NestedField `json:"fields,omitempty" mapstructure:"fields"    yaml:"fields,omitempty"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -160,7 +164,9 @@ func (j *MutationOperationResults) UnmarshalJSON(b []byte) error {
 	case MutationOperationProcedure:
 		rawResult, ok := raw["result"]
 		if !ok {
-			return errors.New("field result in MutationOperationResults is required for procedure type")
+			return errors.New(
+				"field result in MutationOperationResults is required for procedure type",
+			)
 		}
 
 		var procedureResult any

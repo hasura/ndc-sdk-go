@@ -16,14 +16,14 @@ type ServeCommandArguments struct {
 	HTTPServerConfig
 
 	Configuration      string `env:"HASURA_CONFIGURATION_DIRECTORY" help:"Configuration directory"`
-	Port               uint   `default:"8080"                       env:"HASURA_CONNECTOR_PORT"    help:"Serve Port"`
+	Port               uint   `env:"HASURA_CONNECTOR_PORT"          help:"Serve Port"              default:"8080"`
 	ServiceTokenSecret string `env:"HASURA_SERVICE_TOKEN_SECRET"    help:"Service token secret"`
 }
 
 // ServeCLI is used for CLI argument binding.
 type ServeCLI struct {
 	LogLevel string                `default:"info" enum:"trace,debug,info,warn,error" env:"HASURA_LOG_LEVEL" help:"Log level."`
-	Serve    ServeCommandArguments `cmd:""         help:"Serve the NDC connector."`
+	Serve    ServeCommandArguments `                                                                         help:"Serve the NDC connector." cmd:""`
 }
 
 // GetServeCLI returns the inner serve cli.
@@ -46,7 +46,10 @@ type ConnectorCLI interface {
 // Will read command line arguments or environment variables to determine runtime configuration.
 //
 // This should be the entrypoint of your connector.
-func Start[Configuration any, State any](connector Connector[Configuration, State], options ...ServeOption) error {
+func Start[Configuration any, State any](
+	connector Connector[Configuration, State],
+	options ...ServeOption,
+) error {
 	var cli ServeCLI
 
 	return StartCustom(&cli, connector, options...)
@@ -56,7 +59,11 @@ func Start[Configuration any, State any](connector Connector[Configuration, Stat
 // Will read command line arguments or environment variables to determine runtime configuration.
 //
 // This should be the entrypoint of your connector.
-func StartCustom[Configuration any, State any](cli ConnectorCLI, connector Connector[Configuration, State], options ...ServeOption) error {
+func StartCustom[Configuration any, State any](
+	cli ConnectorCLI,
+	connector Connector[Configuration, State],
+	options ...ServeOption,
+) error {
 	cmd := kong.Parse(cli, kong.UsageOnError())
 	serveCLI := cli.GetServeCLI()
 	command := cmd.Command()

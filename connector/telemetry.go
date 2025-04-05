@@ -61,35 +61,37 @@ const (
 )
 
 var (
-	userVisibilityAttribute = traceapi.WithAttributes(attribute.String("internal.visibility", "user"))
-	successStatusAttribute  = attribute.String("status", "success")
-	failureStatusAttribute  = attribute.String("status", "failure")
+	userVisibilityAttribute = traceapi.WithAttributes(
+		attribute.String("internal.visibility", "user"),
+	)
+	successStatusAttribute = attribute.String("status", "success")
+	failureStatusAttribute = attribute.String("status", "failure")
 )
 
 // OTLPConfig contains configuration for OpenTelemetry exporter.
 type OTLPConfig struct {
-	ServiceName            string `env:"OTEL_SERVICE_NAME"                   help:"OpenTelemetry service name."`
-	OtlpEndpoint           string `env:"OTEL_EXPORTER_OTLP_ENDPOINT"         help:"OpenTelemetry receiver endpoint that is set as default for all types."`
-	OtlpTracesEndpoint     string `env:"OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"  help:"OpenTelemetry endpoint for traces."`
-	OtlpMetricsEndpoint    string `env:"OTEL_EXPORTER_OTLP_METRICS_ENDPOINT" help:"OpenTelemetry endpoint for metrics."`
-	OtlpLogsEndpoint       string `env:"OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"    help:"OpenTelemetry endpoint for logs."`
-	OtlpInsecure           *bool  `env:"OTEL_EXPORTER_OTLP_INSECURE"         help:"Disable LTS for OpenTelemetry exporters."`
-	OtlpTracesInsecure     *bool  `env:"OTEL_EXPORTER_OTLP_TRACES_INSECURE"  help:"Disable LTS for OpenTelemetry traces exporter."`
-	OtlpMetricsInsecure    *bool  `env:"OTEL_EXPORTER_OTLP_METRICS_INSECURE" help:"Disable LTS for OpenTelemetry metrics exporter."`
-	OtlpLogsInsecure       *bool  `env:"OTEL_EXPORTER_OTLP_LOGS_INSECURE"    help:"Disable LTS for OpenTelemetry logs exporter."`
-	OtlpProtocol           string `env:"OTEL_EXPORTER_OTLP_PROTOCOL"         help:"OpenTelemetry receiver protocol for all types."`
-	OtlpTracesProtocol     string `env:"OTEL_EXPORTER_OTLP_TRACES_PROTOCOL"  help:"OpenTelemetry receiver protocol for traces."`
-	OtlpMetricsProtocol    string `env:"OTEL_EXPORTER_OTLP_METRICS_PROTOCOL" help:"OpenTelemetry receiver protocol for metrics."`
-	OtlpLogsProtocol       string `env:"OTEL_EXPORTER_OTLP_LOGS_PROTOCOL"    help:"OpenTelemetry receiver protocol for logs."`
-	OtlpCompression        string `default:"gzip"                            enum:"none,gzip"                                                             env:"OTEL_EXPORTER_OTLP_COMPRESSION"         help:"Enable compression for OTLP exporters. Accept: none, gzip"`
-	OtlpTraceCompression   string `default:"gzip"                            enum:"none,gzip"                                                             env:"OTEL_EXPORTER_OTLP_TRACES_COMPRESSION"  help:"Enable compression for OTLP traces exporter. Accept: none, gzip"`
-	OtlpMetricsCompression string `default:"gzip"                            enum:"none,gzip"                                                             env:"OTEL_EXPORTER_OTLP_METRICS_COMPRESSION" help:"Enable compression for OTLP metrics exporter. Accept: none, gzip"`
-	OtlpLogsCompression    string `default:"gzip"                            enum:"none,gzip"                                                             env:"OTEL_EXPORTER_OTLP_LOGS_COMPRESSION"    help:"Enable compression for OTLP logs exporter. Accept: none, gzip"`
+	ServiceName            string `env:"OTEL_SERVICE_NAME"                      help:"OpenTelemetry service name."`
+	OtlpEndpoint           string `env:"OTEL_EXPORTER_OTLP_ENDPOINT"            help:"OpenTelemetry receiver endpoint that is set as default for all types."`
+	OtlpTracesEndpoint     string `env:"OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"     help:"OpenTelemetry endpoint for traces."`
+	OtlpMetricsEndpoint    string `env:"OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"    help:"OpenTelemetry endpoint for metrics."`
+	OtlpLogsEndpoint       string `env:"OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"       help:"OpenTelemetry endpoint for logs."`
+	OtlpInsecure           *bool  `env:"OTEL_EXPORTER_OTLP_INSECURE"            help:"Disable LTS for OpenTelemetry exporters."`
+	OtlpTracesInsecure     *bool  `env:"OTEL_EXPORTER_OTLP_TRACES_INSECURE"     help:"Disable LTS for OpenTelemetry traces exporter."`
+	OtlpMetricsInsecure    *bool  `env:"OTEL_EXPORTER_OTLP_METRICS_INSECURE"    help:"Disable LTS for OpenTelemetry metrics exporter."`
+	OtlpLogsInsecure       *bool  `env:"OTEL_EXPORTER_OTLP_LOGS_INSECURE"       help:"Disable LTS for OpenTelemetry logs exporter."`
+	OtlpProtocol           string `env:"OTEL_EXPORTER_OTLP_PROTOCOL"            help:"OpenTelemetry receiver protocol for all types."`
+	OtlpTracesProtocol     string `env:"OTEL_EXPORTER_OTLP_TRACES_PROTOCOL"     help:"OpenTelemetry receiver protocol for traces."`
+	OtlpMetricsProtocol    string `env:"OTEL_EXPORTER_OTLP_METRICS_PROTOCOL"    help:"OpenTelemetry receiver protocol for metrics."`
+	OtlpLogsProtocol       string `env:"OTEL_EXPORTER_OTLP_LOGS_PROTOCOL"       help:"OpenTelemetry receiver protocol for logs."`
+	OtlpCompression        string `env:"OTEL_EXPORTER_OTLP_COMPRESSION"         help:"Enable compression for OTLP exporters. Accept: none, gzip"             default:"gzip" enum:"none,gzip"`
+	OtlpTraceCompression   string `env:"OTEL_EXPORTER_OTLP_TRACES_COMPRESSION"  help:"Enable compression for OTLP traces exporter. Accept: none, gzip"       default:"gzip" enum:"none,gzip"`
+	OtlpMetricsCompression string `env:"OTEL_EXPORTER_OTLP_METRICS_COMPRESSION" help:"Enable compression for OTLP metrics exporter. Accept: none, gzip"      default:"gzip" enum:"none,gzip"`
+	OtlpLogsCompression    string `env:"OTEL_EXPORTER_OTLP_LOGS_COMPRESSION"    help:"Enable compression for OTLP logs exporter. Accept: none, gzip"         default:"gzip" enum:"none,gzip"`
 
-	MetricsExporter  string `default:"none"                                 enum:"none,otlp,prometheus"                                                                                   env:"OTEL_METRICS_EXPORTER" help:"Metrics export type. Accept: none, otlp, prometheus"`
-	LogsExporter     string `default:"none"                                 enum:"none,otlp"                                                                                              env:"OTEL_LOGS_EXPORTER"    help:"Logs export type. Accept: none, otlp"`
-	PrometheusPort   *uint  `env:"OTEL_EXPORTER_PROMETHEUS_PORT"            help:"Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty"`
-	DisableGoMetrics *bool  `help:"Disable internal Go and process metrics"`
+	MetricsExporter  string `default:"none" enum:"none,otlp,prometheus" env:"OTEL_METRICS_EXPORTER"         help:"Metrics export type. Accept: none, otlp, prometheus"`
+	LogsExporter     string `default:"none" enum:"none,otlp"            env:"OTEL_LOGS_EXPORTER"            help:"Logs export type. Accept: none, otlp"`
+	PrometheusPort   *uint  `                                           env:"OTEL_EXPORTER_PROMETHEUS_PORT" help:"Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty"`
+	DisableGoMetrics *bool  `                                                                               help:"Disable internal Go and process metrics"`
 }
 
 // TelemetryState contains OpenTelemetry exporters and basic connector metrics.
@@ -115,7 +117,12 @@ type connectorMetrics struct {
 
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.
 // If it does not return an error, make sure to call shutdown for proper cleanup.
-func setupOTelSDK(ctx context.Context, config *OTLPConfig, serviceVersion, metricsPrefix string, logger *slog.Logger) (*TelemetryState, error) {
+func setupOTelSDK(
+	ctx context.Context,
+	config *OTLPConfig,
+	serviceVersion, metricsPrefix string,
+	logger *slog.Logger,
+) (*TelemetryState, error) {
 	state, err := SetupOTelExporters(ctx, config, serviceVersion, metricsPrefix, logger)
 	if err != nil {
 		return nil, err
@@ -125,7 +132,12 @@ func setupOTelSDK(ctx context.Context, config *OTLPConfig, serviceVersion, metri
 }
 
 // SetupOTelExporters set up OpenTelemetry exporters from configuration.
-func SetupOTelExporters(ctx context.Context, config *OTLPConfig, serviceVersion, metricsPrefix string, logger *slog.Logger) (*TelemetryState, error) {
+func SetupOTelExporters(
+	ctx context.Context,
+	config *OTLPConfig,
+	serviceVersion, metricsPrefix string,
+	logger *slog.Logger,
+) (*TelemetryState, error) {
 	otel.SetLogger(logr.FromSlogHandler(logger.Handler()))
 
 	otelDisabled := os.Getenv("OTEL_SDK_DISABLED") == "true"
@@ -176,8 +188,13 @@ func SetupOTelExporters(ctx context.Context, config *OTLPConfig, serviceVersion,
 
 	otelLogger := slog.New(createLogHandler(config.ServiceName, logger, loggerProvider))
 	state := &TelemetryState{
-		Tracer:   &Tracer{traceProvider.Tracer(config.ServiceName, traceapi.WithSchemaURL(semconv.SchemaURL))},
-		Meter:    meterProvider.Meter(config.ServiceName, metricapi.WithSchemaURL(semconv.SchemaURL)),
+		Tracer: &Tracer{
+			traceProvider.Tracer(config.ServiceName, traceapi.WithSchemaURL(semconv.SchemaURL)),
+		},
+		Meter: meterProvider.Meter(
+			config.ServiceName,
+			metricapi.WithSchemaURL(semconv.SchemaURL),
+		),
 		Logger:   otelLogger,
 		Shutdown: shutdownFunc,
 	}
@@ -185,7 +202,12 @@ func SetupOTelExporters(ctx context.Context, config *OTLPConfig, serviceVersion,
 	return state, err
 }
 
-func setupOTelTraceProvider(ctx context.Context, config *OTLPConfig, resources *resource.Resource, otelDisabled bool) (*trace.TracerProvider, error) {
+func setupOTelTraceProvider(
+	ctx context.Context,
+	config *OTLPConfig,
+	resources *resource.Resource,
+	otelDisabled bool,
+) (*trace.TracerProvider, error) {
 	tracesEndpoint := utils.GetDefault(config.OtlpTracesEndpoint, config.OtlpEndpoint)
 
 	if otelDisabled || tracesEndpoint == "" {
@@ -201,7 +223,9 @@ func setupOTelTraceProvider(ctx context.Context, config *OTLPConfig, resources *
 		return nil, fmt.Errorf("failed to parse OTLP traces endpoint: %w", err)
 	}
 
-	compressorStr, compressorInt, err := parseOTLPCompression(utils.GetDefault(config.OtlpTraceCompression, config.OtlpCompression))
+	compressorStr, compressorInt, err := parseOTLPCompression(
+		utils.GetDefault(config.OtlpTraceCompression, config.OtlpCompression),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse OTLP traces compression: %w", err)
 	}
@@ -247,7 +271,12 @@ func setupOTelTraceProvider(ctx context.Context, config *OTLPConfig, resources *
 	), nil
 }
 
-func setupOTelMetricsProvider(ctx context.Context, config *OTLPConfig, resources *resource.Resource, otelDisabled bool) (*metric.MeterProvider, error) {
+func setupOTelMetricsProvider(
+	ctx context.Context,
+	config *OTLPConfig,
+	resources *resource.Resource,
+	otelDisabled bool,
+) (*metric.MeterProvider, error) {
 	metricsEndpoint := utils.GetDefault(config.OtlpMetricsEndpoint, config.OtlpEndpoint)
 
 	// configure metrics exporter
@@ -293,7 +322,9 @@ func setupOTelMetricsProvider(ctx context.Context, config *OTLPConfig, resources
 			return nil, fmt.Errorf("failed to parse OTLP metrics endpoint: %w", err)
 		}
 
-		compressorStr, compressorInt, err := parseOTLPCompression(utils.GetDefault(config.OtlpMetricsCompression, config.OtlpCompression))
+		compressorStr, compressorInt, err := parseOTLPCompression(
+			utils.GetDefault(config.OtlpMetricsCompression, config.OtlpCompression),
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse OTLP metrics compression: %w", err)
 		}
@@ -313,7 +344,10 @@ func setupOTelMetricsProvider(ctx context.Context, config *OTLPConfig, resources
 				return nil, err
 			}
 
-			metricOptions = append(metricOptions, metric.WithReader(metric.NewPeriodicReader(metricExporter)))
+			metricOptions = append(
+				metricOptions,
+				metric.WithReader(metric.NewPeriodicReader(metricExporter)),
+			)
 		} else {
 			options := []otlpmetrichttp.Option{
 				otlpmetrichttp.WithEndpoint(endpoint),
@@ -422,7 +456,9 @@ func setupConnectorMetrics(telemetry *TelemetryState, metricsPrefix string) erro
 
 	telemetry.queryExplainLatencyHistogram, err = meter.Float64Histogram(
 		metricsPrefix+"query.explain_total_time",
-		metricapi.WithDescription("Total time taken to plan and execute an explain query request, in seconds"),
+		metricapi.WithDescription(
+			"Total time taken to plan and execute an explain query request, in seconds",
+		),
 	)
 	if err != nil {
 		return err
@@ -430,7 +466,9 @@ func setupConnectorMetrics(telemetry *TelemetryState, metricsPrefix string) erro
 
 	telemetry.mutationExplainLatencyHistogram, err = meter.Float64Histogram(
 		metricsPrefix+"mutation.explain_total_time",
-		metricapi.WithDescription("Total time taken to plan and execute an explain mutation request, in seconds"),
+		metricapi.WithDescription(
+			"Total time taken to plan and execute an explain mutation request, in seconds",
+		),
 	)
 
 	return err
@@ -452,13 +490,24 @@ func NewTracer(name string, opts ...traceapi.TracerOption) *Tracer {
 
 // Start creates a span and a context.Context containing the newly-created span
 // with `internal.visibility: "user"` so that it shows up in the Hasura Console.
-func (t *Tracer) Start(ctx context.Context, spanName string, opts ...traceapi.SpanStartOption) (context.Context, traceapi.Span) {
-	return t.Tracer.Start(ctx, spanName, append(opts, userVisibilityAttribute)...) //nolint:spancheck
+func (t *Tracer) Start(
+	ctx context.Context,
+	spanName string,
+	opts ...traceapi.SpanStartOption,
+) (context.Context, traceapi.Span) {
+	return t.Tracer.Start(
+		ctx,
+		spanName,
+		append(opts, userVisibilityAttribute)...) //nolint:spancheck
 }
 
 // StartInternal creates a span and a context.Context containing the newly-created span.
 // It won't show up in the Hasura Console.
-func (t *Tracer) StartInternal(ctx context.Context, spanName string, opts ...traceapi.SpanStartOption) (context.Context, traceapi.Span) {
+func (t *Tracer) StartInternal(
+	ctx context.Context,
+	spanName string,
+	opts ...traceapi.SpanStartOption,
+) (context.Context, traceapi.Span) {
 	return t.Tracer.Start(ctx, spanName, opts...) //nolint:spancheck
 }
 
@@ -466,7 +515,11 @@ func httpStatusAttribute(code int) attribute.KeyValue {
 	return attribute.Int("http_status", code)
 }
 
-func parseOTLPEndpoint(endpoint string, protocol string, insecurePtr *bool) (string, otlpProtocol, bool, error) {
+func parseOTLPEndpoint(
+	endpoint string,
+	protocol string,
+	insecurePtr *bool,
+) (string, otlpProtocol, bool, error) {
 	if !strings.HasPrefix(endpoint, "http://") && !strings.HasPrefix(endpoint, "https://") {
 		endpoint = "https://" + endpoint
 	}
@@ -530,7 +583,12 @@ func parseOTELMetricsExporterType(input string) (otelMetricsExporterType, error)
 }
 
 // SetSpanHeaderAttributes sets header attributes to the otel span.
-func SetSpanHeaderAttributes(span traceapi.Span, prefix string, httpHeaders http.Header, allowedHeaders ...string) {
+func SetSpanHeaderAttributes(
+	span traceapi.Span,
+	prefix string,
+	httpHeaders http.Header,
+	allowedHeaders ...string,
+) {
 	headers := NewTelemetryHeaders(httpHeaders, allowedHeaders...)
 
 	for key, values := range headers {

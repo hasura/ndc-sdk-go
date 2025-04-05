@@ -51,7 +51,11 @@ func connector_addSpanEvent(span trace.Span, logger *slog.Logger, name string, d
 }`)
 }
 
-func (chb connectorHandlerBuilder) writeOperationNameEnums(sb *strings.Builder, name string, values []string) {
+func (chb connectorHandlerBuilder) writeOperationNameEnums(
+	sb *strings.Builder,
+	name string,
+	values []string,
+) {
 	sb.WriteString("var ")
 	sb.WriteString(name)
 	sb.WriteString(" = []string{")
@@ -94,7 +98,8 @@ func (dch DataConnectorHandler) QueryExists(name string) bool {
 	_, _ = sb.WriteString(`
 func (dch DataConnectorHandler) Query(ctx context.Context, state *`)
 	_, _ = sb.WriteString(stateArgument)
-	_, _ = sb.WriteString(`, request *schema.QueryRequest, rawArgs map[string]any) (*schema.RowSet, error) {
+	_, _ = sb.WriteString(
+		`, request *schema.QueryRequest, rawArgs map[string]any) (*schema.RowSet, error) {
   if !dch.QueryExists(request.Collection) {
     return nil, utils.ErrHandlerNotfound
   }
@@ -118,12 +123,15 @@ func (dch DataConnectorHandler) Query(ctx context.Context, state *`)
   }, nil
 }
   
-func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
+func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`,
+	)
 	_, _ = sb.WriteString(stateArgument)
-	_, _ = sb.WriteString(`, request *schema.QueryRequest, queryFields schema.NestedField, rawArgs map[string]any) (any, error) {
+	_, _ = sb.WriteString(
+		`, request *schema.QueryRequest, queryFields schema.NestedField, rawArgs map[string]any) (any, error) {
   span := trace.SpanFromContext(ctx)
   logger := connector.GetLogger(ctx)
-  switch request.Collection {`)
+  switch request.Collection {`,
+	)
 
 	functionKeys := make([]string, len(chb.Functions))
 	for i, fn := range chb.Functions {
@@ -140,7 +148,8 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 		if fn.ArgumentsType != nil {
 			argName := fn.ArgumentsType.GetArgumentName(chb.Builder.packagePath)
 
-			if fn.ArgumentsType.PackagePath != "" && fn.ArgumentsType.PackagePath != chb.Builder.packagePath {
+			if fn.ArgumentsType.PackagePath != "" &&
+				fn.ArgumentsType.PackagePath != chb.Builder.packagePath {
 				chb.Builder.imports[fn.ArgumentsType.PackagePath] = ""
 			}
 
@@ -216,7 +225,8 @@ func (dch DataConnectorHandler) MutationExists(name string) bool {
 	_, _ = sb.WriteString(`
 func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 	_, _ = sb.WriteString(stateArgument)
-	_, _ = sb.WriteString(`, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
+	_, _ = sb.WriteString(
+		`, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
   span := trace.SpanFromContext(ctx)  
   logger := connector.GetLogger(ctx)
 	ctx = context.WithValue(ctx, utils.CommandSelectionFieldKey, operation.Fields)
@@ -224,7 +234,8 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
     "operations_name": operation.Name,
   })
   
-  switch operation.Name {`)
+  switch operation.Name {`,
+	)
 
 	procedureKeys := make([]string, len(chb.Procedures))
 	for i, fn := range chb.Procedures {
@@ -240,7 +251,8 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 		if fn.ArgumentsType != nil {
 			argName := fn.ArgumentsType.GetArgumentName(chb.Builder.packagePath)
 
-			if fn.ArgumentsType.PackagePath != "" && fn.ArgumentsType.PackagePath != chb.Builder.packagePath {
+			if fn.ArgumentsType.PackagePath != "" &&
+				fn.ArgumentsType.PackagePath != chb.Builder.packagePath {
 				chb.Builder.imports[fn.ArgumentsType.PackagePath] = ""
 			}
 
@@ -287,7 +299,13 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 	chb.writeOperationNameEnums(sb, procedureEnumsName, procedureKeys)
 }
 
-func (chb connectorHandlerBuilder) writeOperationValidation(sb *strings.Builder, fn *OperationInfo, selector string, resultType Type, isScalar bool) {
+func (chb connectorHandlerBuilder) writeOperationValidation(
+	sb *strings.Builder,
+	fn *OperationInfo,
+	selector string,
+	resultType Type,
+	isScalar bool,
+) {
 	_, _ = sb.WriteString("\n  case \"")
 	_, _ = sb.WriteString(fn.Name)
 	_, _ = sb.WriteString("\":\n")
@@ -324,7 +342,12 @@ func (chb connectorHandlerBuilder) writeOperationValidation(sb *strings.Builder,
 	}
 }
 
-func (chb connectorHandlerBuilder) writeOperationExecution(sb *strings.Builder, operationName string, argumentParamStr string, resultVarName string) {
+func (chb connectorHandlerBuilder) writeOperationExecution(
+	sb *strings.Builder,
+	operationName string,
+	argumentParamStr string,
+	resultVarName string,
+) {
 	sb.WriteString("\n    ")
 	sb.WriteString(resultVarName)
 	sb.WriteString(", err := ")
@@ -335,7 +358,13 @@ func (chb connectorHandlerBuilder) writeOperationExecution(sb *strings.Builder, 
 	writeErrorCheck(sb, 2, 4)
 }
 
-func (chb connectorHandlerBuilder) writeOperationResult(sb *strings.Builder, operationName string, operationKind OperationKind, argumentParamStr string, isNullable bool) {
+func (chb connectorHandlerBuilder) writeOperationResult(
+	sb *strings.Builder,
+	operationName string,
+	operationKind OperationKind,
+	argumentParamStr string,
+	isNullable bool,
+) {
 	chb.writeOperationExecution(sb, operationName, argumentParamStr, "rawResult")
 
 	if isNullable {

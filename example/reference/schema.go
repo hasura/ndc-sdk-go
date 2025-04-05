@@ -63,7 +63,9 @@ var ndcSchema = schema.SchemaResponse{
 				"month": schema.NewExtractionFunctionDefinitionMonth("Int").Encode(),
 				"year":  schema.NewExtractionFunctionDefinitionYear("Int").Encode(),
 			},
-			Representation: schema.TypeRepresentation{"type": schema.TypeRepresentationType("date")},
+			Representation: schema.TypeRepresentation{
+				"type": schema.TypeRepresentationType("date"),
+			},
 		},
 		"Float": {
 			AggregateFunctions: schema.ScalarTypeAggregateFunctions{
@@ -122,7 +124,9 @@ var ndcSchema = schema.SchemaResponse{
 				"lte": schema.NewComparisonOperatorLessThanOrEqual().Encode(),
 			},
 			ExtractionFunctions: schema.ScalarTypeExtractionFunctions{},
-			Representation:      schema.TypeRepresentation{"type": schema.TypeRepresentationType("int64")},
+			Representation: schema.TypeRepresentation{
+				"type": schema.TypeRepresentationType("int64"),
+			},
 		},
 		"String": {
 			AggregateFunctions: schema.ScalarTypeAggregateFunctions{
@@ -130,15 +134,16 @@ var ndcSchema = schema.SchemaResponse{
 				"min": schema.NewAggregateFunctionDefinitionMin().Encode(),
 			},
 			ComparisonOperators: map[string]schema.ComparisonOperatorDefinition{
-				"contains":     schema.NewComparisonOperatorContains().Encode(),
-				"ends_with":    schema.NewComparisonOperatorEndsWith().Encode(),
-				"eq":           schema.NewComparisonOperatorEqual().Encode(),
-				"gt":           schema.NewComparisonOperatorGreaterThan().Encode(),
-				"gte":          schema.NewComparisonOperatorGreaterThanOrEqual().Encode(),
-				"icontains":    schema.NewComparisonOperatorContainsInsensitive().Encode(),
-				"iends_with":   schema.NewComparisonOperatorEndsWithInsensitive().Encode(),
-				"in":           schema.NewComparisonOperatorIn().Encode(),
-				"like":         schema.NewComparisonOperatorCustom(schema.NewNamedType("String")).Encode(),
+				"contains":   schema.NewComparisonOperatorContains().Encode(),
+				"ends_with":  schema.NewComparisonOperatorEndsWith().Encode(),
+				"eq":         schema.NewComparisonOperatorEqual().Encode(),
+				"gt":         schema.NewComparisonOperatorGreaterThan().Encode(),
+				"gte":        schema.NewComparisonOperatorGreaterThanOrEqual().Encode(),
+				"icontains":  schema.NewComparisonOperatorContainsInsensitive().Encode(),
+				"iends_with": schema.NewComparisonOperatorEndsWithInsensitive().Encode(),
+				"in":         schema.NewComparisonOperatorIn().Encode(),
+				"like": schema.NewComparisonOperatorCustom(schema.NewNamedType("String")).
+					Encode(),
 				"lt":           schema.NewComparisonOperatorLessThan().Encode(),
 				"lte":          schema.NewComparisonOperatorLessThanOrEqual().Encode(),
 				"starts_with":  schema.NewComparisonOperatorStartsWith().Encode(),

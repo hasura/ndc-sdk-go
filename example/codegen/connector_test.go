@@ -26,15 +26,21 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-func createTestServer(t *testing.T, options ...connector.ServeOption) *connector.Server[types.Configuration, types.State] {
+func createTestServer(
+	t *testing.T,
+	options ...connector.ServeOption,
+) *connector.Server[types.Configuration, types.State] {
 	// reset global envs
 	loadGlobalEnvOnce = sync.Once{}
 	_globalEnvironments = globalEnvironments{}
 
-	server, err := connector.NewServer[types.Configuration, types.State](&Connector{}, &connector.ServerOptions{
-		Configuration: "{}",
-		InlineConfig:  true,
-	}, append(options, connector.WithoutRecovery())...)
+	server, err := connector.NewServer[types.Configuration, types.State](
+		&Connector{},
+		&connector.ServerOptions{
+			Configuration: "{}",
+			InlineConfig:  true,
+		},
+		append(options, connector.WithoutRecovery())...)
 
 	assert.NilError(t, err)
 
@@ -1375,7 +1381,7 @@ func TestQueryGetTypes(t *testing.T) {
 				CustomScalar:   commentText,
 				Enum:           types.SomeEnumFoo,
 				BigInt:         10000,
-				Date:           *scalar.NewDate(2024, 04, 02),
+				Date:           *scalar.NewDate(2024, 0o4, 0o2),
 				Duration:       scalar.NewDuration(time.Minute),
 				DurationString: scalar.NewDurationString(time.Hour),
 				DurationInt64:  scalar.NewDurationInt64(2 * time.Minute),
@@ -1384,7 +1390,9 @@ func TestQueryGetTypes(t *testing.T) {
 					return *r
 				}(),
 
-				UUIDPtr:         utils.ToPtr(uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5b")),
+				UUIDPtr: utils.ToPtr(
+					uuid.MustParse("b085b0b9-007c-440e-9661-0d8f2de98a5b"),
+				),
 				BoolPtr:         utils.ToPtr(true),
 				StringPtr:       utils.ToPtr("world"),
 				IntPtr:          utils.ToPtr(11),
@@ -1404,7 +1412,7 @@ func TestQueryGetTypes(t *testing.T) {
 				CustomScalarPtr: &commentTextPtr,
 				EnumPtr:         utils.ToPtr(types.SomeEnumBar),
 				BigIntPtr:       utils.ToPtr(scalar.BigInt(20000)),
-				DatePtr:         scalar.NewDate(2024, 04, 03),
+				DatePtr:         scalar.NewDate(2024, 0o4, 0o3),
 				Object: struct {
 					ID           uuid.UUID                               `json:"id"`
 					CreatedAt    time.Time                               `json:"created_at"`
@@ -1513,9 +1521,13 @@ func TestQueryGetTypes(t *testing.T) {
 				ArrayJSON:       []any{map[string]any{"foo": "bar"}},
 				ArrayJSONPtr:    []*any{utils.ToPtr(any(map[string]any{"foo": "baz"}))},
 				ArrayRawJSON:    []json.RawMessage{json.RawMessage(`{"message":"raw_json"}`)},
-				ArrayRawJSONPtr: []*json.RawMessage{utils.ToPtr(json.RawMessage(`{"message":"raw_json_ptr"}`))},
-				ArrayTime:       []time.Time{time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC)},
-				ArrayTimePtr:    []*time.Time{utils.ToPtr(time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC))},
+				ArrayRawJSONPtr: []*json.RawMessage{
+					utils.ToPtr(json.RawMessage(`{"message":"raw_json_ptr"}`)),
+				},
+				ArrayTime: []time.Time{time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC)},
+				ArrayTimePtr: []*time.Time{
+					utils.ToPtr(time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC)),
+				},
 
 				PtrArrayBool:       &[]bool{true},
 				PtrArrayString:     &[]string{"foo"},
@@ -1550,9 +1562,13 @@ func TestQueryGetTypes(t *testing.T) {
 				PtrArrayJSON:       &[]any{map[string]any{"foo": "bar"}},
 				PtrArrayJSONPtr:    &[]*any{utils.ToPtr(any(map[string]any{"foo": "baz"}))},
 				PtrArrayRawJSON:    &[]json.RawMessage{json.RawMessage(`{"message":"raw_json"}`)},
-				PtrArrayRawJSONPtr: &[]*json.RawMessage{utils.ToPtr(json.RawMessage(`{"message":"raw_json_ptr"}`))},
-				PtrArrayTime:       &[]time.Time{time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC)},
-				PtrArrayTimePtr:    &[]*time.Time{utils.ToPtr(time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC))},
+				PtrArrayRawJSONPtr: &[]*json.RawMessage{
+					utils.ToPtr(json.RawMessage(`{"message":"raw_json_ptr"}`)),
+				},
+				PtrArrayTime: &[]time.Time{time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC)},
+				PtrArrayTimePtr: &[]*time.Time{
+					utils.ToPtr(time.Date(2024, 3, 5, 7, 0, 56, 0, time.UTC)),
+				},
 			},
 		},
 	}
@@ -1561,7 +1577,11 @@ func TestQueryGetTypes(t *testing.T) {
 	defer testServer.Close()
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/query", testServer.URL), "application/json", bytes.NewReader([]byte(tc.body)))
+			resp, err := http.DefaultClient.Post(
+				fmt.Sprintf("%s/query", testServer.URL),
+				"application/json",
+				bytes.NewReader([]byte(tc.body)),
+			)
 			assert.NilError(t, err, "failed to request query")
 			assert.Equal(t, tc.status, resp.StatusCode)
 			respBody, err := io.ReadAll(resp.Body)
@@ -1683,8 +1703,11 @@ func TestQueries(t *testing.T) {
 	defer testServer.Close()
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-
-			resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/query", testServer.URL), "application/json", bytes.NewReader([]byte(tc.body)))
+			resp, err := http.DefaultClient.Post(
+				fmt.Sprintf("%s/query", testServer.URL),
+				"application/json",
+				bytes.NewReader([]byte(tc.body)),
+			)
 			assert.NilError(t, err, "failed to request query")
 			defer resp.Body.Close()
 			assert.Equal(t, tc.status, resp.StatusCode)
@@ -1801,8 +1824,11 @@ func TestProcedures(t *testing.T) {
 	defer testServer.Close()
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-
-			resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/mutation", testServer.URL), "application/json", bytes.NewReader([]byte(tc.body)))
+			resp, err := http.DefaultClient.Post(
+				fmt.Sprintf("%s/mutation", testServer.URL),
+				"application/json",
+				bytes.NewReader([]byte(tc.body)),
+			)
 			assert.NilError(t, err, "failed to request mutation")
 			defer resp.Body.Close()
 
@@ -1859,7 +1885,11 @@ func testQueryLatency(t *testing.T) time.Duration {
 	assert.NilError(t, json.Unmarshal(rawExpectedBody, &expected))
 
 	start := time.Now()
-	resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/query", testServer.URL), "application/json", bytes.NewReader(rawRequestBody))
+	resp, err := http.DefaultClient.Post(
+		fmt.Sprintf("%s/query", testServer.URL),
+		"application/json",
+		bytes.NewReader(rawRequestBody),
+	)
 	latency := time.Since(start)
 	assert.NilError(t, err, "failed to request query")
 	defer resp.Body.Close()
@@ -1899,7 +1929,11 @@ func testMutationLatency(t *testing.T) time.Duration {
 	assert.NilError(t, json.Unmarshal(rawExpectedBody, &expected))
 
 	start := time.Now()
-	resp, err := http.DefaultClient.Post(fmt.Sprintf("%s/mutation", testServer.URL), "application/json", bytes.NewReader(rawRequestBody))
+	resp, err := http.DefaultClient.Post(
+		fmt.Sprintf("%s/mutation", testServer.URL),
+		"application/json",
+		bytes.NewReader(rawRequestBody),
+	)
 	latency := time.Since(start)
 	assert.NilError(t, err, "failed to request mutation")
 	defer resp.Body.Close()

@@ -19,7 +19,11 @@ type LogHandler struct {
 	stdHandler  slog.Handler
 }
 
-func createLogHandler(serviceName string, logger *slog.Logger, provider *log.LoggerProvider) slog.Handler {
+func createLogHandler(
+	serviceName string,
+	logger *slog.Logger,
+	provider *log.LoggerProvider,
+) slog.Handler {
 	options := []otelslog.Option{}
 	if provider != nil {
 		options = append(options, otelslog.WithLoggerProvider(provider))
@@ -67,7 +71,12 @@ func (l LogHandler) WithGroup(name string) slog.Handler {
 }
 
 // create OpenTelemetry logger provider.
-func newLoggerProvider(ctx context.Context, config *OTLPConfig, otelDisabled bool, res *resource.Resource) (*log.LoggerProvider, error) {
+func newLoggerProvider(
+	ctx context.Context,
+	config *OTLPConfig,
+	otelDisabled bool,
+	res *resource.Resource,
+) (*log.LoggerProvider, error) {
 	logsEndpoint := utils.GetDefault(config.OtlpLogsEndpoint, config.OtlpEndpoint)
 	if otelDisabled || config.LogsExporter != "otlp" || logsEndpoint == "" {
 		return log.NewLoggerProvider(), nil
@@ -82,7 +91,9 @@ func newLoggerProvider(ctx context.Context, config *OTLPConfig, otelDisabled boo
 		return nil, fmt.Errorf("failed to parse OTLP logs endpoint: %w", err)
 	}
 
-	compressorStr, compressorInt, err := parseOTLPCompression(utils.GetDefault(config.OtlpLogsCompression, config.OtlpCompression))
+	compressorStr, compressorInt, err := parseOTLPCompression(
+		utils.GetDefault(config.OtlpLogsCompression, config.OtlpCompression),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse OTLP logs compression: %w", err)
 	}

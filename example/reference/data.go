@@ -9,7 +9,10 @@ import (
 	"github.com/hasura/ndc-sdk-go/schema"
 )
 
-var baseFixtureURL = fmt.Sprintf("https://raw.githubusercontent.com/hasura/ndc-spec/refs/tags/%s/ndc-reference", schema.NDCVersion)
+var baseFixtureURL = fmt.Sprintf(
+	"https://raw.githubusercontent.com/hasura/ndc-spec/refs/tags/%s/ndc-reference",
+	schema.NDCVersion,
+)
 
 type Article struct {
 	ID            int    `json:"id"`

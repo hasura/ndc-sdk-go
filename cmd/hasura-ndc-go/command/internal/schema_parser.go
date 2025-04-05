@@ -45,7 +45,12 @@ func (sp SchemaParser) FindPackageByPath(input string) *packages.Package {
 	return nil
 }
 
-func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, filePath string, args *ConnectorGenerationArguments) (*RawConnectorSchema, error) {
+func parseRawConnectorSchemaFromGoCode(
+	ctx context.Context,
+	moduleName string,
+	filePath string,
+	args *ConnectorGenerationArguments,
+) (*RawConnectorSchema, error) {
 	var err error
 
 	namingStyle := StyleCamelCase
@@ -82,7 +87,12 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 		for _, globPath := range []string{path.Join(filePath, dir, "*.go"), path.Join(filePath, dir, "**", "*.go")} {
 			goFiles, err := filepath.Glob(globPath)
 			if err != nil {
-				return nil, fmt.Errorf("failed to read subdirectories of %s/%s: %w", filePath, dir, err)
+				return nil, fmt.Errorf(
+					"failed to read subdirectories of %s/%s: %w",
+					filePath,
+					dir,
+					err,
+				)
 			}
 
 			for _, fp := range goFiles {
@@ -101,7 +111,9 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 	}
 
 	if len(directories) > 0 {
-		log.Debug().Interface("directories", utils.GetSortedKeys(directories)).Msgf("parsing connector schema")
+		log.Debug().
+			Interface("directories", utils.GetSortedKeys(directories)).
+			Msgf("parsing connector schema")
 
 		var packageList []*packages.Package
 
@@ -170,7 +182,10 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 // parse raw connector schema from Go code.
 func (sp *SchemaParser) parseRawConnectorSchema(ctx context.Context, pkg *types.Package) error {
 	for _, name := range pkg.Scope().Names() {
-		_, task := trace.NewTask(ctx, fmt.Sprintf("parse_%s_schema_%s", sp.GetCurrentPackage().Name, name))
+		_, task := trace.NewTask(
+			ctx,
+			fmt.Sprintf("parse_%s_schema_%s", sp.GetCurrentPackage().Name, name),
+		)
 		err := sp.parsePackageScope(pkg, name)
 
 		task.End()
@@ -394,7 +409,11 @@ func findCommentsFromPos(pkg *packages.Package, scope *types.Scope, name string)
 	return nil
 }
 
-func evalPackageTypesLocation(moduleName string, filePath string, connectorDir string) (string, error) {
+func evalPackageTypesLocation(
+	moduleName string,
+	filePath string,
+	connectorDir string,
+) (string, error) {
 	matches, err := filepath.Glob(path.Join(filePath, "types", "*.go"))
 	if err == nil && len(matches) > 0 {
 		return moduleName + "/types", nil
@@ -407,5 +426,8 @@ func evalPackageTypesLocation(moduleName string, filePath string, connectorDir s
 		}
 	}
 
-	return "", fmt.Errorf("the `types` package where the State struct is in must be placed in root or connector directory, %w", err)
+	return "", fmt.Errorf(
+		"the `types` package where the State struct is in must be placed in root or connector directory, %w",
+		err,
+	)
 }

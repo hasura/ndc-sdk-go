@@ -24,7 +24,10 @@ type Connector struct{}
 
 // ParseConfiguration validates the configuration files provided by the user, returning a validated 'Configuration',
 // or throwing an error to prevents Connector startup.
-func (c *Connector) ParseConfiguration(ctx context.Context, configurationDir string) (*types.Configuration, error) {
+func (c *Connector) ParseConfiguration(
+	ctx context.Context,
+	configurationDir string,
+) (*types.Configuration, error) {
 	return &types.Configuration{}, nil
 }
 
@@ -35,7 +38,11 @@ func (c *Connector) ParseConfiguration(ctx context.Context, configurationDir str
 //
 // In addition, this function should register any
 // connector-specific metrics with the metrics registry.
-func (c *Connector) TryInitState(ctx context.Context, configuration *types.Configuration, metrics *connector.TelemetryState) (*types.State, error) {
+func (c *Connector) TryInitState(
+	ctx context.Context,
+	configuration *types.Configuration,
+	metrics *connector.TelemetryState,
+) (*types.State, error) {
 	return &types.State{
 		TelemetryState: metrics,
 	}, nil
@@ -47,21 +54,37 @@ func (c *Connector) TryInitState(ctx context.Context, configuration *types.Confi
 // is able to reach its data source over the network.
 //
 // Should throw if the check fails, else resolve.
-func (c *Connector) HealthCheck(ctx context.Context, configuration *types.Configuration, state *types.State) error {
+func (c *Connector) HealthCheck(
+	ctx context.Context,
+	configuration *types.Configuration,
+	state *types.State,
+) error {
 	return nil
 }
 
 // GetCapabilities get the connector's capabilities.
-func (c *Connector) GetCapabilities(configuration *types.Configuration) schema.CapabilitiesResponseMarshaler {
+func (c *Connector) GetCapabilities(
+	configuration *types.Configuration,
+) schema.CapabilitiesResponseMarshaler {
 	return connectorCapabilities
 }
 
 // QueryExplain explains a query by creating an execution plan.
-func (c *Connector) QueryExplain(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.QueryRequest) (*schema.ExplainResponse, error) {
+func (c *Connector) QueryExplain(
+	ctx context.Context,
+	configuration *types.Configuration,
+	state *types.State,
+	request *schema.QueryRequest,
+) (*schema.ExplainResponse, error) {
 	return nil, schema.NotSupportedError("query explain has not been supported yet", nil)
 }
 
 // MutationExplain explains a mutation by creating an execution plan.
-func (c *Connector) MutationExplain(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.MutationRequest) (*schema.ExplainResponse, error) {
+func (c *Connector) MutationExplain(
+	ctx context.Context,
+	configuration *types.Configuration,
+	state *types.State,
+	request *schema.MutationRequest,
+) (*schema.ExplainResponse, error) {
 	return nil, schema.NotSupportedError("mutation explain has not been supported yet", nil)
 }

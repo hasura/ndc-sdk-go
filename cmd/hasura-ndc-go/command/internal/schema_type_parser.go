@@ -19,7 +19,13 @@ type TypeParser struct {
 	typeInfo *TypeInfo
 }
 
-func NewTypeParser(schemaParser *SchemaParser, field *Field, ty types.Type, tagInfo NDCTagInfo, argumentFor *OperationKind) *TypeParser {
+func NewTypeParser(
+	schemaParser *SchemaParser,
+	field *Field,
+	ty types.Type,
+	tagInfo NDCTagInfo,
+	argumentFor *OperationKind,
+) *TypeParser {
 	return &TypeParser{
 		schemaParser: schemaParser,
 		field:        field,
@@ -223,7 +229,10 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 	}
 }
 
-func (tp *TypeParser) parseNamedType(inferredType *types.Named, fieldPaths []string) (Type, error) { //nolint:cyclop,funlen
+func (tp *TypeParser) parseNamedType(
+	inferredType *types.Named,
+	fieldPaths []string,
+) (Type, error) { //nolint:cyclop,funlen
 	innerType := inferredType.Obj()
 	if innerType == nil {
 		return nil, fmt.Errorf("failed to parse named type: %s", inferredType.String())
@@ -237,7 +246,10 @@ func (tp *TypeParser) parseNamedType(inferredType *types.Named, fieldPaths []str
 
 	if innerType.Name() == "error" {
 		if tp.argumentFor != nil {
-			return nil, fmt.Errorf("%s: native `error` interface isn't allowed in input arguments", strings.Join(fieldPaths, "."))
+			return nil, fmt.Errorf(
+				"%s: native `error` interface isn't allowed in input arguments",
+				strings.Join(fieldPaths, "."),
+			)
 		}
 
 		scalarName := string(ScalarJSON)
@@ -252,7 +264,11 @@ func (tp *TypeParser) parseNamedType(inferredType *types.Named, fieldPaths []str
 
 	innerPkg := innerType.Pkg()
 	if innerPkg == nil {
-		return nil, fmt.Errorf("%s: unsupported type <%s>", strings.Join(fieldPaths, "."), innerType.Name())
+		return nil, fmt.Errorf(
+			"%s: unsupported type <%s>",
+			strings.Join(fieldPaths, "."),
+			innerType.Name(),
+		)
 	}
 
 	typeInfo.PackageName = innerPkg.Name()
@@ -332,7 +348,10 @@ func (tp *TypeParser) parseNamedType(inferredType *types.Named, fieldPaths []str
 	case packageSDKSchema:
 		if innerType.Name() == "Expression" && tp.argumentFor != nil {
 			if tp.tagInfo.PredicateObjectName == "" {
-				return nil, fmt.Errorf("%s: predicate field tag must be set `ndc:\"predicate=<object-name>\"`", strings.Join(fieldPaths, "."))
+				return nil, fmt.Errorf(
+					"%s: predicate field tag must be set `ndc:\"predicate=<object-name>\"`",
+					strings.Join(fieldPaths, "."),
+				)
 			}
 
 			return NewNullableType(NewPredicateType(tp.tagInfo.PredicateObjectName)), nil
@@ -340,13 +359,23 @@ func (tp *TypeParser) parseNamedType(inferredType *types.Named, fieldPaths []str
 	case "github.com/hasura/ndc-sdk-go/scalar":
 		scalarName := ScalarName(innerType.Name())
 		switch scalarName {
-		case ScalarDate, ScalarBigInt, ScalarBytes, ScalarURL, ScalarDuration, ScalarDurationString, ScalarDurationInt64:
+		case ScalarDate,
+			ScalarBigInt,
+			ScalarBytes,
+			ScalarURL,
+			ScalarDuration,
+			ScalarDurationString,
+			ScalarDurationInt64:
 			typeInfo.SchemaName = innerType.Name()
 			scalarType = &Scalar{
 				Schema: defaultScalarTypes[scalarName],
 			}
 		default:
-			return nil, fmt.Errorf("unsupported scalar type %s.%s", innerPkg.Path(), innerType.Name())
+			return nil, fmt.Errorf(
+				"unsupported scalar type %s.%s",
+				innerPkg.Path(),
+				innerType.Name(),
+			)
 		}
 	}
 
@@ -359,7 +388,10 @@ func (tp *TypeParser) parseNamedType(inferredType *types.Named, fieldPaths []str
 	if _, ok := tp.schemaParser.rawSchema.Objects[typeInfo.SchemaName]; ok {
 		// the object schema exists, rename to format <name>_<package_name>
 		packagePath := strings.TrimPrefix(typeInfo.PackagePath, tp.schemaParser.moduleName)
-		typeInfo.SchemaName = fieldNameRegex.ReplaceAllString(strings.Join([]string{typeInfo.Name, packagePath}, ""), "_")
+		typeInfo.SchemaName = fieldNameRegex.ReplaceAllString(
+			strings.Join([]string{typeInfo.Name, packagePath}, ""),
+			"_",
+		)
 	}
 
 	tp.typeInfo = typeInfo
@@ -367,7 +399,11 @@ func (tp *TypeParser) parseNamedType(inferredType *types.Named, fieldPaths []str
 	return tp.parseType(typeInfo.TypeAST.Underlying(), append(fieldPaths, innerType.Name()))
 }
 
-func (tp *TypeParser) parseStructType(objectInfo *ObjectInfo, inferredType *types.Struct, fieldPaths []string) error {
+func (tp *TypeParser) parseStructType(
+	objectInfo *ObjectInfo,
+	inferredType *types.Struct,
+	fieldPaths []string,
+) error {
 	for i := range inferredType.NumFields() {
 		fieldVar := inferredType.Field(i)
 		if !fieldVar.Exported() {
@@ -437,11 +473,18 @@ func (tp *TypeParser) parseSliceType(ty types.Type, fieldPaths []string) (Type, 
 	return NewArrayType(innerType), nil
 }
 
-func (tp *TypeParser) parseTypeInfoFromComments(typeInfo *TypeInfo, scope *types.Scope) (*Scalar, error) {
+func (tp *TypeParser) parseTypeInfoFromComments(
+	typeInfo *TypeInfo,
+	scope *types.Scope,
+) (*Scalar, error) {
 	var scalarType *Scalar
 
 	comments := make([]string, 0)
-	commentGroup := findCommentsFromPos(tp.schemaParser.FindPackageByPath(typeInfo.PackagePath), scope, typeInfo.Name)
+	commentGroup := findCommentsFromPos(
+		tp.schemaParser.FindPackageByPath(typeInfo.PackagePath),
+		scope,
+		typeInfo.Name,
+	)
 
 	if commentGroup != nil { //nolint:nestif
 		for i, line := range commentGroup.List {
@@ -456,9 +499,9 @@ func (tp *TypeParser) parseTypeInfoFromComments(typeInfo *TypeInfo, scope *types
 
 			enumMatches := ndcEnumCommentRegex.FindStringSubmatch(strings.TrimRight(text, "."))
 			if len(enumMatches) == 2 {
-				rawEnumItems := strings.Split(enumMatches[1], ",")
-
 				var enums []string
+
+				rawEnumItems := strings.Split(enumMatches[1], ",")
 
 				for _, item := range rawEnumItems {
 					trimmed := strings.TrimSpace(item)
@@ -487,10 +530,15 @@ func (tp *TypeParser) parseTypeInfoFromComments(typeInfo *TypeInfo, scope *types
 			if matchesLen > 1 {
 				if matchesLen > 3 && matches[3] != "" {
 					typeInfo.SchemaName = matches[2]
-					typeRep, err := schema.ParseTypeRepresentationType(strings.TrimSpace(matches[3]))
-
+					typeRep, err := schema.ParseTypeRepresentationType(
+						strings.TrimSpace(matches[3]),
+					)
 					if err != nil {
-						return nil, fmt.Errorf("failed to parse type representation of scalar %s: %w", typeInfo.Name, err)
+						return nil, fmt.Errorf(
+							"failed to parse type representation of scalar %s: %w",
+							typeInfo.Name,
+							err,
+						)
 					}
 
 					if typeRep == schema.TypeRepresentationTypeEnum {

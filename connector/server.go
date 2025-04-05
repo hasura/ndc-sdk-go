@@ -35,13 +35,13 @@ type ServerOptions struct {
 
 // HTTPServerConfig the configuration of the HTTP server.
 type HTTPServerConfig struct {
-	ServerReadTimeout        time.Duration `env:"HASURA_SERVER_READ_TIMEOUT"        help:"Maximum duration for reading the entire request, including the body. A zero or negative value means there will be no timeout"`
-	ServerReadHeaderTimeout  time.Duration `env:"HASURA_SERVER_READ_HEADER_TIMEOUT" help:"Amount of time allowed to read request headers. If zero, the value of ReadTimeout is used"`
-	ServerWriteTimeout       time.Duration `env:"HASURA_SERVER_WRITE_TIMEOUT"       help:"Maximum duration before timing out writes of the response. A zero or negative value means there will be no timeout"`
-	ServerIdleTimeout        time.Duration `env:"HASURA_SERVER_IDLE_TIMEOUT"        help:"Maximum amount of time to wait for the next request when keep-alives are enabled. If zero, the value of ReadTimeout is used"`
-	ServerMaxHeaderKilobytes int           `default:"1024"                          env:"HASURA_SERVER_MAX_HEADER_KILOBYTES"                                                                                            help:"Maximum number of kilobytes the server will read parsing the request header's keys and values, including the request line"`
-	ServerTLSCertFile        string        `env:"HASURA_SERVER_TLS_CERT_FILE"       help:"Path of the TLS certificate file"`
-	ServerTLSKeyFile         string        `env:"HASURA_SERVER_TLS_KEY_FILE"        help:"Path of the TLS key file"`
+	ServerReadTimeout        time.Duration `env:"HASURA_SERVER_READ_TIMEOUT"         help:"Maximum duration for reading the entire request, including the body. A zero or negative value means there will be no timeout"`
+	ServerReadHeaderTimeout  time.Duration `env:"HASURA_SERVER_READ_HEADER_TIMEOUT"  help:"Amount of time allowed to read request headers. If zero, the value of ReadTimeout is used"`
+	ServerWriteTimeout       time.Duration `env:"HASURA_SERVER_WRITE_TIMEOUT"        help:"Maximum duration before timing out writes of the response. A zero or negative value means there will be no timeout"`
+	ServerIdleTimeout        time.Duration `env:"HASURA_SERVER_IDLE_TIMEOUT"         help:"Maximum amount of time to wait for the next request when keep-alives are enabled. If zero, the value of ReadTimeout is used"`
+	ServerMaxHeaderKilobytes int           `env:"HASURA_SERVER_MAX_HEADER_KILOBYTES" help:"Maximum number of kilobytes the server will read parsing the request header's keys and values, including the request line"    default:"1024"`
+	ServerTLSCertFile        string        `env:"HASURA_SERVER_TLS_CERT_FILE"        help:"Path of the TLS certificate file"`
+	ServerTLSKeyFile         string        `env:"HASURA_SERVER_TLS_KEY_FILE"         help:"Path of the TLS key file"`
 }
 
 // Server implements the [NDC API specification] for the connector
@@ -61,7 +61,11 @@ type Server[Configuration any, State any] struct {
 }
 
 // NewServer creates a Server instance.
-func NewServer[Configuration any, State any](connector Connector[Configuration, State], options *ServerOptions, others ...ServeOption) (*Server[Configuration, State], error) {
+func NewServer[Configuration any, State any](
+	connector Connector[Configuration, State],
+	options *ServerOptions,
+	others ...ServeOption,
+) (*Server[Configuration, State], error) {
 	defaultOptions := defaultServeOptions()
 
 	for _, opts := range others {
@@ -82,7 +86,13 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 	// Handle SIGINT (CTRL+C) gracefully.
 	ctx, stop := signal.NotifyContext(context.TODO(), os.Interrupt)
 
-	telemetry, err := setupOTelSDK(ctx, &options.OTLPConfig, defaultOptions.version, defaultOptions.metricsPrefix, defaultOptions.logger)
+	telemetry, err := setupOTelSDK(
+		ctx,
+		&options.OTLPConfig,
+		defaultOptions.version,
+		defaultOptions.metricsPrefix,
+		defaultOptions.logger,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +159,6 @@ func (s *Server[Configuration, State]) Health(w http.ResponseWriter, r *http.Req
 func (s *Server[Configuration, State]) GetSchema(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r.Context())
 	schemaResult, err := s.connector.GetSchema(r.Context(), s.configuration, s.state)
-
 	if err != nil {
 		writeError(w, logger, err)
 
@@ -201,9 +210,17 @@ func (s *Server[Configuration, State]) Query(w http.ResponseWriter, r *http.Requ
 
 	writeJson(w, logger, http.StatusOK, response)
 
-	s.telemetry.queryCounter.Add(r.Context(), 1, metric.WithAttributes(collectionAttr, successStatusAttribute))
+	s.telemetry.queryCounter.Add(
+		r.Context(),
+		1,
+		metric.WithAttributes(collectionAttr, successStatusAttribute),
+	)
 	// record latency for success requests only
-	s.telemetry.queryLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
+	s.telemetry.queryLatencyHistogram.Record(
+		r.Context(),
+		time.Since(startTime).Seconds(),
+		metric.WithAttributes(collectionAttr),
+	)
 }
 
 // QueryExplain implements a handler for the /query/explain endpoint, POST method that explains a query by creating an execution plan.
@@ -242,14 +259,25 @@ func (s *Server[Configuration, State]) QueryExplain(w http.ResponseWriter, r *ht
 	execSpan.End()
 
 	writeJson(w, logger, http.StatusOK, response)
-	s.telemetry.queryExplainCounter.Add(r.Context(), 1, metric.WithAttributes(successStatusAttribute, collectionAttr))
+	s.telemetry.queryExplainCounter.Add(
+		r.Context(),
+		1,
+		metric.WithAttributes(successStatusAttribute, collectionAttr),
+	)
 
 	// record latency for success requests only
-	s.telemetry.queryExplainLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(collectionAttr))
+	s.telemetry.queryExplainLatencyHistogram.Record(
+		r.Context(),
+		time.Since(startTime).Seconds(),
+		metric.WithAttributes(collectionAttr),
+	)
 }
 
 // MutationExplain implements a handler for the /mutation/explain endpoint, POST method that explains a mutation by creating an execution plan.
-func (s *Server[Configuration, State]) MutationExplain(w http.ResponseWriter, r *http.Request) { //nolint:dupl
+func (s *Server[Configuration, State]) MutationExplain(
+	w http.ResponseWriter,
+	r *http.Request,
+) { //nolint:dupl
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
 	span := trace.SpanFromContext(r.Context())
@@ -290,14 +318,25 @@ func (s *Server[Configuration, State]) MutationExplain(w http.ResponseWriter, r 
 	execSpan.End()
 
 	writeJson(w, logger, http.StatusOK, response)
-	s.telemetry.mutationExplainCounter.Add(r.Context(), 1, metric.WithAttributes(successStatusAttribute, operationAttr))
+	s.telemetry.mutationExplainCounter.Add(
+		r.Context(),
+		1,
+		metric.WithAttributes(successStatusAttribute, operationAttr),
+	)
 
 	// record latency for success requests only
-	s.telemetry.mutationExplainLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(operationAttr))
+	s.telemetry.mutationExplainLatencyHistogram.Record(
+		r.Context(),
+		time.Since(startTime).Seconds(),
+		metric.WithAttributes(operationAttr),
+	)
 }
 
 // Mutation implements a handler for the /mutation endpoint, POST method that executes a mutation.
-func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.Request) { //nolint:dupl
+func (s *Server[Configuration, State]) Mutation(
+	w http.ResponseWriter,
+	r *http.Request,
+) { //nolint:dupl
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
 	span := trace.SpanFromContext(r.Context())
@@ -339,14 +378,27 @@ func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.R
 
 	writeJson(w, logger, http.StatusOK, response)
 
-	s.telemetry.mutationCounter.Add(r.Context(), 1, metric.WithAttributes(successStatusAttribute, operationAttr))
+	s.telemetry.mutationCounter.Add(
+		r.Context(),
+		1,
+		metric.WithAttributes(successStatusAttribute, operationAttr),
+	)
 
 	// record latency for success requests only
-	s.telemetry.mutationLatencyHistogram.Record(r.Context(), time.Since(startTime).Seconds(), metric.WithAttributes(operationAttr))
+	s.telemetry.mutationLatencyHistogram.Record(
+		r.Context(),
+		time.Since(startTime).Seconds(),
+		metric.WithAttributes(operationAttr),
+	)
 }
 
 // the common unmarshal json body method.
-func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, r *http.Request, counter metric.Int64Counter, body any) error {
+func (s *Server[Configuration, State]) unmarshalBodyJSON(
+	w http.ResponseWriter,
+	r *http.Request,
+	counter metric.Int64Counter,
+	body any,
+) error {
 	err := json.NewDecoder(r.Body).Decode(body)
 	if err != nil {
 		writeJson(w, GetLogger(r.Context()), http.StatusUnprocessableEntity, schema.ErrorResponse{
@@ -381,7 +433,8 @@ func (s *Server[Configuration, State]) buildHandler() *http.ServeMux {
 	router.Use(apiPathMutation, http.MethodPost, append(middlewares, s.Mutation)...)
 	router.Use(apiPathHealth, http.MethodGet, s.Health)
 
-	if s.options.MetricsExporter == string(otelMetricsExporterPrometheus) && s.options.PrometheusPort == nil {
+	if s.options.MetricsExporter == string(otelMetricsExporterPrometheus) &&
+		s.options.PrometheusPort == nil {
 		router.Use(apiPathMetrics, http.MethodGet, s.withAuth, promhttp.Handler().ServeHTTP)
 	}
 
@@ -444,14 +497,17 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 		}
 	}()
 
-	if s.options.MetricsExporter == string(otelMetricsExporterPrometheus) && s.options.PrometheusPort != nil {
+	if s.options.MetricsExporter == string(otelMetricsExporterPrometheus) &&
+		s.options.PrometheusPort != nil {
 		promServer := createPrometheusServer(*s.options.PrometheusPort)
 		defer func() {
 			_ = promServer.Shutdown(context.Background())
 		}()
 
 		go func() {
-			s.telemetry.Logger.Info(fmt.Sprintf("Listening prometheus server on %d", *s.options.PrometheusPort))
+			s.telemetry.Logger.Info(
+				fmt.Sprintf("Listening prometheus server on %d", *s.options.PrometheusPort),
+			)
 
 			if err := promServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 				serverErr <- err

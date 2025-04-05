@@ -108,7 +108,10 @@ func encodeObjectReflection(inputValue reflect.Value, fieldPath string) (map[str
 			key, err := DecodeString(k)
 			if err != nil {
 				return nil, &schema.ErrorResponse{
-					Message: fmt.Sprintf("cannot encode map; the object key must be a string, got: %v", k.Interface()),
+					Message: fmt.Sprintf(
+						"cannot encode map; the object key must be a string, got: %v",
+						k.Interface(),
+					),
 					Details: map[string]any{
 						"path": fieldPath,
 					},
@@ -140,7 +143,20 @@ func encodeField(input reflect.Value) (any, bool) {
 	switch input.Kind() {
 	case reflect.Complex64, reflect.Complex128:
 		return nil, false
-	case reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Float32, reflect.Float64, reflect.String, reflect.Map, reflect.Int64:
+	case reflect.Bool,
+		reflect.Int,
+		reflect.Int8,
+		reflect.Int16,
+		reflect.Int32,
+		reflect.Uint,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Float32,
+		reflect.Float64,
+		reflect.String,
+		reflect.Map,
+		reflect.Int64:
 		return input.Interface(), true
 	case reflect.Uint64:
 		return strconv.FormatUint(input.Uint(), 10), true

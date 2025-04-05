@@ -18,7 +18,6 @@ import (
   "github.com/hasura/ndc-sdk-go/schema"
 )
 
-
 func toPtr[V any](value V) *V {
   return &value
 }
@@ -76,7 +75,10 @@ func GetConnectorSchema() *schema.SchemaResponse {
 	return builder.String(), nil
 }
 
-func (rcs RawConnectorSchema) writeOperationInfo(builder *strings.Builder, operation *OperationInfo) error {
+func (rcs RawConnectorSchema) writeOperationInfo(
+	builder *strings.Builder,
+	operation *OperationInfo,
+) error {
 	baseIndent := 6
 
 	builder.WriteString(`
@@ -114,7 +116,12 @@ func (rcs RawConnectorSchema) writeOperationInfo(builder *strings.Builder, opera
 
 		argType, err := rcs.writeType(argument.Type, 0)
 		if err != nil {
-			return fmt.Errorf("failed to render argument %s of function %s: %w", argKey, operation.Name, err)
+			return fmt.Errorf(
+				"failed to render argument %s of function %s: %w",
+				argKey,
+				operation.Name,
+				err,
+			)
 		}
 
 		builder.WriteString(argType)
@@ -132,7 +139,11 @@ func (rcs RawConnectorSchema) writeOperationInfo(builder *strings.Builder, opera
 	return nil
 }
 
-func (rcs RawConnectorSchema) writeScalarType(builder *strings.Builder, key string, scalarType schema.ScalarType) error {
+func (rcs RawConnectorSchema) writeScalarType(
+	builder *strings.Builder,
+	key string,
+	scalarType schema.ScalarType,
+) error {
 	baseIndent := 6
 
 	builder.WriteRune('\n')
@@ -220,7 +231,10 @@ func (rcs RawConnectorSchema) writeDescription(builder *strings.Builder, descrip
 	}
 }
 
-func (rcs RawConnectorSchema) writeObjectType(builder *strings.Builder, objectType *ObjectInfo) error {
+func (rcs RawConnectorSchema) writeObjectType(
+	builder *strings.Builder,
+	objectType *ObjectInfo,
+) error {
 	baseIndent := 6
 
 	builder.WriteRune('\n')

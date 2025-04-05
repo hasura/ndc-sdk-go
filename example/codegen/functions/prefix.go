@@ -68,7 +68,11 @@ type CreateAuthorResult struct {
 }
 
 // ProcedureCreateAuthor creates an author
-func ProcedureCreateAuthor(ctx context.Context, state *types.State, arguments *CreateAuthorArguments) (*CreateAuthorResult, error) {
+func ProcedureCreateAuthor(
+	ctx context.Context,
+	state *types.State,
+	arguments *CreateAuthorArguments,
+) (*CreateAuthorResult, error) {
 	selection := utils.CommandSelectionFieldFromContext(ctx)
 	if len(selection) == 0 {
 		return nil, errors.New("expected not-null selection field, got null")
@@ -82,7 +86,11 @@ func ProcedureCreateAuthor(ctx context.Context, state *types.State, arguments *C
 }
 
 // ProcedureCreateAuthors creates a list of authors
-func ProcedureCreateAuthors(ctx context.Context, state *types.State, arguments *CreateAuthorsArguments) ([]CreateAuthorResult, error) {
+func ProcedureCreateAuthors(
+	ctx context.Context,
+	state *types.State,
+	arguments *CreateAuthorsArguments,
+) ([]CreateAuthorResult, error) {
 	results := make([]CreateAuthorResult, len(arguments.Authors))
 	for i, arg := range arguments.Authors {
 		results[i] = CreateAuthorResult{
@@ -103,7 +111,11 @@ func FunctionGetInts(ctx context.Context, state *types.State) ([]*int, error) {
 	return []*int{utils.ToPtr(1), utils.ToPtr(2), utils.ToPtr(3)}, nil
 }
 
-func FunctionGetTypes(ctx context.Context, state *types.State, arguments *arguments.GetTypesArguments) (*arguments.GetTypesArguments, error) {
+func FunctionGetTypes(
+	ctx context.Context,
+	state *types.State,
+	arguments *arguments.GetTypesArguments,
+) (*arguments.GetTypesArguments, error) {
 	selection := utils.CommandSelectionFieldFromContext(ctx)
 	if len(selection) == 0 {
 		return nil, errors.New("expected not-null selection field, got null")
@@ -130,7 +142,11 @@ type GetAuthorResult struct {
 	Disabled bool              `json:"disabled"`
 }
 
-func FunctionGetAuthor(ctx context.Context, state *types.State, arguments *GetAuthorArguments) (*GetAuthorResult, error) {
+func FunctionGetAuthor(
+	ctx context.Context,
+	state *types.State,
+	arguments *GetAuthorArguments,
+) (*GetAuthorResult, error) {
 	return &GetAuthorResult{
 		CreateAuthorResult: &CreateAuthorResult{
 			ID:   1,
@@ -141,7 +157,11 @@ func FunctionGetAuthor(ctx context.Context, state *types.State, arguments *GetAu
 	}, nil
 }
 
-func FunctionGetAuthor2(ctx context.Context, state *types.State, arguments *GetAuthorArguments) (types.GetAuthorResult, error) {
+func FunctionGetAuthor2(
+	ctx context.Context,
+	state *types.State,
+	arguments *GetAuthorArguments,
+) (types.GetAuthorResult, error) {
 	return types.GetAuthorResult{
 		ID:   1,
 		Name: arguments.Name,
@@ -165,7 +185,11 @@ type GetCustomHeadersResult[T any, O int | int8 | int16 | int32 | int64] struct 
 	Other    *GetCustomHeadersOther[O] `json:"other"`
 }
 
-func FunctionGetCustomHeaders(ctx context.Context, state *types.State, arguments *GetCustomHeadersArguments[BaseAuthor, int]) (GetCustomHeadersResult[HelloResult, int64], error) {
+func FunctionGetCustomHeaders(
+	ctx context.Context,
+	state *types.State,
+	arguments *GetCustomHeadersArguments[BaseAuthor, int],
+) (GetCustomHeadersResult[HelloResult, int64], error) {
 	if arguments.Headers == nil {
 		arguments.Headers = make(map[string]string)
 	}
@@ -186,7 +210,11 @@ func FunctionGetCustomHeaders(ctx context.Context, state *types.State, arguments
 
 // the generic type's method doesn't allow type parameters from other packages
 // so the FromValue method isn't generated
-func FunctionGetGenericWithoutDecodingMethod(ctx context.Context, state *types.State, arguments *GetCustomHeadersArguments[arguments.GetCustomHeadersInput, int]) (GetCustomHeadersResult[HelloResult, int64], error) {
+func FunctionGetGenericWithoutDecodingMethod(
+	ctx context.Context,
+	state *types.State,
+	arguments *GetCustomHeadersArguments[arguments.GetCustomHeadersInput, int],
+) (GetCustomHeadersResult[HelloResult, int64], error) {
 	if arguments.Headers == nil {
 		arguments.Headers = make(map[string]string)
 	}
@@ -202,7 +230,11 @@ func FunctionGetGenericWithoutDecodingMethod(ctx context.Context, state *types.S
 	}, nil
 }
 
-func ProcedureDoCustomHeaders(ctx context.Context, state *types.State, arguments *GetCustomHeadersArguments[*[]BaseAuthor, int]) (*types.CustomHeadersResult[[]*BaseAuthor], error) {
+func ProcedureDoCustomHeaders(
+	ctx context.Context,
+	state *types.State,
+	arguments *GetCustomHeadersArguments[*[]BaseAuthor, int],
+) (*types.CustomHeadersResult[[]*BaseAuthor], error) {
 	resp := []*BaseAuthor{}
 	if arguments.Input != nil && *arguments.Input != nil {
 		for _, v := range **arguments.Input {

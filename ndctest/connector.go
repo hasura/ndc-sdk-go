@@ -30,7 +30,11 @@ type TestConnectorOptions struct {
 //
 // [ndc-test]: https://github.com/hasura/ndc-spec/tree/main/ndc-test
 // [hasura-ndc-go generate snapshots]: https://github.com/hasura/ndc-sdk-go/tree/main/cmd/hasura-ndc-go#test-snapshots
-func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Connector[Configuration, State], options TestConnectorOptions) {
+func TestConnector[Configuration any, State any](
+	t *testing.T,
+	ndc connector.Connector[Configuration, State],
+	options TestConnectorOptions,
+) {
 	server, err := connector.NewServer(ndc, &connector.ServerOptions{
 		OTLPConfig: connector.OTLPConfig{
 			MetricsExporter: "prometheus",
@@ -197,7 +201,11 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 		t.Run("query/"+dir.Name(), func(t *testing.T) {
 			snapshotDir := filepath.Join(options.TestDataDir, "query", dir.Name())
 
-			req, expected := readSnapshot[schema.QueryRequest, schema.QueryResponse](t, snapshotDir, options.SkipResponseValidation)
+			req, expected := readSnapshot[schema.QueryRequest, schema.QueryResponse](
+				t,
+				snapshotDir,
+				options.SkipResponseValidation,
+			)
 			if req == nil {
 				return
 			}
@@ -240,7 +248,11 @@ func TestConnector[Configuration any, State any](t *testing.T, ndc connector.Con
 		t.Run("mutation/"+dir.Name(), func(t *testing.T) {
 			snapshotDir := filepath.Join(options.TestDataDir, "mutation", dir.Name())
 
-			req, expected := readSnapshot[schema.MutationRequest, schema.MutationResponse](t, snapshotDir, options.SkipResponseValidation)
+			req, expected := readSnapshot[schema.MutationRequest, schema.MutationResponse](
+				t,
+				snapshotDir,
+				options.SkipResponseValidation,
+			)
 			if req == nil {
 				return
 			}

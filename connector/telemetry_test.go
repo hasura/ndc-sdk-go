@@ -17,11 +17,13 @@ func TestNewTelemetryHeaders(t *testing.T) {
 		{
 			Name: "basic",
 			Input: http.Header{
-				"Content-Type":  []string{"application/json"},
-				"Authorization": []string{"Bearer abcdefghijkxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"},
-				"Api-Key":       []string{"abcxyz"},
-				"Secret-Key":    []string{"secret-key"},
-				"X-Empty":       []string{},
+				"Content-Type": []string{"application/json"},
+				"Authorization": []string{
+					"Bearer abcdefghijkxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+				},
+				"Api-Key":    []string{"abcxyz"},
+				"Secret-Key": []string{"secret-key"},
+				"X-Empty":    []string{},
 			},
 			Expected: http.Header{
 				"Content-Type":  []string{"application/json"},
@@ -33,10 +35,12 @@ func TestNewTelemetryHeaders(t *testing.T) {
 		{
 			Name: "allowed_list",
 			Input: http.Header{
-				"Content-Type":  []string{"application/json"},
-				"Authorization": []string{"Bearer abcdefghijkxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"},
-				"Api-Key":       []string{"abcxyz"},
-				"Secret-Key":    []string{"secret-key"},
+				"Content-Type": []string{"application/json"},
+				"Authorization": []string{
+					"Bearer abcdefghijkxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+				},
+				"Api-Key":    []string{"abcxyz"},
+				"Secret-Key": []string{"secret-key"},
 			},
 			AllowedHeaders: []string{"Content-Type", "Api-Key"},
 			Expected: http.Header{

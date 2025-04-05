@@ -188,7 +188,10 @@ func ParseStringMapFromString(input string) (map[string]string, error) {
 		keyValue := strings.Split(rawItem, "=")
 
 		if len(keyValue) != keyValueLength {
-			return nil, fmt.Errorf("invalid int map string %s, expected <key1>=<value1>;<key2>=<value2>", input)
+			return nil, fmt.Errorf(
+				"invalid int map string %s, expected <key1>=<value1>;<key2>=<value2>",
+				input,
+			)
 		}
 
 		result[keyValue[0]] = keyValue[1]
@@ -207,7 +210,9 @@ func ParseIntMapFromString(input string) (map[string]int, error) {
 // ParseIntegerMapFromString parses an integer map from a string with format:
 //
 //	<key1>=<value1>;<key2>=<value2>
-func ParseIntegerMapFromString[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](input string) (map[string]T, error) {
+func ParseIntegerMapFromString[T int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](
+	input string,
+) (map[string]T, error) {
 	rawValues, err := ParseStringMapFromString(input)
 	if err != nil {
 		return nil, err

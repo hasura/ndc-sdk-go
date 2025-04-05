@@ -18,8 +18,10 @@ import (
 )
 
 var (
-	ErrAuthWebhookUriRequired = errors.New("the env var HASURA_CREDENTIALS_PROVIDER_URI must be set and non-empty")
-	ErrEmptyCredentials       = errors.New("empty credentials")
+	ErrAuthWebhookUriRequired = errors.New(
+		"the env var HASURA_CREDENTIALS_PROVIDER_URI must be set and non-empty",
+	)
+	ErrEmptyCredentials = errors.New("empty credentials")
 )
 
 var defaultClient = CredentialClient{
@@ -81,7 +83,11 @@ func (cc *CredentialClient) reload() error {
 }
 
 // AcquireCredentials calls the credentials provider webhook to get the credentials for the given key.
-func (cc *CredentialClient) AcquireCredentials(ctx context.Context, key string, forceRefresh bool) (string, error) {
+func (cc *CredentialClient) AcquireCredentials(
+	ctx context.Context,
+	key string,
+	forceRefresh bool,
+) (string, error) {
 	ctx, span := tracer.Start(ctx, "AcquireCredentials", trace.WithSpanKind(trace.SpanKindClient))
 	defer span.End()
 

@@ -26,21 +26,30 @@ func TestAcquireCredentials(t *testing.T) {
 	t.Run("when HASURA_CREDENTIALS_PROVIDER_URI is set", func(t *testing.T) {
 		t.Run("when the request is successful", func(t *testing.T) {
 			bearerToken := "random-token"
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if r.URL.Query().Get("key") != "key" {
-					t.Errorf("expected key=key; got %s", r.URL.Query().Get("key"))
-				}
+			server := httptest.NewServer(
+				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if r.URL.Query().Get("key") != "key" {
+						t.Errorf("expected key=key; got %s", r.URL.Query().Get("key"))
+					}
 
-				if r.URL.Query().Get("force_refresh") != "false" {
-					t.Errorf("expected force_refresh=false; got %s", r.URL.Query().Get("force_refresh"))
-				}
+					if r.URL.Query().Get("force_refresh") != "false" {
+						t.Errorf(
+							"expected force_refresh=false; got %s",
+							r.URL.Query().Get("force_refresh"),
+						)
+					}
 
-				if r.Header.Get("Authorization") != ("Bearer " + bearerToken) {
-					t.Errorf("expected Authorization=Bearer %s; got %s", bearerToken, r.Header.Get("Authorization"))
-				}
+					if r.Header.Get("Authorization") != ("Bearer " + bearerToken) {
+						t.Errorf(
+							"expected Authorization=Bearer %s; got %s",
+							bearerToken,
+							r.Header.Get("Authorization"),
+						)
+					}
 
-				fmt.Fprint(w, "{ \"credentials\": \"api-key\" }")
-			}))
+					fmt.Fprint(w, "{ \"credentials\": \"api-key\" }")
+				}),
+			)
 
 			defer server.Close()
 

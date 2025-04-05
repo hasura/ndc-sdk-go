@@ -17,7 +17,11 @@ type QueryHandler struct {
 	variables map[string]any
 }
 
-func NewQueryHandler(state *State, request *schema.QueryRequest, variables map[string]any) (*QueryHandler, error) {
+func NewQueryHandler(
+	state *State,
+	request *schema.QueryRequest,
+	variables map[string]any,
+) (*QueryHandler, error) {
 	arguments, err := utils.ResolveArgumentVariables(request.Arguments, variables)
 	if err != nil {
 		return nil, err
@@ -58,7 +62,12 @@ func (qh *QueryHandler) executeQuery(
 		filtered = []map[string]any{}
 
 		for _, item := range sorted {
-			ok, err := qh.evalExpression(collectionRelationships, query.Predicate, append(root, item), item)
+			ok, err := qh.evalExpression(
+				collectionRelationships,
+				query.Predicate,
+				append(root, item),
+				item,
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -119,7 +128,10 @@ func (qh *QueryHandler) executeQuery(
 }
 
 // Reference: https://github.com/hasura/ndc-spec/blob/50d6d618a1415cd0fc2d7710f42b1a04051529a8/ndc-reference/bin/reference/main.rs#L1123
-func (qh *QueryHandler) getCollectionByName(collectionName string, arguments map[string]any) ([]map[string]any, error) {
+func (qh *QueryHandler) getCollectionByName(
+	collectionName string,
+	arguments map[string]any,
+) ([]map[string]any, error) {
 	var rows []map[string]any
 
 	switch collectionName {
@@ -204,7 +216,11 @@ func (qh *QueryHandler) getCollectionByName(collectionName string, arguments map
 	return rows, nil
 }
 
-func (qh *QueryHandler) sortCollection(collectionRelationships map[string]schema.Relationship, collection []map[string]any, orderBy *schema.OrderBy) ([]map[string]any, error) {
+func (qh *QueryHandler) sortCollection(
+	collectionRelationships map[string]schema.Relationship,
+	collection []map[string]any,
+	orderBy *schema.OrderBy,
+) ([]map[string]any, error) {
 	if orderBy == nil || len(orderBy.Elements) == 0 {
 		return collection, nil
 	}
@@ -330,10 +346,20 @@ func (qh *QueryHandler) evalPath(
 
 		relationship, ok := collectionRelationships[relationshipName]
 		if !ok {
-			return nil, schema.UnprocessableContentError("invalid relationship name in path: "+relationshipName, nil)
+			return nil, schema.UnprocessableContentError(
+				"invalid relationship name in path: "+relationshipName,
+				nil,
+			)
 		}
 
-		result, err = qh.evalPathElement(collectionRelationships, &relationship, pathElem.Arguments, result, pathElem.FieldPath, pathElem.Predicate)
+		result, err = qh.evalPathElement(
+			collectionRelationships,
+			&relationship,
+			pathElem.Arguments,
+			result,
+			pathElem.FieldPath,
+			pathElem.Predicate,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -387,7 +413,10 @@ func (qh *QueryHandler) evalPathElement(
 
 		for argName, arg := range arguments {
 			if _, ok := allArguments[argName]; ok {
-				return nil, schema.UnprocessableContentError("duplicate argument name: "+argName, nil)
+				return nil, schema.UnprocessableContentError(
+					"duplicate argument name: "+argName,
+					nil,
+				)
 			}
 
 			relValue, err := qh.evalRelationshipArgument(srcRow, arg)
@@ -588,7 +617,10 @@ func (qh *QueryHandler) evalExpression(
 	}
 }
 
-func (qh *QueryHandler) evalRelationshipArgument(row map[string]any, argument schema.RelationshipArgument) (any, error) {
+func (qh *QueryHandler) evalRelationshipArgument(
+	row map[string]any,
+	argument schema.RelationshipArgument,
+) (any, error) {
 	argT, err := argument.InterfaceT()
 	switch arg := argT.(type) {
 	case *schema.RelationshipArgumentColumn:
@@ -679,7 +711,11 @@ func (qh *QueryHandler) evalInCollection(
 	}
 }
 
-func (qh *QueryHandler) evalRow(fields map[string]schema.Field, collectionRelationships map[string]schema.Relationship, item map[string]any) (map[string]any, error) {
+func (qh *QueryHandler) evalRow(
+	fields map[string]schema.Field,
+	collectionRelationships map[string]schema.Relationship,
+	item map[string]any,
+) (map[string]any, error) {
 	if len(fields) == 0 {
 		return nil, nil
 	}
@@ -788,7 +824,11 @@ func (qh *QueryHandler) evalField(
 	}
 }
 
-func (qh *QueryHandler) evalDimensions(collectionRelationships map[string]schema.Relationship, row map[string]any, dimensions []schema.Dimension) ([]any, error) {
+func (qh *QueryHandler) evalDimensions(
+	collectionRelationships map[string]schema.Relationship,
+	row map[string]any,
+	dimensions []schema.Dimension,
+) ([]any, error) {
 	results := make([]any, len(dimensions))
 
 	for i, dimension := range dimensions {
@@ -803,7 +843,11 @@ func (qh *QueryHandler) evalDimensions(collectionRelationships map[string]schema
 	return results, nil
 }
 
-func (qh *QueryHandler) evalDimension(collectionRelationships map[string]schema.Relationship, row map[string]any, dimension schema.Dimension) (any, error) {
+func (qh *QueryHandler) evalDimension(
+	collectionRelationships map[string]schema.Relationship,
+	row map[string]any,
+	dimension schema.Dimension,
+) (any, error) {
 	dim, err := dimension.InterfaceT()
 	if err != nil {
 		return nil, err
@@ -823,14 +867,24 @@ func (qh *QueryHandler) evalDimension(collectionRelationships map[string]schema.
 }
 
 // Reference: https://github.com/hasura/ndc-spec/blob/50d6d618a1415cd0fc2d7710f42b1a04051529a8/ndc-reference/bin/reference/main.rs#L2116
-func (qh *QueryHandler) evalColumnAtPath(collectionRelationships map[string]schema.Relationship, row map[string]any, pathElems []schema.PathElement, name string, rawArguments map[string]schema.Argument, fieldPath []string) (any, error) {
+func (qh *QueryHandler) evalColumnAtPath(
+	collectionRelationships map[string]schema.Relationship,
+	row map[string]any,
+	pathElems []schema.PathElement,
+	name string,
+	rawArguments map[string]schema.Argument,
+	fieldPath []string,
+) (any, error) {
 	rows, err := qh.evalPath(collectionRelationships, pathElems, []map[string]any{row})
 	if err != nil {
 		return nil, err
 	}
 
 	if len(rows) > 1 {
-		return nil, schema.UnprocessableContentError("path elements used in sorting and grouping cannot yield multiple rows", nil)
+		return nil, schema.UnprocessableContentError(
+			"path elements used in sorting and grouping cannot yield multiple rows",
+			nil,
+		)
 	}
 
 	if len(rows) == 0 || rows[0] == nil {
@@ -840,7 +894,11 @@ func (qh *QueryHandler) evalColumnAtPath(collectionRelationships map[string]sche
 	return qh.evalColumnFieldPath(rows[0], name, fieldPath, rawArguments)
 }
 
-func (qh *QueryHandler) evalGroups(collectionRelationships map[string]schema.Relationship, grouping *schema.Grouping, paginated []map[string]any) ([]schema.Group, error) {
+func (qh *QueryHandler) evalGroups(
+	collectionRelationships map[string]schema.Relationship,
+	grouping *schema.Grouping,
+	paginated []map[string]any,
+) ([]schema.Group, error) {
 	chunks := make([]Chunk, 0)
 
 L:
@@ -941,7 +999,11 @@ func (qh *QueryHandler) groupSort(groups []Chunk, orderBy *schema.GroupOrderBy) 
 	return results, nil
 }
 
-func (qh *QueryHandler) evalGroupOrderBy(orderBy *schema.GroupOrderBy, t1 Chunk, t2 Chunk) (int, error) {
+func (qh *QueryHandler) evalGroupOrderBy(
+	orderBy *schema.GroupOrderBy,
+	t1 Chunk,
+	t2 Chunk,
+) (int, error) {
 	for _, elem := range orderBy.Elements {
 		v1, err := qh.evalGroupOrderByElement(elem, t1)
 		if err != nil {
@@ -972,7 +1034,10 @@ func (qh *QueryHandler) evalGroupOrderBy(orderBy *schema.GroupOrderBy, t1 Chunk,
 	return 0, nil
 }
 
-func (qh *QueryHandler) evalGroupOrderByElement(element schema.GroupOrderByElement, group Chunk) (any, error) {
+func (qh *QueryHandler) evalGroupOrderByElement(
+	element schema.GroupOrderByElement,
+	group Chunk,
+) (any, error) {
 	rawTarget, err := element.Target.InterfaceT()
 	if err != nil {
 		return nil, err
@@ -992,7 +1057,10 @@ func (qh *QueryHandler) evalGroupOrderByElement(element schema.GroupOrderByEleme
 	}
 }
 
-func (qh *QueryHandler) evalAggregate(aggregate schema.Aggregate, paginated []map[string]any) (any, error) {
+func (qh *QueryHandler) evalAggregate(
+	aggregate schema.Aggregate,
+	paginated []map[string]any,
+) (any, error) {
 	switch agg := aggregate.Interface().(type) {
 	case *schema.AggregateStarCount:
 		return len(paginated), nil
@@ -1047,7 +1115,10 @@ func (qh *QueryHandler) evalAggregate(aggregate schema.Aggregate, paginated []ma
 	}
 }
 
-func (qh *QueryHandler) evalGroupExpression(expression schema.GroupExpression, rows []map[string]any) (bool, error) {
+func (qh *QueryHandler) evalGroupExpression(
+	expression schema.GroupExpression,
+	rows []map[string]any,
+) (bool, error) {
 	rawExpr, err := expression.InterfaceT()
 	if err != nil {
 		return false, err
@@ -1117,7 +1188,9 @@ func (qh *QueryHandler) evalGroupExpression(expression schema.GroupExpression, r
 	}
 }
 
-func (qh *QueryHandler) evalGroupComparisonValue(comparisonValue schema.GroupComparisonValue) (any, error) {
+func (qh *QueryHandler) evalGroupComparisonValue(
+	comparisonValue schema.GroupComparisonValue,
+) (any, error) {
 	cmpValueT, err := comparisonValue.InterfaceT()
 	if err != nil {
 		return nil, err
@@ -1138,7 +1211,10 @@ func (qh *QueryHandler) evalGroupComparisonValue(comparisonValue schema.GroupCom
 	}
 }
 
-func (qh *QueryHandler) evalGroupComparisonTarget(target schema.GroupComparisonTarget, rows []map[string]any) (any, error) {
+func (qh *QueryHandler) evalGroupComparisonTarget(
+	target schema.GroupComparisonTarget,
+	rows []map[string]any,
+) (any, error) {
 	targetT, err := target.InterfaceT()
 	if err != nil {
 		return nil, err
@@ -1190,7 +1266,11 @@ func (qh *QueryHandler) evalArrayComparison(
 	}
 }
 
-func (qh *QueryHandler) evalColumn(row map[string]any, columnName string, arguments map[string]schema.Argument) (any, error) {
+func (qh *QueryHandler) evalColumn(
+	row map[string]any,
+	columnName string,
+	arguments map[string]schema.Argument,
+) (any, error) {
 	column, ok := row[columnName]
 	if !ok {
 		return nil, fmt.Errorf("invalid column name %s", columnName)
@@ -1211,7 +1291,10 @@ func (qh *QueryHandler) evalColumn(row map[string]any, columnName string, argume
 
 	limitArgument, ok := arguments["limit"]
 	if !ok {
-		return nil, schema.UnprocessableContentError("Expected argument 'limit' in column "+columnName, nil)
+		return nil, schema.UnprocessableContentError(
+			"Expected argument 'limit' in column "+columnName,
+			nil,
+		)
 	}
 
 	rawLimitArg, err := utils.ResolveArgument(limitArgument, qh.variables)
@@ -1231,7 +1314,12 @@ func (qh *QueryHandler) evalColumn(row map[string]any, columnName string, argume
 	return values, nil
 }
 
-func (qh *QueryHandler) evalColumnFieldPath(row map[string]any, columnName string, fieldPath []string, arguments map[string]schema.Argument) (any, error) {
+func (qh *QueryHandler) evalColumnFieldPath(
+	row map[string]any,
+	columnName string,
+	fieldPath []string,
+	arguments map[string]schema.Argument,
+) (any, error) {
 	columnValue, err := qh.evalColumn(row, columnName, arguments)
 	if err != nil {
 		return nil, err
@@ -1265,7 +1353,11 @@ func (qh *QueryHandler) evalComparisonTarget(
 	}
 }
 
-func (qh *QueryHandler) evalColumnMapping(relationship *schema.Relationship, srcRow map[string]any, tgtRow map[string]any) (bool, error) {
+func (qh *QueryHandler) evalColumnMapping(
+	relationship *schema.Relationship,
+	srcRow map[string]any,
+	tgtRow map[string]any,
+) (bool, error) {
 	for srcColumn, targetColumnPath := range relationship.ColumnMapping {
 		srcValue, err := qh.evalColumn(srcRow, srcColumn, nil)
 		if err != nil {
@@ -1278,7 +1370,9 @@ func (qh *QueryHandler) evalColumnMapping(relationship *schema.Relationship, src
 
 		switch len(targetColumnPath) {
 		case 0:
-			return false, errors.New("relationship column mapping target column path were empty for column " + srcColumn)
+			return false, errors.New(
+				"relationship column mapping target column path were empty for column " + srcColumn,
+			)
 		case 1:
 			targetColumn = targetColumnPath[0]
 		default:

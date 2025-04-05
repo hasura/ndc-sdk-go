@@ -41,7 +41,13 @@ func ParseTypeEnum(input string) (TypeEnum, error) {
 	result := TypeEnum(input)
 
 	if !result.IsValid() {
-		return TypeEnum(""), fmt.Errorf("failed to parse TypeEnum, expect one of %v, got %s", enumValues_Type, input)
+		return TypeEnum(
+				"",
+			), fmt.Errorf(
+				"failed to parse TypeEnum, expect one of %v, got %s",
+				enumValues_Type,
+				input,
+			)
 	}
 
 	return result, nil

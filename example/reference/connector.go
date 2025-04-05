@@ -13,11 +13,18 @@ import (
 
 type Connector struct{}
 
-func (mc *Connector) ParseConfiguration(ctx context.Context, rawConfiguration string) (*Configuration, error) {
+func (mc *Connector) ParseConfiguration(
+	ctx context.Context,
+	rawConfiguration string,
+) (*Configuration, error) {
 	return &Configuration{}, nil
 }
 
-func (mc *Connector) TryInitState(ctx context.Context, configuration *Configuration, metrics *connector.TelemetryState) (*State, error) {
+func (mc *Connector) TryInitState(
+	ctx context.Context,
+	configuration *Configuration,
+	metrics *connector.TelemetryState,
+) (*State, error) {
 	articles, err := fetchArticles()
 	if err != nil {
 		return nil, schema.InternalServerError("failed to read articles", map[string]any{
@@ -55,19 +62,34 @@ func (mc *Connector) TryInitState(ctx context.Context, configuration *Configurat
 	}, nil
 }
 
-func (mc *Connector) HealthCheck(ctx context.Context, configuration *Configuration, state *State) error {
+func (mc *Connector) HealthCheck(
+	ctx context.Context,
+	configuration *Configuration,
+	state *State,
+) error {
 	return nil
 }
 
-func (mc *Connector) GetCapabilities(configuration *Configuration) schema.CapabilitiesResponseMarshaler {
+func (mc *Connector) GetCapabilities(
+	configuration *Configuration,
+) schema.CapabilitiesResponseMarshaler {
 	return capabilities
 }
 
-func (mc *Connector) GetSchema(ctx context.Context, configuration *Configuration, state *State) (schema.SchemaResponseMarshaler, error) {
+func (mc *Connector) GetSchema(
+	ctx context.Context,
+	configuration *Configuration,
+	state *State,
+) (schema.SchemaResponseMarshaler, error) {
 	return ndcSchema, nil
 }
 
-func (mc *Connector) QueryExplain(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (*schema.ExplainResponse, error) {
+func (mc *Connector) QueryExplain(
+	ctx context.Context,
+	configuration *Configuration,
+	state *State,
+	request *schema.QueryRequest,
+) (*schema.ExplainResponse, error) {
 	if !slices.ContainsFunc(ndcSchema.Functions, func(f schema.FunctionInfo) bool {
 		return f.Name == request.Collection
 	}) && !slices.ContainsFunc(ndcSchema.Collections, func(f schema.CollectionInfo) bool {
@@ -81,7 +103,12 @@ func (mc *Connector) QueryExplain(ctx context.Context, configuration *Configurat
 	}, nil
 }
 
-func (mc *Connector) MutationExplain(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest) (*schema.ExplainResponse, error) {
+func (mc *Connector) MutationExplain(
+	ctx context.Context,
+	configuration *Configuration,
+	state *State,
+	request *schema.MutationRequest,
+) (*schema.ExplainResponse, error) {
 	if len(request.Operations) == 0 {
 		return nil, schema.UnprocessableContentError("require at least 1 operation", nil)
 	}
@@ -89,7 +116,10 @@ func (mc *Connector) MutationExplain(ctx context.Context, configuration *Configu
 	if !slices.ContainsFunc(ndcSchema.Procedures, func(f schema.ProcedureInfo) bool {
 		return f.Name == request.Operations[0].Name
 	}) {
-		return nil, schema.UnprocessableContentError("invalid mutation name: "+request.Operations[0].Name, nil)
+		return nil, schema.UnprocessableContentError(
+			"invalid mutation name: "+request.Operations[0].Name,
+			nil,
+		)
 	}
 
 	return &schema.ExplainResponse{
@@ -97,7 +127,12 @@ func (mc *Connector) MutationExplain(ctx context.Context, configuration *Configu
 	}, nil
 }
 
-func (mc *Connector) Query(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (schema.QueryResponse, error) {
+func (mc *Connector) Query(
+	ctx context.Context,
+	configuration *Configuration,
+	state *State,
+	request *schema.QueryRequest,
+) (schema.QueryResponse, error) {
 	variableSets := request.Variables
 	if variableSets == nil {
 		variableSets = []schema.QueryRequestVariablesElem{make(map[string]any)}
@@ -122,11 +157,21 @@ func (mc *Connector) Query(ctx context.Context, configuration *Configuration, st
 	return rowSets, nil
 }
 
-func (mc *Connector) Mutation(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
+func (mc *Connector) Mutation(
+	ctx context.Context,
+	configuration *Configuration,
+	state *State,
+	request *schema.MutationRequest,
+) (*schema.MutationResponse, error) {
 	operationResults := []schema.MutationOperationResults{}
 
 	for _, operation := range request.Operations {
-		results, err := executeMutationOperation(ctx, state, request.CollectionRelationships, operation)
+		results, err := executeMutationOperation(
+			ctx,
+			state,
+			request.CollectionRelationships,
+			operation,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -139,12 +184,20 @@ func (mc *Connector) Mutation(ctx context.Context, configuration *Configuration,
 	}, nil
 }
 
-func executeMutationOperation(ctx context.Context, state *State, collectionRelationship schema.MutationRequestCollectionRelationships, operation schema.MutationOperation) (schema.MutationOperationResults, error) {
+func executeMutationOperation(
+	ctx context.Context,
+	state *State,
+	collectionRelationship schema.MutationRequestCollectionRelationships,
+	operation schema.MutationOperation,
+) (schema.MutationOperationResults, error) {
 	switch operation.Type {
 	case schema.MutationOperationProcedure:
 		return executeProcedure(ctx, state, collectionRelationship, operation)
 	default:
-		return nil, schema.NotSupportedError(fmt.Sprintf("unsupported operation type: %s", operation.Type), nil)
+		return nil, schema.NotSupportedError(
+			fmt.Sprintf("unsupported operation type: %s", operation.Type),
+			nil,
+		)
 	}
 }
 
@@ -152,12 +205,27 @@ type UpsertArticleArguments struct {
 	Article Article `json:"article"`
 }
 
-func executeProcedure(_ context.Context, state *State, collectionRelationships schema.MutationRequestCollectionRelationships, operation schema.MutationOperation) (schema.MutationOperationResults, error) {
+func executeProcedure(
+	_ context.Context,
+	state *State,
+	collectionRelationships schema.MutationRequestCollectionRelationships,
+	operation schema.MutationOperation,
+) (schema.MutationOperationResults, error) {
 	switch operation.Name {
 	case "upsert_article":
-		return executeUpsertArticle(state, operation.Arguments, operation.Fields, collectionRelationships)
+		return executeUpsertArticle(
+			state,
+			operation.Arguments,
+			operation.Fields,
+			collectionRelationships,
+		)
 	case "delete_articles":
-		return executeDeleteArticles(state, operation.Arguments, operation.Fields, collectionRelationships)
+		return executeDeleteArticles(
+			state,
+			operation.Arguments,
+			operation.Fields,
+			collectionRelationships,
+		)
 	default:
 		return nil, schema.UnprocessableContentError("unknown procedure", nil)
 	}

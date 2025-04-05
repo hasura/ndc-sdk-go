@@ -14,7 +14,7 @@ func (j RowSet) MarshalJSON() ([]byte, error) {
 	return json.Marshal(j.ToMap())
 }
 
-// ToMap encodes the struct to a value map
+// ToMap encodes the struct to a value map.
 func (j RowSet) ToMap() map[string]any {
 	result := map[string]any{}
 
@@ -39,7 +39,7 @@ func (j RowSet) ToMap() map[string]any {
 	return result
 }
 
-// ToMap encodes the struct to a value map
+// ToMap encodes the struct to a value map.
 func (j Group) ToMap() map[string]any {
 	result := map[string]any{
 		"aggregates": j.Aggregates,
@@ -107,7 +107,7 @@ func (j *FunctionInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 	return nil
 }
 
-// ArrayComparisonType represents a type of ArrayComparison
+// ArrayComparisonType represents a type of ArrayComparison.
 type ArrayComparisonType string
 
 const (
@@ -126,7 +126,13 @@ var enumValues_ArrayComparisonType = []ArrayComparisonType{
 func ParseArrayComparisonType(input string) (ArrayComparisonType, error) {
 	result := ArrayComparisonType(input)
 	if !result.IsValid() {
-		return ArrayComparisonType(""), fmt.Errorf("failed to parse ArrayComparisonType, expect one of %v, got %s", enumValues_ArrayComparisonType, input)
+		return ArrayComparisonType(
+				"",
+			), fmt.Errorf(
+				"failed to parse ArrayComparisonType, expect one of %v, got %s",
+				enumValues_ArrayComparisonType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -154,13 +160,13 @@ func (j *ArrayComparisonType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// ArrayComparisonEncoder abstracts a generic interface of ArrayComparison
+// ArrayComparisonEncoder abstracts a generic interface of ArrayComparison.
 type ArrayComparisonEncoder interface {
 	Type() ArrayComparisonType
 	Encode() ArrayComparison
 }
 
-// ArrayComparison represents an array comparison
+// ArrayComparison represents an array comparison.
 type ArrayComparison map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -240,7 +246,11 @@ func (j ArrayComparison) AsContains() (*ArrayComparisonContains, error) {
 	}
 
 	if t != ArrayComparisonTypeContains {
-		return nil, fmt.Errorf("invalid ArrayComparison type; expected %s, got %s", ArrayComparisonTypeContains, t)
+		return nil, fmt.Errorf(
+			"invalid ArrayComparison type; expected %s, got %s",
+			ArrayComparisonTypeContains,
+			t,
+		)
 	}
 
 	return j.asContains()
@@ -256,7 +266,10 @@ func (j ArrayComparison) asContains() (*ArrayComparisonContains, error) {
 	if !ok {
 		rawValueMap, ok := rawValue.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("field value in ArrayComparisonContains: expected object, got %v", rawValue)
+			return nil, fmt.Errorf(
+				"field value in ArrayComparisonContains: expected object, got %v",
+				rawValue,
+			)
 		}
 
 		if err := value.FromValue(rawValueMap); err != nil {
@@ -279,7 +292,11 @@ func (j ArrayComparison) AsIsEmpty() (*ArrayComparisonIsEmpty, error) {
 	}
 
 	if t != ArrayComparisonTypeIsEmpty {
-		return nil, fmt.Errorf("invalid ArrayComparison type; expected %s, got %s", ArrayComparisonTypeIsEmpty, t)
+		return nil, fmt.Errorf(
+			"invalid ArrayComparison type; expected %s, got %s",
+			ArrayComparisonTypeIsEmpty,
+			t,
+		)
 	}
 
 	result := &ArrayComparisonIsEmpty{}
@@ -363,7 +380,7 @@ func (j ArrayComparisonIsEmpty) Encode() ArrayComparison {
 	return result
 }
 
-// DimensionType represents a type of Dimension
+// DimensionType represents a type of Dimension.
 type DimensionType string
 
 const (
@@ -378,7 +395,13 @@ var enumValues_DimensionType = []DimensionType{
 func ParseDimensionType(input string) (DimensionType, error) {
 	result := DimensionType(input)
 	if !result.IsValid() {
-		return DimensionType(""), fmt.Errorf("failed to parse DimensionType, expect one of %v, got %s", enumValues_DimensionType, input)
+		return DimensionType(
+				"",
+			), fmt.Errorf(
+				"failed to parse DimensionType, expect one of %v, got %s",
+				enumValues_DimensionType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -407,13 +430,13 @@ func (j *DimensionType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// DimensionEncoder abstracts a generic interface of Dimension
+// DimensionEncoder abstracts a generic interface of Dimension.
 type DimensionEncoder interface {
 	Type() DimensionType
 	Encode() Dimension
 }
 
-// Dimension represents a dimension object
+// Dimension represents a dimension object.
 type Dimension map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -530,7 +553,11 @@ func (j Dimension) AsColumn() (*DimensionColumn, error) {
 	}
 
 	if t != DimensionTypeColumn {
-		return nil, fmt.Errorf("invalid Dimension type; expected %s, got %s", DimensionTypeColumn, t)
+		return nil, fmt.Errorf(
+			"invalid Dimension type; expected %s, got %s",
+			DimensionTypeColumn,
+			t,
+		)
 	}
 
 	columnName, err := getStringValueByKey(j, "column_name")
@@ -605,18 +632,18 @@ func (j Dimension) InterfaceT() (DimensionEncoder, error) {
 	}
 }
 
-// DimensionColumn represents a dimension column
+// DimensionColumn represents a dimension column.
 type DimensionColumn struct {
 	// Any (object) relationships to traverse to reach this column. Only non-empty if the 'relationships' capability is supported.
-	Path []PathElement `json:"path" mapstructure:"path" yaml:"path"`
+	Path []PathElement `json:"path"                 mapstructure:"path"        yaml:"path"`
 	// The name of the column
-	ColumnName string `json:"column_name" mapstructure:"column_name" yaml:"column_name"`
+	ColumnName string `json:"column_name"          mapstructure:"column_name" yaml:"column_name"`
 	// Arguments to satisfy the column specified by 'column_name'
-	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
+	Arguments map[string]Argument `json:"arguments,omitempty"  mapstructure:"arguments"   yaml:"arguments,omitempty"`
 	// Path to a nested field within an object column.
-	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path"  yaml:"field_path,omitempty"`
 	// The name of the extraction function to apply to the selected value, if any.
-	Extraction string `json:"extraction,omitempty" mapstructure:"extraction" yaml:"extraction,omitempty"`
+	Extraction string `json:"extraction,omitempty" mapstructure:"extraction"  yaml:"extraction,omitempty"`
 }
 
 // NewDimensionColumn creates a DimensionColumn instance.

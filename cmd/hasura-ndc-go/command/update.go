@@ -21,7 +21,9 @@ func UpdateConnectorSchema(args UpdateArguments, start time.Time) {
 
 	moduleName, err := getModuleName(args.Path)
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to get module name. The base path must contain a go.mod file")
+		log.Fatal().
+			Err(err).
+			Msg("failed to get module name. The base path must contain a go.mod file")
 	}
 
 	if err := os.Chdir(args.Path); err != nil {

@@ -28,7 +28,13 @@ var enumValues_ArgumentType = []ArgumentType{
 func ParseArgumentType(input string) (ArgumentType, error) {
 	result := ArgumentType(input)
 	if !result.IsValid() {
-		return ArgumentType(""), fmt.Errorf("failed to parse ArgumentType, expect one of %v, got %s", enumValues_ArgumentType, input)
+		return ArgumentType(
+				"",
+			), fmt.Errorf(
+				"failed to parse ArgumentType, expect one of %v, got %s",
+				enumValues_ArgumentType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -56,7 +62,7 @@ func (j *ArgumentType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Argument is provided by reference to a variable or as a literal value
+// Argument is provided by reference to a variable or as a literal value.
 type Argument map[string]any
 
 // ArgumentEncoder abstracts the interface for Argument.
@@ -156,7 +162,11 @@ func (j Argument) AsLiteral() (*ArgumentLiteral, error) {
 	}
 
 	if t != ArgumentTypeLiteral {
-		return nil, fmt.Errorf("invalid ArgumentLiteral type; expected: %s, got: %s", ArgumentTypeLiteral, t)
+		return nil, fmt.Errorf(
+			"invalid ArgumentLiteral type; expected: %s, got: %s",
+			ArgumentTypeLiteral,
+			t,
+		)
 	}
 
 	value := j["value"]
@@ -174,7 +184,11 @@ func (j Argument) AsVariable() (*ArgumentVariable, error) {
 	}
 
 	if t != ArgumentTypeVariable {
-		return nil, fmt.Errorf("invalid ArgumentVariable type; expected: %s, got: %s", ArgumentTypeVariable, t)
+		return nil, fmt.Errorf(
+			"invalid ArgumentVariable type; expected: %s, got: %s",
+			ArgumentTypeVariable,
+			t,
+		)
 	}
 
 	name, err := getStringValueByKey(j, "name")
@@ -284,7 +298,13 @@ var enumValues_RelationshipArgumentType = []RelationshipArgumentType{
 func ParseRelationshipArgumentType(input string) (RelationshipArgumentType, error) {
 	result := RelationshipArgumentType(input)
 	if !result.IsValid() {
-		return RelationshipArgumentType(""), fmt.Errorf("failed to parse RelationshipArgumentType, expect one of %v, got %s", enumValues_RelationshipArgumentType, input)
+		return RelationshipArgumentType(
+				"",
+			), fmt.Errorf(
+				"failed to parse RelationshipArgumentType, expect one of %v, got %s",
+				enumValues_RelationshipArgumentType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -401,7 +421,11 @@ func (j RelationshipArgument) AsLiteral() (*RelationshipArgumentLiteral, error) 
 	}
 
 	if t != RelationshipArgumentTypeLiteral {
-		return nil, fmt.Errorf("invalid RelationshipArgumentLiteral type; expected: %s, got: %s", RelationshipArgumentTypeLiteral, t)
+		return nil, fmt.Errorf(
+			"invalid RelationshipArgumentLiteral type; expected: %s, got: %s",
+			RelationshipArgumentTypeLiteral,
+			t,
+		)
 	}
 
 	value := j["value"]
@@ -419,7 +443,11 @@ func (j RelationshipArgument) AsVariable() (*RelationshipArgumentVariable, error
 	}
 
 	if t != RelationshipArgumentTypeVariable {
-		return nil, fmt.Errorf("invalid RelationshipArgumentVariable type; expected: %s, got: %s", RelationshipArgumentTypeVariable, t)
+		return nil, fmt.Errorf(
+			"invalid RelationshipArgumentVariable type; expected: %s, got: %s",
+			RelationshipArgumentTypeVariable,
+			t,
+		)
 	}
 
 	name, err := getStringValueByKey(j, "name")
@@ -444,7 +472,11 @@ func (j RelationshipArgument) AsColumn() (*RelationshipArgumentColumn, error) {
 	}
 
 	if t != RelationshipArgumentTypeColumn {
-		return nil, fmt.Errorf("invalid RelationshipArgumentTypeColumn type; expected: %s, got: %s", RelationshipArgumentTypeColumn, t)
+		return nil, fmt.Errorf(
+			"invalid RelationshipArgumentTypeColumn type; expected: %s, got: %s",
+			RelationshipArgumentTypeColumn,
+			t,
+		)
 	}
 
 	name, err := getStringValueByKey(j, "name")
@@ -576,7 +608,13 @@ var enumValues_FieldType = []FieldType{
 func ParseFieldType(input string) (FieldType, error) {
 	result := FieldType(input)
 	if !result.IsValid() {
-		return FieldType(""), fmt.Errorf("failed to parse FieldType, expect one of %v, got %s", enumValues_FieldType, input)
+		return FieldType(
+				"",
+			), fmt.Errorf(
+				"failed to parse FieldType, expect one of %v, got %s",
+				enumValues_FieldType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -757,7 +795,10 @@ func (j Field) AsColumn() (*ColumnField, error) {
 	if ok && !isNil(rawFields) {
 		fields, ok := rawFields.(NestedField)
 		if !ok {
-			return nil, fmt.Errorf("invalid ColumnField.fields type; expected NestedField, got %+v", rawFields)
+			return nil, fmt.Errorf(
+				"invalid ColumnField.fields type; expected NestedField, got %+v",
+				rawFields,
+			)
 		}
 
 		result.Fields = fields
@@ -767,7 +808,10 @@ func (j Field) AsColumn() (*ColumnField, error) {
 	if ok && !isNil(rawArguments) {
 		arguments, ok := rawArguments.(map[string]Argument)
 		if !ok {
-			return nil, fmt.Errorf("invalid ColumnField.arguments type; expected map[string]Argument, got %+v", rawArguments)
+			return nil, fmt.Errorf(
+				"invalid ColumnField.arguments type; expected map[string]Argument, got %+v",
+				rawArguments,
+			)
 		}
 
 		result.Arguments = arguments
@@ -803,7 +847,10 @@ func (j Field) AsRelationship() (*RelationshipField, error) {
 
 	query, ok := rawQuery.(Query)
 	if !ok {
-		return nil, fmt.Errorf("invalid RelationshipField.query type; expected Query, got %+v", rawQuery)
+		return nil, fmt.Errorf(
+			"invalid RelationshipField.query type; expected Query, got %+v",
+			rawQuery,
+		)
 	}
 
 	rawArguments, ok := j["arguments"]
@@ -813,7 +860,10 @@ func (j Field) AsRelationship() (*RelationshipField, error) {
 
 	arguments, ok := rawArguments.(map[string]RelationshipArgument)
 	if !ok {
-		return nil, fmt.Errorf("invalid RelationshipField.arguments type; expected map[string]RelationshipArgument, got %+v", rawArguments)
+		return nil, fmt.Errorf(
+			"invalid RelationshipField.arguments type; expected map[string]RelationshipArgument, got %+v",
+			rawArguments,
+		)
 	}
 
 	return &RelationshipField{
@@ -850,7 +900,7 @@ func (j Field) InterfaceT() (FieldEncoder, error) {
 // ColumnField represents a column field.
 type ColumnField struct {
 	// Column name
-	Column string `json:"column" mapstructure:"column" yaml:"column"`
+	Column string `json:"column"           mapstructure:"column" yaml:"column"`
 	// When the type of the column is a (possibly-nullable) array or object,
 	// the caller can request a subset of the complete column data, by specifying fields to fetch here.
 	// If omitted, the column data will be fetched in full.
@@ -933,15 +983,19 @@ func (f ColumnField) Encode() Field {
 // RelationshipField represents a relationship field.
 type RelationshipField struct {
 	// The relationship query
-	Query Query `json:"query" mapstructure:"query" yaml:"query"`
+	Query Query `json:"query"        mapstructure:"query"        yaml:"query"`
 	// The name of the relationship to follow for the subquery
 	Relationship string `json:"relationship" mapstructure:"relationship" yaml:"relationship"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments" yaml:"arguments"`
+	Arguments map[string]RelationshipArgument `json:"arguments"    mapstructure:"arguments"    yaml:"arguments"`
 }
 
 // NewRelationshipField creates a new RelationshipField instance.
-func NewRelationshipField(query Query, relationship string, arguments map[string]RelationshipArgument) *RelationshipField {
+func NewRelationshipField(
+	query Query,
+	relationship string,
+	arguments map[string]RelationshipArgument,
+) *RelationshipField {
 	return &RelationshipField{
 		Query:        query,
 		Relationship: relationship,
@@ -981,7 +1035,13 @@ var enumValues_ComparisonTargetType = []ComparisonTargetType{
 func ParseComparisonTargetType(input string) (ComparisonTargetType, error) {
 	result := ComparisonTargetType(input)
 	if !result.IsValid() {
-		return ComparisonTargetType(""), fmt.Errorf("failed to parse ComparisonTargetType, expect one of %v, got: %s", enumValues_ComparisonTargetType, input)
+		return ComparisonTargetType(
+				"",
+			), fmt.Errorf(
+				"failed to parse ComparisonTargetType, expect one of %v, got: %s",
+				enumValues_ComparisonTargetType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -1101,7 +1161,11 @@ func (j ComparisonTarget) AsColumn() (*ComparisonTargetColumn, error) {
 	}
 
 	if t != ComparisonTargetTypeColumn {
-		return nil, fmt.Errorf("invalid ComparisonTarget type; expected %s, got %s", ComparisonTargetTypeColumn, t)
+		return nil, fmt.Errorf(
+			"invalid ComparisonTarget type; expected %s, got %s",
+			ComparisonTargetTypeColumn,
+			t,
+		)
 	}
 
 	return j.asColumn()
@@ -1144,7 +1208,11 @@ func (j ComparisonTarget) AsAggregate() (*ComparisonTargetAggregate, error) {
 	}
 
 	if t != ComparisonTargetTypeAggregate {
-		return nil, fmt.Errorf("invalid ComparisonTarget type; expected %s, got %s", ComparisonTargetTypeAggregate, t)
+		return nil, fmt.Errorf(
+			"invalid ComparisonTarget type; expected %s, got %s",
+			ComparisonTargetTypeAggregate,
+			t,
+		)
 	}
 
 	return j.asAggregate()
@@ -1157,7 +1225,11 @@ func (j ComparisonTarget) asAggregate() (*ComparisonTargetAggregate, error) {
 	}
 
 	if t != ComparisonTargetTypeAggregate {
-		return nil, fmt.Errorf("invalid ComparisonTarget type; expected %s, got %s", ComparisonTargetTypeAggregate, t)
+		return nil, fmt.Errorf(
+			"invalid ComparisonTarget type; expected %s, got %s",
+			ComparisonTargetTypeAggregate,
+			t,
+		)
 	}
 
 	result := &ComparisonTargetAggregate{}
@@ -1171,7 +1243,10 @@ func (j ComparisonTarget) asAggregate() (*ComparisonTargetAggregate, error) {
 	if !ok {
 		rawAggregateMap, ok := rawAggregate.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("field aggregate in ComparisonTargetAggregate: expected object, got %v", rawAggregate)
+			return nil, fmt.Errorf(
+				"field aggregate in ComparisonTargetAggregate: expected object, got %v",
+				rawAggregate,
+			)
 		}
 
 		if err = aggregate.FromValue(rawAggregateMap); err != nil {
@@ -1225,9 +1300,9 @@ func (j ComparisonTarget) InterfaceT() (ComparisonTargetEncoder, error) {
 // ComparisonTargetColumn represents a comparison targets a column.
 type ComparisonTargetColumn struct {
 	// The name of the column
-	Name string `json:"name" mapstructure:"name" yaml:"name"`
+	Name string `json:"name"                 mapstructure:"name"       yaml:"name"`
 	// Arguments to satisfy the column specified by 'name'
-	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
+	Arguments map[string]Argument `json:"arguments,omitempty"  mapstructure:"arguments"  yaml:"arguments,omitempty"`
 	// Path to a nested field within an object column. Only non-empty if the 'query.nested_fields.filter_by' capability is supported.
 	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 }
@@ -1247,7 +1322,9 @@ func (f ComparisonTargetColumn) WithFieldPath(fieldPath []string) *ComparisonTar
 }
 
 // WithArguments return a new instance with arguments set.
-func (f ComparisonTargetColumn) WithArguments(arguments map[string]ArgumentEncoder) *ComparisonTargetColumn {
+func (f ComparisonTargetColumn) WithArguments(
+	arguments map[string]ArgumentEncoder,
+) *ComparisonTargetColumn {
 	args := make(map[string]Argument)
 
 	for key, arg := range arguments {
@@ -1264,7 +1341,10 @@ func (f ComparisonTargetColumn) WithArguments(arguments map[string]ArgumentEncod
 }
 
 // WithArgument return a new instance with an arguments set.
-func (f ComparisonTargetColumn) WithArgument(key string, argument ArgumentEncoder) *ComparisonTargetColumn {
+func (f ComparisonTargetColumn) WithArgument(
+	key string,
+	argument ArgumentEncoder,
+) *ComparisonTargetColumn {
 	if argument == nil {
 		delete(f.Arguments, key)
 	} else {
@@ -1307,11 +1387,14 @@ type ComparisonTargetAggregate struct {
 	// The aggregation method to use
 	Aggregate Aggregate `json:"aggregate" mapstructure:"aggregate" yaml:"aggregate"`
 	// Non-empty collection of relationships to traverse
-	Path []PathElement `json:"path" mapstructure:"path" yaml:"path"`
+	Path []PathElement `json:"path"      mapstructure:"path"      yaml:"path"`
 }
 
 // NewComparisonTargetAggregate creates a ComparisonTargetAggregate instance.
-func NewComparisonTargetAggregate[T AggregateEncoder](aggregate T, path []PathElement) *ComparisonTargetAggregate {
+func NewComparisonTargetAggregate[T AggregateEncoder](
+	aggregate T,
+	path []PathElement,
+) *ComparisonTargetAggregate {
 	return &ComparisonTargetAggregate{
 		Aggregate: aggregate.Encode(),
 		Path:      path,
@@ -1353,7 +1436,13 @@ var enumValues_ComparisonValueType = []ComparisonValueType{
 func ParseComparisonValueType(input string) (ComparisonValueType, error) {
 	result := ComparisonValueType(input)
 	if !result.IsValid() {
-		return ComparisonValueType(""), fmt.Errorf("failed to parse ComparisonValueType, expect one of %v, got %s", enumValues_ComparisonValueType, input)
+		return ComparisonValueType(
+				"",
+			), fmt.Errorf(
+				"failed to parse ComparisonValueType, expect one of %v, got %s",
+				enumValues_ComparisonValueType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -1474,7 +1563,11 @@ func (cv ComparisonValue) AsScalar() (*ComparisonValueScalar, error) {
 	}
 
 	if ty != ComparisonValueTypeScalar {
-		return nil, fmt.Errorf("invalid ComparisonValue type; expected %s, got %s", ComparisonValueTypeScalar, ty)
+		return nil, fmt.Errorf(
+			"invalid ComparisonValue type; expected %s, got %s",
+			ComparisonValueTypeScalar,
+			ty,
+		)
 	}
 
 	value, ok := cv["value"]
@@ -1495,7 +1588,11 @@ func (cv ComparisonValue) AsColumn() (*ComparisonValueColumn, error) {
 	}
 
 	if ty != ComparisonValueTypeColumn {
-		return nil, fmt.Errorf("invalid ComparisonValue type; expected %s, got %s", ComparisonValueTypeColumn, ty)
+		return nil, fmt.Errorf(
+			"invalid ComparisonValue type; expected %s, got %s",
+			ComparisonValueTypeColumn,
+			ty,
+		)
 	}
 
 	return cv.asColumn()
@@ -1516,7 +1613,10 @@ func (cv ComparisonValue) asColumn() (*ComparisonValueColumn, error) {
 	path, ok := rawPath.([]PathElement)
 	if !ok {
 		if err := mapstructure.Decode(rawPath, &path); err != nil {
-			return nil, fmt.Errorf("invalid ComparisonValueColumn path; expected []PathElement, got %v", rawPath)
+			return nil, fmt.Errorf(
+				"invalid ComparisonValueColumn path; expected []PathElement, got %v",
+				rawPath,
+			)
 		}
 	}
 
@@ -1544,7 +1644,10 @@ func (cv ComparisonValue) asColumn() (*ComparisonValueColumn, error) {
 			scope = new(uint)
 
 			if err := mapstructure.Decode(rawScope, scope); err != nil {
-				return nil, fmt.Errorf("invalid scope in ComparisonValue; expected *uint, got %v", rawScope)
+				return nil, fmt.Errorf(
+					"invalid scope in ComparisonValue; expected *uint, got %v",
+					rawScope,
+				)
 			}
 		}
 
@@ -1562,7 +1665,11 @@ func (cv ComparisonValue) AsVariable() (*ComparisonValueVariable, error) {
 	}
 
 	if ty != ComparisonValueTypeVariable {
-		return nil, fmt.Errorf("invalid ComparisonValue type; expected %s, got %s", ComparisonValueTypeVariable, ty)
+		return nil, fmt.Errorf(
+			"invalid ComparisonValue type; expected %s, got %s",
+			ComparisonValueTypeVariable,
+			ty,
+		)
 	}
 
 	return cv.asVariable()
@@ -1615,27 +1722,32 @@ type ComparisonValueEncoder interface {
 	Encode() ComparisonValue
 }
 
-// ComparisonValueColumn represents a comparison value with column type.
-// The value to compare against should be drawn from another column
+// The value to compare against should be drawn from another column.
 type ComparisonValueColumn struct {
 	// The name of the column
-	Name string `json:"name" mapstructure:"name" yaml:"name"`
+	Name string `json:"name"                 mapstructure:"name"       yaml:"name"`
 	// Any relationships to traverse to reach this column.
 	// Only non-empty if the 'relationships.relation_comparisons' is supported.
-	Path []PathElement `json:"path" mapstructure:"path" yaml:"path"`
+	Path []PathElement `json:"path"                 mapstructure:"path"       yaml:"path"`
 	// Arguments to satisfy the column specified by 'name'
-	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
+	Arguments map[string]Argument `json:"arguments,omitempty"  mapstructure:"arguments"  yaml:"arguments,omitempty"`
 	// Path to a nested field within an object column. Only non-empty if the 'query.nested_fields.filter_by' capability is supported.
 	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 	// The scope in which this column exists, identified by an top-down index into the stack of scopes.
 	// The stack grows inside each `Expression::Exists`, so scope 0 (the default) refers to the current collection,
 	// and each subsequent index refers to the collection outside its predecessor's immediately enclosing `Expression::Exists` expression.
 	// Only used if the 'query.exists.named_scopes' capability is supported.
-	Scope *uint `json:"scope,omitempty" mapstructure:"scope" yaml:"scope,omitempty"`
+	Scope *uint `json:"scope,omitempty"      mapstructure:"scope"      yaml:"scope,omitempty"`
 }
 
 // NewComparisonValueColumn creates a new ComparisonValueColumn instance.
-func NewComparisonValueColumn(name string, path []PathElement, arguments map[string]Argument, fieldPath []string, scope *uint) *ComparisonValueColumn {
+func NewComparisonValueColumn(
+	name string,
+	path []PathElement,
+	arguments map[string]Argument,
+	fieldPath []string,
+	scope *uint,
+) *ComparisonValueColumn {
 	return &ComparisonValueColumn{
 		Name:      name,
 		Path:      path,
@@ -1744,7 +1856,11 @@ var enumValues_ExistsInCollectionType = []ExistsInCollectionType{
 func ParseExistsInCollectionType(input string) (ExistsInCollectionType, error) {
 	result := ExistsInCollectionType(input)
 	if !result.IsValid() {
-		return result, fmt.Errorf("failed to parse ExistsInCollectionType, expect one of %v, got %s", enumValues_ExistsInCollectionType, input)
+		return result, fmt.Errorf(
+			"failed to parse ExistsInCollectionType, expect one of %v, got %s",
+			enumValues_ExistsInCollectionType,
+			input,
+		)
 	}
 
 	return result, nil
@@ -1790,7 +1906,7 @@ func (j *ExistsInCollection) UnmarshalJSON(b []byte) error {
 	return j.FromValue(raw)
 }
 
-// FromValue decodes values from any map
+// FromValue decodes values from any map.
 func (j *ExistsInCollection) FromValue(input map[string]any) error {
 	rawType, err := getStringValueByKey(input, "type")
 	if err != nil {
@@ -1872,7 +1988,11 @@ func (j ExistsInCollection) AsRelated() (*ExistsInCollectionRelated, error) {
 	}
 
 	if t != ExistsInCollectionTypeRelated {
-		return nil, fmt.Errorf("invalid ExistsInCollection type; expected: %s, got: %s", ExistsInCollectionTypeRelated, t)
+		return nil, fmt.Errorf(
+			"invalid ExistsInCollection type; expected: %s, got: %s",
+			ExistsInCollectionTypeRelated,
+			t,
+		)
 	}
 
 	return j.asRelated()
@@ -1896,7 +2016,10 @@ func (j ExistsInCollection) asRelated() (*ExistsInCollectionRelated, error) {
 	args, ok := rawArgs.(map[string]RelationshipArgument)
 	if !ok {
 		if err := mapstructure.Decode(rawArgs, &args); err != nil {
-			return nil, fmt.Errorf("invalid ExistsInCollectionRelated.arguments type; expected: map[string]RelationshipArgument, got: %+v", rawArgs)
+			return nil, fmt.Errorf(
+				"invalid ExistsInCollectionRelated.arguments type; expected: map[string]RelationshipArgument, got: %+v",
+				rawArgs,
+			)
 		}
 	}
 
@@ -1907,7 +2030,10 @@ func (j ExistsInCollection) asRelated() (*ExistsInCollectionRelated, error) {
 
 	fieldPath, err := getStringSliceByKey(j, "field_path")
 	if err != nil {
-		return nil, fmt.Errorf("field field_path in ExistsInCollectionNestedScalarCollection: %w", err)
+		return nil, fmt.Errorf(
+			"field field_path in ExistsInCollectionNestedScalarCollection: %w",
+			err,
+		)
 	}
 
 	if fieldPath != nil {
@@ -1925,7 +2051,11 @@ func (j ExistsInCollection) AsUnrelated() (*ExistsInCollectionUnrelated, error) 
 	}
 
 	if t != ExistsInCollectionTypeUnrelated {
-		return nil, fmt.Errorf("invalid ExistsInCollection type; expected: %s, got: %s", ExistsInCollectionTypeUnrelated, t)
+		return nil, fmt.Errorf(
+			"invalid ExistsInCollection type; expected: %s, got: %s",
+			ExistsInCollectionTypeUnrelated,
+			t,
+		)
 	}
 
 	return j.asUnrelated()
@@ -1949,7 +2079,10 @@ func (j ExistsInCollection) asUnrelated() (*ExistsInCollectionUnrelated, error) 
 	args, ok := rawArgs.(map[string]RelationshipArgument)
 	if !ok {
 		if err := mapstructure.Decode(rawArgs, &args); err != nil {
-			return nil, fmt.Errorf("invalid ExistsInCollectionUnrelated.arguments type; expected: map[string]RelationshipArgument, got: %+v", rawArgs)
+			return nil, fmt.Errorf(
+				"invalid ExistsInCollectionUnrelated.arguments type; expected: map[string]RelationshipArgument, got: %+v",
+				rawArgs,
+			)
 		}
 	}
 
@@ -1967,7 +2100,11 @@ func (j ExistsInCollection) AsNestedCollection() (*ExistsInCollectionNestedColle
 	}
 
 	if t != ExistsInCollectionTypeNestedCollection {
-		return nil, fmt.Errorf("invalid ExistsInCollection type; expected: %s, got: %s", ExistsInCollectionTypeNestedCollection, t)
+		return nil, fmt.Errorf(
+			"invalid ExistsInCollection type; expected: %s, got: %s",
+			ExistsInCollectionTypeNestedCollection,
+			t,
+		)
 	}
 
 	return j.asNestedCollection()
@@ -1980,7 +2117,9 @@ func (j ExistsInCollection) asNestedCollection() (*ExistsInCollectionNestedColle
 	}
 
 	if columnName == "" {
-		return nil, errors.New("field column_name in ExistsInCollectionNestedCollection is required")
+		return nil, errors.New(
+			"field column_name in ExistsInCollectionNestedCollection is required",
+		)
 	}
 
 	arguments, err := getArgumentMapByKey(j, "arguments")
@@ -2010,7 +2149,11 @@ func (j ExistsInCollection) AsNestedScalarCollection() (*ExistsInCollectionNeste
 	}
 
 	if t != ExistsInCollectionTypeNestedScalarCollection {
-		return nil, fmt.Errorf("invalid ExistsInCollection type; expected: %s, got: %s", ExistsInCollectionTypeNestedScalarCollection, t)
+		return nil, fmt.Errorf(
+			"invalid ExistsInCollection type; expected: %s, got: %s",
+			ExistsInCollectionTypeNestedScalarCollection,
+			t,
+		)
 	}
 
 	return j.asNestedScalarCollection()
@@ -2019,21 +2162,32 @@ func (j ExistsInCollection) AsNestedScalarCollection() (*ExistsInCollectionNeste
 func (j ExistsInCollection) asNestedScalarCollection() (*ExistsInCollectionNestedScalarCollection, error) {
 	columnName, err := getStringValueByKey(j, "column_name")
 	if err != nil {
-		return nil, fmt.Errorf("field column_name in ExistsInCollectionNestedScalarCollection: %w", err)
+		return nil, fmt.Errorf(
+			"field column_name in ExistsInCollectionNestedScalarCollection: %w",
+			err,
+		)
 	}
 
 	if columnName == "" {
-		return nil, errors.New("field column_name in ExistsInCollectionNestedScalarCollection is required")
+		return nil, errors.New(
+			"field column_name in ExistsInCollectionNestedScalarCollection is required",
+		)
 	}
 
 	arguments, err := getArgumentMapByKey(j, "arguments")
 	if err != nil {
-		return nil, fmt.Errorf("field arguments in ExistsInCollectionNestedScalarCollection: %w", err)
+		return nil, fmt.Errorf(
+			"field arguments in ExistsInCollectionNestedScalarCollection: %w",
+			err,
+		)
 	}
 
 	fieldPath, err := getStringSliceByKey(j, "field_path")
 	if err != nil {
-		return nil, fmt.Errorf("field field_path in ExistsInCollectionNestedScalarCollection: %w", err)
+		return nil, fmt.Errorf(
+			"field field_path in ExistsInCollectionNestedScalarCollection: %w",
+			err,
+		)
 	}
 
 	result := &ExistsInCollectionNestedScalarCollection{
@@ -2083,16 +2237,19 @@ type ExistsInCollectionEncoder interface {
 //
 // [Related collections]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=exists#related-collections
 type ExistsInCollectionRelated struct {
-	Relationship string `json:"relationship" mapstructure:"relationship" yaml:"relationship"`
+	Relationship string `json:"relationship"         mapstructure:"relationship" yaml:"relationship"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments" yaml:"arguments"`
+	Arguments map[string]RelationshipArgument `json:"arguments"            mapstructure:"arguments"    yaml:"arguments"`
 	// Path to a nested field within an object column that must be navigated before the relationship is navigated.
 	// Only non-empty if the 'relationships.nested.filtering' capability is supported.
-	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path"   yaml:"field_path,omitempty"`
 }
 
 // NewExistsInCollectionRelated creates an ExistsInCollectionRelated instance.
-func NewExistsInCollectionRelated(relationship string, arguments map[string]RelationshipArgument) *ExistsInCollectionRelated {
+func NewExistsInCollectionRelated(
+	relationship string,
+	arguments map[string]RelationshipArgument,
+) *ExistsInCollectionRelated {
 	return &ExistsInCollectionRelated{
 		Relationship: relationship,
 		Arguments:    arguments,
@@ -2126,11 +2283,14 @@ type ExistsInCollectionUnrelated struct {
 	// The name of a collection
 	Collection string `json:"collection" mapstructure:"collection" yaml:"collection"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments" yaml:"arguments"`
+	Arguments map[string]RelationshipArgument `json:"arguments"  mapstructure:"arguments"  yaml:"arguments"`
 }
 
 // NewExistsInCollectionUnrelated creates an ExistsInCollectionUnrelated instance.
-func NewExistsInCollectionUnrelated(collection string, arguments map[string]RelationshipArgument) *ExistsInCollectionUnrelated {
+func NewExistsInCollectionUnrelated(
+	collection string,
+	arguments map[string]RelationshipArgument,
+) *ExistsInCollectionUnrelated {
 	return &ExistsInCollectionUnrelated{
 		Collection: collection,
 		Arguments:  arguments,
@@ -2156,15 +2316,19 @@ func (ei ExistsInCollectionUnrelated) Encode() ExistsInCollection {
 // [nested collections]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=exists#nested-collections
 type ExistsInCollectionNestedCollection struct {
 	// The name of column
-	ColumnName string `json:"column_name" mapstructure:"column_name" yaml:"column_name"`
+	ColumnName string `json:"column_name"          mapstructure:"column_name" yaml:"column_name"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
+	Arguments map[string]Argument `json:"arguments,omitempty"  mapstructure:"arguments"   yaml:"arguments,omitempty"`
 	// Path to a nested collection via object columns
-	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path"  yaml:"field_path,omitempty"`
 }
 
 // NewExistsInCollectionNestedCollection creates an ExistsInCollectionNestedCollection instance.
-func NewExistsInCollectionNestedCollection(columnName string, arguments map[string]Argument, fieldPath []string) *ExistsInCollectionNestedCollection {
+func NewExistsInCollectionNestedCollection(
+	columnName string,
+	arguments map[string]Argument,
+	fieldPath []string,
+) *ExistsInCollectionNestedCollection {
 	return &ExistsInCollectionNestedCollection{
 		ColumnName: columnName,
 		Arguments:  arguments,
@@ -2201,15 +2365,19 @@ func (ei ExistsInCollectionNestedCollection) Encode() ExistsInCollection {
 //	Only used if the 'query.exists.nested_scalar_collections' capability is supported.
 type ExistsInCollectionNestedScalarCollection struct {
 	// The name of column
-	ColumnName string `json:"column_name" mapstructure:"column_name" yaml:"column_name"`
+	ColumnName string `json:"column_name"          mapstructure:"column_name" yaml:"column_name"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
+	Arguments map[string]Argument `json:"arguments,omitempty"  mapstructure:"arguments"   yaml:"arguments,omitempty"`
 	// Path to a nested collection via object columns
-	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path"  yaml:"field_path,omitempty"`
 }
 
 // NewExistsInCollectionNestedScalarCollection creates an ExistsInCollectionNestedScalarCollection instance.
-func NewExistsInCollectionNestedScalarCollection(columnName string, arguments map[string]Argument, fieldPath []string) *ExistsInCollectionNestedScalarCollection {
+func NewExistsInCollectionNestedScalarCollection(
+	columnName string,
+	arguments map[string]Argument,
+	fieldPath []string,
+) *ExistsInCollectionNestedScalarCollection {
 	return &ExistsInCollectionNestedScalarCollection{
 		ColumnName: columnName,
 		Arguments:  arguments,
@@ -2267,7 +2435,13 @@ var enumValues_ExpressionType = []ExpressionType{
 func ParseExpressionType(input string) (ExpressionType, error) {
 	result := ExpressionType(input)
 	if !result.IsValid() {
-		return ExpressionType(""), fmt.Errorf("failed to parse ExpressionType, expect one of %v, got %s", enumValues_ExpressionType, input)
+		return ExpressionType(
+				"",
+			), fmt.Errorf(
+				"failed to parse ExpressionType, expect one of %v, got %s",
+				enumValues_ExpressionType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -2312,7 +2486,7 @@ func (j *Expression) UnmarshalJSON(b []byte) error {
 	return j.FromValue(raw)
 }
 
-// FromValue decodes values from any map
+// FromValue decodes values from any map.
 func (j *Expression) FromValue(input map[string]any) error {
 	rawType, err := getStringValueByKey(input, "type")
 	if err != nil {
@@ -2408,7 +2582,11 @@ func (j Expression) AsAnd() (*ExpressionAnd, error) {
 	}
 
 	if t != ExpressionTypeAnd {
-		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeAnd, t)
+		return nil, fmt.Errorf(
+			"invalid Expression type; expected: %s, got: %s",
+			ExpressionTypeAnd,
+			t,
+		)
 	}
 
 	expressions, err := j.asExpressions()
@@ -2434,7 +2612,10 @@ func (j Expression) asExpressions() ([]Expression, error) {
 
 	rawExpressionsArray, ok := rawExpressions.([]any)
 	if !ok {
-		return nil, fmt.Errorf("field expressions in Expression: expected array, got %v", rawExpressions)
+		return nil, fmt.Errorf(
+			"field expressions in Expression: expected array, got %v",
+			rawExpressions,
+		)
 	}
 
 	expressions = []Expression{}
@@ -2446,7 +2627,11 @@ func (j Expression) asExpressions() ([]Expression, error) {
 
 		itemMap, ok := rawItem.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("field expressions[%d] in Expression: expected array, got %v", i, rawExpressions)
+			return nil, fmt.Errorf(
+				"field expressions[%d] in Expression: expected array, got %v",
+				i,
+				rawExpressions,
+			)
 		}
 
 		if itemMap == nil {
@@ -2472,7 +2657,11 @@ func (j Expression) AsOr() (*ExpressionOr, error) {
 	}
 
 	if t != ExpressionTypeOr {
-		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeOr, t)
+		return nil, fmt.Errorf(
+			"invalid Expression type; expected: %s, got: %s",
+			ExpressionTypeOr,
+			t,
+		)
 	}
 
 	expressions, err := j.asExpressions()
@@ -2493,7 +2682,11 @@ func (j Expression) AsNot() (*ExpressionNot, error) {
 	}
 
 	if t != ExpressionTypeNot {
-		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeNot, t)
+		return nil, fmt.Errorf(
+			"invalid Expression type; expected: %s, got: %s",
+			ExpressionTypeNot,
+			t,
+		)
 	}
 
 	return j.asNot()
@@ -2530,7 +2723,11 @@ func (j Expression) AsUnaryComparisonOperator() (*ExpressionUnaryComparisonOpera
 	}
 
 	if t != ExpressionTypeUnaryComparisonOperator {
-		return nil, fmt.Errorf("invalid ExpressionUnaryComparisonOperator type; expected: %s, got: %s", ExpressionTypeUnaryComparisonOperator, t)
+		return nil, fmt.Errorf(
+			"invalid ExpressionUnaryComparisonOperator type; expected: %s, got: %s",
+			ExpressionTypeUnaryComparisonOperator,
+			t,
+		)
 	}
 
 	return j.asUnaryComparisonOperator()
@@ -2546,26 +2743,37 @@ func (j Expression) asUnaryComparisonOperator() (*ExpressionUnaryComparisonOpera
 	if !ok {
 		operatorStr, ok := rawOperator.(string)
 		if !ok || operatorStr == "" {
-			return nil, fmt.Errorf("invalid ExpressionUnaryComparisonOperator.operator type; expected: UnaryComparisonOperator, got: %v", rawOperator)
+			return nil, fmt.Errorf(
+				"invalid ExpressionUnaryComparisonOperator.operator type; expected: UnaryComparisonOperator, got: %v",
+				rawOperator,
+			)
 		}
 
 		operator = UnaryComparisonOperator(operatorStr)
 
 		if !slices.Contains(enumValues_UnaryComparisonOperator, operator) {
-			return nil, fmt.Errorf("invalid operator in ExpressionUnaryComparisonOperator, expect one of %v", enumValues_UnaryComparisonOperator)
+			return nil, fmt.Errorf(
+				"invalid operator in ExpressionUnaryComparisonOperator, expect one of %v",
+				enumValues_UnaryComparisonOperator,
+			)
 		}
 	}
 
 	rawColumn, ok := j["column"]
 	if !ok {
-		return nil, errors.New("field column in ExpressionUnaryComparisonOperator.column is required")
+		return nil, errors.New(
+			"field column in ExpressionUnaryComparisonOperator.column is required",
+		)
 	}
 
 	column, ok := rawColumn.(ComparisonTarget)
 	if !ok {
 		rawColumnMap, ok := rawColumn.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("field column in ExpressionUnaryComparisonOperator: expected object, got %v", rawColumn)
+			return nil, fmt.Errorf(
+				"field column in ExpressionUnaryComparisonOperator: expected object, got %v",
+				rawColumn,
+			)
 		}
 
 		if err := column.FromValue(rawColumnMap); err != nil {
@@ -2587,7 +2795,11 @@ func (j Expression) AsBinaryComparisonOperator() (*ExpressionBinaryComparisonOpe
 	}
 
 	if t != ExpressionTypeBinaryComparisonOperator {
-		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeBinaryComparisonOperator, t)
+		return nil, fmt.Errorf(
+			"invalid Expression type; expected: %s, got: %s",
+			ExpressionTypeBinaryComparisonOperator,
+			t,
+		)
 	}
 
 	return j.asBinaryComparisonOperator()
@@ -2603,7 +2815,10 @@ func (j Expression) asBinaryComparisonOperator() (*ExpressionBinaryComparisonOpe
 	if !ok {
 		rawColumnMap, ok := rawColumn.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("field column in ExpressionBinaryComparisonOperator: expected object, got %v", rawColumn)
+			return nil, fmt.Errorf(
+				"field column in ExpressionBinaryComparisonOperator: expected object, got %v",
+				rawColumn,
+			)
 		}
 
 		if err := column.FromValue(rawColumnMap); err != nil {
@@ -2620,7 +2835,10 @@ func (j Expression) asBinaryComparisonOperator() (*ExpressionBinaryComparisonOpe
 	if !ok {
 		rawValueMap, ok := rawValue.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("field value in ExpressionBinaryComparisonOperator: expected map, got %v", rawValue)
+			return nil, fmt.Errorf(
+				"field value in ExpressionBinaryComparisonOperator: expected map, got %v",
+				rawValue,
+			)
 		}
 
 		value = ComparisonValue{}
@@ -2653,7 +2871,11 @@ func (j Expression) AsArrayComparison() (*ExpressionArrayComparison, error) {
 	}
 
 	if t != ExpressionTypeArrayComparison {
-		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeArrayComparison, t)
+		return nil, fmt.Errorf(
+			"invalid Expression type; expected: %s, got: %s",
+			ExpressionTypeArrayComparison,
+			t,
+		)
 	}
 
 	return j.asArrayComparison()
@@ -2671,7 +2893,10 @@ func (j Expression) asArrayComparison() (*ExpressionArrayComparison, error) {
 	if !ok {
 		rawColumnMap, ok := rawColumn.(map[string]any)
 		if !ok || rawColumnMap == nil {
-			return nil, fmt.Errorf("field column in ExpressionArrayComparison: expected object, got %v", rawColumn)
+			return nil, fmt.Errorf(
+				"field column in ExpressionArrayComparison: expected object, got %v",
+				rawColumn,
+			)
 		}
 
 		if err := column.FromValue(rawColumnMap); err != nil {
@@ -2690,7 +2915,10 @@ func (j Expression) asArrayComparison() (*ExpressionArrayComparison, error) {
 	if !ok {
 		rawComparisonMap, ok := rawComparison.(map[string]any)
 		if !ok || rawComparisonMap == nil {
-			return nil, fmt.Errorf("field comparison in ExpressionArrayComparison: expected object, got %v", rawComparison)
+			return nil, fmt.Errorf(
+				"field comparison in ExpressionArrayComparison: expected object, got %v",
+				rawComparison,
+			)
 		}
 
 		if err := comparison.FromValue(rawComparisonMap); err != nil {
@@ -2711,7 +2939,11 @@ func (j Expression) AsExists() (*ExpressionExists, error) {
 	}
 
 	if t != ExpressionTypeExists {
-		return nil, fmt.Errorf("invalid Expression type; expected: %s, got: %s", ExpressionTypeExists, t)
+		return nil, fmt.Errorf(
+			"invalid Expression type; expected: %s, got: %s",
+			ExpressionTypeExists,
+			t,
+		)
 	}
 
 	return j.asExists()
@@ -2727,7 +2959,10 @@ func (j Expression) asExists() (*ExpressionExists, error) {
 	if !ok {
 		rawInCollectionMap, ok := rawInCollection.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("field in_collection in Expression: expected object, got %v", rawInCollection)
+			return nil, fmt.Errorf(
+				"field in_collection in Expression: expected object, got %v",
+				rawInCollection,
+			)
 		}
 
 		if err := inCollection.FromValue(rawInCollectionMap); err != nil {
@@ -2745,7 +2980,10 @@ func (j Expression) asExists() (*ExpressionExists, error) {
 		if !ok {
 			rawPredicateMap, ok := rawPredicate.(map[string]any)
 			if !ok {
-				return nil, fmt.Errorf("field predicate in Expression: expected map, got %v", rawPredicate)
+				return nil, fmt.Errorf(
+					"field predicate in Expression: expected map, got %v",
+					rawPredicate,
+				)
 			}
 
 			if err := predicate.FromValue(rawPredicateMap); err != nil {
@@ -2905,7 +3143,10 @@ type ExpressionUnaryComparisonOperator struct {
 }
 
 // NewExpressionUnaryComparisonOperator creates an ExpressionUnaryComparisonOperator instance.
-func NewExpressionUnaryComparisonOperator[C ComparisonTargetEncoder](column C, operator UnaryComparisonOperator) *ExpressionUnaryComparisonOperator {
+func NewExpressionUnaryComparisonOperator[C ComparisonTargetEncoder](
+	column C,
+	operator UnaryComparisonOperator,
+) *ExpressionUnaryComparisonOperator {
 	return &ExpressionUnaryComparisonOperator{
 		Column:   column.Encode(),
 		Operator: operator,
@@ -2936,7 +3177,11 @@ type ExpressionBinaryComparisonOperator struct {
 }
 
 // NewExpressionBinaryComparisonOperator creates an ExpressionBinaryComparisonOperator instance.
-func NewExpressionBinaryComparisonOperator[T ComparisonTargetEncoder, V ComparisonValueEncoder](column T, operator string, value V) *ExpressionBinaryComparisonOperator {
+func NewExpressionBinaryComparisonOperator[T ComparisonTargetEncoder, V ComparisonValueEncoder](
+	column T,
+	operator string,
+	value V,
+) *ExpressionBinaryComparisonOperator {
 	result := &ExpressionBinaryComparisonOperator{
 		Column:   column.Encode(),
 		Operator: operator,
@@ -2969,7 +3214,10 @@ type ExpressionArrayComparison struct {
 }
 
 // NewExpressionArrayComparison creates an ExpressionArrayComparison instance.
-func NewExpressionArrayComparison[C ComparisonTargetEncoder, A ArrayComparisonEncoder](column C, comparison A) *ExpressionArrayComparison {
+func NewExpressionArrayComparison[C ComparisonTargetEncoder, A ArrayComparisonEncoder](
+	column C,
+	comparison A,
+) *ExpressionArrayComparison {
 	return &ExpressionArrayComparison{
 		Column:     column.Encode(),
 		Comparison: comparison.Encode(),
@@ -2999,7 +3247,10 @@ type ExpressionExists struct {
 }
 
 // NewExpressionExists creates an ExpressionExists instance.
-func NewExpressionExists[E ExpressionEncoder, I ExistsInCollectionEncoder](predicate E, inCollection I) *ExpressionExists {
+func NewExpressionExists[E ExpressionEncoder, I ExistsInCollectionEncoder](
+	predicate E,
+	inCollection I,
+) *ExpressionExists {
 	return &ExpressionExists{
 		InCollection: inCollection.Encode(),
 		Predicate:    predicate.Encode(),
@@ -3043,7 +3294,13 @@ var enumValues_AggregateType = []AggregateType{
 func ParseAggregateType(input string) (AggregateType, error) {
 	result := AggregateType(input)
 	if !result.IsValid() {
-		return AggregateType(""), fmt.Errorf("failed to parse AggregateType, expect one of %v, got %s", enumValues_AggregateType, input)
+		return AggregateType(
+				"",
+			), fmt.Errorf(
+				"failed to parse AggregateType, expect one of %v, got %s",
+				enumValues_AggregateType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -3160,7 +3417,11 @@ func (j Aggregate) AsStarCount() (*AggregateStarCount, error) {
 	}
 
 	if t != AggregateTypeStarCount {
-		return nil, fmt.Errorf("invalid Aggregate type; expected: %s, got: %s", AggregateTypeStarCount, t)
+		return nil, fmt.Errorf(
+			"invalid Aggregate type; expected: %s, got: %s",
+			AggregateTypeStarCount,
+			t,
+		)
 	}
 
 	return &AggregateStarCount{}, nil
@@ -3174,7 +3435,11 @@ func (j Aggregate) AsSingleColumn() (*AggregateSingleColumn, error) {
 	}
 
 	if t != AggregateTypeSingleColumn {
-		return nil, fmt.Errorf("invalid Aggregate type; expected: %s, got: %s", AggregateTypeSingleColumn, t)
+		return nil, fmt.Errorf(
+			"invalid Aggregate type; expected: %s, got: %s",
+			AggregateTypeSingleColumn,
+			t,
+		)
 	}
 
 	return j.asSingleColumn()
@@ -3227,7 +3492,11 @@ func (j Aggregate) AsColumnCount() (*AggregateColumnCount, error) {
 	}
 
 	if t != AggregateTypeColumnCount {
-		return nil, fmt.Errorf("invalid Aggregate type; expected: %s, got: %s", AggregateTypeColumnCount, t)
+		return nil, fmt.Errorf(
+			"invalid Aggregate type; expected: %s, got: %s",
+			AggregateTypeColumnCount,
+			t,
+		)
 	}
 
 	return j.asColumnCount()
@@ -3250,7 +3519,10 @@ func (j Aggregate) asColumnCount() (*AggregateColumnCount, error) {
 
 	distinct, ok := rawDistinct.(bool)
 	if !ok {
-		return nil, fmt.Errorf("invalid distinct in AggregateColumnCount; expected bool, got %+v", rawDistinct)
+		return nil, fmt.Errorf(
+			"invalid distinct in AggregateColumnCount; expected bool, got %+v",
+			rawDistinct,
+		)
 	}
 
 	arguments, err := getArgumentMapByKey(j, "arguments")
@@ -3326,17 +3598,22 @@ func (ag AggregateStarCount) Encode() Aggregate {
 // AggregateSingleColumn represents an aggregate object which applies an aggregation function (as defined by the column's scalar type in the schema response) to a column.
 type AggregateSingleColumn struct {
 	// The column to apply the aggregation function to
-	Column string `json:"column" mapstructure:"column" yaml:"column"`
+	Column string `json:"column"               mapstructure:"column"     yaml:"column"`
 	// Single column aggregate function name.
-	Function string `json:"function" mapstructure:"function" yaml:"function"`
+	Function string `json:"function"             mapstructure:"function"   yaml:"function"`
 	// Path to a nested field within an object column.
 	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 	// Arguments to satisfy the column specified by 'column'
-	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
+	Arguments map[string]Argument `json:"arguments,omitempty"  mapstructure:"arguments"  yaml:"arguments,omitempty"`
 }
 
 // NewAggregateSingleColumn creates a new AggregateSingleColumn instance.
-func NewAggregateSingleColumn(column string, function string, fieldPath []string, arguments map[string]Argument) *AggregateSingleColumn {
+func NewAggregateSingleColumn(
+	column string,
+	function string,
+	fieldPath []string,
+	arguments map[string]Argument,
+) *AggregateSingleColumn {
 	return &AggregateSingleColumn{
 		Column:    column,
 		Function:  function,
@@ -3373,17 +3650,22 @@ func (ag AggregateSingleColumn) Encode() Aggregate {
 // If the distinct flag is set, then the count should only count unique non-null values of those columns.
 type AggregateColumnCount struct {
 	// The column to apply the aggregation function to
-	Column string `json:"column" mapstructure:"column" yaml:"column"`
+	Column string `json:"column"               mapstructure:"column"     yaml:"column"`
 	// Whether or not only distinct items should be counted.
-	Distinct bool `json:"distinct" mapstructure:"distinct" yaml:"distinct"`
+	Distinct bool `json:"distinct"             mapstructure:"distinct"   yaml:"distinct"`
 	// Path to a nested field within an object column.
 	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 	// Arguments to satisfy the column specified by 'column'
-	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
+	Arguments map[string]Argument `json:"arguments,omitempty"  mapstructure:"arguments"  yaml:"arguments,omitempty"`
 }
 
 // NewAggregateColumnCount creates a new AggregateColumnCount instance.
-func NewAggregateColumnCount(column string, distinct bool, fieldPath []string, arguments map[string]Argument) *AggregateColumnCount {
+func NewAggregateColumnCount(
+	column string,
+	distinct bool,
+	fieldPath []string,
+	arguments map[string]Argument,
+) *AggregateColumnCount {
 	return &AggregateColumnCount{
 		Column:    column,
 		Distinct:  distinct,
@@ -3433,7 +3715,13 @@ var enumValues_OrderByTargetType = []OrderByTargetType{
 func ParseOrderByTargetType(input string) (OrderByTargetType, error) {
 	result := OrderByTargetType(input)
 	if !result.IsValid() {
-		return OrderByTargetType(""), fmt.Errorf("failed to parse OrderByTargetType, expect one of %v, got %s", enumValues_OrderByTargetType, input)
+		return OrderByTargetType(
+				"",
+			), fmt.Errorf(
+				"failed to parse OrderByTargetType, expect one of %v, got %s",
+				enumValues_OrderByTargetType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -3565,7 +3853,10 @@ func (j OrderByTarget) getPath() ([]PathElement, error) {
 		path = []PathElement{}
 
 		if err := mapstructure.Decode(rawPath, &path); err != nil {
-			return nil, fmt.Errorf("invalid path in OrderByTarget type; expected: []PathElement, got: %+v", rawPath)
+			return nil, fmt.Errorf(
+				"invalid path in OrderByTarget type; expected: []PathElement, got: %+v",
+				rawPath,
+			)
 		}
 	}
 
@@ -3602,7 +3893,11 @@ func (j OrderByTarget) AsColumn() (*OrderByColumn, error) {
 	}
 
 	if t != OrderByTargetTypeColumn {
-		return nil, fmt.Errorf("invalid OrderByTarget type; expected: %s, got: %s", OrderByTargetTypeColumn, t)
+		return nil, fmt.Errorf(
+			"invalid OrderByTarget type; expected: %s, got: %s",
+			OrderByTargetTypeColumn,
+			t,
+		)
 	}
 
 	name, err := getStringValueByKey(j, "name")
@@ -3647,7 +3942,11 @@ func (j OrderByTarget) AsAggregate() (*OrderByAggregate, error) {
 	}
 
 	if t != OrderByTargetTypeAggregate {
-		return nil, fmt.Errorf("invalid OrderByTarget type; expected: %s, got: %s", OrderByTargetTypeAggregate, t)
+		return nil, fmt.Errorf(
+			"invalid OrderByTarget type; expected: %s, got: %s",
+			OrderByTargetTypeAggregate,
+			t,
+		)
 	}
 
 	p, err := j.getPath()
@@ -3664,7 +3963,10 @@ func (j OrderByTarget) AsAggregate() (*OrderByAggregate, error) {
 	if !ok {
 		rawAggregateMap, ok := rawAggregate.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("invalid OrderByTarget aggregate; expected map, got %v", rawAggregate)
+			return nil, fmt.Errorf(
+				"invalid OrderByTarget aggregate; expected map, got %v",
+				rawAggregate,
+			)
 		}
 
 		aggregate = Aggregate{}
@@ -3713,17 +4015,22 @@ type OrderByTargetEncoder interface {
 // OrderByColumn represents an ordering object which compares the value in the selected column.
 type OrderByColumn struct {
 	// The name of the column
-	Name string `json:"name" mapstructure:"name" yaml:"name"`
+	Name string `json:"name"                 mapstructure:"name"       yaml:"name"`
 	// Any relationships to traverse to reach this column
-	Path []PathElement `json:"path" mapstructure:"path" yaml:"path"`
+	Path []PathElement `json:"path"                 mapstructure:"path"       yaml:"path"`
 	// Any field path to a nested field within the column
 	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 	// Arguments to satisfy the column specified by 'name'
-	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
+	Arguments map[string]Argument `json:"arguments,omitempty"  mapstructure:"arguments"  yaml:"arguments,omitempty"`
 }
 
 // NewOrderByColumn creates an OrderByColumn instance.
-func NewOrderByColumn(name string, path []PathElement, arguments map[string]Argument, fieldPath []string) *OrderByColumn {
+func NewOrderByColumn(
+	name string,
+	path []PathElement,
+	arguments map[string]Argument,
+	fieldPath []string,
+) *OrderByColumn {
 	return &OrderByColumn{
 		Name:      name,
 		FieldPath: fieldPath,
@@ -3768,7 +4075,7 @@ type OrderByAggregate struct {
 	Aggregate Aggregate `json:"aggregate" mapstructure:"aggregate" yaml:"aggregate"`
 	// Non-empty collection of relationships to traverse. Only non-empty if the 'relationships' capability is supported.
 	// 'PathElement.field_path' will only be non-empty if the 'relationships.nested.ordering' capability is supported.
-	Path []PathElement `json:"path" mapstructure:"path" yaml:"path"`
+	Path []PathElement `json:"path"      mapstructure:"path"      yaml:"path"`
 }
 
 // NewOrderByAggregate creates an OrderByAggregate instance.
@@ -3814,7 +4121,13 @@ var enumValues_NestedFieldType = []NestedFieldType{
 func ParseNestedFieldType(input string) (NestedFieldType, error) {
 	result := NestedFieldType(input)
 	if !result.IsValid() {
-		return NestedFieldType(""), fmt.Errorf("failed to parse NestedFieldType, expect one of %v, got %s", enumValues_NestedFieldType, input)
+		return NestedFieldType(
+				"",
+			), fmt.Errorf(
+				"failed to parse NestedFieldType, expect one of %v, got %s",
+				enumValues_NestedFieldType,
+				input,
+			)
 	}
 
 	return result, nil
@@ -3957,7 +4270,11 @@ func (j NestedField) AsObject() (*NestedObject, error) {
 	}
 
 	if t != NestedFieldTypeObject {
-		return nil, fmt.Errorf("invalid NestedField type; expected: %s, got: %s", NestedFieldTypeObject, t)
+		return nil, fmt.Errorf(
+			"invalid NestedField type; expected: %s, got: %s",
+			NestedFieldTypeObject,
+			t,
+		)
 	}
 
 	rawFields, ok := j["fields"]
@@ -3967,7 +4284,10 @@ func (j NestedField) AsObject() (*NestedObject, error) {
 
 	fields, ok := rawFields.(map[string]Field)
 	if !ok {
-		return nil, fmt.Errorf("invalid NestedObject.fields type; expected: map[string]Field, got: %+v", rawFields)
+		return nil, fmt.Errorf(
+			"invalid NestedObject.fields type; expected: map[string]Field, got: %+v",
+			rawFields,
+		)
 	}
 
 	return &NestedObject{
@@ -3983,7 +4303,11 @@ func (j NestedField) AsArray() (*NestedArray, error) {
 	}
 
 	if t != NestedFieldTypeArray {
-		return nil, fmt.Errorf("invalid NestedField type; expected: %s, got: %s", NestedFieldTypeArray, t)
+		return nil, fmt.Errorf(
+			"invalid NestedField type; expected: %s, got: %s",
+			NestedFieldTypeArray,
+			t,
+		)
 	}
 
 	rawFields, ok := j["fields"]
@@ -3993,7 +4317,10 @@ func (j NestedField) AsArray() (*NestedArray, error) {
 
 	fields, ok := rawFields.(NestedField)
 	if !ok {
-		return nil, fmt.Errorf("invalid NestedArray.fields type; expected: NestedField, got: %+v", rawFields)
+		return nil, fmt.Errorf(
+			"invalid NestedArray.fields type; expected: NestedField, got: %+v",
+			rawFields,
+		)
 	}
 
 	return &NestedArray{
@@ -4009,7 +4336,11 @@ func (j NestedField) AsCollection() (*NestedCollection, error) {
 	}
 
 	if t != NestedFieldTypeCollection {
-		return nil, fmt.Errorf("invalid NestedField type; expected: %s, got: %s", NestedFieldTypeCollection, t)
+		return nil, fmt.Errorf(
+			"invalid NestedField type; expected: %s, got: %s",
+			NestedFieldTypeCollection,
+			t,
+		)
 	}
 
 	rawQuery, ok := j["query"]
@@ -4019,7 +4350,10 @@ func (j NestedField) AsCollection() (*NestedCollection, error) {
 
 	query, ok := rawQuery.(Query)
 	if !ok {
-		return nil, fmt.Errorf("invalid field query in NestedCollection; expected: Query, got: %+v", rawQuery)
+		return nil, fmt.Errorf(
+			"invalid field query in NestedCollection; expected: Query, got: %+v",
+			rawQuery,
+		)
 	}
 
 	return &NestedCollection{
@@ -4144,8 +4478,12 @@ func (ob NestedCollection) Encode() NestedField {
 	}
 }
 
-// NewObjectType creates a new object type
-func NewObjectType(fields ObjectTypeFields, foreignKeys ObjectTypeForeignKeys, description *string) ObjectType {
+// NewObjectType creates a new object type.
+func NewObjectType(
+	fields ObjectTypeFields,
+	foreignKeys ObjectTypeForeignKeys,
+	description *string,
+) ObjectType {
 	if fields == nil {
 		fields = ObjectTypeFields{}
 	}

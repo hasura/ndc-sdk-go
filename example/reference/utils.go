@@ -92,7 +92,10 @@ func compare(v1 any, v2 any) (int, error) {
 	value2 := reflect.ValueOf(v2)
 	kindV2 := value2.Kind()
 
-	errInvalidType := schema.InternalServerError(fmt.Sprintf("cannot compare values with different types: %s <> %s", kindV1, kindV2), nil)
+	errInvalidType := schema.InternalServerError(
+		fmt.Sprintf("cannot compare values with different types: %s <> %s", kindV1, kindV2),
+		nil,
+	)
 	if kindV1 != kindV2 {
 		return 0, errInvalidType
 	}
@@ -169,7 +172,10 @@ func evalExtraction(functionName string, value any) (any, error) {
 
 	valueDateTime, err := utils.DecodeDateTime(value)
 	if err != nil {
-		return nil, schema.UnprocessableContentError("failed to extract value to date time: "+err.Error(), nil)
+		return nil, schema.UnprocessableContentError(
+			"failed to extract value to date time: "+err.Error(),
+			nil,
+		)
 	}
 
 	switch functionName {
@@ -180,7 +186,10 @@ func evalExtraction(functionName string, value any) (any, error) {
 	case "day":
 		return valueDateTime.Day(), nil
 	default:
-		return nil, schema.UnprocessableContentError("unsupported extraction function name "+functionName, nil)
+		return nil, schema.UnprocessableContentError(
+			"unsupported extraction function name "+functionName,
+			nil,
+		)
 	}
 }
 
@@ -204,7 +213,11 @@ func evalRowFieldPath(fieldPath []string, row map[string]any) (map[string]any, e
 	return row, nil
 }
 
-func evalComparisonOperator(operator string, leftVal any, rightValues []any) (bool, error) { //nolint:gocyclo,cyclop,funlen
+func evalComparisonOperator(
+	operator string,
+	leftVal any,
+	rightValues []any,
+) (bool, error) { //nolint:gocyclo,cyclop,funlen
 	switch operator {
 	case "eq":
 		for _, rightVal := range rightValues {
@@ -291,18 +304,27 @@ func evalComparisonOperator(operator string, leftVal any, rightValues []any) (bo
 	case "like":
 		columnStr, ok := leftVal.(string)
 		if !ok {
-			return false, fmt.Errorf("failed to compare text values, expected string, got: %v", leftVal)
+			return false, fmt.Errorf(
+				"failed to compare text values, expected string, got: %v",
+				leftVal,
+			)
 		}
 
 		for _, rawRegex := range rightValues {
 			regexStr, ok := rawRegex.(string)
 			if !ok {
-				return false, schema.UnprocessableContentError(fmt.Sprintf("invalid regular expression, got %+v", rawRegex), nil)
+				return false, schema.UnprocessableContentError(
+					fmt.Sprintf("invalid regular expression, got %+v", rawRegex),
+					nil,
+				)
 			}
 
 			regex, err := regexp.Compile(regexStr)
 			if err != nil {
-				return false, schema.UnprocessableContentError(fmt.Sprintf("invalid regular expression: %s", err), nil)
+				return false, schema.UnprocessableContentError(
+					fmt.Sprintf("invalid regular expression: %s", err),
+					nil,
+				)
 			}
 
 			if regex.MatchString(columnStr) {
@@ -314,13 +336,20 @@ func evalComparisonOperator(operator string, leftVal any, rightValues []any) (bo
 	case "contains", "icontains", "starts_with", "istarts_with", "ends_with", "iends_with":
 		leftStr, ok := leftVal.(string)
 		if !ok {
-			return false, fmt.Errorf("comparison operator %s is only supported on strings, got: %v", operator, leftVal)
+			return false, fmt.Errorf(
+				"comparison operator %s is only supported on strings, got: %v",
+				operator,
+				leftVal,
+			)
 		}
 
 		for _, rightVal := range rightValues {
 			rightStr, ok := rightVal.(string)
 			if !ok {
-				return false, schema.UnprocessableContentError(fmt.Sprintf("value is not a string, got %+v", rightVal), nil)
+				return false, schema.UnprocessableContentError(
+					fmt.Sprintf("value is not a string, got %+v", rightVal),
+					nil,
+				)
 			}
 
 			var isValid bool
@@ -347,7 +376,10 @@ func evalComparisonOperator(operator string, leftVal any, rightValues []any) (bo
 
 		return false, nil
 	default:
-		return false, schema.UnprocessableContentError("invalid comparison operator: "+operator, nil)
+		return false, schema.UnprocessableContentError(
+			"invalid comparison operator: "+operator,
+			nil,
+		)
 	}
 }
 
@@ -417,7 +449,16 @@ func isEqual(leftVal, rightVal any) bool {
 		rightBool, err := utils.DecodeBoolean(rightReflectValue.Interface())
 
 		return err == nil && leftReflectValue.Bool() == rightBool
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+	case reflect.Int,
+		reflect.Int8,
+		reflect.Int16,
+		reflect.Int32,
+		reflect.Int64,
+		reflect.Uint,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64:
 		leftInt, _ := utils.DecodeInt[int64](leftReflectValue.Interface())
 		rightInt, err := utils.DecodeInt[int64](rightReflectValue.Interface())
 

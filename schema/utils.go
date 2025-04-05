@@ -84,7 +84,10 @@ func getStringSliceByKey(collection map[string]any, key string) ([]string, error
 		}
 
 		if str == nil {
-			return nil, fmt.Errorf("failed to parse element at %d: string value must not be null", i)
+			return nil, fmt.Errorf(
+				"failed to parse element at %d: string value must not be null",
+				i,
+			)
 		}
 
 		results[i] = *str
@@ -93,7 +96,10 @@ func getStringSliceByKey(collection map[string]any, key string) ([]string, error
 	return results, nil
 }
 
-func getArgumentMapByKey(collection map[string]any, key string) (map[string]Argument, error) { //nolint:unparam
+func getArgumentMapByKey(
+	collection map[string]any,
+	key string,
+) (map[string]Argument, error) { //nolint:unparam
 	rawArguments, ok := collection[key]
 	if !ok || rawArguments == nil {
 		return nil, nil
@@ -118,7 +124,11 @@ func getArgumentMapByKey(collection map[string]any, key string) (map[string]Argu
 	for key, rawArg := range rawArgumentsMap {
 		argMap, ok := rawArg.(map[string]any)
 		if !ok || argMap == nil {
-			return nil, fmt.Errorf("field %s in map[string]Argument: expected object, got %v", key, argMap)
+			return nil, fmt.Errorf(
+				"field %s in map[string]Argument: expected object, got %v",
+				key,
+				argMap,
+			)
 		}
 
 		argument := Argument{}
@@ -133,7 +143,11 @@ func getArgumentMapByKey(collection map[string]any, key string) (map[string]Argu
 	return arguments, nil
 }
 
-func unmarshalStringFromJsonMap(collection map[string]json.RawMessage, key string, required bool) (string, error) {
+func unmarshalStringFromJsonMap(
+	collection map[string]json.RawMessage,
+	key string,
+	required bool,
+) (string, error) {
 	emptyFn := func() (string, error) {
 		if !required {
 			return "", nil
@@ -163,7 +177,10 @@ func unmarshalStringFromJsonMap(collection map[string]json.RawMessage, key strin
 	return result, nil
 }
 
-func unmarshalGroupComparisonTargetByKey(raw map[string]json.RawMessage, key string) (GroupComparisonTarget, error) {
+func unmarshalGroupComparisonTargetByKey(
+	raw map[string]json.RawMessage,
+	key string,
+) (GroupComparisonTarget, error) {
 	rawTarget, ok := raw[key]
 	if !ok {
 		return nil, errors.New("required")

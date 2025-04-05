@@ -43,9 +43,19 @@ func TestQueryRequest(t *testing.T) {
 				Collection: "articles",
 				Query: Query{
 					Aggregates: QueryAggregates{
-						"count":     NewAggregateStarCount().Encode(),
-						"min_id":    NewAggregateSingleColumn("id", "min", []string{"foo"}, nil).Encode(),
-						"bar_count": NewAggregateColumnCount("id", true, []string{"bar"}, nil).Encode(),
+						"count": NewAggregateStarCount().Encode(),
+						"min_id": NewAggregateSingleColumn(
+							"id",
+							"min",
+							[]string{"foo"},
+							nil,
+						).Encode(),
+						"bar_count": NewAggregateColumnCount(
+							"id",
+							true,
+							[]string{"bar"},
+							nil,
+						).Encode(),
 					},
 				},
 				CollectionRelationships: QueryRequestCollectionRelationships{},
@@ -176,12 +186,17 @@ func TestQueryRequest(t *testing.T) {
 				Query: Query{
 					Fields: QueryFields{
 						"id": NewColumnField("id").Encode(),
-						"location": NewColumnField("location").WithNestedField(NewNestedObject(map[string]FieldEncoder{
+						"location": NewColumnField(
+							"location",
+						).WithNestedField(NewNestedObject(map[string]FieldEncoder{
 							"city": NewColumnField("city"),
-							"campuses": NewColumnField("campuses").WithArguments(map[string]ArgumentEncoder{
+							"campuses": NewColumnField(
+								"campuses",
+							).WithArguments(map[string]ArgumentEncoder{
 								"limit": NewArgumentLiteral(nil),
 							}),
-						})).Encode(),
+						})).
+							Encode(),
 					},
 					Predicate: NewExpressionBinaryComparisonOperator(
 						*NewComparisonTargetColumn("location").WithFieldPath([]string{"city"}),
@@ -281,15 +296,23 @@ func TestQueryRequest(t *testing.T) {
 				CollectionRelationships: QueryRequestCollectionRelationships{},
 				Query: Query{
 					Fields: QueryFields{
-						"location": NewColumnField("location").WithNestedField(NewNestedObject(map[string]FieldEncoder{
+						"location": NewColumnField(
+							"location",
+						).WithNestedField(NewNestedObject(map[string]FieldEncoder{
 							"country": NewColumnField("country"),
-						})).Encode(),
+						})).
+							Encode(),
 					},
 					OrderBy: &OrderBy{
 						Elements: []OrderByElement{
 							{
 								OrderDirection: OrderDirectionAsc,
-								Target:         NewOrderByColumn("location", []PathElement{}, nil, []string{"country"}).Encode(),
+								Target: NewOrderByColumn(
+									"location",
+									[]PathElement{},
+									nil,
+									[]string{"country"},
+								).Encode(),
 							},
 						},
 					},
@@ -475,13 +498,16 @@ func TestQueryRequest(t *testing.T) {
 						Elements: []OrderByElement{
 							{
 								OrderDirection: OrderDirectionAsc,
-								Target: NewOrderByAggregate(NewAggregateSingleColumn("id", "max", nil, nil), []PathElement{
-									{
-										Arguments:    PathElementArguments{},
-										Relationship: "author_articles",
-										Predicate:    NewExpressionAnd().Encode(),
+								Target: NewOrderByAggregate(
+									NewAggregateSingleColumn("id", "max", nil, nil),
+									[]PathElement{
+										{
+											Arguments:    PathElementArguments{},
+											Relationship: "author_articles",
+											Predicate:    NewExpressionAnd().Encode(),
+										},
 									},
-								}).Encode(),
+								).Encode(),
 							},
 						},
 					},
@@ -559,9 +585,12 @@ func TestQueryRequest(t *testing.T) {
 				Arguments:  QueryRequestArguments{},
 				Query: Query{
 					Fields: QueryFields{
-						"id":    NewColumnField("id").Encode(),
-						"name":  NewColumnField("name").Encode(),
-						"staff": NewColumnField("staff").WithArgument("limit", NewArgumentLiteral(nil)).Encode(),
+						"id":   NewColumnField("id").Encode(),
+						"name": NewColumnField("name").Encode(),
+						"staff": NewColumnField(
+							"staff",
+						).WithArgument("limit", NewArgumentLiteral(nil)).
+							Encode(),
 					},
 					Predicate: NewExpressionExists(
 						NewExpressionBinaryComparisonOperator(

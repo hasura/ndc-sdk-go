@@ -44,7 +44,11 @@ func TestTypeRepresentation(t *testing.T) {
 		}`)
 
 		var enumType TypeRepresentation
-		assertError(t, json.Unmarshal(rawEmptyBytes, &enumType), "TypeRepresentation requires at least 1 item in one_of field for enum type")
+		assertError(
+			t,
+			json.Unmarshal(rawEmptyBytes, &enumType),
+			"TypeRepresentation requires at least 1 item in one_of field for enum type",
+		)
 
 		assert.NilError(t, json.Unmarshal(rawBytes, &enumType))
 

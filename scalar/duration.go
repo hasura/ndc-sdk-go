@@ -9,15 +9,12 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-// Duration wraps the scalar implementation for duration,
-// with string or unix time integer in nanoseconds
-//
-// @scalar Duration
+// @scalar Duration.
 type Duration struct {
 	time.Duration
 }
 
-// NewDuration creates a Duration instance
+// NewDuration creates a Duration instance.
 func NewDuration(value time.Duration) Duration {
 	return Duration{
 		Duration: value,
@@ -63,12 +60,12 @@ func (d *Duration) FromValue(value any) error {
 	return nil
 }
 
-// DurationString wraps the scalar implementation for duration with string
+// DurationString wraps the scalar implementation for duration with string.
 type DurationString struct {
 	time.Duration
 }
 
-// NewDurationString creates a DurationString instance
+// NewDurationString creates a DurationString instance.
 func NewDurationString(value time.Duration) DurationString {
 	return DurationString{
 		Duration: value,
@@ -121,12 +118,12 @@ func (d *DurationString) FromValue(value any) error {
 	return nil
 }
 
-// DurationInt64 wraps the scalar implementation for duration with int64
+// DurationInt64 wraps the scalar implementation for duration with int64.
 type DurationInt64 struct {
 	time.Duration
 }
 
-// NewDurationInt64 creates a DurationInt64 instance
+// NewDurationInt64 creates a DurationInt64 instance.
 func NewDurationInt64(value time.Duration) DurationInt64 {
 	return DurationInt64{
 		Duration: value,

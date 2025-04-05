@@ -18,8 +18,10 @@ import (
 type mockConfiguration struct {
 	Version int `json:"version"`
 }
-type mockState struct{}
-type mockConnector struct{}
+type (
+	mockState     struct{}
+	mockConnector struct{}
+)
 
 var mockCapabilities = schema.CapabilitiesResponse{
 	Version: schema.NDCVersion,
@@ -111,43 +113,80 @@ var mockSchema = schema.SchemaResponse{
 	},
 }
 
-func (mc *mockConnector) ParseConfiguration(ctx context.Context, configurationDir string) (*mockConfiguration, error) {
+func (mc *mockConnector) ParseConfiguration(
+	ctx context.Context,
+	configurationDir string,
+) (*mockConfiguration, error) {
 	return &mockConfiguration{
 		Version: 1,
 	}, nil
 }
-func (mc *mockConnector) TryInitState(ctx context.Context, configuration *mockConfiguration, metrics *TelemetryState) (*mockState, error) {
+
+func (mc *mockConnector) TryInitState(
+	ctx context.Context,
+	configuration *mockConfiguration,
+	metrics *TelemetryState,
+) (*mockState, error) {
 	return &mockState{}, nil
 }
 
-func (mc *mockConnector) HealthCheck(ctx context.Context, configuration *mockConfiguration, state *mockState) error {
+func (mc *mockConnector) HealthCheck(
+	ctx context.Context,
+	configuration *mockConfiguration,
+	state *mockState,
+) error {
 	return nil
 }
 
-func (mc *mockConnector) GetCapabilities(configuration *mockConfiguration) schema.CapabilitiesResponseMarshaler {
+func (mc *mockConnector) GetCapabilities(
+	configuration *mockConfiguration,
+) schema.CapabilitiesResponseMarshaler {
 	return mockCapabilities
 }
 
-func (mc *mockConnector) GetSchema(ctx context.Context, configuration *mockConfiguration, state *mockState) (schema.SchemaResponseMarshaler, error) {
+func (mc *mockConnector) GetSchema(
+	ctx context.Context,
+	configuration *mockConfiguration,
+	state *mockState,
+) (schema.SchemaResponseMarshaler, error) {
 	return mockSchema, nil
 }
-func (mc *mockConnector) QueryExplain(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.QueryRequest) (*schema.ExplainResponse, error) {
+
+func (mc *mockConnector) QueryExplain(
+	ctx context.Context,
+	configuration *mockConfiguration,
+	state *mockState,
+	request *schema.QueryRequest,
+) (*schema.ExplainResponse, error) {
 	return &schema.ExplainResponse{
 		Details: schema.ExplainResponseDetails{},
 	}, nil
 }
 
-func (mc *mockConnector) MutationExplain(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.MutationRequest) (*schema.ExplainResponse, error) {
+func (mc *mockConnector) MutationExplain(
+	ctx context.Context,
+	configuration *mockConfiguration,
+	state *mockState,
+	request *schema.MutationRequest,
+) (*schema.ExplainResponse, error) {
 	return &schema.ExplainResponse{
 		Details: schema.ExplainResponseDetails{},
 	}, nil
 }
 
-func (mc *mockConnector) Mutation(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.MutationRequest) (*schema.MutationResponse, error) {
+func (mc *mockConnector) Mutation(
+	ctx context.Context,
+	configuration *mockConfiguration,
+	state *mockState,
+	request *schema.MutationRequest,
+) (*schema.MutationResponse, error) {
 	results := []schema.MutationOperationResults{}
 	for _, operation := range request.Operations {
 		if operation.Name != "upsert_article" {
-			return nil, schema.BadRequestError(fmt.Sprintf("operation not found: %s", operation.Name), nil)
+			return nil, schema.BadRequestError(
+				fmt.Sprintf("operation not found: %s", operation.Name),
+				nil,
+			)
 		}
 
 		results = append(results, schema.NewProcedureResult(nil).Encode())
@@ -158,9 +197,17 @@ func (mc *mockConnector) Mutation(ctx context.Context, configuration *mockConfig
 	}, nil
 }
 
-func (mc *mockConnector) Query(ctx context.Context, configuration *mockConfiguration, state *mockState, request *schema.QueryRequest) (schema.QueryResponse, error) {
+func (mc *mockConnector) Query(
+	ctx context.Context,
+	configuration *mockConfiguration,
+	state *mockState,
+	request *schema.QueryRequest,
+) (schema.QueryResponse, error) {
 	if request.Collection != "articles" {
-		return nil, schema.BadRequestError(fmt.Sprintf("collection not found: %s", request.Collection), nil)
+		return nil, schema.BadRequestError(
+			fmt.Sprintf("collection not found: %s", request.Collection),
+			nil,
+		)
 	}
 
 	return schema.QueryResponse{
@@ -208,7 +255,12 @@ func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int,
 	}
 
 	if res.StatusCode != statusCode {
-		t.Errorf("expected status %d, got %d. Body: %s", statusCode, res.StatusCode, string(bodyBytes))
+		t.Errorf(
+			"expected status %d, got %d. Body: %s",
+			statusCode,
+			res.StatusCode,
+			string(bodyBytes),
+		)
 		t.FailNow()
 	}
 
@@ -246,7 +298,6 @@ func TestServerAuth(t *testing.T) {
 		InlineConfig:       true,
 		ServiceTokenSecret: "random-secret",
 	})
-
 	if err != nil {
 		t.Errorf("NewServerAuth: expected no error, got %s", err)
 		t.FailNow()
@@ -271,7 +322,11 @@ func TestServerAuth(t *testing.T) {
 	})
 
 	t.Run("Authorized GET /schema", func(t *testing.T) {
-		authRequest, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/schema", httpServer.URL), nil)
+		authRequest, err := http.NewRequest(
+			http.MethodGet,
+			fmt.Sprintf("%s/schema", httpServer.URL),
+			nil,
+		)
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
@@ -293,7 +348,6 @@ func TestServerConnector(t *testing.T) {
 		Configuration: "{}",
 		InlineConfig:  true,
 	})
-
 	if err != nil {
 		t.Errorf("NewServer: expected no error, got %s", err)
 		t.FailNow()
@@ -395,13 +449,17 @@ func TestServerConnector(t *testing.T) {
 	})
 
 	t.Run("POST_query_invalid_ndc_version", func(t *testing.T) {
-		res, err := httpPostJSONWithNDCVersion(fmt.Sprintf("%s/query", httpServer.URL), "unknown", schema.QueryRequest{
-			Collection:              "test",
-			Arguments:               schema.QueryRequestArguments{},
-			CollectionRelationships: schema.QueryRequestCollectionRelationships{},
-			Query:                   schema.Query{},
-			Variables:               []schema.QueryRequestVariablesElem{},
-		})
+		res, err := httpPostJSONWithNDCVersion(
+			fmt.Sprintf("%s/query", httpServer.URL),
+			"unknown",
+			schema.QueryRequest{
+				Collection:              "test",
+				Arguments:               schema.QueryRequestArguments{},
+				CollectionRelationships: schema.QueryRequestCollectionRelationships{},
+				Query:                   schema.Query{},
+				Variables:               []schema.QueryRequestVariablesElem{},
+			},
+		)
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
@@ -472,15 +530,19 @@ func TestServerConnector(t *testing.T) {
 	})
 
 	t.Run("POST_mutation_invalid_ndc_version", func(t *testing.T) {
-		res, err := httpPostJSONWithNDCVersion(fmt.Sprintf("%s/mutation", httpServer.URL), "v0.1.6", schema.MutationRequest{
-			Operations: []schema.MutationOperation{
-				{
-					Type: "procedure",
-					Name: "test",
+		res, err := httpPostJSONWithNDCVersion(
+			fmt.Sprintf("%s/mutation", httpServer.URL),
+			"v0.1.6",
+			schema.MutationRequest{
+				Operations: []schema.MutationOperation{
+					{
+						Type: "procedure",
+						Name: "test",
+					},
 				},
+				CollectionRelationships: schema.MutationRequestCollectionRelationships{},
 			},
-			CollectionRelationships: schema.MutationRequestCollectionRelationships{},
-		})
+		)
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
@@ -493,13 +555,16 @@ func TestServerConnector(t *testing.T) {
 	})
 
 	t.Run("POST /query/explain", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/query/explain", httpServer.URL), schema.QueryRequest{
-			Collection:              "articles",
-			Arguments:               schema.QueryRequestArguments{},
-			CollectionRelationships: schema.QueryRequestCollectionRelationships{},
-			Query:                   schema.Query{},
-			Variables:               []schema.QueryRequestVariablesElem{},
-		})
+		res, err := httpPostJSON(
+			fmt.Sprintf("%s/query/explain", httpServer.URL),
+			schema.QueryRequest{
+				Collection:              "articles",
+				Arguments:               schema.QueryRequestArguments{},
+				CollectionRelationships: schema.QueryRequestCollectionRelationships{},
+				Query:                   schema.Query{},
+				Variables:               []schema.QueryRequestVariablesElem{},
+			},
+		)
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
@@ -526,7 +591,11 @@ func TestServerConnector(t *testing.T) {
 	})
 
 	t.Run("POST_query_explain_invalid_ndc_version", func(t *testing.T) {
-		res, err := httpPostJSONWithNDCVersion(fmt.Sprintf("%s/query/explain", httpServer.URL), "unknown", map[string]any{})
+		res, err := httpPostJSONWithNDCVersion(
+			fmt.Sprintf("%s/query/explain", httpServer.URL),
+			"unknown",
+			map[string]any{},
+		)
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
@@ -539,10 +608,13 @@ func TestServerConnector(t *testing.T) {
 	})
 
 	t.Run("POST /mutation/explain", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/mutation/explain", httpServer.URL), schema.MutationRequest{
-			Operations:              []schema.MutationOperation{},
-			CollectionRelationships: make(schema.MutationRequestCollectionRelationships),
-		})
+		res, err := httpPostJSON(
+			fmt.Sprintf("%s/mutation/explain", httpServer.URL),
+			schema.MutationRequest{
+				Operations:              []schema.MutationOperation{},
+				CollectionRelationships: make(schema.MutationRequestCollectionRelationships),
+			},
+		)
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
@@ -554,7 +626,10 @@ func TestServerConnector(t *testing.T) {
 	})
 
 	t.Run("POST /mutation/explain - json decode failure", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/mutation/explain", httpServer.URL), map[string]any{})
+		res, err := httpPostJSON(
+			fmt.Sprintf("%s/mutation/explain", httpServer.URL),
+			map[string]any{},
+		)
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
@@ -569,7 +644,11 @@ func TestServerConnector(t *testing.T) {
 	})
 
 	t.Run("POST_mutation_explain_invalid_ndc_version", func(t *testing.T) {
-		res, err := httpPostJSONWithNDCVersion(fmt.Sprintf("%s/mutation/explain", httpServer.URL), "unknown", map[string]any{})
+		res, err := httpPostJSONWithNDCVersion(
+			fmt.Sprintf("%s/mutation/explain", httpServer.URL),
+			"unknown",
+			map[string]any{},
+		)
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
@@ -583,7 +662,6 @@ func TestServerConnector(t *testing.T) {
 }
 
 func TestConnectorWithPrometheusEnabled(t *testing.T) {
-
 	server, err := NewServer[mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
 		Configuration: "{}",
 		InlineConfig:  true,
@@ -591,7 +669,6 @@ func TestConnectorWithPrometheusEnabled(t *testing.T) {
 			MetricsExporter: string(otelMetricsExporterPrometheus),
 		},
 	})
-
 	if err != nil {
 		t.Errorf("NewServer: expected no error, got %s", err)
 		t.FailNow()

@@ -48,7 +48,11 @@ func EvalNestedColumnArrayIntoSlice[T any](fields *schema.NestedArray, value []T
 	return evalNestedColumnArrayIntoSlice(fields, value, "")
 }
 
-func evalNestedColumnArrayIntoSlice[T any](fields *schema.NestedArray, value []T, fieldPath string) (any, error) {
+func evalNestedColumnArrayIntoSlice[T any](
+	fields *schema.NestedArray,
+	value []T,
+	fieldPath string,
+) (any, error) {
 	array, err := encodeObjectSlice(value, fieldPath)
 	if err != nil {
 		return nil, err
@@ -115,11 +119,18 @@ func evalNestedColumnFields(fields schema.NestedField, value any, fieldPath stri
 }
 
 // EncodeObjectsWithColumnSelection encodes objects with column fields selection without relationship.
-func EncodeObjectsWithColumnSelection[T any](fields map[string]schema.Field, data []T) ([]map[string]any, error) {
+func EncodeObjectsWithColumnSelection[T any](
+	fields map[string]schema.Field,
+	data []T,
+) ([]map[string]any, error) {
 	return encodeObjectsWithColumnSelection(fields, data, "")
 }
 
-func encodeObjectsWithColumnSelection[T any](fields map[string]schema.Field, data []T, fieldPath string) ([]map[string]any, error) {
+func encodeObjectsWithColumnSelection[T any](
+	fields map[string]schema.Field,
+	data []T,
+	fieldPath string,
+) ([]map[string]any, error) {
 	objects, err := encodeObjectSlice[T](data, fieldPath)
 	if err != nil {
 		return nil, err
@@ -129,11 +140,18 @@ func encodeObjectsWithColumnSelection[T any](fields map[string]schema.Field, dat
 }
 
 // EncodeObjectWithColumnSelection encodes an object with column fields selection without relationship.
-func EncodeObjectWithColumnSelection[T any](fields map[string]schema.Field, data T) (map[string]any, error) {
+func EncodeObjectWithColumnSelection[T any](
+	fields map[string]schema.Field,
+	data T,
+) (map[string]any, error) {
 	return encodeObjectWithColumnSelection(fields, data, "")
 }
 
-func encodeObjectWithColumnSelection[T any](fields map[string]schema.Field, data T, fieldPath string) (map[string]any, error) {
+func encodeObjectWithColumnSelection[T any](
+	fields map[string]schema.Field,
+	data T,
+	fieldPath string,
+) (map[string]any, error) {
 	objects, err := encodeObject(data, fieldPath)
 	if err != nil {
 		return nil, err
@@ -143,15 +161,26 @@ func encodeObjectWithColumnSelection[T any](fields map[string]schema.Field, data
 }
 
 // EvalObjectsWithColumnSelection evaluate and prune column fields of array objects without relationship.
-func EvalObjectsWithColumnSelection(fields map[string]schema.Field, data []map[string]any) ([]map[string]any, error) {
+func EvalObjectsWithColumnSelection(
+	fields map[string]schema.Field,
+	data []map[string]any,
+) ([]map[string]any, error) {
 	return evalObjectsWithColumnSelection(fields, data, "")
 }
 
-func evalObjectsWithColumnSelection(fields map[string]schema.Field, data []map[string]any, fieldPath string) ([]map[string]any, error) {
+func evalObjectsWithColumnSelection(
+	fields map[string]schema.Field,
+	data []map[string]any,
+	fieldPath string,
+) ([]map[string]any, error) {
 	results := make([]map[string]any, len(data))
 
 	for i, item := range data {
-		result, err := evalObjectWithColumnSelection(fields, item, fmt.Sprintf("%s[%d]", fieldPath, i))
+		result, err := evalObjectWithColumnSelection(
+			fields,
+			item,
+			fmt.Sprintf("%s[%d]", fieldPath, i),
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -163,11 +192,18 @@ func evalObjectsWithColumnSelection(fields map[string]schema.Field, data []map[s
 }
 
 // EvalObjectWithColumnSelection evaluate and prune column fields without relationship.
-func EvalObjectWithColumnSelection(fields map[string]schema.Field, data map[string]any) (map[string]any, error) {
+func EvalObjectWithColumnSelection(
+	fields map[string]schema.Field,
+	data map[string]any,
+) (map[string]any, error) {
 	return evalObjectWithColumnSelection(fields, data, "")
 }
 
-func evalObjectWithColumnSelection(fields map[string]schema.Field, data map[string]any, fieldPath string) (map[string]any, error) {
+func evalObjectWithColumnSelection(
+	fields map[string]schema.Field,
+	data map[string]any,
+	fieldPath string,
+) (map[string]any, error) {
 	if len(fields) == 0 {
 		return data, nil
 	}
@@ -215,20 +251,29 @@ func evalObjectWithColumnSelection(fields map[string]schema.Field, data map[stri
 
 // ResolveArgumentVariables resolve variables in arguments if exist.
 // Deprecated: use ResolveArguments instead.
-func ResolveArgumentVariables(arguments map[string]schema.Argument, variables map[string]any) (map[string]any, error) {
+func ResolveArgumentVariables(
+	arguments map[string]schema.Argument,
+	variables map[string]any,
+) (map[string]any, error) {
 	return ResolveArguments(arguments, variables)
 }
 
 // ResolveArguments resolve variables into request arguments if exist.
-func ResolveArguments(arguments map[string]schema.Argument, variables map[string]any) (map[string]any, error) {
+func ResolveArguments(
+	arguments map[string]schema.Argument,
+	variables map[string]any,
+) (map[string]any, error) {
 	results := make(map[string]any)
 
 	for key, argument := range arguments {
 		value, err := ResolveArgument(argument, variables)
 		if err != nil {
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("failed to resolve argument %s: %s", key, err), map[string]any{
-				"path": "." + key,
-			})
+			return nil, schema.UnprocessableContentError(
+				fmt.Sprintf("failed to resolve argument %s: %s", key, err),
+				map[string]any{
+					"path": "." + key,
+				},
+			)
 		}
 
 		results[key] = value

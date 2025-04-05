@@ -109,7 +109,9 @@ func (rt *router) Build() *http.ServeMux {
 	return mux
 }
 
-func (rt *router) createHandleFunc(handlers map[string][]http.HandlerFunc) http.HandlerFunc { //nolint:gocognit
+func (rt *router) createHandleFunc(
+	handlers map[string][]http.HandlerFunc,
+) http.HandlerFunc { //nolint:gocognit
 	return func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now()
 		isDebug := rt.logger.Enabled(r.Context(), slog.LevelDebug)
@@ -127,7 +129,8 @@ func (rt *router) createHandleFunc(handlers map[string][]http.HandlerFunc) http.
 
 		if spanOk {
 			ctx, span = rt.telemetry.Tracer.Start(
-				otel.GetTextMapPropagator().Extract(r.Context(), propagation.HeaderCarrier(r.Header)),
+				otel.GetTextMapPropagator().
+					Extract(r.Context(), propagation.HeaderCarrier(r.Header)),
 				spanName,
 				trace.WithSpanKind(trace.SpanKindServer),
 			)
@@ -161,7 +164,9 @@ func (rt *router) createHandleFunc(handlers map[string][]http.HandlerFunc) http.
 						slog.Any("error", err),
 					)
 
-					span.SetAttributes(attribute.Int("http.response.status_code", http.StatusUnprocessableEntity))
+					span.SetAttributes(
+						attribute.Int("http.response.status_code", http.StatusUnprocessableEntity),
+					)
 					writeJson(w, rt.logger, http.StatusUnprocessableEntity, schema.ErrorResponse{
 						Message: "failed to read request",
 						Details: map[string]any{
@@ -195,7 +200,9 @@ func (rt *router) createHandleFunc(handlers map[string][]http.HandlerFunc) http.
 						slog.String("stacktrace", stack),
 					)
 
-					span.SetAttributes(attribute.Int("http.response.status_code", http.StatusInternalServerError))
+					span.SetAttributes(
+						attribute.Int("http.response.status_code", http.StatusInternalServerError),
+					)
 					writeJson(w, rt.logger, http.StatusInternalServerError, schema.ErrorResponse{
 						Message: "internal server error",
 						Details: map[string]any{
@@ -229,11 +236,16 @@ func (rt *router) createHandleFunc(handlers map[string][]http.HandlerFunc) http.
 			return
 		}
 
-		if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodPatch {
+		if r.Method == http.MethodPost || r.Method == http.MethodPut ||
+			r.Method == http.MethodPatch {
 			contentType := r.Header.Get(headerContentType)
 			if contentType != contentTypeJson {
 				err := schema.ErrorResponse{
-					Message: fmt.Sprintf("Invalid content type %s, accept %s only", contentType, contentTypeJson),
+					Message: fmt.Sprintf(
+						"Invalid content type %s, accept %s only",
+						contentType,
+						contentTypeJson,
+					),
 				}
 
 				writeJson(w, rt.logger, http.StatusUnprocessableEntity, err)
@@ -249,7 +261,9 @@ func (rt *router) createHandleFunc(handlers map[string][]http.HandlerFunc) http.
 					}),
 				)
 
-				span.SetAttributes(attribute.Int("http.response.status_code", http.StatusUnprocessableEntity))
+				span.SetAttributes(
+					attribute.Int("http.response.status_code", http.StatusUnprocessableEntity),
+				)
 				span.SetStatus(codes.Error, "invalid content type: "+contentType)
 
 				return
@@ -324,7 +338,12 @@ func getRequestID(r *http.Request) string {
 }
 
 // writeJsonFunc writes raw bytes data with a json encoding callback.
-func writeJsonFunc(w http.ResponseWriter, logger *slog.Logger, statusCode int, encodeFunc func() ([]byte, error)) {
+func writeJsonFunc(
+	w http.ResponseWriter,
+	logger *slog.Logger,
+	statusCode int,
+	encodeFunc func() ([]byte, error),
+) {
 	w.Header().Set(headerContentType, contentTypeJson)
 
 	jsonBytes, err := encodeFunc()
