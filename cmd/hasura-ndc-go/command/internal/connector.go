@@ -619,12 +619,12 @@ func (cg *connectorGenerator) genConnectorHandlers() {
 	}
 }
 
-func (cg *connectorGenerator) writeGetTypeValueDecoder(
+func (cg *connectorGenerator) writeGetTypeValueDecoder( //nolint:gocyclo,cyclop,funlen,maintidx
 	sb *connectorTypeBuilder,
 	field *Field,
 	objectField schema.ObjectField,
 	key string,
-) { //nolint:gocyclo,cyclop,funlen
+) {
 	ty := field.Type
 	fieldName := field.Name
 	typeName := ty.String()

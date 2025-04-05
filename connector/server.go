@@ -273,11 +273,12 @@ func (s *Server[Configuration, State]) QueryExplain(w http.ResponseWriter, r *ht
 	)
 }
 
-// MutationExplain implements a handler for the /mutation/explain endpoint, POST method that explains a mutation by creating an execution plan.
-func (s *Server[Configuration, State]) MutationExplain(
+// MutationExplain implements a handler for the /mutation/explain endpoint,
+// POST method that explains a mutation by creating an execution plan.
+func (s *Server[Configuration, State]) MutationExplain( //nolint:dupl
 	w http.ResponseWriter,
 	r *http.Request,
-) { //nolint:dupl
+) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
 	span := trace.SpanFromContext(r.Context())
@@ -333,10 +334,10 @@ func (s *Server[Configuration, State]) MutationExplain(
 }
 
 // Mutation implements a handler for the /mutation endpoint, POST method that executes a mutation.
-func (s *Server[Configuration, State]) Mutation(
+func (s *Server[Configuration, State]) Mutation( //nolint:dupl
 	w http.ResponseWriter,
 	r *http.Request,
-) { //nolint:dupl
+) {
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
 	span := trace.SpanFromContext(r.Context())

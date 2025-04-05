@@ -184,11 +184,11 @@ func DecodeNullableObject[T any](
 	return result, err
 }
 
-func decodeValue(
+func decodeValue( //nolint:maintidx,gocyclo,cyclop,funlen,gocognit
 	target any,
 	value any,
 	decodeHooks ...mapstructure.DecodeHookFunc,
-) error { //nolint:maintidx,gocyclo,cyclop,funlen,gocognit
+) error {
 	if IsNil(value) {
 		return errValueRequired
 	}

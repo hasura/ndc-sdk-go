@@ -98,8 +98,8 @@ func getStringSliceByKey(collection map[string]any, key string) ([]string, error
 
 func getArgumentMapByKey(
 	collection map[string]any,
-	key string,
-) (map[string]Argument, error) { //nolint:unparam
+	key string, //nolint:unparam
+) (map[string]Argument, error) {
 	rawArguments, ok := collection[key]
 	if !ok || rawArguments == nil {
 		return nil, nil

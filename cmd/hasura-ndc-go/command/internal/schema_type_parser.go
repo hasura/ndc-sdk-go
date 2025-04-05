@@ -229,10 +229,10 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 	}
 }
 
-func (tp *TypeParser) parseNamedType(
+func (tp *TypeParser) parseNamedType( //nolint:cyclop,funlen
 	inferredType *types.Named,
 	fieldPaths []string,
-) (Type, error) { //nolint:cyclop,funlen
+) (Type, error) {
 	innerType := inferredType.Obj()
 	if innerType == nil {
 		return nil, fmt.Errorf("failed to parse named type: %s", inferredType.String())

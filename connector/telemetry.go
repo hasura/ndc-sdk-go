@@ -495,10 +495,10 @@ func (t *Tracer) Start(
 	spanName string,
 	opts ...traceapi.SpanStartOption,
 ) (context.Context, traceapi.Span) {
-	return t.Tracer.Start(
+	return t.Tracer.Start( //nolint:spancheck
 		ctx,
 		spanName,
-		append(opts, userVisibilityAttribute)...) //nolint:spancheck
+		append(opts, userVisibilityAttribute)...)
 }
 
 // StartInternal creates a span and a context.Context containing the newly-created span.

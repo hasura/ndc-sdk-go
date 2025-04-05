@@ -213,11 +213,11 @@ func evalRowFieldPath(fieldPath []string, row map[string]any) (map[string]any, e
 	return row, nil
 }
 
-func evalComparisonOperator(
+func evalComparisonOperator( //nolint:gocyclo,cyclop,funlen
 	operator string,
 	leftVal any,
 	rightValues []any,
-) (bool, error) { //nolint:gocyclo,cyclop,funlen
+) (bool, error) {
 	switch operator {
 	case "eq":
 		for _, rightVal := range rightValues {

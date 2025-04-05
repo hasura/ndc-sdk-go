@@ -109,9 +109,9 @@ func (rt *router) Build() *http.ServeMux {
 	return mux
 }
 
-func (rt *router) createHandleFunc(
+func (rt *router) createHandleFunc( //nolint:gocognit
 	handlers map[string][]http.HandlerFunc,
-) http.HandlerFunc { //nolint:gocognit
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now()
 		isDebug := rt.logger.Enabled(r.Context(), slog.LevelDebug)
@@ -155,7 +155,7 @@ func (rt *router) createHandleFunc(
 			}
 
 			if r.Body != nil {
-				bodyBytes, err := io.ReadAll(r.Body)
+				bodyStr, err := rt.debugRequestBody(w, r, span)
 				if err != nil {
 					rt.logger.Error("failed to read request",
 						slog.String("request_id", requestID),
@@ -164,25 +164,10 @@ func (rt *router) createHandleFunc(
 						slog.Any("error", err),
 					)
 
-					span.SetAttributes(
-						attribute.Int("http.response.status_code", http.StatusUnprocessableEntity),
-					)
-					writeJson(w, rt.logger, http.StatusUnprocessableEntity, schema.ErrorResponse{
-						Message: "failed to read request",
-						Details: map[string]any{
-							"cause": err,
-						},
-					})
-					span.SetStatus(codes.Error, "read_request_body_failure")
-					span.RecordError(err)
-
 					return
 				}
 
-				bodyStr := string(bodyBytes)
-				span.SetAttributes(attribute.String("request.body", bodyStr))
 				requestLogData["body"] = bodyStr
-				r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 			}
 		}
 
@@ -326,6 +311,38 @@ func (rt *router) createHandleFunc(
 		)
 		span.SetStatus(codes.Ok, "success")
 	}
+}
+
+func (rt *router) debugRequestBody(
+	w http.ResponseWriter,
+	r *http.Request,
+	span trace.Span,
+) (string, error) {
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		span.SetAttributes(
+			attribute.Int("http.response.status_code", http.StatusUnprocessableEntity),
+		)
+
+		writeJson(w, rt.logger, http.StatusUnprocessableEntity, schema.ErrorResponse{
+			Message: "failed to read request",
+			Details: map[string]any{
+				"cause": err,
+			},
+		})
+
+		span.SetStatus(codes.Error, "read_request_body_failure")
+		span.RecordError(err)
+
+		return "", err
+	}
+
+	bodyStr := string(bodyBytes)
+	span.SetAttributes(attribute.String("request.body", bodyStr))
+
+	r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+	return bodyStr, nil
 }
 
 func getRequestID(r *http.Request) string {
