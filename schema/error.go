@@ -11,9 +11,9 @@ import (
 type ConnectorError struct {
 	statusCode int
 	// A human-readable summary of the error
-	Message string `json:"message" yaml:"message" mapstructure:"message"`
+	Message string `json:"message" mapstructure:"message" yaml:"message"`
 	// Any additional structured information about the error
-	Details map[string]any `json:"details" yaml:"details" mapstructure:"details"`
+	Details map[string]any `json:"details" mapstructure:"details" yaml:"details"`
 }
 
 // StatusCode gets the inner status code.

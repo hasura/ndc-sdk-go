@@ -39,6 +39,7 @@ func (chb connectorHandlerBuilder) Render() {
 // DataConnectorHandler implements the data connector handler 
 type DataConnectorHandler struct{}
 `)
+
 	chb.writeQuery(bs.builder)
 	chb.writeMutation(bs.builder)
 
@@ -54,14 +55,17 @@ func (chb connectorHandlerBuilder) writeOperationNameEnums(sb *strings.Builder, 
 	sb.WriteString("var ")
 	sb.WriteString(name)
 	sb.WriteString(" = []string{")
+
 	for i, enum := range values {
 		if i > 0 {
 			sb.WriteString(", ")
 		}
+
 		sb.WriteRune('"')
 		sb.WriteString(enum)
 		sb.WriteRune('"')
 	}
+
 	sb.WriteRune('}')
 }
 
@@ -69,6 +73,7 @@ func (chb connectorHandlerBuilder) writeStateArgumentName() string {
 	if chb.RawSchema.StateType == nil {
 		return "State"
 	}
+
 	return chb.RawSchema.StateType.GetArgumentName(chb.Builder.packagePath)
 }
 
@@ -76,6 +81,7 @@ func (chb connectorHandlerBuilder) writeQuery(sb *strings.Builder) {
 	if len(chb.Functions) == 0 {
 		return
 	}
+
 	stateArgument := chb.writeStateArgumentName()
 	_, _ = sb.WriteString(`
 // QueryExists check if the query name exists
@@ -130,8 +136,10 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 		chb.writeOperationValidation(sb, &op, "queryFields", resultType, isScalar)
 
 		var argumentParamStr string
+
 		if fn.ArgumentsType != nil {
 			argName := fn.ArgumentsType.GetArgumentName(chb.Builder.packagePath)
+
 			if fn.ArgumentsType.PackagePath != "" && fn.ArgumentsType.PackagePath != chb.Builder.packagePath {
 				chb.Builder.imports[fn.ArgumentsType.PackagePath] = ""
 			}
@@ -146,6 +154,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
 				sb.WriteString(argName)
 				sb.WriteString("](rawArgs)")
 			}
+
 			sb.WriteString(`
     if parseErr != nil {
       return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
@@ -156,13 +165,16 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
     connector_addSpanEvent(span, logger, "execute_function", map[string]any{
       "arguments": args,
     })`)
+
 			argumentParamStr = ", &args"
 		}
 
 		if isScalar {
-			sb.WriteString(fmt.Sprintf("\n    return %s(ctx, state%s)\n", fn.OriginName, argumentParamStr))
+			fmt.Fprintf(sb, "\n    return %s(ctx, state%s)\n", fn.OriginName, argumentParamStr)
+
 			continue
 		}
+
 		switch resultType.(type) {
 		case *ArrayType:
 			chb.writeOperationResult(sb, fn.OriginName, OperationFunction, argumentParamStr, isNullable)
@@ -183,6 +195,7 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`)
   }
 }
 `)
+
 	chb.writeOperationNameEnums(sb, functionEnumsName, functionKeys)
 }
 
@@ -223,8 +236,10 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 		chb.writeOperationValidation(sb, &op, "operation.Fields", resultType, isScalar)
 
 		var argumentParamStr string
+
 		if fn.ArgumentsType != nil {
 			argName := fn.ArgumentsType.GetArgumentName(chb.Builder.packagePath)
+
 			if fn.ArgumentsType.PackagePath != "" && fn.ArgumentsType.PackagePath != chb.Builder.packagePath {
 				chb.Builder.imports[fn.ArgumentsType.PackagePath] = ""
 			}
@@ -238,6 +253,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
       })
     }`, argName)
 			sb.WriteString(argumentStr)
+
 			argumentParamStr = ", &args"
 		}
 
@@ -257,6 +273,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 				writeErrorCheck(sb, 2, 4)
 			}
 		}
+
 		sb.WriteString("    return schema.NewProcedureResult(result).Encode(), nil\n")
 	}
 
@@ -266,6 +283,7 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
   }
 }
 `)
+
 	chb.writeOperationNameEnums(sb, procedureEnumsName, procedureKeys)
 }
 
@@ -280,6 +298,7 @@ func (chb connectorHandlerBuilder) writeOperationValidation(sb *strings.Builder,
 		sb.WriteString(`) > 0 {
 				return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
 			}`)
+
 		return
 	}
 
@@ -318,15 +337,19 @@ func (chb connectorHandlerBuilder) writeOperationExecution(sb *strings.Builder, 
 
 func (chb connectorHandlerBuilder) writeOperationResult(sb *strings.Builder, operationName string, operationKind OperationKind, argumentParamStr string, isNullable bool) {
 	chb.writeOperationExecution(sb, operationName, argumentParamStr, "rawResult")
+
 	if isNullable {
 		sb.WriteString("\n    if rawResult == nil {\n")
+
 		if operationKind == OperationProcedure {
 			sb.WriteString("      return schema.NewProcedureResult(nil).Encode(), nil")
 		} else {
 			sb.WriteString("      return nil, nil")
 		}
+
 		sb.WriteString("\n    }")
 	}
+
 	sb.WriteString(`
     connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
       "raw_result": rawResult,

@@ -191,6 +191,7 @@ func executeUpsertArticle(
 			if article.ID == args.Article.ID {
 				oldRow = utils.ToPtr(article)
 				state.Articles[i] = args.Article
+
 				break
 			}
 		}
@@ -232,6 +233,7 @@ func executeDeleteArticles(
 	}
 
 	var removed []map[string]any
+
 	qh := &QueryHandler{
 		state:     state,
 		variables: map[string]any{},

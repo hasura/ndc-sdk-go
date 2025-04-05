@@ -22,6 +22,7 @@ func NewURL(rawURL string) (*URL, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &URL{u}, nil
 }
 
@@ -35,6 +36,7 @@ func (u URL) String() string {
 	if u.URL == nil {
 		return ""
 	}
+
 	return u.URL.String()
 }
 
@@ -54,6 +56,7 @@ func (u *URL) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
+
 	u.URL = value
 
 	return nil
@@ -64,6 +67,7 @@ func (u *URL) FromValue(value any) error {
 	if value == nil {
 		return nil
 	}
+
 	switch v := value.(type) {
 	case URL:
 		*u = v
@@ -80,10 +84,12 @@ func (u *URL) FromValue(value any) error {
 		if err == nil && str != nil {
 			u.URL, err = parseURL(*str)
 		}
+
 		if err != nil {
 			return fmt.Errorf("invalid url: %v", v)
 		}
 	}
+
 	return nil
 }
 
@@ -91,5 +97,6 @@ func parseURL(rawURL string) (*url.URL, error) {
 	if rawURL == "" {
 		return nil, errors.New("invalid URL")
 	}
+
 	return url.Parse(rawURL)
 }

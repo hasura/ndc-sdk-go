@@ -48,6 +48,7 @@ func (j *GroupOrderByTargetType) UnmarshalJSON(b []byte) error {
 	}
 
 	*j = value
+
 	return nil
 }
 
@@ -223,7 +224,7 @@ func (j GroupOrderByTarget) InterfaceT() (GroupOrderByTargetEncoder, error) {
 // GroupOrderByTargetDimension represents a dimension object of GroupOrderByTarget
 type GroupOrderByTargetDimension struct {
 	// The index of the dimension to order by, selected from the dimensions provided in the `Grouping` request.
-	Index uint `json:"index" yaml:"index" mapstructure:"index"`
+	Index uint `json:"index" mapstructure:"index" yaml:"index"`
 }
 
 // NewGroupOrderByTargetDimension creates a GroupOrderByTargetDimension instance.
@@ -251,7 +252,7 @@ func (ob GroupOrderByTargetDimension) Encode() GroupOrderByTarget {
 // GroupOrderByTargetAggregate represents an aggregate object of GroupOrderByTarget
 type GroupOrderByTargetAggregate struct {
 	// Aggregation method to apply.
-	Aggregate Aggregate `json:"aggregate" yaml:"aggregate" mapstructure:"aggregate"`
+	Aggregate Aggregate `json:"aggregate" mapstructure:"aggregate" yaml:"aggregate"`
 }
 
 // NewGroupOrderByTargetAggregate creates a GroupOrderByTargetAggregate instance.
@@ -448,7 +449,7 @@ func (j GroupComparisonTarget) InterfaceT() (GroupComparisonTargetEncoder, error
 // GroupComparisonTargetAggregate represents an aggregate object of GroupComparisonTarget
 type GroupComparisonTargetAggregate struct {
 	// Aggregation method to apply.
-	Aggregate Aggregate `json:"aggregate" yaml:"aggregate" mapstructure:"aggregate"`
+	Aggregate Aggregate `json:"aggregate" mapstructure:"aggregate" yaml:"aggregate"`
 }
 
 // NewGroupComparisonTargetAggregate creates a GroupComparisonTargetAggregate instance.
@@ -676,7 +677,7 @@ func (cv GroupComparisonValue) InterfaceT() (GroupComparisonValueEncoder, error)
 
 // GroupComparisonValueScalar represents a group comparison value with scalar type.
 type GroupComparisonValueScalar struct {
-	Value any `json:"value" yaml:"value" mapstructure:"value"`
+	Value any `json:"value" mapstructure:"value" yaml:"value"`
 }
 
 // NewGroupComparisonValueScalar creates a new GroupComparisonValueScalar instance.
@@ -701,7 +702,7 @@ func (cv GroupComparisonValueScalar) Encode() GroupComparisonValue {
 
 // GroupComparisonValueVariable represents a group comparison value with variable type.
 type GroupComparisonValueVariable struct {
-	Name string `json:"name" yaml:"name" mapstructure:"name"`
+	Name string `json:"name" mapstructure:"name" yaml:"name"`
 }
 
 // NewGroupComparisonValueVariable creates a new GroupComparisonValueVariable instance.
@@ -848,14 +849,8 @@ func (j *GroupExpression) UnmarshalJSON(b []byte) error {
 
 		result["operator"] = operator
 
-		rawTarget, ok := raw["target"]
-		if !ok {
-			return fmt.Errorf("field target in GroupExpression is required for '%s' type", ty)
-		}
-
-		var target GroupComparisonTarget
-
-		if err := json.Unmarshal(rawTarget, &target); err != nil {
+		target, err := unmarshalGroupComparisonTargetByKey(raw, "target")
+		if err != nil {
 			return fmt.Errorf("field target in GroupExpression: %w", err)
 		}
 
@@ -878,14 +873,8 @@ func (j *GroupExpression) UnmarshalJSON(b []byte) error {
 
 		result["operator"] = operator
 
-		rawTarget, ok := raw["target"]
-		if !ok {
-			return fmt.Errorf("field target in GroupExpression is required for '%s' type", ty)
-		}
-
-		var target GroupComparisonTarget
-
-		if err := json.Unmarshal(rawTarget, &target); err != nil {
+		target, err := unmarshalGroupComparisonTargetByKey(raw, "target")
+		if err != nil {
 			return fmt.Errorf("field target in GroupExpression: %w", err)
 		}
 
@@ -914,21 +903,21 @@ func (j *GroupExpression) UnmarshalJSON(b []byte) error {
 func (j GroupExpression) Type() (GroupExpressionType, error) {
 	t, ok := j["type"]
 	if !ok {
-		return GroupExpressionType(""), errTypeRequired
+		return "", errTypeRequired
 	}
 
 	switch raw := t.(type) {
 	case string:
 		v, err := ParseGroupExpressionType(raw)
 		if err != nil {
-			return GroupExpressionType(""), err
+			return "", err
 		}
 
 		return v, nil
 	case GroupExpressionType:
 		return raw, nil
 	default:
-		return GroupExpressionType(""), fmt.Errorf("invalid GroupExpression type: %+v", t)
+		return "", fmt.Errorf("invalid GroupExpression type: %+v", t)
 	}
 }
 
@@ -1129,12 +1118,13 @@ func (j GroupExpression) InterfaceT() (GroupExpressionEncoder, error) {
 //
 // [conjunction of expressions]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#conjunction-of-expressions
 type GroupExpressionAnd struct {
-	Expressions []GroupExpression `json:"expressions" yaml:"expressions" mapstructure:"expressions"`
+	Expressions []GroupExpression `json:"expressions" mapstructure:"expressions" yaml:"expressions"`
 }
 
 // NewGroupExpressionAnd creates a GroupExpressionAnd instance.
 func NewGroupExpressionAnd(expressions ...GroupExpressionEncoder) *GroupExpressionAnd {
 	exprs := make([]GroupExpression, len(expressions))
+
 	for i, expr := range expressions {
 		if expr == nil {
 			continue
@@ -1165,12 +1155,13 @@ func (exp GroupExpressionAnd) Encode() GroupExpression {
 //
 // [disjunction of expressions]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#disjunction-of-expressions
 type GroupExpressionOr struct {
-	Expressions []GroupExpression `json:"expressions" yaml:"expressions" mapstructure:"expressions"`
+	Expressions []GroupExpression `json:"expressions" mapstructure:"expressions" yaml:"expressions"`
 }
 
 // NewGroupExpressionOr creates a GroupExpressionOr instance.
 func NewGroupExpressionOr(expressions ...GroupExpressionEncoder) *GroupExpressionOr {
 	exprs := make([]GroupExpression, len(expressions))
+
 	for i, expr := range expressions {
 		if expr == nil {
 			continue
@@ -1201,7 +1192,7 @@ func (exp GroupExpressionOr) Encode() GroupExpression {
 //
 // [negation of an expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#negation
 type GroupExpressionNot struct {
-	Expression GroupExpression `json:"expression" yaml:"expression" mapstructure:"expression"`
+	Expression GroupExpression `json:"expression" mapstructure:"expression" yaml:"expression"`
 }
 
 // NewGroupExpressionNot creates a GroupExpressionNot instance.
@@ -1230,8 +1221,8 @@ func (exp GroupExpressionNot) Encode() GroupExpression {
 //
 // [unary operator expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#unary-operators
 type GroupExpressionUnaryComparisonOperator struct {
-	Operator UnaryComparisonOperator `json:"operator" yaml:"operator" mapstructure:"operator"`
-	Target   GroupComparisonTarget   `json:"target" yaml:"target" mapstructure:"target"`
+	Operator UnaryComparisonOperator `json:"operator" mapstructure:"operator" yaml:"operator"`
+	Target   GroupComparisonTarget   `json:"target"   mapstructure:"target"   yaml:"target"`
 }
 
 // NewGroupExpressionUnaryComparisonOperator creates a GroupExpressionUnaryComparisonOperator instance.
@@ -1260,9 +1251,9 @@ func (exp GroupExpressionUnaryComparisonOperator) Encode() GroupExpression {
 //
 // [binary operator expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#unary-operators
 type GroupExpressionBinaryComparisonOperator struct {
-	Operator string                `json:"operator" yaml:"operator" mapstructure:"operator"`
-	Target   GroupComparisonTarget `json:"target" yaml:"target" mapstructure:"target"`
-	Value    GroupComparisonValue  `json:"value" yaml:"value" mapstructure:"value"`
+	Operator string                `json:"operator" mapstructure:"operator" yaml:"operator"`
+	Target   GroupComparisonTarget `json:"target"   mapstructure:"target"   yaml:"target"`
+	Value    GroupComparisonValue  `json:"value"    mapstructure:"value"    yaml:"value"`
 }
 
 // NewGroupExpressionBinaryComparisonOperator creates a GroupExpressionBinaryComparisonOperator instance.

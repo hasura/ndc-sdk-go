@@ -12,7 +12,9 @@ func isNil(value any) bool {
 	if value == nil {
 		return true
 	}
+
 	v := reflect.ValueOf(value)
+
 	return v.Kind() == reflect.Ptr && v.IsNil()
 }
 
@@ -159,4 +161,19 @@ func unmarshalStringFromJsonMap(collection map[string]json.RawMessage, key strin
 	}
 
 	return result, nil
+}
+
+func unmarshalGroupComparisonTargetByKey(raw map[string]json.RawMessage, key string) (GroupComparisonTarget, error) {
+	rawTarget, ok := raw[key]
+	if !ok {
+		return nil, errors.New("required")
+	}
+
+	var target GroupComparisonTarget
+
+	if err := json.Unmarshal(rawTarget, &target); err != nil {
+		return nil, err
+	}
+
+	return target, nil
 }

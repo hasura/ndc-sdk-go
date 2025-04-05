@@ -26,10 +26,10 @@ const (
 
 // NewArguments input arguments for the new command.
 type NewArguments struct {
-	Name    string `help:"Name of the connector." short:"n" required:""`
-	Module  string `help:"Module name of the connector" short:"m" required:""`
+	Name    string `help:"Name of the connector."       required:""                                              short:"n"`
+	Module  string `help:"Module name of the connector" required:""                                              short:"m"`
 	Version string `help:"The version of ndc-sdk-go."`
-	Output  string `help:"The location where source codes will be generated" short:"o" default:""`
+	Output  string `default:""                          help:"The location where source codes will be generated" short:"o"`
 }
 
 // GenerateNewProject generates a new project boilerplate.
@@ -40,8 +40,10 @@ func GenerateNewProject(args *NewArguments, silent bool) error {
 		if err != nil {
 			return err
 		}
+
 		srcPath = path.Join(p, args.Name)
 	}
+
 	if err := os.MkdirAll(srcPath, 0o755); err != nil {
 		return err
 	}
@@ -55,14 +57,17 @@ func GenerateNewProject(args *NewArguments, silent bool) error {
 	}
 
 	log.Info().Msg("downloading dependencies...")
+
 	if err := execGoModTidy(""); err != nil {
 		if silent {
 			return nil
 		}
+
 		return err
 	}
 
 	log.Info().Msg("generating connector functions...")
+
 	if err := internal.ParseAndGenerateConnector(internal.ConnectorGenerationArguments{
 		Path:        ".",
 		Directories: []string{"functions", "types"},
@@ -75,6 +80,7 @@ func GenerateNewProject(args *NewArguments, silent bool) error {
 		if silent {
 			return nil
 		}
+
 		return err
 	}
 
@@ -82,6 +88,7 @@ func GenerateNewProject(args *NewArguments, silent bool) error {
 	if err != nil && silent {
 		return nil
 	}
+
 	return err
 }
 
@@ -91,7 +98,8 @@ func generateNewProjectFiles(args *NewArguments, srcPath string) error {
 			return err
 		}
 
-		log.Debug().Msgf("%s", filePath)
+		log.Debug().Msg(filePath)
+
 		if filePath == templateNewPath {
 			return nil
 		}
@@ -107,15 +115,18 @@ func generateNewProjectFiles(args *NewArguments, srcPath string) error {
 		}
 
 		targetPath = strings.TrimSuffix(targetPath, ".tmpl")
+
 		f, err := os.Create(targetPath)
 		if err != nil {
 			return err
 		}
+
 		defer func() {
 			_ = f.Close()
 		}()
 
 		w := bufio.NewWriter(f)
+
 		err = fileTemplate.Execute(w, map[string]any{
 			"Name":    args.Name,
 			"Module":  args.Module,
@@ -124,6 +135,7 @@ func generateNewProjectFiles(args *NewArguments, srcPath string) error {
 		if err != nil {
 			return err
 		}
+
 		return w.Flush()
 	})
 }
@@ -145,15 +157,19 @@ func execCommand(basePath string, commandName string, args ...string) error {
 	if basePath != "" {
 		cmd.Dir = basePath
 	}
+
 	l := log.With().Strs("args", args).Str("command", commandName).Logger()
+
 	var errBuf bytes.Buffer
 	cmd.Stderr = &errBuf
+
 	out, err := cmd.Output()
 	if err != nil {
 		l.Error().Err(errors.New(errBuf.String())).Msg(err.Error())
 	} else {
 		l.Debug().Str("logs", errBuf.String()).Msg(string(out))
 	}
+
 	return err
 }
 

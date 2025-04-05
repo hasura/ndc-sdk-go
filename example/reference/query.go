@@ -179,6 +179,7 @@ func (qh *QueryHandler) getCollectionByName(collectionName string, arguments map
 	// function
 	case "latest_article_id":
 		var latestID *int
+
 		latestArticle := qh.state.GetLatestArticle()
 
 		if latestArticle != nil {
@@ -321,6 +322,7 @@ func (qh *QueryHandler) evalPath(
 	item []map[string]any,
 ) ([]map[string]any, error) {
 	var err error
+
 	result := item
 
 	for _, pathElem := range path {
@@ -349,6 +351,7 @@ func (qh *QueryHandler) evalPathElement(
 	predicate schema.Expression,
 ) ([]map[string]any, error) {
 	var matchingRows []map[string]any
+
 	allArguments := make(map[string]any)
 
 	// Note: Join strategy
@@ -481,6 +484,7 @@ func (qh *QueryHandler) evalComparisonValue(
 		if !ok {
 			return nil, schema.UnprocessableContentError("invalid variable name: "+compValue.Name, nil)
 		}
+
 		return []any{val}, nil
 	default:
 		return nil, schema.UnprocessableContentError("invalid comparison value", map[string]any{
@@ -625,6 +629,7 @@ func (qh *QueryHandler) evalInCollection(
 		return qh.evalPathElement(collectionRelationships, &relationship, inCol.Arguments, source, inCol.FieldPath, nil)
 	case *schema.ExistsInCollectionUnrelated:
 		arguments := make(map[string]any)
+
 		for key, relArg := range inCol.Arguments {
 			argValue, err := qh.evalRelationshipArgument(item, relArg)
 			if err != nil {
@@ -1268,6 +1273,7 @@ func (qh *QueryHandler) evalColumnMapping(relationship *schema.Relationship, src
 		}
 
 		var targetColumn string
+
 		targetRow := tgtRow
 
 		switch len(targetColumnPath) {

@@ -144,6 +144,7 @@ func (j *TypeRepresentation) UnmarshalJSON(b []byte) error {
 	result := map[string]any{
 		"type": ty,
 	}
+
 	if ty == TypeRepresentationTypeEnum {
 		rawOneOf, ok := raw["one_of"]
 		if !ok {
@@ -897,7 +898,7 @@ func (ty TypeRepresentationJSON) Encode() TypeRepresentation {
 
 // TypeRepresentationEnum represents an enum type representation.
 type TypeRepresentationEnum struct {
-	OneOf []string `json:"one_of" yaml:"one_of" mapstructure:"one_of"`
+	OneOf []string `json:"one_of" mapstructure:"one_of" yaml:"one_of"`
 }
 
 // NewTypeRepresentationEnum creates a new TypeRepresentationEnum instance.
@@ -1033,6 +1034,7 @@ func (j *ExtractionFunctionDefinition) UnmarshalJSON(b []byte) error {
 		}
 
 		result["result_type"] = resultType
+	default:
 	}
 
 	*j = result
@@ -1469,7 +1471,7 @@ type ExtractionFunctionDefinitionEncoder interface {
 
 // ExtractionFunctionDefinitionNanosecond presents a nanosecond extraction function definition.
 type ExtractionFunctionDefinitionNanosecond struct {
-	ResultType string `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewExtractionFunctionDefinitionNanosecond create a new ExtractionFunctionDefinitionNanosecond instance.
@@ -1494,7 +1496,7 @@ func (efd ExtractionFunctionDefinitionNanosecond) Encode() ExtractionFunctionDef
 
 // ExtractionFunctionDefinitionMicrosecond presents a microsecond extraction function definition.
 type ExtractionFunctionDefinitionMicrosecond struct {
-	ResultType string `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewExtractionFunctionDefinitionMicrosecond create a new ExtractionFunctionDefinitionMicrosecond instance.
@@ -1519,7 +1521,7 @@ func (efd ExtractionFunctionDefinitionMillisecond) Encode() ExtractionFunctionDe
 
 // ExtractionFunctionDefinitionMillisecond presents a millisecond extraction function definition.
 type ExtractionFunctionDefinitionMillisecond struct {
-	ResultType string `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewExtractionFunctionDefinitionMillisecond create a new ExtractionFunctionDefinitionMillisecond instance.
@@ -1544,7 +1546,7 @@ func (efd ExtractionFunctionDefinitionMicrosecond) Encode() ExtractionFunctionDe
 
 // ExtractionFunctionDefinitionSecond presents a second extraction function definition.
 type ExtractionFunctionDefinitionSecond struct {
-	ResultType string `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewExtractionFunctionDefinitionSecond create a new ExtractionFunctionDefinitionMicrosecond instance.
@@ -1569,7 +1571,7 @@ func (efd ExtractionFunctionDefinitionSecond) Encode() ExtractionFunctionDefinit
 
 // ExtractionFunctionDefinitionMinute presents a minute extraction function definition.
 type ExtractionFunctionDefinitionMinute struct {
-	ResultType string `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewExtractionFunctionDefinitionMinute create a new ExtractionFunctionDefinitionMinute instance.
@@ -1594,7 +1596,7 @@ func (efd ExtractionFunctionDefinitionMinute) Encode() ExtractionFunctionDefinit
 
 // ExtractionFunctionDefinitionHour presents an hour extraction function definition.
 type ExtractionFunctionDefinitionHour struct {
-	ResultType string `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewExtractionFunctionDefinitionHour create a new ExtractionFunctionDefinitionHour instance.
@@ -1619,7 +1621,7 @@ func (efd ExtractionFunctionDefinitionHour) Encode() ExtractionFunctionDefinitio
 
 // ExtractionFunctionDefinitionDay presents a day extraction function definition.
 type ExtractionFunctionDefinitionDay struct {
-	ResultType string `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewExtractionFunctionDefinitionDay create a new ExtractionFunctionDefinitionDay instance.
@@ -1644,7 +1646,7 @@ func (efd ExtractionFunctionDefinitionDay) Encode() ExtractionFunctionDefinition
 
 // ExtractionFunctionDefinitionWeek presents a week extraction function definition.
 type ExtractionFunctionDefinitionWeek struct {
-	ResultType string `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewExtractionFunctionDefinitionWeek create a new ExtractionFunctionDefinitionWeek instance.
@@ -1669,7 +1671,7 @@ func (efd ExtractionFunctionDefinitionWeek) Encode() ExtractionFunctionDefinitio
 
 // ExtractionFunctionDefinitionMonth presents a month extraction function definition.
 type ExtractionFunctionDefinitionMonth struct {
-	ResultType string `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewExtractionFunctionDefinitionMonth create a new ExtractionFunctionDefinitionMonth instance.
@@ -1694,7 +1696,7 @@ func (efd ExtractionFunctionDefinitionMonth) Encode() ExtractionFunctionDefiniti
 
 // ExtractionFunctionDefinitionQuarter presents a quarter extraction function definition.
 type ExtractionFunctionDefinitionQuarter struct {
-	ResultType string `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewExtractionFunctionDefinitionQuarter create a new ExtractionFunctionDefinitionQuarter instance.
@@ -1719,7 +1721,7 @@ func (efd ExtractionFunctionDefinitionQuarter) Encode() ExtractionFunctionDefini
 
 // ExtractionFunctionDefinitionYear presents a year extraction function definition.
 type ExtractionFunctionDefinitionYear struct {
-	ResultType string `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewExtractionFunctionDefinitionYear create a new ExtractionFunctionDefinitionYear instance.
@@ -1744,7 +1746,7 @@ func (efd ExtractionFunctionDefinitionYear) Encode() ExtractionFunctionDefinitio
 
 // ExtractionFunctionDefinitionDayOfWeek presents a day-of-week extraction function definition.
 type ExtractionFunctionDefinitionDayOfWeek struct {
-	ResultType string `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewExtractionFunctionDefinitionDayOfWeek create a new ExtractionFunctionDefinitionDayOfWeek instance.
@@ -1769,7 +1771,7 @@ func (efd ExtractionFunctionDefinitionDayOfWeek) Encode() ExtractionFunctionDefi
 
 // ExtractionFunctionDefinitionDayOfYear presents a day-of-year extraction function definition.
 type ExtractionFunctionDefinitionDayOfYear struct {
-	ResultType string `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewExtractionFunctionDefinitionDayOfYear create a new ExtractionFunctionDefinitionDayOfYear instance.
@@ -1794,7 +1796,7 @@ func (efd ExtractionFunctionDefinitionDayOfYear) Encode() ExtractionFunctionDefi
 
 // ExtractionFunctionDefinitionCustom presents a custom extraction function definition.
 type ExtractionFunctionDefinitionCustom struct {
-	ResultType Type `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType Type `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewExtractionFunctionDefinitionCustom create a new ExtractionFunctionDefinitionCustom instance.
@@ -1927,6 +1929,7 @@ func (j *AggregateFunctionDefinition) UnmarshalJSON(b []byte) error {
 		}
 
 		results["result_type"] = resultType
+	default:
 	}
 
 	*j = results
@@ -2147,7 +2150,7 @@ func (j AggregateFunctionDefinitionMax) Encode() AggregateFunctionDefinition {
 // AggregateFunctionDefinitionAverage represents an average aggregate function definition
 type AggregateFunctionDefinitionAverage struct {
 	// The scalar type of the result of this function, which should have the type representation Float64
-	ResultType string `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewAggregateFunctionDefinitionAverage creates an AggregateFunctionDefinitionAverage instance.
@@ -2175,7 +2178,7 @@ func (j AggregateFunctionDefinitionAverage) Encode() AggregateFunctionDefinition
 // AggregateFunctionDefinitionSum represents a sum aggregate function definition
 type AggregateFunctionDefinitionSum struct {
 	// The scalar type of the result of this function, which should have one of the type representations Int64 or Float64, depending on whether this function is defined on a scalar type with an integer or floating-point representation, respectively.
-	ResultType string `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType string `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewAggregateFunctionDefinitionSum creates an AggregateFunctionDefinitionSum instance.
@@ -2203,7 +2206,7 @@ func (j AggregateFunctionDefinitionSum) Encode() AggregateFunctionDefinition {
 // AggregateFunctionDefinitionCustom represents a sum aggregate function definition
 type AggregateFunctionDefinitionCustom struct {
 	// The scalar or object type of the result of this function.
-	ResultType Type `json:"result_type" yaml:"result_type" mapstructure:"result_type"`
+	ResultType Type `json:"result_type" mapstructure:"result_type" yaml:"result_type"`
 }
 
 // NewAggregateFunctionDefinitionCustom creates an AggregateFunctionDefinitionCustom instance.
@@ -2852,7 +2855,7 @@ func (ob ComparisonOperatorEndsWithInsensitive) Encode() ComparisonOperatorDefin
 // ComparisonOperatorCustom presents a custom comparison operator.
 type ComparisonOperatorCustom struct {
 	// The type of the argument to this operator
-	ArgumentType Type `json:"argument_type" yaml:"argument_type" mapstructure:"argument_type"`
+	ArgumentType Type `json:"argument_type" mapstructure:"argument_type" yaml:"argument_type"`
 }
 
 // NewComparisonOperatorCustom create a new ComparisonOperatorCustom instance.

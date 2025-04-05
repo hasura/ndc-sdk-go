@@ -18,9 +18,11 @@ const (
 // GetDefault returns the value or default one if value is empty.
 func GetDefault[T comparable](value T, defaultValue T) T {
 	var empty T
+
 	if value == empty {
 		return defaultValue
 	}
+
 	return value
 }
 
@@ -29,6 +31,7 @@ func GetDefaultPtr[T any](value *T, defaultValue *T) *T {
 	if value == nil {
 		return defaultValue
 	}
+
 	return value
 }
 
@@ -37,19 +40,24 @@ func GetDefaultValuePtr[T comparable](value *T, defaultValue T) T {
 	if value == nil {
 		return defaultValue
 	}
+
 	var empty T
+
 	if *value == empty {
 		return defaultValue
 	}
+
 	return *value
 }
 
 // GetKeys gets keys of a map.
 func GetKeys[K cmp.Ordered, V any](input map[K]V) []K {
-	var results []K
+	results := make([]K, 0, len(input))
+
 	for key := range input {
 		results = append(results, key)
 	}
+
 	return results
 }
 
@@ -57,6 +65,7 @@ func GetKeys[K cmp.Ordered, V any](input map[K]V) []K {
 func GetSortedKeys[K cmp.Ordered, V any](input map[K]V) []K {
 	results := GetKeys(input)
 	slices.Sort(results)
+
 	return results
 }
 
@@ -65,11 +74,14 @@ func GetSortedValuesByKey[K cmp.Ordered, V any](input map[K]V) []V {
 	if len(input) == 0 {
 		return []V{}
 	}
+
 	keys := GetSortedKeys(input)
 	results := make([]V, len(input))
+
 	for i, k := range keys {
 		results[i] = input[k]
 	}
+
 	return results
 }
 
@@ -81,22 +93,27 @@ func ToPtr[V any](value V) *V {
 // ToPtrs converts the value slice to pointer slice.
 func ToPtrs[T any](input []T) []*T {
 	results := make([]*T, len(input))
+
 	for i := range input {
 		v := input[i]
 		results[i] = &v
 	}
+
 	return results
 }
 
 // PointersToValues converts the pointer slice to value slice.
 func PointersToValues[T any](input []*T) ([]T, error) {
 	results := make([]T, len(input))
+
 	for i, v := range input {
 		if IsNil(v) {
 			return nil, fmt.Errorf("element at %d must not be nil", i)
 		}
+
 		results[i] = *v
 	}
+
 	return results, nil
 }
 
@@ -109,13 +126,13 @@ func UnwrapPointerFromReflectValue(reflectValue reflect.Value) (reflect.Value, b
 		if reflectValue.IsNil() {
 			return reflectValue, false
 		}
+
 		return UnwrapPointerFromReflectValue(reflectValue.Elem())
 	case reflect.Slice, reflect.Interface, reflect.Map:
-		if reflectValue.IsNil() {
-			return reflectValue, false
-		}
+		return reflectValue, !reflectValue.IsNil()
+	default:
+		return reflectValue, true
 	}
-	return reflectValue, true
 }
 
 // UnwrapPointerFromAnyToReflectValue unwraps pointers from the input any type to the reflection value.
@@ -133,6 +150,7 @@ func UnwrapPointerFromAny(value any) (any, bool) {
 	if !ok {
 		return nil, false
 	}
+
 	return reflectValue.Interface(), true
 }
 
@@ -147,9 +165,11 @@ func MergeMap[K comparable, V any](dest map[K]V, src map[K]V) map[K]V {
 	if result == nil {
 		result = map[K]V{}
 	}
+
 	for k, v := range src {
 		result[k] = v
 	}
+
 	return result
 }
 
@@ -161,12 +181,16 @@ func ParseStringMapFromString(input string) (map[string]string, error) {
 	if input == "" {
 		return result, nil
 	}
+
 	rawItems := strings.Split(input, ";")
+
 	for _, rawItem := range rawItems {
 		keyValue := strings.Split(rawItem, "=")
+
 		if len(keyValue) != keyValueLength {
 			return nil, fmt.Errorf("invalid int map string %s, expected <key1>=<value1>;<key2>=<value2>", input)
 		}
+
 		result[keyValue[0]] = keyValue[1]
 	}
 
@@ -190,11 +214,13 @@ func ParseIntegerMapFromString[T int | int8 | int16 | int32 | int64 | uint | uin
 	}
 
 	result := make(map[string]T)
+
 	for key, value := range rawValues {
 		v, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("invalid integer value %s in item %s", value, key)
 		}
+
 		result[key] = T(v)
 	}
 
@@ -211,11 +237,13 @@ func ParseFloatMapFromString[T float32 | float64](input string) (map[string]T, e
 	}
 
 	result := make(map[string]T)
+
 	for key, value := range rawValues {
 		v, err := strconv.ParseFloat(value, 64)
 		if err != nil {
 			return nil, fmt.Errorf("invalid float value %s in item %s", value, key)
 		}
+
 		result[key] = T(v)
 	}
 
@@ -232,11 +260,13 @@ func ParseBoolMapFromString(input string) (map[string]bool, error) {
 	}
 
 	result := make(map[string]bool)
+
 	for key, value := range rawValues {
 		v, err := strconv.ParseBool(value)
 		if err != nil {
 			return nil, fmt.Errorf("invalid bool value %s in item %s", value, key)
 		}
+
 		result[key] = v
 	}
 

@@ -74,17 +74,21 @@ func fetchCountries() ([]Country, error) {
 }
 
 func fetchRemoteFixtures[T any](name string) ([]T, error) {
-	res, err := http.Get(baseFixtureURL + "/" + name)
+	res, err := http.Get(baseFixtureURL + "/" + name) //nolint:noctx
 	if err != nil {
 		return nil, err
 	}
 
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	var results []T
+
 	decoder := json.NewDecoder(res.Body)
 	for decoder.More() {
 		var r T
+
 		err := decoder.Decode(&r)
 		if err != nil {
 			return nil, err

@@ -71,10 +71,13 @@ func GenRandomString(src *rand.Rand, n int) string {
 		if remain == 0 {
 			cache, remain = src.Int63(), letterIdxMax
 		}
+
 		if idx := int(cache & letterIdxMask); idx < len(alphaDigits) {
 			sb.WriteByte(alphaDigits[idx])
+
 			i--
 		}
+
 		cache >>= letterIdxBits
 		remain--
 	}

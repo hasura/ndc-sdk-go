@@ -65,6 +65,7 @@ func (j *TypeEnum) UnmarshalJSON(b []byte) error {
 	}
 
 	*j = value
+
 	return nil
 }
 
@@ -339,7 +340,7 @@ type TypeEncoder interface {
 // NamedType represents a named type.
 type NamedType struct {
 	// The name can refer to a primitive type or a scalar type
-	Name string `json:"name" yaml:"name" mapstructure:"name"`
+	Name string `json:"name" mapstructure:"name" yaml:"name"`
 }
 
 // NewNamedType creates a new NamedType instance.
@@ -370,7 +371,7 @@ func (ty NamedType) String() string {
 // NullableType represents a nullable type.
 type NullableType struct {
 	// The type of the non-null inhabitants of this type
-	UnderlyingType Type `json:"underlying_type" yaml:"underlying_type" mapstructure:"underlying_type"`
+	UnderlyingType Type `json:"underlying_type" mapstructure:"underlying_type" yaml:"underlying_type"`
 }
 
 // NewNullableType creates a new NullableType instance with underlying type.
@@ -413,7 +414,7 @@ func (ty NullableType) String() string {
 // ArrayType represents an array type.
 type ArrayType struct {
 	// The type of the elements of the array
-	ElementType Type `json:"element_type" yaml:"element_type" mapstructure:"element_type"`
+	ElementType Type `json:"element_type" mapstructure:"element_type" yaml:"element_type"`
 }
 
 // NewArrayType creates a new ArrayType instance.
@@ -444,7 +445,7 @@ func (ty ArrayType) String() string {
 // PredicateType represents a predicate type for a given object type.
 type PredicateType struct {
 	// The name can refer to a primitive type or a scalar type
-	ObjectTypeName string `json:"object_type_name" yaml:"object_type_name" mapstructure:"object_type_name"`
+	ObjectTypeName string `json:"object_type_name" mapstructure:"object_type_name" yaml:"object_type_name"`
 }
 
 // NewPredicateType creates a new PredicateType instance.

@@ -14,9 +14,9 @@ import (
 )
 
 var cli struct {
-	LogLevel string                  `help:"Log level." enum:"debug,info,warn,error,DEBUG,INFO,WARN,ERROR" env:"HASURA_PLUGIN_LOG_LEVEL" default:"info"`
-	New      command.NewArguments    `cmd:"" help:"Initialize an NDC connector boilerplate. For example:\n hasura-ndc-go new -n example -m github.com/foo/example"`
-	Update   command.UpdateArguments `cmd:"" help:"Generate schema and implementation for the connector from functions."`
+	LogLevel string                  `default:"info" enum:"debug,info,warn,error,DEBUG,INFO,WARN,ERROR"                                                                    env:"HASURA_PLUGIN_LOG_LEVEL" help:"Log level."`
+	New      command.NewArguments    `cmd:""         help:"Initialize an NDC connector boilerplate. For example:\n hasura-ndc-go new -n example -m github.com/foo/example"`
+	Update   command.UpdateArguments `cmd:""         help:"Generate schema and implementation for the connector from functions."`
 	Generate struct {
 		Snapshots command.GenTestSnapshotArguments `cmd:"" help:"Generate test snapshots."`
 	} `cmd:"" help:"Generator helpers."`
@@ -27,6 +27,7 @@ var cli struct {
 func main() {
 	cmd := kong.Parse(&cli, kong.UsageOnError())
 	start := time.Now()
+
 	setupGlobalLogger(cli.LogLevel)
 
 	switch cmd.Command() {
@@ -45,6 +46,7 @@ func main() {
 		if err := command.GenerateNewProject(&cli.New, false); err != nil {
 			log.Fatal().Err(err).Msg("failed to generate new project")
 		}
+
 		log.Info().Str("exec_time", time.Since(start).Round(time.Second).String()).
 			Msg("generated successfully")
 	case "update":
@@ -71,6 +73,7 @@ func setupGlobalLogger(level string) {
 	if err != nil {
 		log.Fatal().Err(err).Msgf("failed to parse log level: %s", level)
 	}
+
 	zerolog.SetGlobalLevel(logLevel)
 	log.Logger = log.Level(logLevel).Output(zerolog.ConsoleWriter{Out: os.Stderr})
 }

@@ -55,6 +55,7 @@ func (d *Duration) FromValue(value any) error {
 	if err != nil {
 		return fmt.Errorf("invalid duration value: %w", err)
 	}
+
 	if result != nil {
 		d.Duration = *result
 	}
@@ -112,6 +113,7 @@ func (d *DurationString) FromValue(value any) error {
 	if err != nil {
 		return fmt.Errorf("invalid duration value: %w", err)
 	}
+
 	if result != nil {
 		d.Duration = *result
 	}
@@ -164,6 +166,7 @@ func (d *DurationInt64) FromValue(value any) error {
 	if err != nil {
 		return fmt.Errorf("invalid duration value: %w", err)
 	}
+
 	if result != nil {
 		d.Duration = *result
 	}

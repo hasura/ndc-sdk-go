@@ -88,6 +88,7 @@ func newLoggerProvider(ctx context.Context, config *OTLPConfig, otelDisabled boo
 	}
 
 	opts := []log.LoggerProviderOption{log.WithResource(res)}
+
 	if protocol == otlpProtocolGRPC {
 		options := []otlploggrpc.Option{
 			otlploggrpc.WithEndpoint(endpoint),

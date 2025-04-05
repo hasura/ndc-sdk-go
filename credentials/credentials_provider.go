@@ -132,11 +132,14 @@ func (cc *CredentialClient) AcquireCredentials(ctx context.Context, key string, 
 		return "", fmt.Errorf("error making request: %w", err)
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	span.SetAttributes(attribute.Int("http.response.status_code", resp.StatusCode))
 
 	var payload Payload
+
 	err = json.NewDecoder(resp.Body).Decode(&payload)
 	if err != nil {
 		span.SetStatus(codes.Error, "failed to read the response")

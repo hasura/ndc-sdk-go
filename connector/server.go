@@ -35,13 +35,13 @@ type ServerOptions struct {
 
 // HTTPServerConfig the configuration of the HTTP server.
 type HTTPServerConfig struct {
-	ServerReadTimeout        time.Duration `help:"Maximum duration for reading the entire request, including the body. A zero or negative value means there will be no timeout" env:"HASURA_SERVER_READ_TIMEOUT"`
-	ServerReadHeaderTimeout  time.Duration `help:"Amount of time allowed to read request headers. If zero, the value of ReadTimeout is used" env:"HASURA_SERVER_READ_HEADER_TIMEOUT"`
-	ServerWriteTimeout       time.Duration `help:"Maximum duration before timing out writes of the response. A zero or negative value means there will be no timeout" env:"HASURA_SERVER_WRITE_TIMEOUT"`
-	ServerIdleTimeout        time.Duration `help:"Maximum amount of time to wait for the next request when keep-alives are enabled. If zero, the value of ReadTimeout is used" env:"HASURA_SERVER_IDLE_TIMEOUT"`
-	ServerMaxHeaderKilobytes int           `help:"Maximum number of kilobytes the server will read parsing the request header's keys and values, including the request line" default:"1024" env:"HASURA_SERVER_MAX_HEADER_KILOBYTES"`
-	ServerTLSCertFile        string        `help:"Path of the TLS certificate file" env:"HASURA_SERVER_TLS_CERT_FILE"`
-	ServerTLSKeyFile         string        `help:"Path of the TLS key file" env:"HASURA_SERVER_TLS_KEY_FILE"`
+	ServerReadTimeout        time.Duration `env:"HASURA_SERVER_READ_TIMEOUT"        help:"Maximum duration for reading the entire request, including the body. A zero or negative value means there will be no timeout"`
+	ServerReadHeaderTimeout  time.Duration `env:"HASURA_SERVER_READ_HEADER_TIMEOUT" help:"Amount of time allowed to read request headers. If zero, the value of ReadTimeout is used"`
+	ServerWriteTimeout       time.Duration `env:"HASURA_SERVER_WRITE_TIMEOUT"       help:"Maximum duration before timing out writes of the response. A zero or negative value means there will be no timeout"`
+	ServerIdleTimeout        time.Duration `env:"HASURA_SERVER_IDLE_TIMEOUT"        help:"Maximum amount of time to wait for the next request when keep-alives are enabled. If zero, the value of ReadTimeout is used"`
+	ServerMaxHeaderKilobytes int           `default:"1024"                          env:"HASURA_SERVER_MAX_HEADER_KILOBYTES"                                                                                            help:"Maximum number of kilobytes the server will read parsing the request header's keys and values, including the request line"`
+	ServerTLSCertFile        string        `env:"HASURA_SERVER_TLS_CERT_FILE"       help:"Path of the TLS certificate file"`
+	ServerTLSKeyFile         string        `env:"HASURA_SERVER_TLS_KEY_FILE"        help:"Path of the TLS key file"`
 }
 
 // Server implements the [NDC API specification] for the connector
@@ -50,7 +50,7 @@ type HTTPServerConfig struct {
 type Server[Configuration any, State any] struct {
 	*serveOptions
 
-	context               context.Context
+	context               context.Context //nolint:containedctx
 	stop                  context.CancelFunc
 	connector             Connector[Configuration, State]
 	state                 *State
@@ -69,7 +69,7 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 	}
 
 	if options.ServiceName == "" {
-		options.OTLPConfig.ServiceName = defaultOptions.serviceName
+		options.ServiceName = defaultOptions.serviceName
 	}
 
 	defaultOptions.logger.Debug(
@@ -124,6 +124,7 @@ func (s *Server[Configuration, State]) GetCapabilities(w http.ResponseWriter, r 
 	capabilities := s.connector.GetCapabilities(s.configuration)
 	if capabilities == nil {
 		writeError(w, logger, schema.InternalServerError("capabilities is empty", nil))
+
 		return
 	}
 
@@ -137,6 +138,7 @@ func (s *Server[Configuration, State]) Health(w http.ResponseWriter, r *http.Req
 	logger := GetLogger(r.Context())
 	if err := s.connector.HealthCheck(r.Context(), s.configuration, s.state); err != nil {
 		writeError(w, logger, err)
+
 		return
 	}
 
@@ -147,12 +149,16 @@ func (s *Server[Configuration, State]) Health(w http.ResponseWriter, r *http.Req
 func (s *Server[Configuration, State]) GetSchema(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r.Context())
 	schemaResult, err := s.connector.GetSchema(r.Context(), s.configuration, s.state)
+
 	if err != nil {
 		writeError(w, logger, err)
+
 		return
 	}
+
 	if schemaResult == nil {
 		writeError(w, logger, schema.InternalServerError("schema is empty", nil))
+
 		return
 	}
 
@@ -166,6 +172,7 @@ func (s *Server[Configuration, State]) Query(w http.ResponseWriter, r *http.Requ
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
 	span := trace.SpanFromContext(r.Context())
+
 	var body schema.QueryRequest
 
 	if err := s.unmarshalBodyJSON(w, r, s.telemetry.queryCounter, &body); err != nil {
@@ -174,6 +181,7 @@ func (s *Server[Configuration, State]) Query(w http.ResponseWriter, r *http.Requ
 
 	collectionAttr := attribute.String("collection", body.Collection)
 	span.SetAttributes(collectionAttr)
+
 	execQueryCtx, execQuerySpan := s.telemetry.Tracer.Start(r.Context(), "ndc_execute_query")
 	defer execQuerySpan.End()
 
@@ -241,20 +249,21 @@ func (s *Server[Configuration, State]) QueryExplain(w http.ResponseWriter, r *ht
 }
 
 // MutationExplain implements a handler for the /mutation/explain endpoint, POST method that explains a mutation by creating an execution plan.
-func (s *Server[Configuration, State]) MutationExplain(w http.ResponseWriter, r *http.Request) {
+func (s *Server[Configuration, State]) MutationExplain(w http.ResponseWriter, r *http.Request) { //nolint:dupl
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
 	span := trace.SpanFromContext(r.Context())
+
 	var body schema.MutationRequest
 
 	if err := s.unmarshalBodyJSON(w, r, s.telemetry.mutationExplainCounter, &body); err != nil {
 		return
 	}
 
-	var operationNames []string
+	operationNames := make([]string, len(body.Operations))
 
-	for _, op := range body.Operations {
-		operationNames = append(operationNames, op.Name)
+	for i, op := range body.Operations {
+		operationNames[i] = op.Name
 	}
 
 	operationAttr := attribute.String("operations", strings.Join(operationNames, ","))
@@ -288,7 +297,7 @@ func (s *Server[Configuration, State]) MutationExplain(w http.ResponseWriter, r 
 }
 
 // Mutation implements a handler for the /mutation endpoint, POST method that executes a mutation.
-func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.Request) {
+func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.Request) { //nolint:dupl
 	startTime := time.Now()
 	logger := GetLogger(r.Context())
 	span := trace.SpanFromContext(r.Context())
@@ -299,9 +308,10 @@ func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	var operationNames []string
-	for _, op := range body.Operations {
-		operationNames = append(operationNames, op.Name)
+	operationNames := make([]string, len(body.Operations))
+
+	for i, op := range body.Operations {
+		operationNames[i] = op.Name
 	}
 
 	operationAttr := attribute.String("operations", strings.Join(operationNames, ","))
@@ -381,6 +391,7 @@ func (s *Server[Configuration, State]) buildHandler() *http.ServeMux {
 // BuildTestServer builds an http test server for testing purpose.
 func (s *Server[Configuration, State]) BuildTestServer() *httptest.Server {
 	_ = s.telemetry.Shutdown(context.Background())
+
 	return httptest.NewServer(s.buildHandler())
 }
 
@@ -398,8 +409,8 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 	}()
 
 	maxHeaderBytes := http.DefaultMaxHeaderBytes
-	if s.options.HTTPServerConfig.ServerMaxHeaderKilobytes > 0 {
-		maxHeaderBytes = s.options.HTTPServerConfig.ServerMaxHeaderKilobytes * 1024
+	if s.options.ServerMaxHeaderKilobytes > 0 {
+		maxHeaderBytes = s.options.ServerMaxHeaderKilobytes * 1024
 	}
 
 	server := http.Server{
@@ -416,8 +427,10 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 	}
 
 	serverErr := make(chan error, 1)
+
 	go func() {
 		var err error
+
 		if s.options.ServerTLSCertFile != "" || s.options.ServerTLSKeyFile != "" {
 			s.telemetry.Logger.Info("Listening server and serving TLS on " + server.Addr)
 			err = server.ListenAndServeTLS(s.options.ServerTLSCertFile, s.options.ServerTLSKeyFile)
@@ -436,9 +449,11 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 		defer func() {
 			_ = promServer.Shutdown(context.Background())
 		}()
+
 		go func() {
 			s.telemetry.Logger.Info(fmt.Sprintf("Listening prometheus server on %d", *s.options.PrometheusPort))
-			if err := promServer.ListenAndServe(); err != http.ErrServerClosed {
+
+			if err := promServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 				serverErr <- err
 			}
 		}()

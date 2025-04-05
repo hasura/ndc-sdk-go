@@ -52,6 +52,7 @@ func (j *ArgumentType) UnmarshalJSON(b []byte) error {
 	}
 
 	*j = value
+
 	return nil
 }
 
@@ -216,7 +217,7 @@ func (j Argument) InterfaceT() (ArgumentEncoder, error) {
 
 // ArgumentLiteral represents the literal argument.
 type ArgumentLiteral struct {
-	Value any `json:"value" yaml:"value" mapstructure:"value"`
+	Value any `json:"value" mapstructure:"value" yaml:"value"`
 }
 
 // NewArgumentLiteral creates an argument with a literal value.
@@ -241,7 +242,7 @@ func (j ArgumentLiteral) Encode() Argument {
 
 // ArgumentVariable represents the variable argument.
 type ArgumentVariable struct {
-	Name string `json:"name" yaml:"name" mapstructure:"name"`
+	Name string `json:"name" mapstructure:"name" yaml:"name"`
 }
 
 // NewArgumentVariable creates an argument with a variable name.
@@ -485,7 +486,7 @@ func (j RelationshipArgument) InterfaceT() (RelationshipArgumentEncoder, error) 
 
 // RelationshipArgumentLiteral represents the literal relationship argument.
 type RelationshipArgumentLiteral struct {
-	Value any `json:"value" yaml:"value" mapstructure:"value"`
+	Value any `json:"value" mapstructure:"value" yaml:"value"`
 }
 
 // NewRelationshipArgumentLiteral creates a RelationshipArgumentLiteral instance.
@@ -510,7 +511,7 @@ func (j RelationshipArgumentLiteral) Encode() RelationshipArgument {
 
 // RelationshipArgumentColumn represents the column relationship argument.
 type RelationshipArgumentColumn struct {
-	Name string `json:"name" yaml:"name" mapstructure:"name"`
+	Name string `json:"name" mapstructure:"name" yaml:"name"`
 }
 
 // NewRelationshipArgumentColumn creates a RelationshipArgumentColumn instance.
@@ -535,7 +536,7 @@ func (j RelationshipArgumentColumn) Encode() RelationshipArgument {
 
 // RelationshipArgumentVariable represents the variable relationship argument.
 type RelationshipArgumentVariable struct {
-	Name string `json:"name" yaml:"name" mapstructure:"name"`
+	Name string `json:"name" mapstructure:"name" yaml:"name"`
 }
 
 // NewRelationshipArgumentVariable creates a RelationshipArgumentVariable instance.
@@ -665,6 +666,7 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 			if err = json.Unmarshal(rawArguments, &arguments); err != nil {
 				return fmt.Errorf("field arguments in Field: %w", err)
 			}
+
 			results["arguments"] = arguments
 		}
 	case FieldTypeRelationship:
@@ -848,13 +850,13 @@ func (j Field) InterfaceT() (FieldEncoder, error) {
 // ColumnField represents a column field.
 type ColumnField struct {
 	// Column name
-	Column string `json:"column" yaml:"column" mapstructure:"column"`
+	Column string `json:"column" mapstructure:"column" yaml:"column"`
 	// When the type of the column is a (possibly-nullable) array or object,
 	// the caller can request a subset of the complete column data, by specifying fields to fetch here.
 	// If omitted, the column data will be fetched in full.
-	Fields NestedField `json:"fields,omitempty" yaml:"fields,omitempty" mapstructure:"fields"`
+	Fields NestedField `json:"fields,omitempty" mapstructure:"fields" yaml:"fields,omitempty"`
 
-	Arguments map[string]Argument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"fields"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"fields" yaml:"arguments,omitempty"`
 }
 
 // NewColumnField creates a new ColumnField instance.
@@ -931,11 +933,11 @@ func (f ColumnField) Encode() Field {
 // RelationshipField represents a relationship field.
 type RelationshipField struct {
 	// The relationship query
-	Query Query `json:"query" yaml:"query" mapstructure:"query"`
+	Query Query `json:"query" mapstructure:"query" yaml:"query"`
 	// The name of the relationship to follow for the subquery
-	Relationship string `json:"relationship" yaml:"relationship" mapstructure:"relationship"`
+	Relationship string `json:"relationship" mapstructure:"relationship" yaml:"relationship"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]RelationshipArgument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
+	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments" yaml:"arguments"`
 }
 
 // NewRelationshipField creates a new RelationshipField instance.
@@ -1223,11 +1225,11 @@ func (j ComparisonTarget) InterfaceT() (ComparisonTargetEncoder, error) {
 // ComparisonTargetColumn represents a comparison targets a column.
 type ComparisonTargetColumn struct {
 	// The name of the column
-	Name string `json:"name" yaml:"name" mapstructure:"name"`
+	Name string `json:"name" mapstructure:"name" yaml:"name"`
 	// Arguments to satisfy the column specified by 'name'
-	Arguments map[string]Argument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"arguments"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
 	// Path to a nested field within an object column. Only non-empty if the 'query.nested_fields.filter_by' capability is supported.
-	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 }
 
 // NewComparisonTargetColumn creates a ComparisonTarget with column type.
@@ -1303,9 +1305,9 @@ func (f ComparisonTargetColumn) Encode() ComparisonTarget {
 // Only used if the 'query.aggregates.filter_by' capability is supported.
 type ComparisonTargetAggregate struct {
 	// The aggregation method to use
-	Aggregate Aggregate `json:"aggregate" yaml:"aggregate" mapstructure:"aggregate"`
+	Aggregate Aggregate `json:"aggregate" mapstructure:"aggregate" yaml:"aggregate"`
 	// Non-empty collection of relationships to traverse
-	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
+	Path []PathElement `json:"path" mapstructure:"path" yaml:"path"`
 }
 
 // NewComparisonTargetAggregate creates a ComparisonTargetAggregate instance.
@@ -1375,6 +1377,7 @@ func (j *ComparisonValueType) UnmarshalJSON(b []byte) error {
 	}
 
 	*j = value
+
 	return nil
 }
 
@@ -1382,7 +1385,7 @@ func (j *ComparisonValueType) UnmarshalJSON(b []byte) error {
 type ComparisonValue map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *ComparisonValue) UnmarshalJSON(b []byte) error {
+func (cv *ComparisonValue) UnmarshalJSON(b []byte) error {
 	var raw map[string]any
 
 	if err := json.Unmarshal(b, &raw); err != nil {
@@ -1393,11 +1396,11 @@ func (j *ComparisonValue) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	return j.FromValue(raw)
+	return cv.FromValue(raw)
 }
 
 // FromValue decodes values from any map.
-func (j *ComparisonValue) FromValue(input map[string]any) error {
+func (cv *ComparisonValue) FromValue(input map[string]any) error {
 	rawType, err := getStringValueByKey(input, "type")
 	if err != nil {
 		return fmt.Errorf("field type in ComparisonValue: %w", err)
@@ -1436,7 +1439,7 @@ func (j *ComparisonValue) FromValue(input map[string]any) error {
 		result["value"] = value
 	}
 
-	*j = result
+	*cv = result
 
 	return nil
 }
@@ -1616,19 +1619,19 @@ type ComparisonValueEncoder interface {
 // The value to compare against should be drawn from another column
 type ComparisonValueColumn struct {
 	// The name of the column
-	Name string `json:"name" yaml:"name" mapstructure:"name"`
+	Name string `json:"name" mapstructure:"name" yaml:"name"`
 	// Any relationships to traverse to reach this column.
 	// Only non-empty if the 'relationships.relation_comparisons' is supported.
-	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
+	Path []PathElement `json:"path" mapstructure:"path" yaml:"path"`
 	// Arguments to satisfy the column specified by 'name'
-	Arguments map[string]Argument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"arguments"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
 	// Path to a nested field within an object column. Only non-empty if the 'query.nested_fields.filter_by' capability is supported.
-	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 	// The scope in which this column exists, identified by an top-down index into the stack of scopes.
 	// The stack grows inside each `Expression::Exists`, so scope 0 (the default) refers to the current collection,
 	// and each subsequent index refers to the collection outside its predecessor's immediately enclosing `Expression::Exists` expression.
 	// Only used if the 'query.exists.named_scopes' capability is supported.
-	Scope *uint `json:"scope,omitempty" yaml:"scope,omitempty" mapstructure:"scope"`
+	Scope *uint `json:"scope,omitempty" mapstructure:"scope" yaml:"scope,omitempty"`
 }
 
 // NewComparisonValueColumn creates a new ComparisonValueColumn instance.
@@ -1672,7 +1675,7 @@ func (cv ComparisonValueColumn) Encode() ComparisonValue {
 
 // ComparisonValueScalar represents a comparison value with scalar type.
 type ComparisonValueScalar struct {
-	Value any `json:"value" yaml:"value" mapstructure:"value"`
+	Value any `json:"value" mapstructure:"value" yaml:"value"`
 }
 
 // NewComparisonValueScalar creates a new ComparisonValueScalar instance.
@@ -1697,7 +1700,7 @@ func (cv ComparisonValueScalar) Encode() ComparisonValue {
 
 // ComparisonValueVariable represents a comparison value with variable type.
 type ComparisonValueVariable struct {
-	Name string `json:"name" yaml:"name" mapstructure:"name"`
+	Name string `json:"name" mapstructure:"name" yaml:"name"`
 }
 
 // NewComparisonValueVariable creates a new ComparisonValueVariable instance.
@@ -1765,6 +1768,7 @@ func (j *ExistsInCollectionType) UnmarshalJSON(b []byte) error {
 	}
 
 	*j = value
+
 	return nil
 }
 
@@ -2079,12 +2083,12 @@ type ExistsInCollectionEncoder interface {
 //
 // [Related collections]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=exists#related-collections
 type ExistsInCollectionRelated struct {
-	Relationship string `json:"relationship" yaml:"relationship" mapstructure:"relationship"`
+	Relationship string `json:"relationship" mapstructure:"relationship" yaml:"relationship"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]RelationshipArgument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
+	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments" yaml:"arguments"`
 	// Path to a nested field within an object column that must be navigated before the relationship is navigated.
 	// Only non-empty if the 'relationships.nested.filtering' capability is supported.
-	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 }
 
 // NewExistsInCollectionRelated creates an ExistsInCollectionRelated instance.
@@ -2120,9 +2124,9 @@ func (ei ExistsInCollectionRelated) Encode() ExistsInCollection {
 // [unrelated collections]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=exists#unrelated-collections
 type ExistsInCollectionUnrelated struct {
 	// The name of a collection
-	Collection string `json:"collection" yaml:"collection" mapstructure:"collection"`
+	Collection string `json:"collection" mapstructure:"collection" yaml:"collection"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]RelationshipArgument `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
+	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments" yaml:"arguments"`
 }
 
 // NewExistsInCollectionUnrelated creates an ExistsInCollectionUnrelated instance.
@@ -2152,11 +2156,11 @@ func (ei ExistsInCollectionUnrelated) Encode() ExistsInCollection {
 // [nested collections]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=exists#nested-collections
 type ExistsInCollectionNestedCollection struct {
 	// The name of column
-	ColumnName string `json:"column_name" yaml:"column_name" mapstructure:"column_name"`
+	ColumnName string `json:"column_name" mapstructure:"column_name" yaml:"column_name"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]Argument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"arguments"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
 	// Path to a nested collection via object columns
-	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 }
 
 // NewExistsInCollectionNestedCollection creates an ExistsInCollectionNestedCollection instance.
@@ -2197,11 +2201,11 @@ func (ei ExistsInCollectionNestedCollection) Encode() ExistsInCollection {
 //	Only used if the 'query.exists.nested_scalar_collections' capability is supported.
 type ExistsInCollectionNestedScalarCollection struct {
 	// The name of column
-	ColumnName string `json:"column_name" yaml:"column_name" mapstructure:"column_name"`
+	ColumnName string `json:"column_name" mapstructure:"column_name" yaml:"column_name"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]Argument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"arguments"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
 	// Path to a nested collection via object columns
-	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 }
 
 // NewExistsInCollectionNestedScalarCollection creates an ExistsInCollectionNestedScalarCollection instance.
@@ -2799,7 +2803,7 @@ type ExpressionEncoder interface {
 //
 // [conjunction of expressions]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#conjunction-of-expressions
 type ExpressionAnd struct {
-	Expressions []Expression `json:"expressions" yaml:"expressions" mapstructure:"expressions"`
+	Expressions []Expression `json:"expressions" mapstructure:"expressions" yaml:"expressions"`
 }
 
 // NewExpressionAnd creates an ExpressionAnd instance.
@@ -2834,7 +2838,7 @@ func (exp ExpressionAnd) Encode() Expression {
 //
 // [disjunction of expressions]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#disjunction-of-expressions
 type ExpressionOr struct {
-	Expressions []Expression `json:"expressions" yaml:"expressions" mapstructure:"expressions"`
+	Expressions []Expression `json:"expressions" mapstructure:"expressions" yaml:"expressions"`
 }
 
 // NewExpressionOr creates an ExpressionOr instance.
@@ -2869,7 +2873,7 @@ func (exp ExpressionOr) Encode() Expression {
 //
 // [negation of an expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#negation
 type ExpressionNot struct {
-	Expression Expression `json:"expression" yaml:"expression" mapstructure:"expression"`
+	Expression Expression `json:"expression" mapstructure:"expression" yaml:"expression"`
 }
 
 // NewExpressionNot creates an ExpressionNot instance.
@@ -2896,8 +2900,8 @@ func (exp ExpressionNot) Encode() Expression {
 //
 // [unary operator expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#unary-operators
 type ExpressionUnaryComparisonOperator struct {
-	Operator UnaryComparisonOperator `json:"operator" yaml:"operator" mapstructure:"operator"`
-	Column   ComparisonTarget        `json:"column" yaml:"column" mapstructure:"column"`
+	Operator UnaryComparisonOperator `json:"operator" mapstructure:"operator" yaml:"operator"`
+	Column   ComparisonTarget        `json:"column"   mapstructure:"column"   yaml:"column"`
 }
 
 // NewExpressionUnaryComparisonOperator creates an ExpressionUnaryComparisonOperator instance.
@@ -2926,9 +2930,9 @@ func (exp ExpressionUnaryComparisonOperator) Encode() Expression {
 //
 // [binary operator expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#unary-operators
 type ExpressionBinaryComparisonOperator struct {
-	Operator string           `json:"operator" yaml:"operator" mapstructure:"operator"`
-	Column   ComparisonTarget `json:"column" yaml:"column" mapstructure:"column"`
-	Value    ComparisonValue  `json:"value" yaml:"value" mapstructure:"value"`
+	Operator string           `json:"operator" mapstructure:"operator" yaml:"operator"`
+	Column   ComparisonTarget `json:"column"   mapstructure:"column"   yaml:"column"`
+	Value    ComparisonValue  `json:"value"    mapstructure:"value"    yaml:"value"`
 }
 
 // NewExpressionBinaryComparisonOperator creates an ExpressionBinaryComparisonOperator instance.
@@ -2960,8 +2964,8 @@ func (exp ExpressionBinaryComparisonOperator) Encode() Expression {
 // ExpressionArrayComparison is comparison against a nested array column.
 // Only used if the 'query.nested_fields.filter_by.nested_arrays' capability is supported.
 type ExpressionArrayComparison struct {
-	Column     ComparisonTarget `json:"column" yaml:"column" mapstructure:"column"`
-	Comparison ArrayComparison  `json:"comparison" yaml:"comparison" mapstructure:"comparison"`
+	Column     ComparisonTarget `json:"column"     mapstructure:"column"     yaml:"column"`
+	Comparison ArrayComparison  `json:"comparison" mapstructure:"comparison" yaml:"comparison"`
 }
 
 // NewExpressionArrayComparison creates an ExpressionArrayComparison instance.
@@ -2990,8 +2994,8 @@ func (exp ExpressionArrayComparison) Encode() Expression {
 //
 // [EXISTS expression]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=expression#exists-expressions
 type ExpressionExists struct {
-	Predicate    Expression         `json:"predicate" yaml:"predicate" mapstructure:"predicate"`
-	InCollection ExistsInCollection `json:"in_collection" yaml:"in_collection" mapstructure:"in_collection"`
+	Predicate    Expression         `json:"predicate"     mapstructure:"predicate"     yaml:"predicate"`
+	InCollection ExistsInCollection `json:"in_collection" mapstructure:"in_collection" yaml:"in_collection"`
 }
 
 // NewExpressionExists creates an ExpressionExists instance.
@@ -3063,6 +3067,7 @@ func (j *AggregateType) UnmarshalJSON(b []byte) error {
 	}
 
 	*j = value
+
 	return nil
 }
 
@@ -3131,12 +3136,14 @@ func (j Aggregate) Type() (AggregateType, error) {
 	if !ok {
 		return AggregateType(""), errTypeRequired
 	}
+
 	switch raw := t.(type) {
 	case string:
 		v, err := ParseAggregateType(raw)
 		if err != nil {
 			return AggregateType(""), err
 		}
+
 		return v, nil
 	case AggregateType:
 		return raw, nil
@@ -3319,13 +3326,13 @@ func (ag AggregateStarCount) Encode() Aggregate {
 // AggregateSingleColumn represents an aggregate object which applies an aggregation function (as defined by the column's scalar type in the schema response) to a column.
 type AggregateSingleColumn struct {
 	// The column to apply the aggregation function to
-	Column string `json:"column" yaml:"column" mapstructure:"column"`
+	Column string `json:"column" mapstructure:"column" yaml:"column"`
 	// Single column aggregate function name.
-	Function string `json:"function" yaml:"function" mapstructure:"function"`
+	Function string `json:"function" mapstructure:"function" yaml:"function"`
 	// Path to a nested field within an object column.
-	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 	// Arguments to satisfy the column specified by 'column'
-	Arguments map[string]Argument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"arguments"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
 }
 
 // NewAggregateSingleColumn creates a new AggregateSingleColumn instance.
@@ -3366,13 +3373,13 @@ func (ag AggregateSingleColumn) Encode() Aggregate {
 // If the distinct flag is set, then the count should only count unique non-null values of those columns.
 type AggregateColumnCount struct {
 	// The column to apply the aggregation function to
-	Column string `json:"column" yaml:"column" mapstructure:"column"`
+	Column string `json:"column" mapstructure:"column" yaml:"column"`
 	// Whether or not only distinct items should be counted.
-	Distinct bool `json:"distinct" yaml:"distinct" mapstructure:"distinct"`
+	Distinct bool `json:"distinct" mapstructure:"distinct" yaml:"distinct"`
 	// Path to a nested field within an object column.
-	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 	// Arguments to satisfy the column specified by 'column'
-	Arguments map[string]Argument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"arguments"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
 }
 
 // NewAggregateColumnCount creates a new AggregateColumnCount instance.
@@ -3706,13 +3713,13 @@ type OrderByTargetEncoder interface {
 // OrderByColumn represents an ordering object which compares the value in the selected column.
 type OrderByColumn struct {
 	// The name of the column
-	Name string `json:"name" yaml:"name" mapstructure:"name"`
+	Name string `json:"name" mapstructure:"name" yaml:"name"`
 	// Any relationships to traverse to reach this column
-	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
+	Path []PathElement `json:"path" mapstructure:"path" yaml:"path"`
 	// Any field path to a nested field within the column
-	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 	// Arguments to satisfy the column specified by 'name'
-	Arguments map[string]Argument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"arguments"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
 }
 
 // NewOrderByColumn creates an OrderByColumn instance.
@@ -3758,10 +3765,10 @@ func (ob OrderByColumn) Encode() OrderByTarget {
 // Only used if the 'relationships.order_by_aggregate' capability is supported.
 type OrderByAggregate struct {
 	// The aggregation method to use.
-	Aggregate Aggregate `json:"aggregate" yaml:"aggregate" mapstructure:"aggregate"`
+	Aggregate Aggregate `json:"aggregate" mapstructure:"aggregate" yaml:"aggregate"`
 	// Non-empty collection of relationships to traverse. Only non-empty if the 'relationships' capability is supported.
 	// 'PathElement.field_path' will only be non-empty if the 'relationships.nested.ordering' capability is supported.
-	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
+	Path []PathElement `json:"path" mapstructure:"path" yaml:"path"`
 }
 
 // NewOrderByAggregate creates an OrderByAggregate instance.
@@ -4054,7 +4061,7 @@ type NestedFieldEncoder interface {
 
 // NestedObject presents a nested object field.
 type NestedObject struct {
-	Fields map[string]Field `json:"fields" yaml:"fields" mapstructure:"fields"`
+	Fields map[string]Field `json:"fields" mapstructure:"fields" yaml:"fields"`
 }
 
 // NewNestedObject create a new NestedObject instance.
@@ -4089,7 +4096,7 @@ func (ob NestedObject) Encode() NestedField {
 
 // NestedArray presents a nested array field.
 type NestedArray struct {
-	Fields NestedField `json:"fields" yaml:"fields" mapstructure:"fields"`
+	Fields NestedField `json:"fields" mapstructure:"fields" yaml:"fields"`
 }
 
 // NewNestedArray create a new NestedArray instance.
@@ -4114,7 +4121,7 @@ func (ob NestedArray) Encode() NestedField {
 
 // NestedCollection presents a nested collection field.
 type NestedCollection struct {
-	Query Query `json:"query" yaml:"query" mapstructure:"query"`
+	Query Query `json:"query" mapstructure:"query" yaml:"query"`
 }
 
 // NewNestedCollection create a new NestedCollection instance.

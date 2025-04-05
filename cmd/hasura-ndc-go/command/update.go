@@ -36,6 +36,7 @@ func UpdateConnectorSchema(args UpdateArguments, start time.Time) {
 		if err := execGetLatestSDK("."); err != nil {
 			log.Error().Err(err).Msg("failed to upgrade the latest SDK version")
 		}
+
 		if err := execGoModTidy("."); err != nil {
 			log.Error().Err(err).Msg("failed to tidy modules")
 		}

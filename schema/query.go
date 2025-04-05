@@ -313,7 +313,7 @@ func (j ArrayComparison) InterfaceT() (ArrayComparisonEncoder, error) {
 
 // ArrayComparisonContains check if the array contains the specified value. Only used if the 'query.nested_fields.filter_by.nested_arrays.contains' capability is supported.
 type ArrayComparisonContains struct {
-	Value ComparisonValue `json:"value" yaml:"value" mapstructure:"value"`
+	Value ComparisonValue `json:"value" mapstructure:"value" yaml:"value"`
 }
 
 // NewArrayComparisonContains creates an ArrayComparisonContains instance.
@@ -341,7 +341,7 @@ func (j ArrayComparisonContains) Encode() ArrayComparison {
 // ArrayComparisonIsEmpty checks if the array is empty.
 // Only used if the 'query.nested_fields.filter_by.nested_arrays.is_empty' capability is supported.
 type ArrayComparisonIsEmpty struct {
-	Value ComparisonValue `json:"value" yaml:"value" mapstructure:"value"`
+	Value ComparisonValue `json:"value" mapstructure:"value" yaml:"value"`
 }
 
 // NewArrayComparisonIsEmpty creates an ArrayComparisonIsEmpty instance.
@@ -496,6 +496,7 @@ func (j *Dimension) UnmarshalJSON(b []byte) error {
 	}
 
 	*j = results
+
 	return nil
 }
 
@@ -607,15 +608,15 @@ func (j Dimension) InterfaceT() (DimensionEncoder, error) {
 // DimensionColumn represents a dimension column
 type DimensionColumn struct {
 	// Any (object) relationships to traverse to reach this column. Only non-empty if the 'relationships' capability is supported.
-	Path []PathElement `json:"path" yaml:"path" mapstructure:"path"`
+	Path []PathElement `json:"path" mapstructure:"path" yaml:"path"`
 	// The name of the column
-	ColumnName string `json:"column_name" yaml:"column_name" mapstructure:"column_name"`
+	ColumnName string `json:"column_name" mapstructure:"column_name" yaml:"column_name"`
 	// Arguments to satisfy the column specified by 'column_name'
-	Arguments map[string]Argument `json:"arguments,omitempty" yaml:"arguments,omitempty" mapstructure:"arguments"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
 	// Path to a nested field within an object column.
-	FieldPath []string `json:"field_path,omitempty" yaml:"field_path,omitempty" mapstructure:"field_path"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 	// The name of the extraction function to apply to the selected value, if any.
-	Extraction string `json:"extraction,omitempty" yaml:"extraction,omitempty" mapstructure:"extraction"`
+	Extraction string `json:"extraction,omitempty" mapstructure:"extraction" yaml:"extraction,omitempty"`
 }
 
 // NewDimensionColumn creates a DimensionColumn instance.

@@ -78,9 +78,11 @@ func compare(v1 any, v2 any) (int, error) {
 	if v1 == v2 || (v1 == nil && v2 == nil) {
 		return 0, nil
 	}
+
 	if v1 == nil {
 		return -1, nil
 	}
+
 	if v2 == nil {
 		return 1, nil
 	}
@@ -105,30 +107,35 @@ func compare(v1 any, v2 any) (int, error) {
 		if !ok {
 			return 0, errInvalidType
 		}
+
 		return boolToInt(value1) - boolToInt(value2), nil
 	case int:
 		value2, ok := v2.(int)
 		if !ok {
 			return 0, errInvalidType
 		}
+
 		return value1 - value2, nil
 	case int8:
 		value2, ok := v2.(int8)
 		if !ok {
 			return 0, errInvalidType
 		}
+
 		return int(value1 - value2), nil
 	case int16:
 		value2, ok := v2.(int16)
 		if !ok {
 			return 0, errInvalidType
 		}
+
 		return int(value1 - value2), nil
 	case int32:
 		value2, ok := v2.(int32)
 		if !ok {
 			return 0, errInvalidType
 		}
+
 		return int(value1 - value2), nil
 	case int64:
 		value2, ok := v2.(int64)
@@ -136,18 +143,21 @@ func compare(v1 any, v2 any) (int, error) {
 		if !ok {
 			return 0, errInvalidType
 		}
+
 		return int(value1 - value2), nil
 	case string:
 		value2, ok := v2.(string)
 		if !ok {
 			return 0, errInvalidType
 		}
+
 		return strings.Compare(value1, value2), nil
 	default:
 		rawV1, err := json.Marshal(v1)
 		if err != nil {
 			return 0, errInvalidType
 		}
+
 		return 0, schema.InternalServerError(fmt.Sprintf("cannot compare values with type: %s, value: %s", kindV1, string(rawV1)), nil)
 	}
 }
@@ -187,14 +197,14 @@ func evalRowFieldPath(fieldPath []string, row map[string]any) (map[string]any, e
 
 		row, ok = child.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("Expected object when navigating row field path, got %v", child)
+			return nil, fmt.Errorf("expected object when navigating row field path, got %v", child)
 		}
 	}
 
 	return row, nil
 }
 
-func evalComparisonOperator(operator string, leftVal any, rightValues []any) (bool, error) {
+func evalComparisonOperator(operator string, leftVal any, rightValues []any) (bool, error) { //nolint:gocyclo,cyclop,funlen
 	switch operator {
 	case "eq":
 		for _, rightVal := range rightValues {
@@ -417,7 +427,7 @@ func isEqual(leftVal, rightVal any) bool {
 		rightInt, err := utils.DecodeFloat[float64](rightReflectValue.Interface())
 
 		return err == nil && leftInt == rightInt
+	default:
+		return false
 	}
-
-	return false
 }

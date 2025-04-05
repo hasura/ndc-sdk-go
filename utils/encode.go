@@ -195,6 +195,7 @@ func encodeField(input reflect.Value) (any, bool) {
 		}
 
 		return result, true
+	default:
 	}
 
 	return nil, false
@@ -236,6 +237,7 @@ func encodeObjects(input any, fieldPath string) ([]map[string]any, error) {
 	if !ok {
 		return nil, nil
 	}
+
 	inputKind := inputValue.Kind()
 	if inputKind != reflect.Array && inputKind != reflect.Slice {
 		return nil, &schema.ErrorResponse{
@@ -246,15 +248,18 @@ func encodeObjects(input any, fieldPath string) ([]map[string]any, error) {
 			},
 		}
 	}
+
 	valueLength := inputValue.Len()
 	results := make([]map[string]any, valueLength)
 
-	for i := 0; i < valueLength; i++ {
+	for i := range valueLength {
 		item, err := encodeObject(inputValue.Index(i).Interface(), fieldPath)
 		if err != nil {
 			return nil, err
 		}
+
 		results[i] = item
 	}
+
 	return results, nil
 }

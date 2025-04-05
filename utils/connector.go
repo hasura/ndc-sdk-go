@@ -55,13 +55,16 @@ func evalNestedColumnArrayIntoSlice[T any](fields *schema.NestedArray, value []T
 	}
 
 	result := []any{}
+
 	for i, item := range array {
 		val, err := evalNestedColumnFields(fields.Fields, item, fmt.Sprintf("%s[%d]", fieldPath, i))
 		if err != nil {
 			return nil, err
 		}
+
 		result = append(result, val)
 	}
+
 	return result, nil
 }
 
@@ -77,13 +80,16 @@ func evalNestedColumnArray(fields *schema.NestedArray, value any, fieldPath stri
 	}
 
 	result := []any{}
+
 	for i, item := range array {
 		val, err := evalNestedColumnFields(fields.Fields, item, fmt.Sprintf("%s[%d]", fieldPath, i))
 		if err != nil {
 			return nil, err
 		}
+
 		result = append(result, val)
 	}
+
 	return result, nil
 }
 
@@ -118,6 +124,7 @@ func encodeObjectsWithColumnSelection[T any](fields map[string]schema.Field, dat
 	if err != nil {
 		return nil, err
 	}
+
 	return evalObjectsWithColumnSelection(fields, objects, fieldPath)
 }
 
@@ -131,6 +138,7 @@ func encodeObjectWithColumnSelection[T any](fields map[string]schema.Field, data
 	if err != nil {
 		return nil, err
 	}
+
 	return evalObjectWithColumnSelection(fields, objects, fieldPath)
 }
 
@@ -141,13 +149,16 @@ func EvalObjectsWithColumnSelection(fields map[string]schema.Field, data []map[s
 
 func evalObjectsWithColumnSelection(fields map[string]schema.Field, data []map[string]any, fieldPath string) ([]map[string]any, error) {
 	results := make([]map[string]any, len(data))
+
 	for i, item := range data {
 		result, err := evalObjectWithColumnSelection(fields, item, fmt.Sprintf("%s[%d]", fieldPath, i))
 		if err != nil {
 			return nil, err
 		}
+
 		results[i] = result
 	}
+
 	return results, nil
 }
 
@@ -162,6 +173,7 @@ func evalObjectWithColumnSelection(fields map[string]schema.Field, data map[stri
 	}
 
 	output := make(map[string]any)
+
 	for key, field := range fields {
 		switch fi := field.Interface().(type) {
 		case *schema.ColumnField:
@@ -171,6 +183,7 @@ func evalObjectWithColumnSelection(fields map[string]schema.Field, data map[stri
 					if err != nil {
 						return nil, err
 					}
+
 					output[key] = nestedValue
 				} else {
 					output[key] = col
@@ -209,6 +222,7 @@ func ResolveArgumentVariables(arguments map[string]schema.Argument, variables ma
 // ResolveArguments resolve variables into request arguments if exist.
 func ResolveArguments(arguments map[string]schema.Argument, variables map[string]any) (map[string]any, error) {
 	results := make(map[string]any)
+
 	for key, argument := range arguments {
 		value, err := ResolveArgument(argument, variables)
 		if err != nil {
@@ -268,23 +282,28 @@ func EvalFunctionSelectionFieldValue(request *schema.QueryRequest) (schema.Neste
 	if len(request.Query.Fields) == 0 {
 		return nil, errors.New(errFunctionValueFieldRequired)
 	}
+
 	valueField, ok := request.Query.Fields["__value"]
 	if !ok {
 		return nil, errors.New(errFunctionValueFieldRequired)
 	}
+
 	valueColumn, err := valueField.AsColumn()
 	if err != nil {
 		return nil, schema.UnprocessableContentError(fmt.Sprintf("__value: %s", err), nil)
 	}
+
 	if valueColumn.Column != "__value" {
 		return nil, errors.New(errFunctionValueFieldRequired)
 	}
+
 	return valueColumn.Fields, nil
 }
 
 // MergeSchemas merge multiple connector schemas into one schema.
 func MergeSchemas(schemas ...*schema.SchemaResponse) (*schema.SchemaResponse, []error) {
 	var errs []error
+
 	result := schema.SchemaResponse{
 		ObjectTypes: schema.SchemaResponseObjectTypes{},
 		ScalarTypes: schema.SchemaResponseScalarTypes{},
@@ -297,10 +316,12 @@ func MergeSchemas(schemas ...*schema.SchemaResponse) (*schema.SchemaResponse, []
 		if s == nil {
 			continue
 		}
+
 		for _, col := range s.Collections {
 			if _, ok := collectionMap[col.Name]; ok {
 				errs = append(errs, fmt.Errorf("collection %s exists", col.Name))
 			}
+
 			collectionMap[col.Name] = col
 		}
 
@@ -308,6 +329,7 @@ func MergeSchemas(schemas ...*schema.SchemaResponse) (*schema.SchemaResponse, []
 			if _, ok := functionMap[fn.Name]; ok {
 				errs = append(errs, fmt.Errorf("function %s exists", fn.Name))
 			}
+
 			functionMap[fn.Name] = fn
 		}
 
@@ -315,6 +337,7 @@ func MergeSchemas(schemas ...*schema.SchemaResponse) (*schema.SchemaResponse, []
 			if _, ok := procedureMap[fn.Name]; ok {
 				errs = append(errs, fmt.Errorf("procedure %s exists", fn.Name))
 			}
+
 			procedureMap[fn.Name] = fn
 		}
 
@@ -326,15 +349,19 @@ func MergeSchemas(schemas ...*schema.SchemaResponse) (*schema.SchemaResponse, []
 			if _, ok := result.ObjectTypes[k]; ok {
 				errs = append(errs, fmt.Errorf("object %s exists", k))
 			}
+
 			result.ObjectTypes[k] = obj
 		}
+
 		for k, sl := range s.ScalarTypes {
 			if _, ok := result.ScalarTypes[k]; ok {
 				errs = append(errs, fmt.Errorf("scalar %s exists", k))
 			}
+
 			result.ScalarTypes[k] = sl
 		}
 	}
+
 	return &result, errs
 }
 

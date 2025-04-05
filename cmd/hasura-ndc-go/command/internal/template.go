@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"strings"
+	"sync"
 	"text/template"
 )
 
@@ -16,14 +17,16 @@ const (
 
 //go:embed templates/connector/connector.go.tmpl
 var connectorTemplateStr string
-var connectorTemplate *template.Template
 
-func init() {
-	var err error
-	connectorTemplate, err = template.New(connectorOutputFile).Parse(connectorTemplateStr)
-	if err != nil {
-		panic(fmt.Errorf("failed to parse connector template: %w", err))
-	}
+func getConnectorTemplate() *template.Template {
+	return sync.OnceValue(func() *template.Template {
+		connectorTemplate, err := template.New(connectorOutputFile).Parse(connectorTemplateStr)
+		if err != nil {
+			panic(fmt.Errorf("failed to parse connector template: %w", err))
+		}
+
+		return connectorTemplate
+	})()
 }
 
 func writeFileHeader(builder *strings.Builder, packageName string) {
@@ -34,7 +37,7 @@ package `)
 }
 
 func writeIndent(builder *strings.Builder, num int) {
-	for i := 0; i < num; i++ {
+	for range num {
 		_, _ = builder.WriteRune(' ')
 	}
 }
@@ -45,13 +48,15 @@ func writeErrorCheck(sb *strings.Builder, paramCount int, indent int) {
 	sb.WriteString("if err != nil {\n")
 	writeIndent(sb, indent)
 	sb.WriteString("  return ")
-	for i := 0; i < paramCount; i++ {
+
+	for i := range paramCount {
 		if i == paramCount-1 {
 			sb.WriteString("err")
 		} else {
 			sb.WriteString("nil, ")
 		}
 	}
+
 	sb.WriteRune('\n')
 	writeIndent(sb, indent)
 	sb.WriteString("}\n")

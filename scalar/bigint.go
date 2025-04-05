@@ -39,13 +39,16 @@ func (bi *BigInt) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &value); err != nil {
 		return err
 	}
+
 	iValue, err := utils.DecodeNullableInt[int64](value)
 	if err != nil {
 		return err
 	}
+
 	if iValue == nil {
 		return nil
 	}
+
 	*bi = BigInt(*iValue)
 
 	return nil

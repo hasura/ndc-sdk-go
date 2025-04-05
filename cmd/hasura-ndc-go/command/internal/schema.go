@@ -57,7 +57,9 @@ func (t NullableType) SchemaName(isAbsolute bool) string {
 	if isAbsolute {
 		result = "nullable_"
 	}
+
 	result += t.UnderlyingType.SchemaName(isAbsolute)
+
 	return result
 }
 
@@ -65,6 +67,7 @@ func (t *NullableType) Schema() schema.TypeEncoder {
 	if t.UnderlyingType.Kind() == schema.TypeNullable {
 		return t.UnderlyingType.Schema()
 	}
+
 	return schema.NewNullableType(t.UnderlyingType.Schema())
 }
 
@@ -104,7 +107,9 @@ func (t ArrayType) SchemaName(isAbsolute bool) string {
 	if isAbsolute {
 		result = "array_"
 	}
+
 	result += t.ElementType.SchemaName(isAbsolute)
+
 	return result
 }
 
@@ -236,6 +241,7 @@ func (ti *TypeInfo) GetPackagePaths(currentPackagePath string) []string {
 
 func (ti *TypeInfo) getArgumentName(packagePath string, isAbsolute bool) string {
 	name := ti.Name
+
 	if isAbsolute {
 		if ti.PackagePath != "" {
 			name = ti.PackagePath + "." + ti.Name
@@ -253,6 +259,7 @@ func (ti *TypeInfo) getArgumentName(packagePath string, isAbsolute bool) string 
 				name += ", "
 			}
 		}
+
 		name += "]"
 	}
 
@@ -282,6 +289,7 @@ func (oi ObjectInfo) Schema() *schema.ObjectType {
 		Fields:      oi.SchemaFields,
 		ForeignKeys: schema.ObjectTypeForeignKeys{},
 	}
+
 	return result
 }
 
@@ -311,6 +319,7 @@ func (op FunctionInfo) Schema() schema.FunctionInfo {
 		ResultType:  op.ResultType.Type.Schema().Encode(),
 		Arguments:   op.Arguments,
 	}
+
 	return result
 }
 
@@ -326,6 +335,7 @@ func (op ProcedureInfo) Schema() schema.ProcedureInfo {
 		ResultType:  op.ResultType.Type.Schema().Encode(),
 		Arguments:   schema.ProcedureInfoArguments(op.Arguments),
 	}
+
 	return result
 }
 
@@ -394,6 +404,7 @@ func (rcs *RawConnectorSchema) SetScalar(name string, value Scalar) {
 	if rcs.Scalars == nil {
 		rcs.Scalars = map[string]Scalar{}
 	}
+
 	_, ok := rcs.Scalars[name]
 	if !ok {
 		rcs.Scalars[name] = value
@@ -405,6 +416,7 @@ func (rcs *RawConnectorSchema) setFunctionArgument(info ObjectInfo) {
 	if _, ok := rcs.FunctionArguments[key]; ok {
 		return
 	}
+
 	rcs.FunctionArguments[key] = info
 }
 
@@ -420,6 +432,7 @@ func (rcs RawConnectorSchema) GetScalarFromType(ty Type) *Scalar {
 			return &result
 		}
 	}
+
 	return nil
 }
 
@@ -461,6 +474,7 @@ func unwrapNullableType(input Type) (Type, bool) {
 	switch t := input.(type) {
 	case *NullableType:
 		result, _ := unwrapNullableType(t.UnderlyingType)
+
 		return result, true
 	case *ArrayType:
 		return t, false

@@ -34,10 +34,13 @@ func (tp *TypeParser) Parse(fieldPaths []string) (*Field, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if ty == nil {
 		return nil, nil
 	}
+
 	tp.field.Type = ty
+
 	return tp.field, nil
 }
 
@@ -84,6 +87,7 @@ func (tp *TypeParser) parseArgumentTypes(ty types.Type, fieldPaths []string) (*O
 			if err := parseTypeParameters(typeInfo, inferredType.String()); err != nil {
 				return nil, err
 			}
+
 			typeInfo.TypeAST = inferredType.Underlying()
 		}
 
@@ -91,7 +95,9 @@ func (tp *TypeParser) parseArgumentTypes(ty types.Type, fieldPaths []string) (*O
 		if err != nil {
 			return nil, err
 		}
+
 		arguments.Type = typeInfo
+
 		return arguments, nil
 	default:
 		return nil, fmt.Errorf("expected struct type, got %s", ty.String())
@@ -105,30 +111,35 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 		if err != nil {
 			return nil, err
 		}
+
 		return NewNullableType(innerType), nil
 	case *types.Struct:
 		typeInfo := tp.typeInfo
 		if typeInfo == nil {
 			typeInfo = &TypeInfo{}
 		}
+
 		if typeInfo.Name == "" {
 			typeInfo.Name = ty.String()
 			typeInfo.SchemaName = strings.Join(fieldPaths, "")
 			typeInfo.TypeAST = ty
 			typeInfo.IsAnonymous = true
 		}
+
 		objFields := ObjectInfo{
 			Description:  typeInfo.Description,
 			Type:         typeInfo,
 			Fields:       map[string]Field{},
 			SchemaFields: schema.ObjectTypeFields{},
 		}
+
 		// temporarily add the object type to raw schema to avoid infinite loop
 		tp.schemaParser.rawSchema.Objects[typeInfo.SchemaName] = objFields
 
 		if err := tp.parseStructType(&objFields, inferredType, fieldPaths); err != nil {
 			return nil, err
 		}
+
 		tp.schemaParser.rawSchema.Objects[typeInfo.SchemaName] = objFields
 
 		if tp.argumentFor != nil && *tp.argumentFor == OperationFunction {
@@ -137,145 +148,7 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 
 		return NewNamedType(typeInfo.SchemaName, typeInfo), nil
 	case *types.Named:
-		innerType := inferredType.Obj()
-		if innerType == nil {
-			return nil, fmt.Errorf("failed to parse named type: %s", inferredType.String())
-		}
-
-		typeInfo := &TypeInfo{
-			Name:       innerType.Name(),
-			SchemaName: innerType.Name(),
-			TypeAST:    innerType.Type(),
-		}
-
-		if innerType.Name() == "error" {
-			if tp.argumentFor != nil {
-				return nil, fmt.Errorf("%s: native `error` interface isn't allowed in input arguments", strings.Join(fieldPaths, "."))
-			}
-
-			scalarName := string(ScalarJSON)
-			errorScalar := defaultScalarTypes[ScalarJSON]
-			typeInfo.SchemaName = scalarName
-			tp.schemaParser.rawSchema.SetScalar(scalarName, Scalar{
-				Schema: errorScalar,
-			})
-
-			return NewNullableType(NewNamedType(scalarName, typeInfo)), nil
-		}
-
-		innerPkg := innerType.Pkg()
-		if innerPkg == nil {
-			return nil, fmt.Errorf("%s: unsupported type <%s>", strings.Join(fieldPaths, "."), innerType.Name())
-		}
-
-		typeInfo.PackageName = innerPkg.Name()
-		typeInfo.PackagePath = innerPkg.Path()
-		typeParams := inferredType.TypeParams()
-
-		if typeParams != nil && typeParams.Len() > 0 {
-			// unwrap the generic type parameters such as Foo[T]
-			if err := parseTypeParameters(typeInfo, inferredType.String()); err != nil {
-				return nil, err
-			}
-
-			typeInfo.TypeAST = inferredType.Underlying()
-		}
-
-		if object, ok := tp.schemaParser.rawSchema.Objects[typeInfo.SchemaName]; ok {
-			if tp.argumentFor != nil && *tp.argumentFor == OperationFunction {
-				tp.schemaParser.rawSchema.setFunctionArgument(object)
-			}
-
-			return NewNamedType(typeInfo.SchemaName, typeInfo), nil
-		}
-
-		if _, ok := tp.schemaParser.rawSchema.Scalars[typeInfo.SchemaName]; ok {
-			return NewNamedType(typeInfo.SchemaName, typeInfo), nil
-		}
-
-		scalarType, err := tp.parseTypeInfoFromComments(typeInfo, innerType.Parent())
-		if err != nil {
-			return nil, err
-		}
-
-		if scalarType != nil {
-			if len(scalarType.Schema.Representation) == 0 {
-				// requires representation since NDC spec v0.1.2
-				scalarType.Schema = defaultScalarTypes[ScalarJSON]
-			}
-
-			tp.schemaParser.rawSchema.SetScalar(typeInfo.SchemaName, *scalarType)
-
-			return NewNamedType(typeInfo.SchemaName, typeInfo), nil
-		}
-
-		switch innerPkg.Path() {
-		case "time":
-			switch innerType.Name() {
-			case "Time":
-				typeInfo.SchemaName = string(ScalarTimestampTZ)
-				scalarType = &Scalar{
-					Schema: defaultScalarTypes[ScalarTimestampTZ],
-				}
-			case "Duration":
-				return nil, errUnsupportedTypeDuration
-			default:
-				return nil, fmt.Errorf("unsupported type %s.%s", innerPkg.Path(), innerType.Name())
-			}
-		case "encoding/json":
-			switch innerType.Name() {
-			case "RawMessage":
-				typeInfo.SchemaName = string(ScalarRawJSON)
-				scalarType = &Scalar{
-					Schema: defaultScalarTypes[ScalarRawJSON],
-				}
-			default:
-				return nil, fmt.Errorf("unsupported type %s.%s", innerPkg.Path(), innerType.Name())
-			}
-		case "github.com/google/uuid":
-			switch innerType.Name() {
-			case "UUID":
-				typeInfo.SchemaName = string(ScalarUUID)
-				scalarType = &Scalar{
-					Schema: defaultScalarTypes[ScalarUUID],
-				}
-			default:
-				return nil, fmt.Errorf("unsupported type %s.%s", innerPkg.Path(), innerType.Name())
-			}
-		case packageSDKSchema:
-			if innerType.Name() == "Expression" && tp.argumentFor != nil {
-				if tp.tagInfo.PredicateObjectName == "" {
-					return nil, fmt.Errorf("%s: predicate field tag must be set `ndc:\"predicate=<object-name>\"`", strings.Join(fieldPaths, "."))
-				}
-
-				return NewNullableType(NewPredicateType(tp.tagInfo.PredicateObjectName)), nil
-			}
-		case "github.com/hasura/ndc-sdk-go/scalar":
-			scalarName := ScalarName(innerType.Name())
-			switch scalarName {
-			case ScalarDate, ScalarBigInt, ScalarBytes, ScalarURL, ScalarDuration, ScalarDurationString, ScalarDurationInt64:
-				typeInfo.SchemaName = innerType.Name()
-				scalarType = &Scalar{
-					Schema: defaultScalarTypes[scalarName],
-				}
-			default:
-				return nil, fmt.Errorf("unsupported scalar type %s.%s", innerPkg.Path(), innerType.Name())
-			}
-		}
-
-		if scalarType != nil {
-			tp.schemaParser.rawSchema.SetScalar(typeInfo.SchemaName, *scalarType)
-			return NewNamedType(typeInfo.SchemaName, typeInfo), nil
-		}
-
-		if _, ok := tp.schemaParser.rawSchema.Objects[typeInfo.SchemaName]; ok {
-			// the object schema exists, rename to format <name>_<package_name>
-			packagePath := strings.TrimPrefix(typeInfo.PackagePath, tp.schemaParser.moduleName)
-			typeInfo.SchemaName = fieldNameRegex.ReplaceAllString(strings.Join([]string{typeInfo.Name, packagePath}, ""), "_")
-		}
-
-		tp.typeInfo = typeInfo
-		return tp.parseType(typeInfo.TypeAST.Underlying(), append(fieldPaths, innerType.Name()))
+		return tp.parseNamedType(inferredType, fieldPaths)
 	case *types.Basic:
 		typeInfo := tp.typeInfo
 		if typeInfo == nil {
@@ -321,15 +194,18 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 		return tp.parseSliceType(inferredType.Elem(), fieldPaths)
 	case *types.Map, *types.Interface:
 		scalarName := ScalarJSON
+
 		typeInfo := tp.typeInfo
 		if typeInfo == nil {
 			typeInfo = &TypeInfo{
 				TypeAST: ty,
 			}
 		}
+
 		if typeInfo.Name == "" {
 			typeInfo.Name = inferredType.String()
 		}
+
 		typeInfo.PackagePath = ""
 		typeInfo.SchemaName = string(scalarName)
 		tp.schemaParser.rawSchema.SetScalar(string(scalarName), Scalar{
@@ -347,8 +223,152 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 	}
 }
 
+func (tp *TypeParser) parseNamedType(inferredType *types.Named, fieldPaths []string) (Type, error) { //nolint:cyclop,funlen
+	innerType := inferredType.Obj()
+	if innerType == nil {
+		return nil, fmt.Errorf("failed to parse named type: %s", inferredType.String())
+	}
+
+	typeInfo := &TypeInfo{
+		Name:       innerType.Name(),
+		SchemaName: innerType.Name(),
+		TypeAST:    innerType.Type(),
+	}
+
+	if innerType.Name() == "error" {
+		if tp.argumentFor != nil {
+			return nil, fmt.Errorf("%s: native `error` interface isn't allowed in input arguments", strings.Join(fieldPaths, "."))
+		}
+
+		scalarName := string(ScalarJSON)
+		errorScalar := defaultScalarTypes[ScalarJSON]
+		typeInfo.SchemaName = scalarName
+		tp.schemaParser.rawSchema.SetScalar(scalarName, Scalar{
+			Schema: errorScalar,
+		})
+
+		return NewNullableType(NewNamedType(scalarName, typeInfo)), nil
+	}
+
+	innerPkg := innerType.Pkg()
+	if innerPkg == nil {
+		return nil, fmt.Errorf("%s: unsupported type <%s>", strings.Join(fieldPaths, "."), innerType.Name())
+	}
+
+	typeInfo.PackageName = innerPkg.Name()
+	typeInfo.PackagePath = innerPkg.Path()
+	typeParams := inferredType.TypeParams()
+
+	if typeParams != nil && typeParams.Len() > 0 {
+		// unwrap the generic type parameters such as Foo[T]
+		if err := parseTypeParameters(typeInfo, inferredType.String()); err != nil {
+			return nil, err
+		}
+
+		typeInfo.TypeAST = inferredType.Underlying()
+	}
+
+	if object, ok := tp.schemaParser.rawSchema.Objects[typeInfo.SchemaName]; ok {
+		if tp.argumentFor != nil && *tp.argumentFor == OperationFunction {
+			tp.schemaParser.rawSchema.setFunctionArgument(object)
+		}
+
+		return NewNamedType(typeInfo.SchemaName, typeInfo), nil
+	}
+
+	if _, ok := tp.schemaParser.rawSchema.Scalars[typeInfo.SchemaName]; ok {
+		return NewNamedType(typeInfo.SchemaName, typeInfo), nil
+	}
+
+	scalarType, err := tp.parseTypeInfoFromComments(typeInfo, innerType.Parent())
+	if err != nil {
+		return nil, err
+	}
+
+	if scalarType != nil {
+		if len(scalarType.Schema.Representation) == 0 {
+			// requires representation since NDC spec v0.1.2
+			scalarType.Schema = defaultScalarTypes[ScalarJSON]
+		}
+
+		tp.schemaParser.rawSchema.SetScalar(typeInfo.SchemaName, *scalarType)
+
+		return NewNamedType(typeInfo.SchemaName, typeInfo), nil
+	}
+
+	switch innerPkg.Path() {
+	case "time":
+		switch innerType.Name() {
+		case "Time":
+			typeInfo.SchemaName = string(ScalarTimestampTZ)
+			scalarType = &Scalar{
+				Schema: defaultScalarTypes[ScalarTimestampTZ],
+			}
+		case "Duration":
+			return nil, errUnsupportedTypeDuration
+		default:
+			return nil, fmt.Errorf("unsupported type %s.%s", innerPkg.Path(), innerType.Name())
+		}
+	case "encoding/json":
+		switch innerType.Name() {
+		case "RawMessage":
+			typeInfo.SchemaName = string(ScalarRawJSON)
+			scalarType = &Scalar{
+				Schema: defaultScalarTypes[ScalarRawJSON],
+			}
+		default:
+			return nil, fmt.Errorf("unsupported type %s.%s", innerPkg.Path(), innerType.Name())
+		}
+	case "github.com/google/uuid":
+		switch innerType.Name() {
+		case "UUID":
+			typeInfo.SchemaName = string(ScalarUUID)
+			scalarType = &Scalar{
+				Schema: defaultScalarTypes[ScalarUUID],
+			}
+		default:
+			return nil, fmt.Errorf("unsupported type %s.%s", innerPkg.Path(), innerType.Name())
+		}
+	case packageSDKSchema:
+		if innerType.Name() == "Expression" && tp.argumentFor != nil {
+			if tp.tagInfo.PredicateObjectName == "" {
+				return nil, fmt.Errorf("%s: predicate field tag must be set `ndc:\"predicate=<object-name>\"`", strings.Join(fieldPaths, "."))
+			}
+
+			return NewNullableType(NewPredicateType(tp.tagInfo.PredicateObjectName)), nil
+		}
+	case "github.com/hasura/ndc-sdk-go/scalar":
+		scalarName := ScalarName(innerType.Name())
+		switch scalarName {
+		case ScalarDate, ScalarBigInt, ScalarBytes, ScalarURL, ScalarDuration, ScalarDurationString, ScalarDurationInt64:
+			typeInfo.SchemaName = innerType.Name()
+			scalarType = &Scalar{
+				Schema: defaultScalarTypes[scalarName],
+			}
+		default:
+			return nil, fmt.Errorf("unsupported scalar type %s.%s", innerPkg.Path(), innerType.Name())
+		}
+	}
+
+	if scalarType != nil {
+		tp.schemaParser.rawSchema.SetScalar(typeInfo.SchemaName, *scalarType)
+
+		return NewNamedType(typeInfo.SchemaName, typeInfo), nil
+	}
+
+	if _, ok := tp.schemaParser.rawSchema.Objects[typeInfo.SchemaName]; ok {
+		// the object schema exists, rename to format <name>_<package_name>
+		packagePath := strings.TrimPrefix(typeInfo.PackagePath, tp.schemaParser.moduleName)
+		typeInfo.SchemaName = fieldNameRegex.ReplaceAllString(strings.Join([]string{typeInfo.Name, packagePath}, ""), "_")
+	}
+
+	tp.typeInfo = typeInfo
+
+	return tp.parseType(typeInfo.TypeAST.Underlying(), append(fieldPaths, innerType.Name()))
+}
+
 func (tp *TypeParser) parseStructType(objectInfo *ObjectInfo, inferredType *types.Struct, fieldPaths []string) error {
-	for i := 0; i < inferredType.NumFields(); i++ {
+	for i := range inferredType.NumFields() {
 		fieldVar := inferredType.Field(i)
 		if !fieldVar.Exported() {
 			continue
@@ -419,15 +439,17 @@ func (tp *TypeParser) parseSliceType(ty types.Type, fieldPaths []string) (Type, 
 
 func (tp *TypeParser) parseTypeInfoFromComments(typeInfo *TypeInfo, scope *types.Scope) (*Scalar, error) {
 	var scalarType *Scalar
+
 	comments := make([]string, 0)
 	commentGroup := findCommentsFromPos(tp.schemaParser.FindPackageByPath(typeInfo.PackagePath), scope, typeInfo.Name)
 
-	if commentGroup != nil {
+	if commentGroup != nil { //nolint:nestif
 		for i, line := range commentGroup.List {
 			text := strings.TrimSpace(strings.TrimLeft(line.Text, "/"))
 			if text == "" {
 				continue
 			}
+
 			if i == 0 {
 				text = strings.TrimPrefix(text, typeInfo.Name+" ")
 			}
@@ -435,37 +457,46 @@ func (tp *TypeParser) parseTypeInfoFromComments(typeInfo *TypeInfo, scope *types
 			enumMatches := ndcEnumCommentRegex.FindStringSubmatch(strings.TrimRight(text, "."))
 			if len(enumMatches) == 2 {
 				rawEnumItems := strings.Split(enumMatches[1], ",")
+
 				var enums []string
+
 				for _, item := range rawEnumItems {
 					trimmed := strings.TrimSpace(item)
 					if trimmed != "" {
 						enums = append(enums, trimmed)
 					}
 				}
+
 				if len(enums) == 0 {
 					return nil, errors.New("require enum values in the comment of " + typeInfo.Name)
 				}
+
 				typeInfo.SchemaName = typeInfo.Name
 				scalarType = &Scalar{
 					Schema:     *schema.NewScalarType(),
 					NativeType: typeInfo,
 				}
 				scalarType.Schema.Representation = schema.NewTypeRepresentationEnum(enums).Encode()
+
 				continue
 			}
 
 			matches := ndcScalarCommentRegex.FindStringSubmatch(text)
 			matchesLen := len(matches)
+
 			if matchesLen > 1 {
 				if matchesLen > 3 && matches[3] != "" {
 					typeInfo.SchemaName = matches[2]
 					typeRep, err := schema.ParseTypeRepresentationType(strings.TrimSpace(matches[3]))
+
 					if err != nil {
 						return nil, fmt.Errorf("failed to parse type representation of scalar %s: %w", typeInfo.Name, err)
 					}
+
 					if typeRep == schema.TypeRepresentationTypeEnum {
 						return nil, errMustUseEnumTag
 					}
+
 					scalarType = &Scalar{
 						Schema:     *schema.NewScalarType(),
 						NativeType: typeInfo,
@@ -486,11 +517,13 @@ func (tp *TypeParser) parseTypeInfoFromComments(typeInfo *TypeInfo, scope *types
 						if typeRep == schema.TypeRepresentationTypeEnum {
 							return nil, errMustUseEnumTag
 						}
+
 						scalarType.Schema.Representation = schema.TypeRepresentation{
 							"type": typeRep,
 						}
 					}
 				}
+
 				continue
 			}
 
@@ -561,6 +594,7 @@ func parseTypeFromString(input string) (Type, error) {
 
 		return NewNullableType(underlyingType), nil
 	}
+
 	if len(input) >= 2 && input[0:2] == "[]" {
 		elementType, err := parseTypeFromString(input[2:])
 		if err != nil {
