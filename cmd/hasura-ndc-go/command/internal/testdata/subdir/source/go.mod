@@ -4,9 +4,9 @@ go 1.24
 
 require (
 	github.com/hasura/ndc-sdk-go v1.4.1
-	go.opentelemetry.io/otel v1.28.0
-	go.opentelemetry.io/otel/trace v1.28.0
-	golang.org/x/sync v0.8.0
+	go.opentelemetry.io/otel v1.35.0
+	go.opentelemetry.io/otel/trace v1.35.0
+	golang.org/x/sync v0.12.0
 	github.com/hasura/ndc-codegen-example v1.2.5
 )
 
