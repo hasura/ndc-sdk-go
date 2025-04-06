@@ -293,7 +293,7 @@ func TestNewServer(t *testing.T) {
 }
 
 func TestServerAuth(t *testing.T) {
-	server, err := NewServer[mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
+	server, err := NewServer(&mockConnector{}, &ServerOptions{
 		Configuration:      "{}",
 		InlineConfig:       true,
 		ServiceTokenSecret: "random-secret",
@@ -549,7 +549,7 @@ func TestServerConnector(t *testing.T) {
 		}
 
 		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
-			Message: "NDC version range ^v0.2.0 does not match implemented version v0.1.6",
+			Message: "NDC version range ^0.2.0 does not match implemented version v0.1.6",
 			Details: map[string]any{},
 		})
 	})
@@ -662,7 +662,7 @@ func TestServerConnector(t *testing.T) {
 }
 
 func TestConnectorWithPrometheusEnabled(t *testing.T) {
-	server, err := NewServer[mockConfiguration, mockState](&mockConnector{}, &ServerOptions{
+	server, err := NewServer(&mockConnector{}, &ServerOptions{
 		Configuration: "{}",
 		InlineConfig:  true,
 		OTLPConfig: OTLPConfig{

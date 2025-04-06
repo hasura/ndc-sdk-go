@@ -58,6 +58,7 @@ func (c *Connector) Query(ctx context.Context, configuration *types.Configuratio
 
 func (c *Connector) execQuerySync(ctx context.Context, state *types.State, request *schema.QueryRequest, requestVars []schema.QueryRequestVariablesElem) (schema.QueryResponse, error) {
     rowSets := make([]schema.RowSet, len(requestVars))
+
     for i, requestVar := range requestVars {
         result, err := c.execQuery(ctx, state, request, requestVar, i)
         if err != nil {
@@ -85,7 +86,7 @@ func (c *Connector) execQueryAsync(ctx context.Context, state *types.State, requ
 
                 rowSets[index] = *result
                 
-				return nil
+                return nil
             })
         }(i, requestVar)
     }
@@ -117,7 +118,7 @@ func (c *Connector) execQuery(ctx context.Context, state *types.State, request *
             return result, nil
         }
 
-		if errors.Is(err, utils.ErrHandlerNotfound) {
+        if !errors.Is(err, utils.ErrHandlerNotfound) {
             span.SetStatus(codes.Error, fmt.Sprintf("failed to execute function %d", index))
             span.RecordError(err)
 
@@ -177,7 +178,7 @@ func (c *Connector) execMutationAsync(ctx context.Context, state *types.State, r
 
                 operationResults[index] = result
                 
-				return nil
+                return nil
             })
         }(i, operation)
     }
@@ -209,6 +210,7 @@ func (c *Connector) execMutation(ctx context.Context, state *types.State, operat
 
             return nil, err
         }
+        
         return result, nil
     default:
         errorMsg := fmt.Sprintf("invalid operation type: %s", operation.Type)
@@ -225,7 +227,7 @@ func (c *Connector) execProcedure(ctx context.Context, state *types.State, opera
             return result, nil
         }
 
-		if errors.Is(err, utils.ErrHandlerNotfound) {
+        if !errors.Is(err, utils.ErrHandlerNotfound) {
             return nil, err
         }
     }
@@ -250,7 +252,10 @@ func (ge globalEnvironments) GetQueryConcurrencyLimitByName(name string) int {
     return ge.queryConcurrencyLimit
 }
 
-var getGlobalEnvironments = sync.OnceValue(func() *globalEnvironments {
+var getGlobalEnvironments = sync.OnceValue(getGlobalEnvironmentsFunc)
+var schemaResponse = sync.OnceValue(getSchemaResponseFunc)
+
+func getGlobalEnvironmentsFunc () *globalEnvironments {
 	_globalEnvironments := &globalEnvironments{}
 
 	rawQueryConcurrencyLimit := os.Getenv("QUERY_CONCURRENCY_LIMIT")
@@ -281,16 +286,20 @@ var getGlobalEnvironments = sync.OnceValue(func() *globalEnvironments {
 	_globalEnvironments.queryConcurrency = queryConcurrency
 
 	return _globalEnvironments
-})
+}
 
 //go:embed schema.generated.json
 var rawSchema []byte
 
-var schemaResponse = sync.OnceValue(func() *schema.RawSchemaResponse {
+func getSchemaResponseFunc() *schema.RawSchemaResponse {
 	result, err := schema.NewRawSchemaResponse(rawSchema)
 	if err != nil {
 		panic(err)
 	}
 
 	return result
-})
+}
+
+func init() {
+	getGlobalEnvironments()
+}

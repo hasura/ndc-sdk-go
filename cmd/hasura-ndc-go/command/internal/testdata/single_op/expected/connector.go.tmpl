@@ -120,7 +120,7 @@ func (c *Connector) execQuery(ctx context.Context, state *types.State, request *
             return result, nil
         }
 
-        if errors.Is(err, utils.ErrHandlerNotfound) {
+        if !errors.Is(err, utils.ErrHandlerNotfound) {
             span.SetStatus(codes.Error, fmt.Sprintf("failed to execute function %d", index))
             span.RecordError(err)
 
@@ -229,7 +229,7 @@ func (c *Connector) execProcedure(ctx context.Context, state *types.State, opera
             return result, nil
         }
 
-        if errors.Is(err, utils.ErrHandlerNotfound) {
+        if !errors.Is(err, utils.ErrHandlerNotfound) {
             return nil, err
         }
     }
@@ -254,47 +254,56 @@ func (ge globalEnvironments) GetQueryConcurrencyLimitByName(name string) int {
     return ge.queryConcurrencyLimit
 }
 
-var getGlobalEnvironments = sync.OnceValue(func() *globalEnvironments {
-    _globalEnvironments := &globalEnvironments{}
+var getGlobalEnvironments = sync.OnceValue(getGlobalEnvironmentsFunc)
+var schemaResponse = sync.OnceValue(getSchemaResponseFunc)
 
-    rawQueryConcurrencyLimit := os.Getenv("QUERY_CONCURRENCY_LIMIT")
-    if rawQueryConcurrencyLimit != "" {
-        limit, err := strconv.ParseInt(rawQueryConcurrencyLimit, 10, 64)
-        if err != nil {
-            panic(fmt.Sprintf("QUERY_CONCURRENCY_LIMIT: invalid integer <%s>", rawQueryConcurrencyLimit))
-        }
+func getGlobalEnvironmentsFunc () *globalEnvironments {
+	_globalEnvironments := &globalEnvironments{}
 
-        _globalEnvironments.queryConcurrencyLimit = int(limit)
-    }
+	rawQueryConcurrencyLimit := os.Getenv("QUERY_CONCURRENCY_LIMIT")
+	if rawQueryConcurrencyLimit != "" {
+		limit, err := strconv.ParseInt(rawQueryConcurrencyLimit, 10, 64)
+		if err != nil {
+			panic(fmt.Sprintf("QUERY_CONCURRENCY_LIMIT: invalid integer <%s>", rawQueryConcurrencyLimit))
+		}
 
-    rawMutationConcurrencyLimit := os.Getenv("MUTATION_CONCURRENCY_LIMIT")
-    if rawMutationConcurrencyLimit != "" {
-        limit, err := strconv.ParseInt(rawMutationConcurrencyLimit, 10, 64)
-        if err != nil {
-            panic(fmt.Sprintf("MUTATION_CONCURRENCY_LIMIT: invalid integer <%s>", rawMutationConcurrencyLimit))
-        }
+		_globalEnvironments.queryConcurrencyLimit = int(limit)
+	}
 
-        _globalEnvironments.mutationConcurrencyLimit = int(limit)
-    }
+	rawMutationConcurrencyLimit := os.Getenv("MUTATION_CONCURRENCY_LIMIT")
+	if rawMutationConcurrencyLimit != "" {
+		limit, err := strconv.ParseInt(rawMutationConcurrencyLimit, 10, 64)
+		if err != nil {
+			panic(fmt.Sprintf("MUTATION_CONCURRENCY_LIMIT: invalid integer <%s>", rawMutationConcurrencyLimit))
+		}
 
-    queryConcurrency, err := utils.ParseIntMapFromString(os.Getenv("QUERY_CONCURRENCY"))
-    if err != nil {
-        panic(fmt.Sprintf("QUERY_CONCURRENCY: %s", err))
-    }
+		_globalEnvironments.mutationConcurrencyLimit = int(limit)
+	}
 
-    _globalEnvironments.queryConcurrency = queryConcurrency
+	queryConcurrency, err := utils.ParseIntMapFromString(os.Getenv("QUERY_CONCURRENCY"))
+	if err != nil {
+		panic(fmt.Sprintf("QUERY_CONCURRENCY: %s", err))
+	}
 
-    return _globalEnvironments
-})
+	_globalEnvironments.queryConcurrency = queryConcurrency
+
+	return _globalEnvironments
+}
+
 
 //go:embed schema.generated.json
 var rawSchema []byte
 
-var schemaResponse = sync.OnceValue(func() *schema.RawSchemaResponse {
-    result, err := schema.NewRawSchemaResponse(rawSchema)
-    if err != nil {
-        panic(err)
-    }
+func getSchemaResponseFunc() *schema.RawSchemaResponse {
+	result, err := schema.NewRawSchemaResponse(rawSchema)
+	if err != nil {
+		panic(err)
+	}
 
-    return result
-})
+	return result
+}
+
+
+func init() {
+	getGlobalEnvironments()
+}

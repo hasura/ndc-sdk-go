@@ -119,7 +119,7 @@ func (c *Connector) execQuery(ctx context.Context, state *types.State, request *
 			return result, nil
 		}
 
-		if errors.Is(err, utils.ErrHandlerNotfound) {
+		if !errors.Is(err, utils.ErrHandlerNotfound) {
 			span.SetStatus(codes.Error, fmt.Sprintf("failed to execute function %d", index))
 			span.RecordError(err)
 
@@ -228,7 +228,7 @@ func (c *Connector) execProcedure(ctx context.Context, state *types.State, opera
 			return result, nil
 		}
 
-		if errors.Is(err, utils.ErrHandlerNotfound) {
+		if !errors.Is(err, utils.ErrHandlerNotfound) {
 			return nil, err
 		}
 	}
@@ -253,7 +253,10 @@ func (ge globalEnvironments) GetQueryConcurrencyLimitByName(name string) int {
 	return ge.queryConcurrencyLimit
 }
 
-var getGlobalEnvironments = sync.OnceValue(func() *globalEnvironments {
+var getGlobalEnvironments = sync.OnceValue(getGlobalEnvironmentsFunc)
+var schemaResponse = sync.OnceValue(getSchemaResponseFunc)
+
+func getGlobalEnvironmentsFunc() *globalEnvironments {
 	_globalEnvironments := &globalEnvironments{}
 
 	rawQueryConcurrencyLimit := os.Getenv("QUERY_CONCURRENCY_LIMIT")
@@ -284,9 +287,9 @@ var getGlobalEnvironments = sync.OnceValue(func() *globalEnvironments {
 	_globalEnvironments.queryConcurrency = queryConcurrency
 
 	return _globalEnvironments
-})
+}
 
-var schemaResponse = sync.OnceValue(func() *schema.RawSchemaResponse {
+func getSchemaResponseFunc() *schema.RawSchemaResponse {
 	rawSchema, err := json.Marshal(GetConnectorSchema())
 	if err != nil {
 		panic(err)
@@ -298,4 +301,8 @@ var schemaResponse = sync.OnceValue(func() *schema.RawSchemaResponse {
 	}
 
 	return result
-})
+}
+
+func init() {
+	getGlobalEnvironments()
+}

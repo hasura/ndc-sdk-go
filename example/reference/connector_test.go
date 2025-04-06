@@ -17,7 +17,7 @@ import (
 )
 
 var baseTestSnapshotURL = fmt.Sprintf(
-	"https://raw.githubusercontent.com/hasura/ndc-spec/refs/tags/%s/ndc-reference/tests",
+	"https://raw.githubusercontent.com/hasura/ndc-spec/refs/tags/v%s/ndc-reference/tests",
 	schema.NDCVersion,
 )
 
@@ -284,7 +284,7 @@ func createTestServer(t *testing.T) *connector.Server[Configuration, State] {
 		Configuration: "{}",
 		InlineConfig:  true,
 	}, connector.WithoutRecovery(), connector.WithLogger(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
+		// Level: slog.LevelDebug,
 	}))))
 	if err != nil {
 		t.Errorf("NewServer: expected no error, got %s", err)

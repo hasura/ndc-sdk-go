@@ -10,7 +10,7 @@ import (
 )
 
 var baseFixtureURL = fmt.Sprintf(
-	"https://raw.githubusercontent.com/hasura/ndc-spec/refs/tags/%s/ndc-reference",
+	"https://raw.githubusercontent.com/hasura/ndc-spec/refs/tags/v%s/ndc-reference",
 	schema.NDCVersion,
 )
 
