@@ -29,6 +29,7 @@ jobs:
         run: |
           rm cmd/hasura-ndc-go/go.mod
           rm cmd/hasura-ndc-go/go.sum
+          go get golang.org/x/tools@latest
           go mod tidy
           go mod download
       - name: Run Go unit tests for the SDK
