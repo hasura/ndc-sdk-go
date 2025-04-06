@@ -40,6 +40,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 	builder.WriteString(`
     },
     Functions: []schema.FunctionInfo{`)
+
 	functionKeys := utils.GetSortedKeys(rcs.Functions)
 
 	for _, fnKey := range functionKeys {
@@ -54,6 +55,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 	builder.WriteString(`
     },
     Procedures: []schema.ProcedureInfo{`)
+
 	procKeys := utils.GetSortedKeys(rcs.Procedures)
 
 	for _, key := range procKeys {

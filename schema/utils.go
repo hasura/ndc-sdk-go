@@ -96,7 +96,10 @@ func getStringSliceByKey(collection map[string]any, key string) ([]string, error
 	return results, nil
 }
 
-func getPathElementByKey(collection map[string]any, key string) ([]PathElement, error) { //nolint:unparam
+func getPathElementByKey(
+	collection map[string]any,
+	key string,
+) ([]PathElement, error) { //nolint:unparam
 	if len(collection) == 0 {
 		return nil, nil
 	}
@@ -126,7 +129,11 @@ func getPathElementByKey(collection map[string]any, key string) ([]PathElement, 
 
 		valueMap, ok := item.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("failed to parse path element at %d: expected object, got: %v", i, item)
+			return nil, fmt.Errorf(
+				"failed to parse path element at %d: expected object, got: %v",
+				i,
+				item,
+			)
 		}
 
 		if valueMap == nil {

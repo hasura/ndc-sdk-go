@@ -232,13 +232,19 @@ func TestConnectorGenerationDuplicatedOperationFailure(t *testing.T) {
 	t.Run("function", func(t *testing.T) {
 		t.Chdir(filepath.Join(".", "testdata/duplicated_func/source"))
 
-		err := ParseAndGenerateConnector(ConnectorGenerationArguments{}, "github.com/hasura/ndc-codegen-duplicated-func")
+		err := ParseAndGenerateConnector(
+			ConnectorGenerationArguments{},
+			"github.com/hasura/ndc-codegen-duplicated-func",
+		)
 		assert.ErrorContains(t, err, "GetArticles. Please choose another name")
 	})
 
 	t.Run("procedure", func(t *testing.T) {
 		t.Chdir(filepath.Join(".", "testdata/duplicated_proc/source"))
-		err := ParseAndGenerateConnector(ConnectorGenerationArguments{}, "github.com/hasura/ndc-codegen-duplicated-proc")
+		err := ParseAndGenerateConnector(
+			ConnectorGenerationArguments{},
+			"github.com/hasura/ndc-codegen-duplicated-proc",
+		)
 		assert.ErrorContains(t, err, "CreateArticle. Please choose another name")
 	})
 }

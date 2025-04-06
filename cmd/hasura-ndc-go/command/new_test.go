@@ -1,6 +1,7 @@
 package command
 
 import (
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -19,4 +20,9 @@ func TestGenerateNewProject(t *testing.T) {
 	UpdateConnectorSchema(UpdateArguments{
 		Path: tempDir,
 	}, time.Now())
+
+	assert.NilError(t, GenTestSnapshots(&GenTestSnapshotArguments{
+		Schema: filepath.Join(tempDir, "schema.generated.json"),
+		Dir:    filepath.Join(tempDir, "testdata"),
+	}))
 }
