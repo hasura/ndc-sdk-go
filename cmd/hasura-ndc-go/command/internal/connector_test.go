@@ -74,11 +74,8 @@ func TestConnectorGeneration(t *testing.T) {
 		},
 	}
 
-	rootDir, err := os.Getwd()
-	assert.NilError(t, err)
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			assert.NilError(t, os.Chdir(rootDir))
 			expectedSchemaBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/schema.json"))
 			assert.NilError(t, err)
 			connectorContentBytes, err := os.ReadFile(
@@ -87,7 +84,8 @@ func TestConnectorGeneration(t *testing.T) {
 			assert.NilError(t, err)
 
 			srcDir := path.Join(tc.BasePath, "source")
-			assert.NilError(t, os.Chdir(srcDir))
+			t.Chdir(srcDir)
+
 			err = ParseAndGenerateConnector(ConnectorGenerationArguments{
 				ConnectorDir: tc.ConnectorDir,
 				Directories:  tc.Directories,
@@ -124,7 +122,7 @@ func TestConnectorGeneration(t *testing.T) {
 			)
 
 			// go to the base test directory
-			assert.NilError(t, os.Chdir(".."))
+			t.Chdir("..")
 
 			for _, td := range tc.Directories {
 				for _, globPath := range []string{filepath.Join("source", td, "types.generated.go"), filepath.Join("source", td, "**", "types.generated.go")} {
@@ -156,8 +154,6 @@ func TestConnectorGeneration(t *testing.T) {
 	// go template
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			assert.NilError(t, os.Chdir(rootDir))
-
 			expectedSchemaBytes, err := os.ReadFile(
 				path.Join(tc.BasePath, "expected/schema.go.tmpl"),
 			)
@@ -178,7 +174,7 @@ func TestConnectorGeneration(t *testing.T) {
 			}
 
 			srcDir := path.Join(tc.BasePath, "source")
-			assert.NilError(t, os.Chdir(srcDir))
+			t.Chdir(srcDir)
 			err = ParseAndGenerateConnector(ConnectorGenerationArguments{
 				ConnectorDir: tc.ConnectorDir,
 				Directories:  tc.Directories,
@@ -208,7 +204,7 @@ func TestConnectorGeneration(t *testing.T) {
 			)
 
 			// go to the base test directory
-			assert.NilError(t, os.Chdir(".."))
+			t.Chdir("..")
 
 			for _, td := range tc.Directories {
 				expectedFunctionTypesBytes, err := os.ReadFile(
@@ -230,4 +226,19 @@ func TestConnectorGeneration(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConnectorGenerationDuplicatedOperationFailure(t *testing.T) {
+	t.Run("function", func(t *testing.T) {
+		t.Chdir(filepath.Join(".", "testdata/duplicated_func/source"))
+
+		err := ParseAndGenerateConnector(ConnectorGenerationArguments{}, "github.com/hasura/ndc-codegen-duplicated-func")
+		assert.ErrorContains(t, err, "Function name 'getArticles' (github.com/hasura/ndc-codegen-duplicated-func/functions/article.GetArticles) already exists in function github.com/hasura/ndc-codegen-duplicated-func/functions.GetArticles. Please choose another name")
+	})
+
+	t.Run("procedure", func(t *testing.T) {
+		t.Chdir(filepath.Join(".", "testdata/duplicated_proc/source"))
+		err := ParseAndGenerateConnector(ConnectorGenerationArguments{}, "github.com/hasura/ndc-codegen-duplicated-proc")
+		assert.ErrorContains(t, err, "Procedure name 'create_article' (github.com/hasura/ndc-codegen-duplicated-proc/functions/article.CreateArticle) already exists in procedure github.com/hasura/ndc-codegen-duplicated-proc/functions.CreateArticle. Please choose another name")
+	})
 }
