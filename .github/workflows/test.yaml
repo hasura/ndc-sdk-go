@@ -27,13 +27,13 @@ jobs:
           go-version-file: ./go.mod
       - name: Install dependencies
         run: |
+          rm cmd/hasura-ndc-go/go.mod
+          rm cmd/hasura-ndc-go/go.sum
           go get -t -v ./...
           go install ./...
       - name: Run Go unit tests for the SDK
         run: |
           cp go.work.testing go.work
-          rm cmd/hasura-ndc-go/go.mod
-          rm cmd/hasura-ndc-go/go.sum
           go mod tidy
           go test -v -coverpkg=./... -race -timeout 3m -coverprofile=coverage.out ./...
       - name: Run Go unit tests for the generation example
