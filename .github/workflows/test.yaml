@@ -27,7 +27,6 @@ jobs:
           go-version-file: ./go.mod
       - name: Install dependencies
         run: |
-          cp go.work.testing go.work
           rm cmd/hasura-ndc-go/go.mod
           rm cmd/hasura-ndc-go/go.sum
           go get golang.org/x/tools@latest
@@ -39,6 +38,8 @@ jobs:
           rm -rf ./coverage
           mkdir -p ./coverage/sdk
           mkdir -p ./coverage/codegen
+
+          cp go.work.testing go.work
           go test -v -coverpkg=./... -race -timeout 3m -cover ./... -args -test.gocoverdir=$PWD/coverage/sdk ./...
           go test -v -race -timeout 3m -cover ./example/codegen/... -args -test.gocoverdir=$PWD/coverage/codegen ./example/codegen/...
           go tool covdata textfmt -i=./coverage/sdk,./coverage/codegen -o ./coverage/profile.tmp
