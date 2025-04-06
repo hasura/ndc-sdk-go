@@ -3,10 +3,9 @@ package internal
 import (
 	"fmt"
 	"go/types"
-	"slices"
-	"strings"
 
 	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/utils"
 )
 
 // OperationKind the operation kind of connectors.
@@ -346,9 +345,9 @@ type RawConnectorSchema struct {
 	Imports           map[string]bool
 	Scalars           map[string]Scalar
 	Objects           map[string]ObjectInfo
-	Functions         []FunctionInfo
+	Functions         map[string]FunctionInfo
 	FunctionArguments map[string]ObjectInfo
-	Procedures        []ProcedureInfo
+	Procedures        map[string]ProcedureInfo
 }
 
 // NewRawConnectorSchema creates an empty RawConnectorSchema instance.
@@ -357,9 +356,9 @@ func NewRawConnectorSchema() *RawConnectorSchema {
 		Imports:           make(map[string]bool),
 		Scalars:           make(map[string]Scalar),
 		Objects:           make(map[string]ObjectInfo),
-		Functions:         []FunctionInfo{},
+		Functions:         map[string]FunctionInfo{},
 		FunctionArguments: make(map[string]ObjectInfo),
-		Procedures:        []ProcedureInfo{},
+		Procedures:        map[string]ProcedureInfo{},
 	}
 }
 
@@ -381,21 +380,20 @@ func (rcs RawConnectorSchema) Schema() *schema.SchemaResponse {
 		result.ObjectTypes[obj.Type.SchemaName] = *obj.Schema()
 	}
 
-	for _, function := range rcs.Functions {
+	functionKeys := utils.GetSortedKeys(rcs.Functions)
+
+	for _, key := range functionKeys {
+		function := rcs.Functions[key]
+
 		result.Functions = append(result.Functions, function.Schema())
 	}
 
-	slices.SortFunc(result.Functions, func(a, b schema.FunctionInfo) int {
-		return strings.Compare(a.Name, b.Name)
-	})
+	procKeys := utils.GetSortedKeys(rcs.Procedures)
 
-	for _, procedure := range rcs.Procedures {
+	for _, key := range procKeys {
+		procedure := rcs.Procedures[key]
 		result.Procedures = append(result.Procedures, procedure.Schema())
 	}
-
-	slices.SortFunc(result.Procedures, func(a, b schema.ProcedureInfo) int {
-		return strings.Compare(a.Name, b.Name)
-	})
 
 	return result
 }

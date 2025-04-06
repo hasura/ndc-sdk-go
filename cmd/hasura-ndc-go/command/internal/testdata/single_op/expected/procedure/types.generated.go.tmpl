@@ -59,7 +59,8 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
     return nil, utils.ErrHandlerNotfound
   }
 }
-var enumValues_ProcedureName = []string{"createDemo"}    
+var enumValues_ProcedureName = []string{"createDemo"}
+
 func connector_addSpanEvent(span trace.Span, logger *slog.Logger, name string, data map[string]any) {
   logger.Debug(name, slog.Any("data", data))
   attrs := utils.DebugJSONAttributes(data, utils.IsDebug(logger))

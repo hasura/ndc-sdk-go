@@ -39,8 +39,8 @@ type connectorTypeBuilder struct {
 	packagePath string
 	imports     map[string]string
 	builder     *strings.Builder
-	functions   []FunctionInfo
-	procedures  []ProcedureInfo
+	functions   map[string]FunctionInfo
+	procedures  map[string]ProcedureInfo
 }
 
 // SetImport sets an import package into the import list.
@@ -581,6 +581,8 @@ func (cg *connectorGenerator) getOrCreateTypeBuilder(packagePath string) *connec
 			packagePath: packagePath,
 			imports:     map[string]string{},
 			builder:     &strings.Builder{},
+			functions:   make(map[string]FunctionInfo),
+			procedures:  make(map[string]ProcedureInfo),
 		}
 		cg.typeBuilders[packagePath] = bs
 	}
@@ -591,12 +593,12 @@ func (cg *connectorGenerator) getOrCreateTypeBuilder(packagePath string) *connec
 func (cg *connectorGenerator) genConnectorHandlers() {
 	for _, fn := range cg.rawSchema.Functions {
 		builder := cg.getOrCreateTypeBuilder(fn.PackagePath)
-		builder.functions = append(builder.functions, fn)
+		builder.functions[fn.Name] = fn
 	}
 
 	for _, fn := range cg.rawSchema.Procedures {
 		builder := cg.getOrCreateTypeBuilder(fn.PackagePath)
-		builder.procedures = append(builder.procedures, fn)
+		builder.procedures[fn.Name] = fn
 	}
 
 	for _, bs := range cg.typeBuilders {

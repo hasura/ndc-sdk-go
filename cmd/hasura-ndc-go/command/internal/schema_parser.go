@@ -285,9 +285,9 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 
 		switch opInfo.Kind {
 		case OperationProcedure:
-			sp.rawSchema.Procedures = append(sp.rawSchema.Procedures, ProcedureInfo(*opInfo))
+			sp.rawSchema.Procedures[opInfo.Name] = ProcedureInfo(*opInfo)
 		case OperationFunction:
-			sp.rawSchema.Functions = append(sp.rawSchema.Functions, FunctionInfo(*opInfo))
+			sp.rawSchema.Functions[opInfo.Name] = FunctionInfo(*opInfo)
 		}
 	default:
 	}

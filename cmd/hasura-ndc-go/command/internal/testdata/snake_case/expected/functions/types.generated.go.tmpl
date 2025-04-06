@@ -916,6 +916,40 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
   span := trace.SpanFromContext(ctx)
   logger := connector.GetLogger(ctx)
   switch request.Collection {
+  case "get_articles":
+
+    selection, err := queryFields.AsArray()
+    if err != nil {
+      return nil, schema.UnprocessableContentError("the selection field type must be array", map[string]any{
+        "cause": err.Error(),
+      })
+    }
+    var args GetArticlesArguments
+    parseErr := args.FromValue(rawArgs)
+    if parseErr != nil {
+      return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
+        "cause": parseErr.Error(),
+      })
+    }
+    
+    connector_addSpanEvent(span, logger, "execute_function", map[string]any{
+      "arguments": args,
+    })
+    rawResult, err := GetArticles(ctx, state, &args)
+
+    if err != nil {
+      return nil, err
+    }
+
+    connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
+      "raw_result": rawResult,
+    })
+    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)
+    if err != nil {
+      return nil, err
+    }
+    return result, nil
+
   case "get_bool":
 
       if len(queryFields) > 0 {
@@ -986,45 +1020,11 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
     }
     return result, nil
 
-  case "get_articles":
-
-    selection, err := queryFields.AsArray()
-    if err != nil {
-      return nil, schema.UnprocessableContentError("the selection field type must be array", map[string]any{
-        "cause": err.Error(),
-      })
-    }
-    var args GetArticlesArguments
-    parseErr := args.FromValue(rawArgs)
-    if parseErr != nil {
-      return nil, schema.UnprocessableContentError("failed to resolve arguments", map[string]any{
-        "cause": parseErr.Error(),
-      })
-    }
-    
-    connector_addSpanEvent(span, logger, "execute_function", map[string]any{
-      "arguments": args,
-    })
-    rawResult, err := GetArticles(ctx, state, &args)
-
-    if err != nil {
-      return nil, err
-    }
-
-    connector_addSpanEvent(span, logger, "evaluate_response_selection", map[string]any{
-      "raw_result": rawResult,
-    })
-    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)
-    if err != nil {
-      return nil, err
-    }
-    return result, nil
-
   default:
     return nil, utils.ErrHandlerNotfound
   }
 }
-var enumValues_FunctionName = []string{"get_bool", "get_types", "hello", "get_articles"}
+var enumValues_FunctionName = []string{"get_articles", "get_bool", "get_types", "hello"}
 // MutationExists check if the mutation name exists
 func (dch DataConnectorHandler) MutationExists(name string) bool {
   return slices.Contains(enumValues_ProcedureName, name)
@@ -1066,19 +1066,6 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
       "raw_result": rawResult,
     })
     result, err := utils.EvalNestedColumnObject(selection, rawResult)
-
-    if err != nil {
-      return nil, err
-    }
-    return schema.NewProcedureResult(result).Encode(), nil
-
-  case "increase":
-
-      if len(operation.Fields) > 0 {
-				return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
-			}
-    span.AddEvent("execute_procedure")
-    result, err := Increase(ctx, state)
 
     if err != nil {
       return nil, err
@@ -1150,11 +1137,25 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *types.State
     }
     return schema.NewProcedureResult(result).Encode(), nil
 
+  case "increase":
+
+      if len(operation.Fields) > 0 {
+				return nil, schema.UnprocessableContentError("cannot evaluate selection fields for scalar", nil)
+			}
+    span.AddEvent("execute_procedure")
+    result, err := Increase(ctx, state)
+
+    if err != nil {
+      return nil, err
+    }
+    return schema.NewProcedureResult(result).Encode(), nil
+
   default:
     return nil, utils.ErrHandlerNotfound
   }
 }
-var enumValues_ProcedureName = []string{"create_article", "increase", "create_author", "create_authors"}    
+var enumValues_ProcedureName = []string{"create_article", "create_author", "create_authors", "increase"}
+
 func connector_addSpanEvent(span trace.Span, logger *slog.Logger, name string, data map[string]any) {
   logger.Debug(name, slog.Any("data", data))
   attrs := utils.DebugJSONAttributes(data, utils.IsDebug(logger))

@@ -2,7 +2,6 @@ package internal
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -133,8 +132,6 @@ func TestConnectorGeneration(t *testing.T) {
 					assert.NilError(t, err)
 
 					for _, goFile := range goFiles {
-						log.Println("file", goFile)
-
 						expectedDir := filepath.Dir(
 							strings.Replace(goFile, "source/", "expected/", -1),
 						)

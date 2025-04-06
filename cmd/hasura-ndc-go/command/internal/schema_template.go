@@ -29,6 +29,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
     ObjectTypes: schema.SchemaResponseObjectTypes{`)
 
 	objectKeys := utils.GetSortedKeys(rcs.Objects)
+
 	for _, key := range objectKeys {
 		objectType := rcs.Objects[key]
 		if err := rcs.writeObjectType(&builder, &objectType); err != nil {
@@ -39,9 +40,12 @@ func GetConnectorSchema() *schema.SchemaResponse {
 	builder.WriteString(`
     },
     Functions: []schema.FunctionInfo{`)
+	functionKeys := utils.GetSortedKeys(rcs.Functions)
 
-	for _, fn := range rcs.Functions {
+	for _, fnKey := range functionKeys {
+		fn := rcs.Functions[fnKey]
 		op := OperationInfo(fn)
+
 		if err := rcs.writeOperationInfo(&builder, &op); err != nil {
 			return "", err
 		}
@@ -50,9 +54,12 @@ func GetConnectorSchema() *schema.SchemaResponse {
 	builder.WriteString(`
     },
     Procedures: []schema.ProcedureInfo{`)
+	procKeys := utils.GetSortedKeys(rcs.Procedures)
 
-	for _, proc := range rcs.Procedures {
+	for _, key := range procKeys {
+		proc := rcs.Procedures[key]
 		op := OperationInfo(proc)
+
 		if err := rcs.writeOperationInfo(&builder, &op); err != nil {
 			return "", err
 		}

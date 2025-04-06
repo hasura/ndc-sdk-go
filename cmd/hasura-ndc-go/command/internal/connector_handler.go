@@ -3,6 +3,8 @@ package internal
 import (
 	"fmt"
 	"strings"
+
+	"github.com/hasura/ndc-sdk-go/utils"
 )
 
 const (
@@ -12,8 +14,8 @@ const (
 
 type connectorHandlerBuilder struct {
 	RawSchema  *RawConnectorSchema
-	Functions  []FunctionInfo
-	Procedures []ProcedureInfo
+	Functions  map[string]FunctionInfo
+	Procedures map[string]ProcedureInfo
 	Builder    *connectorTypeBuilder
 }
 
@@ -43,7 +45,8 @@ type DataConnectorHandler struct{}
 	chb.writeQuery(bs.builder)
 	chb.writeMutation(bs.builder)
 
-	bs.builder.WriteString(`    
+	bs.builder.WriteString(`
+
 func connector_addSpanEvent(span trace.Span, logger *slog.Logger, name string, data map[string]any) {
   logger.Debug(name, slog.Any("data", data))
   attrs := utils.DebugJSONAttributes(data, utils.IsDebug(logger))
@@ -133,9 +136,10 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`,
   switch request.Collection {`,
 	)
 
-	functionKeys := make([]string, len(chb.Functions))
-	for i, fn := range chb.Functions {
-		functionKeys[i] = fn.Name
+	functionKeys := utils.GetSortedKeys(chb.Functions)
+
+	for _, key := range functionKeys {
+		fn := chb.Functions[key]
 		op := OperationInfo(fn)
 		resultType, isNullable := unwrapNullableType(op.ResultType.Type)
 		schemaName := resultType.SchemaName(false)
@@ -237,9 +241,10 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
   switch operation.Name {`,
 	)
 
-	procedureKeys := make([]string, len(chb.Procedures))
-	for i, fn := range chb.Procedures {
-		procedureKeys[i] = fn.Name
+	procedureKeys := utils.GetSortedKeys(chb.Procedures)
+
+	for _, key := range procedureKeys {
+		fn := chb.Procedures[key]
 		op := OperationInfo(fn)
 		resultType, isNullable := unwrapNullableType(op.ResultType.Type)
 		schemaName := resultType.SchemaName(false)

@@ -57,7 +57,8 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *types.Stat
     return nil, utils.ErrHandlerNotfound
   }
 }
-var enumValues_FunctionName = []string{"hello"}    
+var enumValues_FunctionName = []string{"hello"}
+
 func connector_addSpanEvent(span trace.Span, logger *slog.Logger, name string, data map[string]any) {
   logger.Debug(name, slog.Any("data", data))
   attrs := utils.DebugJSONAttributes(data, utils.IsDebug(logger))
