@@ -29,4 +29,5 @@ go.work.sum
 .idea/
 _output/
 release/
+coverage/
 coverage.out
