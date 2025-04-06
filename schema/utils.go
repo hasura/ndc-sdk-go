@@ -98,8 +98,8 @@ func getStringSliceByKey(collection map[string]any, key string) ([]string, error
 
 func getPathElementByKey(
 	collection map[string]any,
-	key string,
-) ([]PathElement, error) { //nolint:unparam
+	key string, //nolint:unparam
+) ([]PathElement, error) {
 	if len(collection) == 0 {
 		return nil, nil
 	}
