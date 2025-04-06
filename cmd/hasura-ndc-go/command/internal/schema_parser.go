@@ -302,10 +302,18 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 // the operation name must be unique in either function or procedure.
 func (sp *SchemaParser) validateOperationName(opInfo *OperationInfo) error {
 	if fn, ok := sp.rawSchema.Functions[opInfo.Name]; ok {
+		if opInfo.Kind == fn.Kind && opInfo.PackagePath == fn.PackagePath && opInfo.OriginName == fn.OriginName {
+			return nil
+		}
+
 		return fmt.Errorf("%s name '%s' (%s.%s) already exists in function %s.%s. Please choose another name", opInfo.Kind, opInfo.Name, opInfo.PackagePath, opInfo.OriginName, fn.PackagePath, fn.OriginName)
 	}
 
 	if fn, ok := sp.rawSchema.Procedures[opInfo.Name]; ok {
+		if opInfo.Kind == fn.Kind && opInfo.PackagePath == fn.PackagePath && opInfo.OriginName == fn.OriginName {
+			return nil
+		}
+
 		return fmt.Errorf("%s name '%s' (%s.%s) already exists in procedure %s.%s. Please choose another name", opInfo.Kind, opInfo.Name, opInfo.PackagePath, opInfo.OriginName, fn.PackagePath, fn.OriginName)
 	}
 
