@@ -245,7 +245,7 @@ func TestQueryRequest(t *testing.T) {
 						Elements: []OrderByElement{
 							{
 								OrderDirection: OrderDirectionDesc,
-								Target:         NewOrderByColumnName("title").Encode(),
+								Target:         NewOrderByColumn("title", nil).Encode(),
 							},
 						},
 					},
@@ -310,9 +310,11 @@ func TestQueryRequest(t *testing.T) {
 								Target: NewOrderByColumn(
 									"location",
 									[]PathElement{},
-									nil,
-									[]string{"country"},
-								).Encode(),
+								).WithFieldPath([]string{"country"}).
+									WithArgument("empty", NewArgumentLiteral("test")).
+									WithArgument("empty", nil).
+									WithArguments(nil).
+									Encode(),
 							},
 						},
 					},

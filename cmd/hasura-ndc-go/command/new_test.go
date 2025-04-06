@@ -2,6 +2,7 @@ package command
 
 import (
 	"testing"
+	"time"
 
 	"gotest.tools/v3/assert"
 )
@@ -14,4 +15,8 @@ func TestGenerateNewProject(t *testing.T) {
 		Output:  tempDir,
 		Version: "v1.1.1",
 	}, true))
+
+	UpdateConnectorSchema(UpdateArguments{
+		Path: tempDir,
+	}, time.Now())
 }

@@ -344,10 +344,20 @@ type RelationshipArgumentEncoder interface {
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *RelationshipArgument) UnmarshalJSON(b []byte) error {
 	var raw map[string]any
+
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
 
+	if raw == nil {
+		return nil
+	}
+
+	return j.FromValue(raw)
+}
+
+// FromValue decodes the raw object value to the instance.
+func (j *RelationshipArgument) FromValue(raw map[string]any) error {
 	rawArgumentType, err := getStringValueByKey(raw, "type")
 	if err != nil {
 		return fmt.Errorf("field type in Argument: %w", err)
@@ -368,22 +378,27 @@ func (j *RelationshipArgument) UnmarshalJSON(b []byte) error {
 
 	switch argumentType {
 	case RelationshipArgumentTypeLiteral:
-		if value, ok := raw["value"]; !ok {
-			return errors.New("field value in Argument is required for literal type")
-		} else {
-			result["value"] = value
-		}
-	default:
-		name, err := getStringValueByKey(raw, "name")
+		argument, err := RelationshipArgument(raw).asLiteral()
 		if err != nil {
-			return fmt.Errorf("field name in Argument: %w", err)
+			return err
 		}
 
-		if name == "" {
-			return fmt.Errorf("field name in Argument is required for %s type", rawArgumentType)
+		result = argument.Encode()
+	case RelationshipArgumentTypeColumn:
+		argument, err := RelationshipArgument(raw).asColumn()
+		if err != nil {
+			return err
 		}
 
-		result["name"] = name
+		result = argument.Encode()
+	case RelationshipArgumentTypeVariable:
+		argument, err := RelationshipArgument(raw).asVariable()
+		if err != nil {
+			return err
+		}
+
+		result = argument.Encode()
+	default:
 	}
 
 	*j = result
@@ -428,7 +443,14 @@ func (j RelationshipArgument) AsLiteral() (*RelationshipArgumentLiteral, error) 
 		)
 	}
 
-	value := j["value"]
+	return j.asLiteral()
+}
+
+func (j RelationshipArgument) asLiteral() (*RelationshipArgumentLiteral, error) {
+	value, ok := j["value"]
+	if !ok {
+		return nil, errors.New("field value in RelationshipArgumentLiteral is required")
+	}
 
 	return &RelationshipArgumentLiteral{
 		Value: value,
@@ -450,13 +472,17 @@ func (j RelationshipArgument) AsVariable() (*RelationshipArgumentVariable, error
 		)
 	}
 
+	return j.asVariable()
+}
+
+func (j RelationshipArgument) asVariable() (*RelationshipArgumentVariable, error) {
 	name, err := getStringValueByKey(j, "name")
 	if err != nil {
-		return nil, fmt.Errorf("RelationshipArgumentVariable.name, %w", err)
+		return nil, fmt.Errorf("field name in RelationshipArgumentVariable: %w", err)
 	}
 
 	if name == "" {
-		return nil, errors.New("RelationshipArgumentVariable.name is required")
+		return nil, errors.New("field name in RelationshipArgumentVariable is required")
 	}
 
 	return &RelationshipArgumentVariable{
@@ -479,13 +505,17 @@ func (j RelationshipArgument) AsColumn() (*RelationshipArgumentColumn, error) {
 		)
 	}
 
+	return j.asColumn()
+}
+
+func (j RelationshipArgument) asColumn() (*RelationshipArgumentColumn, error) {
 	name, err := getStringValueByKey(j, "name")
 	if err != nil {
-		return nil, fmt.Errorf("RelationshipArgumentColumn.name: %w", err)
+		return nil, fmt.Errorf("field name in RelationshipArgumentColumn: %w", err)
 	}
 
 	if name == "" {
-		return nil, errors.New("RelationshipArgumentColumn.name is required")
+		return nil, errors.New("field name in RelationshipArgumentColumn is required")
 	}
 
 	return &RelationshipArgumentColumn{
@@ -733,6 +763,7 @@ func (j *Field) UnmarshalJSON(b []byte) error {
 		}
 
 		var arguments map[string]RelationshipArgument
+
 		if err = json.Unmarshal(rawArguments, &arguments); err != nil {
 			return fmt.Errorf("field arguments in Field: %w", err)
 		}
@@ -853,17 +884,13 @@ func (j Field) AsRelationship() (*RelationshipField, error) {
 		)
 	}
 
-	rawArguments, ok := j["arguments"]
-	if !ok {
-		return nil, errors.New("RelationshipField.arguments is required")
+	arguments, err := getRelationshipArgumentMapByKey(j, "arguments")
+	if err != nil {
+		return nil, fmt.Errorf("field arguments in RelationshipField: %w", err)
 	}
 
-	arguments, ok := rawArguments.(map[string]RelationshipArgument)
-	if !ok {
-		return nil, fmt.Errorf(
-			"invalid RelationshipField.arguments type; expected map[string]RelationshipArgument, got %+v",
-			rawArguments,
-		)
+	if arguments == nil {
+		return nil, errors.New("field arguments in RelationshipField is required")
 	}
 
 	return &RelationshipField{
@@ -927,6 +954,12 @@ func (f ColumnField) WithNestedField(fields NestedFieldEncoder) *ColumnField {
 
 // WithArguments return a new column field with arguments set.
 func (f ColumnField) WithArguments(arguments map[string]ArgumentEncoder) *ColumnField {
+	if arguments == nil {
+		f.Arguments = nil
+
+		return &f
+	}
+
 	args := make(map[string]Argument)
 
 	for key, arg := range arguments {
@@ -1256,16 +1289,13 @@ func (j ComparisonTarget) asAggregate() (*ComparisonTargetAggregate, error) {
 
 	result.Aggregate = aggregate
 
-	rawPath, ok := j["path"]
-	if !ok && rawPath == nil {
-		return nil, errors.New("field path in ComparisonTargetAggregate is required")
+	pathElem, err := getPathElementByKey(j, "path")
+	if err != nil {
+		return nil, fmt.Errorf("field path in ComparisonTargetAggregate: %w", err)
 	}
 
-	pathElem, ok := rawPath.([]PathElement)
-	if !ok {
-		if err = mapstructure.Decode(rawPath, &pathElem); err != nil {
-			return nil, fmt.Errorf("field path in ComparisonTargetAggregate: %w", err)
-		}
+	if pathElem == nil {
+		return nil, errors.New("field path in ComparisonTargetAggregate is required")
 	}
 
 	result.Path = pathElem
@@ -1325,6 +1355,12 @@ func (f ComparisonTargetColumn) WithFieldPath(fieldPath []string) *ComparisonTar
 func (f ComparisonTargetColumn) WithArguments(
 	arguments map[string]ArgumentEncoder,
 ) *ComparisonTargetColumn {
+	if arguments == nil {
+		f.Arguments = nil
+
+		return &f
+	}
+
 	args := make(map[string]Argument)
 
 	for key, arg := range arguments {
@@ -1605,19 +1641,13 @@ func (cv ComparisonValue) asColumn() (*ComparisonValueColumn, error) {
 		return nil, fmt.Errorf("ComparisonValueColumn.name: %w", err)
 	}
 
-	rawPath, ok := cv["path"]
-	if !ok || rawPath == nil {
-		return nil, errors.New("field 'path' in ComparisonValueColumn is required")
+	pathElem, err := getPathElementByKey(cv, "path")
+	if err != nil {
+		return nil, fmt.Errorf("field 'path' in ComparisonValueColumn: %w", err)
 	}
 
-	path, ok := rawPath.([]PathElement)
-	if !ok {
-		if err := mapstructure.Decode(rawPath, &path); err != nil {
-			return nil, fmt.Errorf(
-				"invalid ComparisonValueColumn path; expected []PathElement, got %v",
-				rawPath,
-			)
-		}
+	if pathElem == nil {
+		return nil, errors.New("field 'path' in ComparisonValueColumn is required")
 	}
 
 	fieldPath, err := getStringSliceByKey(cv, "field_path")
@@ -1632,7 +1662,7 @@ func (cv ComparisonValue) asColumn() (*ComparisonValueColumn, error) {
 
 	result := &ComparisonValueColumn{
 		Name:      name,
-		Path:      path,
+		Path:      pathElem,
 		FieldPath: fieldPath,
 		Arguments: arguments,
 	}
@@ -2008,24 +2038,18 @@ func (j ExistsInCollection) asRelated() (*ExistsInCollectionRelated, error) {
 		return nil, errors.New("ExistsInCollectionRelated.relationship is required")
 	}
 
-	rawArgs, ok := j["arguments"]
-	if !ok {
-		return nil, errors.New("ExistsInCollectionRelated.arguments is required")
+	arguments, err := getRelationshipArgumentMapByKey(j, "arguments")
+	if err != nil {
+		return nil, fmt.Errorf("field arguments in ExistsInCollectionRelated: %w", err)
 	}
 
-	args, ok := rawArgs.(map[string]RelationshipArgument)
-	if !ok {
-		if err := mapstructure.Decode(rawArgs, &args); err != nil {
-			return nil, fmt.Errorf(
-				"invalid ExistsInCollectionRelated.arguments type; expected: map[string]RelationshipArgument, got: %+v",
-				rawArgs,
-			)
-		}
+	if arguments == nil {
+		return nil, errors.New("field arguments in ExistsInCollectionRelated is required")
 	}
 
 	result := &ExistsInCollectionRelated{
 		Relationship: relationship,
-		Arguments:    args,
+		Arguments:    arguments,
 	}
 
 	fieldPath, err := getStringSliceByKey(j, "field_path")
@@ -2071,24 +2095,18 @@ func (j ExistsInCollection) asUnrelated() (*ExistsInCollectionUnrelated, error) 
 		return nil, errors.New("ExistsInCollectionUnrelated.collection is required")
 	}
 
-	rawArgs, ok := j["arguments"]
-	if !ok || rawArgs == nil {
-		return nil, errors.New("ExistsInCollectionUnrelated.arguments is required")
+	arguments, err := getRelationshipArgumentMapByKey(j, "arguments")
+	if err != nil {
+		return nil, fmt.Errorf("field arguments in ExistsInCollectionUnrelated: %w", err)
 	}
 
-	args, ok := rawArgs.(map[string]RelationshipArgument)
-	if !ok {
-		if err := mapstructure.Decode(rawArgs, &args); err != nil {
-			return nil, fmt.Errorf(
-				"invalid ExistsInCollectionUnrelated.arguments type; expected: map[string]RelationshipArgument, got: %+v",
-				rawArgs,
-			)
-		}
+	if arguments == nil {
+		return nil, errors.New("field arguments in ExistsInCollectionUnrelated is required")
 	}
 
 	return &ExistsInCollectionUnrelated{
 		Collection: collection,
-		Arguments:  args,
+		Arguments:  arguments,
 	}, nil
 }
 
@@ -2702,7 +2720,7 @@ func (j Expression) asNot() (*ExpressionNot, error) {
 	if !ok {
 		exprMap, ok := rawExpression.(map[string]any)
 		if !ok {
-			return nil, errors.New("field expressions in ExpressionNot is required")
+			return nil, errors.New("field expression in ExpressionNot is required")
 		}
 
 		if err := expression.FromValue(exprMap); err != nil {
@@ -3781,6 +3799,7 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 	}
 
 	var pathElem []PathElement
+
 	if err := json.Unmarshal(rawPath, &pathElem); err != nil {
 		return fmt.Errorf("field path in OrderByTarget: %w", err)
 	}
@@ -3842,27 +3861,6 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (j OrderByTarget) getPath() ([]PathElement, error) {
-	rawPath, ok := j["path"]
-	if !ok {
-		return nil, errors.New("field path in OrderByTarget is required")
-	}
-
-	path, ok := rawPath.([]PathElement)
-	if !ok {
-		path = []PathElement{}
-
-		if err := mapstructure.Decode(rawPath, &path); err != nil {
-			return nil, fmt.Errorf(
-				"invalid path in OrderByTarget type; expected: []PathElement, got: %+v",
-				rawPath,
-			)
-		}
-	}
-
-	return path, nil
-}
-
 // Type gets the type enum of the current type.
 func (j OrderByTarget) Type() (OrderByTargetType, error) {
 	t, ok := j["type"]
@@ -3909,9 +3907,13 @@ func (j OrderByTarget) AsColumn() (*OrderByColumn, error) {
 		return nil, errors.New("field name in OrderByColumn is required")
 	}
 
-	p, err := j.getPath()
+	pathElem, err := getPathElementByKey(j, "path")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("field 'path' in OrderByColumn: %w", err)
+	}
+
+	if pathElem == nil {
+		return nil, errors.New("field 'path' in OrderByColumn is required")
 	}
 
 	fieldPath, err := getStringSliceByKey(j, "field_path")
@@ -3926,7 +3928,7 @@ func (j OrderByTarget) AsColumn() (*OrderByColumn, error) {
 
 	result := &OrderByColumn{
 		Name:      name,
-		Path:      p,
+		Path:      pathElem,
 		FieldPath: fieldPath,
 		Arguments: arguments,
 	}
@@ -3949,9 +3951,13 @@ func (j OrderByTarget) AsAggregate() (*OrderByAggregate, error) {
 		)
 	}
 
-	p, err := j.getPath()
+	pathElem, err := getPathElementByKey(j, "path")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("field 'path' in OrderByTarget: %w", err)
+	}
+
+	if pathElem == nil {
+		return nil, errors.New("field 'path' in OrderByTarget is required")
 	}
 
 	rawAggregate, ok := j["aggregate"]
@@ -3977,7 +3983,7 @@ func (j OrderByTarget) AsAggregate() (*OrderByAggregate, error) {
 	}
 
 	return &OrderByAggregate{
-		Path:      p,
+		Path:      pathElem,
 		Aggregate: aggregate,
 	}, nil
 }
@@ -4025,23 +4031,65 @@ type OrderByColumn struct {
 }
 
 // NewOrderByColumn creates an OrderByColumn instance.
-func NewOrderByColumn(
-	name string,
-	path []PathElement,
-	arguments map[string]Argument,
-	fieldPath []string,
-) *OrderByColumn {
+func NewOrderByColumn(name string, path []PathElement) *OrderByColumn {
+	if path == nil {
+		path = []PathElement{}
+	}
+
 	return &OrderByColumn{
-		Name:      name,
-		FieldPath: fieldPath,
-		Path:      path,
-		Arguments: arguments,
+		Name: name,
+		Path: path,
 	}
 }
 
-// NewOrderByColumnName creates an OrderByColumn instance with column name only.
-func NewOrderByColumnName(name string) *OrderByColumn {
-	return NewOrderByColumn(name, []PathElement{}, nil, nil)
+// WithFieldPath returns a new instance with field_path set.
+func (f OrderByColumn) WithFieldPath(fieldPath []string) *OrderByColumn {
+	f.FieldPath = fieldPath
+
+	return &f
+}
+
+// WithArguments return a new instance with arguments set.
+func (f OrderByColumn) WithArguments(
+	arguments map[string]ArgumentEncoder,
+) *OrderByColumn {
+	if arguments == nil {
+		f.Arguments = nil
+
+		return &f
+	}
+
+	args := make(map[string]Argument)
+
+	for key, arg := range arguments {
+		if arg == nil {
+			continue
+		}
+
+		args[key] = arg.Encode()
+	}
+
+	f.Arguments = args
+
+	return &f
+}
+
+// WithArgument return a new instance with an arguments set.
+func (f OrderByColumn) WithArgument(
+	key string,
+	argument ArgumentEncoder,
+) *OrderByColumn {
+	if argument == nil {
+		delete(f.Arguments, key)
+	} else {
+		if f.Arguments == nil {
+			f.Arguments = make(map[string]Argument)
+		}
+
+		f.Arguments[key] = argument.Encode()
+	}
+
+	return &f
 }
 
 // Type return the type name of the instance.

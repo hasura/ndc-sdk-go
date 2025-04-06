@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-
-	"github.com/go-viper/mapstructure/v2"
 )
 
 // MarshalJSON implements json.Marshaler.
@@ -103,6 +101,55 @@ func (j *FunctionInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
 		ResultType:  resultType,
 		Description: description,
 	}
+
+	return nil
+}
+
+// FromValue decodes the raw object value to the instance.
+func (pe *PathElement) FromValue(raw map[string]any) error {
+	arguments, err := getRelationshipArgumentMapByKey(raw, "arguments")
+	if err != nil {
+		return fmt.Errorf("field arguments in PathElement: %w", err)
+	}
+
+	if arguments == nil {
+		return errors.New("field arguments in PathElement is required")
+	}
+
+	pe.Arguments = arguments
+
+	fieldPath, err := getStringSliceByKey(raw, "field_path")
+	if err != nil {
+		return fmt.Errorf("field field_path in PathElement: %w", err)
+	}
+
+	pe.FieldPath = fieldPath
+
+	relationship, err := getStringValueByKey(raw, "relationship")
+	if err != nil {
+		return fmt.Errorf("field relationship in PathElement: %w", err)
+	}
+
+	pe.Relationship = relationship
+
+	rawExpression, ok := raw["predicate"]
+	if !ok {
+		return nil
+	}
+
+	expression, ok := rawExpression.(Expression)
+	if !ok {
+		exprMap, ok := rawExpression.(map[string]any)
+		if !ok {
+			return errors.New("field predicate in PathElement is required")
+		}
+
+		if err := expression.FromValue(exprMap); err != nil {
+			return fmt.Errorf("field predicate in PathElement: %w", err)
+		}
+	}
+
+	pe.Predicate = expression
 
 	return nil
 }
@@ -574,13 +621,13 @@ func (j Dimension) AsColumn() (*DimensionColumn, error) {
 		return nil, errors.New("field path in DimensionColumn is required")
 	}
 
-	pathElem, ok := rawPath.([]PathElement)
-	if !ok {
-		pathElem = []PathElement{}
+	pathElem, err := getPathElementByKey(j, "path")
+	if err != nil {
+		return nil, fmt.Errorf("field 'path' in DimensionColumn: %w", err)
+	}
 
-		if err = mapstructure.Decode(rawPath, &pathElem); err != nil {
-			return nil, fmt.Errorf("invalid path in DimensionColumn: %w", err)
-		}
+	if pathElem == nil {
+		return nil, errors.New("field 'path' in DimensionColumn is required")
 	}
 
 	fieldPath, err := getStringSliceByKey(j, "field_path")
@@ -674,6 +721,12 @@ func (f DimensionColumn) WithExtraction(extraction string) *DimensionColumn {
 
 // WithArguments return a new column field with arguments set.
 func (f DimensionColumn) WithArguments(arguments map[string]ArgumentEncoder) *DimensionColumn {
+	if arguments == nil {
+		f.Arguments = nil
+
+		return &f
+	}
+
 	args := make(map[string]Argument)
 
 	for key, arg := range arguments {

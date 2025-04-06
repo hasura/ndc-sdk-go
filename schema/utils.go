@@ -96,6 +96,58 @@ func getStringSliceByKey(collection map[string]any, key string) ([]string, error
 	return results, nil
 }
 
+func getPathElementByKey(collection map[string]any, key string) ([]PathElement, error) { //nolint:unparam
+	if len(collection) == 0 {
+		return nil, nil
+	}
+
+	anyValue, ok := collection[key]
+	if !ok || anyValue == nil {
+		return nil, nil
+	}
+
+	if args, ok := anyValue.([]PathElement); ok {
+		return args, nil
+	}
+
+	args, ok := anyValue.([]any)
+	if !ok {
+		return nil, fmt.Errorf("expected []PathElement, got %v", anyValue)
+	}
+
+	results := make([]PathElement, len(args))
+
+	for i, item := range args {
+		if elem, ok := item.(PathElement); ok {
+			results[i] = elem
+
+			continue
+		}
+
+		valueMap, ok := item.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("failed to parse path element at %d: expected object, got: %v", i, item)
+		}
+
+		if valueMap == nil {
+			return nil, fmt.Errorf(
+				"failed to parse path element at %d: value must not be null",
+				i,
+			)
+		}
+
+		result := PathElement{}
+
+		if err := result.FromValue(valueMap); err != nil {
+			return nil, fmt.Errorf("failed to parse path element at %d: %w", i, err)
+		}
+
+		results[i] = result
+	}
+
+	return results, nil
+}
+
 func getArgumentMapByKey(
 	collection map[string]any,
 	key string, //nolint:unparam
@@ -132,6 +184,53 @@ func getArgumentMapByKey(
 		}
 
 		argument := Argument{}
+
+		if err := argument.FromValue(argMap); err != nil {
+			return nil, fmt.Errorf("field %s in map[string]Argument: %w", key, err)
+		}
+
+		arguments[key] = argument
+	}
+
+	return arguments, nil
+}
+
+func getRelationshipArgumentMapByKey(
+	collection map[string]any,
+	key string, //nolint:unparam
+) (map[string]RelationshipArgument, error) {
+	rawArguments, ok := collection[key]
+	if !ok || rawArguments == nil {
+		return nil, nil
+	}
+
+	args, ok := rawArguments.(map[string]RelationshipArgument)
+	if ok {
+		return args, nil
+	}
+
+	rawArgumentsMap, ok := rawArguments.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("expected object, got %v", rawArguments)
+	}
+
+	if rawArgumentsMap == nil {
+		return nil, nil
+	}
+
+	arguments := map[string]RelationshipArgument{}
+
+	for key, rawArg := range rawArgumentsMap {
+		argMap, ok := rawArg.(map[string]any)
+		if !ok || argMap == nil {
+			return nil, fmt.Errorf(
+				"field %s in map[string]Argument: expected object, got %v",
+				key,
+				argMap,
+			)
+		}
+
+		argument := RelationshipArgument{}
 
 		if err := argument.FromValue(argMap); err != nil {
 			return nil, fmt.Errorf("field %s in map[string]Argument: %w", key, err)
