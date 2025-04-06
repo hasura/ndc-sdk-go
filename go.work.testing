@@ -1,4 +1,4 @@
-go 1.21
+go 1.24
 
 use (
 	.
@@ -8,4 +8,6 @@ use (
 	cmd/hasura-ndc-go/command/internal/testdata/subdir/source
 	cmd/hasura-ndc-go/command/internal/testdata/snake_case/source
 	cmd/hasura-ndc-go/command/internal/testdata/single_op/source
+	cmd/hasura-ndc-go/command/internal/testdata/duplicated_func/source
+	cmd/hasura-ndc-go/command/internal/testdata/duplicated_proc/source
 )

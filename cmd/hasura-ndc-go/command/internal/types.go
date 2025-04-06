@@ -26,7 +26,13 @@ func (j OperationNamingStyle) IsValid() bool {
 func ParseOperationNamingStyle(input string) (OperationNamingStyle, error) {
 	result := OperationNamingStyle(input)
 	if !result.IsValid() {
-		return OperationNamingStyle(""), fmt.Errorf("failed to parse OperationNamingStyle, expect one of %v, got: %s", enumValues_OperationNamingStyle, input)
+		return OperationNamingStyle(
+				"",
+			), fmt.Errorf(
+				"failed to parse OperationNamingStyle, expect one of %v, got: %s",
+				enumValues_OperationNamingStyle,
+				input,
+			)
 	}
 
 	return result, nil

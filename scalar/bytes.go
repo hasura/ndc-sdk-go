@@ -52,6 +52,7 @@ func (bs Bytes) String() string {
 // MarshalJSON implements json.Marshaler.
 func (bs Bytes) MarshalJSON() ([]byte, error) {
 	str := base64.StdEncoding.EncodeToString(bs.data)
+
 	return json.Marshal(str)
 }
 
@@ -66,6 +67,7 @@ func (bs *Bytes) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
+
 	*bs = *result
 
 	return nil
@@ -77,6 +79,7 @@ func (bs *Bytes) FromValue(value any) error {
 	if err != nil {
 		return err
 	}
+
 	if sValue == nil {
 		return nil
 	}
@@ -85,6 +88,7 @@ func (bs *Bytes) FromValue(value any) error {
 	if err != nil {
 		return err
 	}
+
 	bs.data = data
 
 	return nil

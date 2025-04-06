@@ -21,7 +21,9 @@ func UpdateConnectorSchema(args UpdateArguments, start time.Time) {
 
 	moduleName, err := getModuleName(args.Path)
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to get module name. The base path must contain a go.mod file")
+		log.Fatal().
+			Err(err).
+			Msg("failed to get module name. The base path must contain a go.mod file")
 	}
 
 	if err := os.Chdir(args.Path); err != nil {
@@ -36,6 +38,7 @@ func UpdateConnectorSchema(args UpdateArguments, start time.Time) {
 		if err := execGetLatestSDK("."); err != nil {
 			log.Error().Err(err).Msg("failed to upgrade the latest SDK version")
 		}
+
 		if err := execGoModTidy("."); err != nil {
 			log.Error().Err(err).Msg("failed to tidy modules")
 		}

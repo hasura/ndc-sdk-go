@@ -93,14 +93,17 @@ func TestDecodeNullableBooleanSlice(t *testing.T) {
 	assert.Check(t, value == nil)
 
 	_, err = DecodeNullableBooleanSlice([]any{"true"})
-	assert.ErrorContains(t, err, "failed to decode boolean element at 0: failed to convert Boolean, got: interface")
+	assert.ErrorContains(
+		t,
+		err,
+		"failed to decode boolean element at 0: failed to convert Boolean, got: interface",
+	)
 
 	_, err = DecodeNullableBooleanSlice("failure")
 	assert.ErrorContains(t, err, "expected a boolean slice, got: string")
 
 	_, err = DecodeNullableBooleanSlice(time.Now())
 	assert.ErrorContains(t, err, "expected a boolean slice, got: struct")
-
 }
 
 func TestDecodeString(t *testing.T) {
@@ -218,7 +221,10 @@ func TestDecodeDateTime(t *testing.T) {
 		iNow := float64(now.UnixNano()) / float64(1000)
 		value, err := DecodeDateTime(iNow, WithBaseUnix(time.Microsecond))
 		assert.NilError(t, err)
-		assert.Assert(t, math.Abs(float64(int64(now.UnixNano()/1000)-int64(value.UnixNano()/1000))) <= 1)
+		assert.Assert(
+			t,
+			math.Abs(float64(int64(now.UnixNano()/1000)-int64(value.UnixNano()/1000))) <= 1,
+		)
 	})
 
 	t.Run("from_string", func(t *testing.T) {
@@ -277,7 +283,11 @@ func TestDecodeDate(t *testing.T) {
 
 		invalidStr := "test"
 		_, err = DecodeDate(invalidStr)
-		assert.ErrorContains(t, err, "parsing time \"test\" as \"2006-01-02\": cannot parse \"test\" as \"2006\"")
+		assert.ErrorContains(
+			t,
+			err,
+			"parsing time \"test\" as \"2006-01-02\": cannot parse \"test\" as \"2006\"",
+		)
 	})
 
 	t.Run("decode_pointer", func(t *testing.T) {
@@ -365,10 +375,8 @@ func TestDecodeDuration(t *testing.T) {
 }
 
 func TestDecodeInt(t *testing.T) {
-
 	for _, expected := range []any{int(1), int8(2), int16(3), int32(4), int64(5), uint(6), uint8(7), uint16(8), uint32(9), uint64(10), "11"} {
 		t.Run(fmt.Sprintf("decode_%s", reflect.TypeOf(expected).String()), func(t *testing.T) {
-
 			value, err := DecodeInt[int64](expected)
 			assert.NilError(t, err)
 			assert.Equal(t, fmt.Sprint(expected), fmt.Sprint(value))
@@ -464,21 +472,61 @@ func TestDecodeIntSlice(t *testing.T) {
 		input    any
 		expected []int
 	}{
-		{[]int{1}, []int{1}}, {[]int8{2}, []int{2}}, {[]int16{3}, []int{3}}, {[]int32{4}, []int{4}}, {[]int64{5}, []int{5}},
-		{[]uint{6}, []int{6}}, {[]uint8{7}, []int{7}}, {[]uint16{8}, []int{8}}, {[]uint32{9}, []int{9}}, {[]uint64{10}, []int{10}},
-		{[]string{"11"}, []int{11}}, {[]float32{12}, []int{12}}, {[]float64{13}, []int{13}},
+		{[]int{1}, []int{1}},
+		{[]int8{2}, []int{2}},
+		{[]int16{3}, []int{3}},
+		{[]int32{4}, []int{4}},
+		{[]int64{5}, []int{5}},
+		{[]uint{6}, []int{6}},
+		{[]uint8{7}, []int{7}},
+		{[]uint16{8}, []int{8}},
+		{[]uint32{9}, []int{9}},
+		{[]uint64{10}, []int{10}},
+		{[]string{"11"}, []int{11}},
+		{[]float32{12}, []int{12}},
+		{[]float64{13}, []int{13}},
 
-		{[]*int{ToPtr(1)}, []int{1}}, {[]*int8{ToPtr(int8(2))}, []int{2}}, {[]*int16{ToPtr[int16](3)}, []int{3}}, {[]*int32{ToPtr[int32](4)}, []int{4}}, {[]*int64{ToPtr(int64(5))}, []int{5}},
-		{[]*uint{ToPtr[uint](6)}, []int{6}}, {[]*uint8{ToPtr(uint8(7))}, []int{7}}, {[]*uint16{ToPtr(uint16(8))}, []int{8}}, {[]*uint32{ToPtr(uint32(9))}, []int{9}}, {[]*uint64{ToPtr(uint64(10))}, []int{10}},
-		{[]*string{ToPtr("11")}, []int{11}}, {[]*float32{ToPtr[float32](12)}, []int{12}}, {[]*float64{ToPtr[float64](13)}, []int{13}},
+		{[]*int{ToPtr(1)}, []int{1}},
+		{[]*int8{ToPtr(int8(2))}, []int{2}},
+		{[]*int16{ToPtr[int16](3)}, []int{3}},
+		{[]*int32{ToPtr[int32](4)}, []int{4}},
+		{[]*int64{ToPtr(int64(5))}, []int{5}},
+		{[]*uint{ToPtr[uint](6)}, []int{6}},
+		{[]*uint8{ToPtr(uint8(7))}, []int{7}},
+		{[]*uint16{ToPtr(uint16(8))}, []int{8}},
+		{[]*uint32{ToPtr(uint32(9))}, []int{9}},
+		{[]*uint64{ToPtr(uint64(10))}, []int{10}},
+		{[]*string{ToPtr("11")}, []int{11}},
+		{[]*float32{ToPtr[float32](12)}, []int{12}},
+		{[]*float64{ToPtr[float64](13)}, []int{13}},
 
-		{&[]int{1}, []int{1}}, {&[]int8{2}, []int{2}}, {&[]int16{3}, []int{3}}, {&[]int32{4}, []int{4}}, {&[]int64{5}, []int{5}},
-		{&[]uint{6}, []int{6}}, {&[]uint8{7}, []int{7}}, {&[]uint16{8}, []int{8}}, {&[]uint32{9}, []int{9}}, {&[]uint64{10}, []int{10}},
-		{&[]string{"11"}, []int{11}}, {&[]float32{12}, []int{12}}, {&[]float64{13}, []int{13}},
+		{&[]int{1}, []int{1}},
+		{&[]int8{2}, []int{2}},
+		{&[]int16{3}, []int{3}},
+		{&[]int32{4}, []int{4}},
+		{&[]int64{5}, []int{5}},
+		{&[]uint{6}, []int{6}},
+		{&[]uint8{7}, []int{7}},
+		{&[]uint16{8}, []int{8}},
+		{&[]uint32{9}, []int{9}},
+		{&[]uint64{10}, []int{10}},
+		{&[]string{"11"}, []int{11}},
+		{&[]float32{12}, []int{12}},
+		{&[]float64{13}, []int{13}},
 
-		{&[]*int{ToPtr(1)}, []int{1}}, {&[]*int8{ToPtr(int8(2))}, []int{2}}, {&[]*int16{ToPtr[int16](3)}, []int{3}}, {&[]*int32{ToPtr[int32](4)}, []int{4}}, {&[]*int64{ToPtr(int64(5))}, []int{5}},
-		{&[]*uint{ToPtr[uint](6)}, []int{6}}, {&[]*uint8{ToPtr(uint8(7))}, []int{7}}, {&[]*uint16{ToPtr(uint16(8))}, []int{8}}, {&[]*uint32{ToPtr(uint32(9))}, []int{9}}, {&[]*uint64{ToPtr(uint64(10))}, []int{10}},
-		{&[]*string{ToPtr("11")}, []int{11}}, {&[]*float32{ToPtr[float32](12)}, []int{12}}, {&[]*float64{ToPtr[float64](13)}, []int{13}},
+		{&[]*int{ToPtr(1)}, []int{1}},
+		{&[]*int8{ToPtr(int8(2))}, []int{2}},
+		{&[]*int16{ToPtr[int16](3)}, []int{3}},
+		{&[]*int32{ToPtr[int32](4)}, []int{4}},
+		{&[]*int64{ToPtr(int64(5))}, []int{5}},
+		{&[]*uint{ToPtr[uint](6)}, []int{6}},
+		{&[]*uint8{ToPtr(uint8(7))}, []int{7}},
+		{&[]*uint16{ToPtr(uint16(8))}, []int{8}},
+		{&[]*uint32{ToPtr(uint32(9))}, []int{9}},
+		{&[]*uint64{ToPtr(uint64(10))}, []int{10}},
+		{&[]*string{ToPtr("11")}, []int{11}},
+		{&[]*float32{ToPtr[float32](12)}, []int{12}},
+		{&[]*float64{ToPtr[float64](13)}, []int{13}},
 	} {
 		value, err := DecodeIntSlice[int](tc.input)
 		assert.NilError(t, err)
@@ -510,21 +558,61 @@ func TestDecodeNullableIntSlice(t *testing.T) {
 		input    any
 		expected []int
 	}{
-		{[]int{1}, []int{1}}, {[]int8{2}, []int{2}}, {[]int16{3}, []int{3}}, {[]int32{4}, []int{4}}, {[]int64{5}, []int{5}},
-		{[]uint{6}, []int{6}}, {[]uint8{7}, []int{7}}, {[]uint16{8}, []int{8}}, {[]uint32{9}, []int{9}}, {[]uint64{10}, []int{10}},
-		{[]string{"11"}, []int{11}}, {[]float32{12}, []int{12}}, {[]float64{13}, []int{13}},
+		{[]int{1}, []int{1}},
+		{[]int8{2}, []int{2}},
+		{[]int16{3}, []int{3}},
+		{[]int32{4}, []int{4}},
+		{[]int64{5}, []int{5}},
+		{[]uint{6}, []int{6}},
+		{[]uint8{7}, []int{7}},
+		{[]uint16{8}, []int{8}},
+		{[]uint32{9}, []int{9}},
+		{[]uint64{10}, []int{10}},
+		{[]string{"11"}, []int{11}},
+		{[]float32{12}, []int{12}},
+		{[]float64{13}, []int{13}},
 
-		{[]*int{ToPtr(1)}, []int{1}}, {[]*int8{ToPtr(int8(2))}, []int{2}}, {[]*int16{ToPtr[int16](3)}, []int{3}}, {[]*int32{ToPtr[int32](4)}, []int{4}}, {[]*int64{ToPtr(int64(5))}, []int{5}},
-		{[]*uint{ToPtr[uint](6)}, []int{6}}, {[]*uint8{ToPtr(uint8(7))}, []int{7}}, {[]*uint16{ToPtr(uint16(8))}, []int{8}}, {[]*uint32{ToPtr(uint32(9))}, []int{9}}, {[]*uint64{ToPtr(uint64(10))}, []int{10}},
-		{[]*string{ToPtr("11")}, []int{11}}, {[]*float32{ToPtr[float32](12)}, []int{12}}, {[]*float64{ToPtr[float64](13)}, []int{13}},
+		{[]*int{ToPtr(1)}, []int{1}},
+		{[]*int8{ToPtr(int8(2))}, []int{2}},
+		{[]*int16{ToPtr[int16](3)}, []int{3}},
+		{[]*int32{ToPtr[int32](4)}, []int{4}},
+		{[]*int64{ToPtr(int64(5))}, []int{5}},
+		{[]*uint{ToPtr[uint](6)}, []int{6}},
+		{[]*uint8{ToPtr(uint8(7))}, []int{7}},
+		{[]*uint16{ToPtr(uint16(8))}, []int{8}},
+		{[]*uint32{ToPtr(uint32(9))}, []int{9}},
+		{[]*uint64{ToPtr(uint64(10))}, []int{10}},
+		{[]*string{ToPtr("11")}, []int{11}},
+		{[]*float32{ToPtr[float32](12)}, []int{12}},
+		{[]*float64{ToPtr[float64](13)}, []int{13}},
 
-		{&[]int{1}, []int{1}}, {&[]int8{2}, []int{2}}, {&[]int16{3}, []int{3}}, {&[]int32{4}, []int{4}}, {&[]int64{5}, []int{5}},
-		{&[]uint{6}, []int{6}}, {&[]uint8{7}, []int{7}}, {&[]uint16{8}, []int{8}}, {&[]uint32{9}, []int{9}}, {&[]uint64{10}, []int{10}},
-		{&[]string{"11"}, []int{11}}, {&[]float32{12}, []int{12}}, {&[]float64{13}, []int{13}},
+		{&[]int{1}, []int{1}},
+		{&[]int8{2}, []int{2}},
+		{&[]int16{3}, []int{3}},
+		{&[]int32{4}, []int{4}},
+		{&[]int64{5}, []int{5}},
+		{&[]uint{6}, []int{6}},
+		{&[]uint8{7}, []int{7}},
+		{&[]uint16{8}, []int{8}},
+		{&[]uint32{9}, []int{9}},
+		{&[]uint64{10}, []int{10}},
+		{&[]string{"11"}, []int{11}},
+		{&[]float32{12}, []int{12}},
+		{&[]float64{13}, []int{13}},
 
-		{&[]*int{ToPtr(1)}, []int{1}}, {&[]*int8{ToPtr(int8(2))}, []int{2}}, {&[]*int16{ToPtr[int16](3)}, []int{3}}, {&[]*int32{ToPtr[int32](4)}, []int{4}}, {&[]*int64{ToPtr(int64(5))}, []int{5}},
-		{&[]*uint{ToPtr[uint](6)}, []int{6}}, {&[]*uint8{ToPtr(uint8(7))}, []int{7}}, {&[]*uint16{ToPtr(uint16(8))}, []int{8}}, {&[]*uint32{ToPtr(uint32(9))}, []int{9}}, {&[]*uint64{ToPtr(uint64(10))}, []int{10}},
-		{&[]*string{ToPtr("11")}, []int{11}}, {&[]*float32{ToPtr[float32](12)}, []int{12}}, {&[]*float64{ToPtr[float64](13)}, []int{13}},
+		{&[]*int{ToPtr(1)}, []int{1}},
+		{&[]*int8{ToPtr(int8(2))}, []int{2}},
+		{&[]*int16{ToPtr[int16](3)}, []int{3}},
+		{&[]*int32{ToPtr[int32](4)}, []int{4}},
+		{&[]*int64{ToPtr(int64(5))}, []int{5}},
+		{&[]*uint{ToPtr[uint](6)}, []int{6}},
+		{&[]*uint8{ToPtr(uint8(7))}, []int{7}},
+		{&[]*uint16{ToPtr(uint16(8))}, []int{8}},
+		{&[]*uint32{ToPtr(uint32(9))}, []int{9}},
+		{&[]*uint64{ToPtr(uint64(10))}, []int{10}},
+		{&[]*string{ToPtr("11")}, []int{11}},
+		{&[]*float32{ToPtr[float32](12)}, []int{12}},
+		{&[]*float64{ToPtr[float64](13)}, []int{13}},
 	} {
 		value, err := DecodeNullableIntSlice[int](tc.input)
 		assert.NilError(t, err)
@@ -547,13 +635,11 @@ func TestDecodeNullableIntSlice(t *testing.T) {
 
 	_, err = DecodeNullableIntSlice[int](time.Now())
 	assert.ErrorContains(t, err, "expected a number slice, got: struct")
-
 }
 
 func TestDecodeUint(t *testing.T) {
 	for _, expected := range []any{int(1), int8(2), int16(3), int32(4), int64(5), uint(6), uint8(7), uint16(8), uint32(9), uint64(10), "11"} {
 		t.Run(fmt.Sprintf("decode_%s", reflect.TypeOf(expected).String()), func(t *testing.T) {
-
 			value, err := DecodeUint[uint64](expected)
 			assert.NilError(t, err)
 			assert.Equal(t, fmt.Sprint(expected), fmt.Sprint(value))
@@ -601,7 +687,19 @@ func TestDecodeUint(t *testing.T) {
 
 func TestDecodeUintSlice(t *testing.T) {
 	for _, expected := range []any{
-		[]int{1}, []int8{2}, []int16{3}, []int32{4}, []int64{5}, []uint{6}, []uint8{7}, []uint16{8}, []uint32{9}, []uint64{10}, []string{"11"}, []float32{12}, []float64{13},
+		[]int{1},
+		[]int8{2},
+		[]int16{3},
+		[]int32{4},
+		[]int64{5},
+		[]uint{6},
+		[]uint8{7},
+		[]uint16{8},
+		[]uint32{9},
+		[]uint64{10},
+		[]string{"11"},
+		[]float32{12},
+		[]float64{13},
 		&[]int{1}, &[]int8{2}, &[]int16{3}, &[]int32{4}, &[]int64{5}, &[]uint{6}, &[]uint8{7}, &[]uint16{8}, &[]uint32{9}, &[]uint64{10}, &[]string{"11"}, &[]float32{12}, &[]float64{13},
 	} {
 		value, err := DecodeUintSlice[uint64](expected)
@@ -637,7 +735,6 @@ func TestDecodeUintSlice(t *testing.T) {
 func TestDecodeFloat(t *testing.T) {
 	for _, expected := range []any{int(1), int8(2), int16(3), int32(4), int64(5), uint(6), uint8(7), uint16(8), uint32(9), uint64(10)} {
 		t.Run(fmt.Sprintf("decode_%s", reflect.TypeOf(expected).String()), func(t *testing.T) {
-
 			value, err := DecodeFloat[float64](expected)
 			assert.NilError(t, err)
 			assert.Equal(t, fmt.Sprint(expected), fmt.Sprintf("%.0f", value))
@@ -654,7 +751,6 @@ func TestDecodeFloat(t *testing.T) {
 
 	for _, expected := range []any{float32(1.1), float64(2.2)} {
 		t.Run(fmt.Sprintf("decode_%s", reflect.TypeOf(expected).String()), func(t *testing.T) {
-
 			value, err := DecodeFloat[float64](expected)
 			assert.NilError(t, err)
 			assert.Equal(t, fmt.Sprintf("%.1f", expected), fmt.Sprintf("%.1f", value))
@@ -670,7 +766,6 @@ func TestDecodeFloat(t *testing.T) {
 	}
 
 	t.Run("decode_string", func(t *testing.T) {
-
 		expected := "0"
 		value, err := DecodeFloat[float64](expected)
 		assert.NilError(t, err)
@@ -686,7 +781,6 @@ func TestDecodeFloat(t *testing.T) {
 	})
 
 	t.Run("decode_pointers", func(t *testing.T) {
-
 		vInt := int(1)
 		ptr, err := DecodeNullableFloat[float64](&vInt)
 		assert.NilError(t, err)

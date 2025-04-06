@@ -27,6 +27,7 @@ func NewRawSchemaResponse(data []byte) (*RawSchemaResponse, error) {
 	if err := json.Unmarshal(data, &resp); err != nil {
 		return nil, fmt.Errorf("failed to validate SchemaResponse from raw input: %w", err)
 	}
+
 	return NewRawSchemaResponseUnsafe(data), nil
 }
 
@@ -64,6 +65,7 @@ func NewRawCapabilitiesResponse(data []byte) (*RawCapabilitiesResponse, error) {
 	if err := json.Unmarshal(data, &resp); err != nil {
 		return nil, fmt.Errorf("failed to validate CapabilitiesResponse from raw input: %w", err)
 	}
+
 	return NewRawCapabilitiesResponseUnsafe(data), nil
 }
 

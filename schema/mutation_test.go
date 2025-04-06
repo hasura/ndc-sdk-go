@@ -65,6 +65,85 @@ func TestUnmarshalProcedureInfo(t *testing.T) {
 	}
 }
 
+func TestUnmarshalMutationRequest(t *testing.T) {
+	testCases := []struct {
+		Name              string
+		Raw               string
+		Expected          MutationRequest
+		ExpectedArguments any
+	}{
+		{
+			Name: "delete_articles",
+			Raw: `{
+  "operations": [
+    {
+      "type": "procedure",
+      "name": "delete_articles",
+      "arguments": {
+        "where": {
+          "type": "binary_comparison_operator",
+          "column": { "type": "column", "name": "author_id" },
+          "operator": "eq",
+          "value": { "type": "scalar", "value": 1 }
+        }
+      },
+      "fields": {
+        "type": "array",
+        "fields": {
+          "type": "object",
+          "fields": {
+            "id": { "type": "column", "column": "id" },
+            "title": { "type": "column", "column": "title" }
+          }
+        }
+      }
+    }
+  ],
+  "collection_relationships": {}
+}`,
+			Expected: MutationRequest{
+				CollectionRelationships: MutationRequestCollectionRelationships{},
+				Operations: []MutationOperation{
+					{
+						Type: "procedure",
+						Name: "delete_articles",
+						Fields: NewNestedArray(NewNestedObject(map[string]FieldEncoder{
+							"id":    NewColumnField("id"),
+							"title": NewColumnField("title"),
+						})).Encode(),
+					},
+				},
+			},
+			ExpectedArguments: map[string]Expression{
+				"where": NewExpressionBinaryComparisonOperator(
+					NewComparisonTargetColumn("author_id"),
+					"eq",
+					NewComparisonValueScalar(float64(1)),
+				).Encode(),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			var mutation MutationRequest
+			assert.NilError(t, json.Unmarshal([]byte(tc.Raw), &mutation))
+			assert.DeepEqual(
+				t,
+				tc.Expected.CollectionRelationships,
+				mutation.CollectionRelationships,
+			)
+			assert.DeepEqual(t, tc.Expected.Operations[0].Type, mutation.Operations[0].Type)
+			assert.DeepEqual(t, tc.Expected.Operations[0].Name, mutation.Operations[0].Name)
+			assert.DeepEqual(t, tc.Expected.Operations[0].Fields, mutation.Operations[0].Fields)
+
+			var arguments map[string]Expression
+			assert.NilError(t, json.Unmarshal(mutation.Operations[0].Arguments, &arguments))
+			assert.DeepEqual(t, tc.ExpectedArguments, arguments)
+		})
+	}
+}
+
 func assertError(t *testing.T, err error, msg string) {
 	if err == nil {
 		t.Error("expected error, got: nil")

@@ -12,7 +12,7 @@ Get a release [here](https://github.com/hasura/ndc-sdk-go/releases).
 
 ### Build from source
 
-To install with Go 1.21+:
+To install with Go 1.24+:
 
 ```bash
 go install github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go@latest

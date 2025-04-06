@@ -22,7 +22,6 @@ import (
 )
 
 type SchemaParser struct {
-	context      context.Context
 	moduleName   string
 	rawSchema    *RawConnectorSchema
 	packages     []*packages.Package
@@ -42,11 +41,18 @@ func (sp SchemaParser) FindPackageByPath(input string) *packages.Package {
 			return p
 		}
 	}
+
 	return nil
 }
 
-func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, filePath string, args *ConnectorGenerationArguments) (*RawConnectorSchema, error) {
+func parseRawConnectorSchemaFromGoCode(
+	ctx context.Context,
+	moduleName string,
+	filePath string,
+	args *ConnectorGenerationArguments,
+) (*RawConnectorSchema, error) {
 	var err error
+
 	namingStyle := StyleCamelCase
 	if args.Style != "" {
 		namingStyle, err = ParseOperationNamingStyle(args.Style)
@@ -54,34 +60,45 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 			return nil, err
 		}
 	}
+
 	rawSchema := NewRawConnectorSchema()
 
 	tempDirs := args.Directories
+
 	if len(args.Directories) == 0 {
 		// recursively walk directories if the user don't explicitly specify target folders
 		entries, err := os.ReadDir(filePath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read subdirectories of %s: %w", filePath, err)
 		}
+
 		for _, entry := range entries {
 			if !entry.IsDir() {
 				continue
 			}
+
 			tempDirs = append(tempDirs, entry.Name())
 		}
 	}
 
 	directories := make(map[string]bool)
+
 	for _, dir := range tempDirs {
 		for _, globPath := range []string{path.Join(filePath, dir, "*.go"), path.Join(filePath, dir, "**", "*.go")} {
 			goFiles, err := filepath.Glob(globPath)
 			if err != nil {
-				return nil, fmt.Errorf("failed to read subdirectories of %s/%s: %w", filePath, dir, err)
+				return nil, fmt.Errorf(
+					"failed to read subdirectories of %s/%s: %w",
+					filePath,
+					dir,
+					err,
+				)
 			}
 
 			for _, fp := range goFiles {
 				if !strings.HasSuffix(fp, typeMethodsOutputFile) {
 					directories[filepath.Dir(fp)] = true
+
 					continue
 				}
 
@@ -94,10 +111,14 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 	}
 
 	if len(directories) > 0 {
-		log.Debug().Interface("directories", utils.GetSortedKeys(directories)).Msgf("parsing connector schema")
+		log.Debug().
+			Interface("directories", utils.GetSortedKeys(directories)).
+			Msgf("parsing connector schema")
 
 		var packageList []*packages.Package
+
 		fset := token.NewFileSet()
+
 		for folder := range directories {
 			_, parseCodeTask := trace.NewTask(ctx, fmt.Sprintf("parse_%s_code", folder))
 			folderPath := path.Join(filePath, folder)
@@ -107,17 +128,19 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 				Fset: fset,
 			}
 			pkgList, err := packages.Load(cfg, flag.Args()...)
+
 			parseCodeTask.End()
+
 			if err != nil {
 				return nil, err
 			}
+
 			packageList = append(packageList, pkgList...)
 		}
 
 		for i := range packageList {
 			parseSchemaCtx, parseSchemaTask := trace.NewTask(ctx, "parse_schema_"+packageList[i].ID)
 			sp := &SchemaParser{
-				context:      parseSchemaCtx,
 				moduleName:   moduleName,
 				packages:     packageList,
 				packageIndex: i,
@@ -125,8 +148,10 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 				namingStyle:  namingStyle,
 			}
 
-			err = sp.parseRawConnectorSchema(packageList[i].Types)
+			err = sp.parseRawConnectorSchema(parseSchemaCtx, packageList[i].Types)
+
 			parseSchemaTask.End()
+
 			if err != nil {
 				return nil, err
 			}
@@ -142,6 +167,7 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 		if err != nil {
 			return nil, err
 		}
+
 		rawSchema.StateType = &TypeInfo{
 			Name:        "State",
 			PackagePath: pkgPathTypes,
@@ -149,15 +175,21 @@ func parseRawConnectorSchemaFromGoCode(ctx context.Context, moduleName string, f
 		}
 		rawSchema.Imports[rawSchema.StateType.PackagePath] = true
 	}
+
 	return rawSchema, nil
 }
 
 // parse raw connector schema from Go code.
-func (sp *SchemaParser) parseRawConnectorSchema(pkg *types.Package) error {
+func (sp *SchemaParser) parseRawConnectorSchema(ctx context.Context, pkg *types.Package) error {
 	for _, name := range pkg.Scope().Names() {
-		_, task := trace.NewTask(sp.context, fmt.Sprintf("parse_%s_schema_%s", sp.GetCurrentPackage().Name, name))
+		_, task := trace.NewTask(
+			ctx,
+			fmt.Sprintf("parse_%s_schema_%s", sp.GetCurrentPackage().Name, name),
+		)
 		err := sp.parsePackageScope(pkg, name)
+
 		task.End()
+
 		if err != nil {
 			return err
 		}
@@ -173,13 +205,21 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 		if !obj.Exported() {
 			return nil
 		}
+
 		opInfo := sp.parseOperationInfo(obj)
 		if opInfo == nil {
 			return nil
 		}
+
 		opInfo.PackageName = pkg.Name()
 		opInfo.PackagePath = pkg.Path()
+
+		if err := sp.validateOperationName(opInfo); err != nil {
+			return err
+		}
+
 		var resultTuple *types.Tuple
+
 		var params *types.Tuple
 		switch sig := obj.Type().(type) {
 		case *types.Signature:
@@ -219,10 +259,12 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 		if params.Len() == 3 {
 			arg := params.At(2)
 			argumentParser := NewTypeParser(sp, &Field{}, arg.Type(), NDCTagInfo{}, &opInfo.Kind)
+
 			argumentInfo, err := argumentParser.ParseArgumentTypes([]string{})
 			if err != nil {
 				return err
 			}
+
 			opInfo.ArgumentsType = argumentInfo.Type
 			if opInfo.Kind == OperationFunction {
 				sp.rawSchema.setFunctionArgument(*argumentInfo)
@@ -237,20 +279,62 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 		}
 
 		typeParser := NewTypeParser(sp, &Field{}, resultTuple.At(0).Type(), NDCTagInfo{}, nil)
+
 		resultType, err := typeParser.Parse([]string{})
 		if err != nil {
 			return err
 		}
+
 		opInfo.ResultType = resultType
 
 		switch opInfo.Kind {
 		case OperationProcedure:
-			sp.rawSchema.Procedures = append(sp.rawSchema.Procedures, ProcedureInfo(*opInfo))
+			sp.rawSchema.Procedures[opInfo.Name] = ProcedureInfo(*opInfo)
 		case OperationFunction:
-			sp.rawSchema.Functions = append(sp.rawSchema.Functions, FunctionInfo(*opInfo))
+			sp.rawSchema.Functions[opInfo.Name] = FunctionInfo(*opInfo)
 		}
 	default:
 	}
+
+	return nil
+}
+
+// the operation name must be unique in either function or procedure.
+func (sp *SchemaParser) validateOperationName(opInfo *OperationInfo) error {
+	if fn, ok := sp.rawSchema.Functions[opInfo.Name]; ok {
+		if opInfo.Kind == fn.Kind && opInfo.PackagePath == fn.PackagePath &&
+			opInfo.OriginName == fn.OriginName {
+			return nil
+		}
+
+		return fmt.Errorf(
+			"%s name '%s' (%s.%s) already exists in function %s.%s. Please choose another name",
+			opInfo.Kind,
+			opInfo.Name,
+			opInfo.PackagePath,
+			opInfo.OriginName,
+			fn.PackagePath,
+			fn.OriginName,
+		)
+	}
+
+	if fn, ok := sp.rawSchema.Procedures[opInfo.Name]; ok {
+		if opInfo.Kind == fn.Kind && opInfo.PackagePath == fn.PackagePath &&
+			opInfo.OriginName == fn.OriginName {
+			return nil
+		}
+
+		return fmt.Errorf(
+			"%s name '%s' (%s.%s) already exists in procedure %s.%s. Please choose another name",
+			opInfo.Kind,
+			opInfo.Name,
+			opInfo.PackagePath,
+			opInfo.OriginName,
+			fn.PackagePath,
+			fn.OriginName,
+		)
+	}
+
 	return nil
 }
 
@@ -287,6 +371,7 @@ func (sp *SchemaParser) parseOperationInfo(fn *types.Func) *OperationInfo {
 	}
 
 	var descriptions []string
+
 	commentGroup := findCommentsFromPos(sp.GetCurrentPackage(), fn.Scope(), functionName)
 	if commentGroup != nil {
 		for i, comment := range commentGroup.List {
@@ -296,8 +381,10 @@ func (sp *SchemaParser) parseOperationInfo(fn *types.Func) *OperationInfo {
 			if i == 0 {
 				text = strings.TrimPrefix(text, functionName+" ")
 			}
+
 			matches := ndcOperationCommentRegex.FindStringSubmatch(text)
 			matchesLen := len(matches)
+
 			if matchesLen > 1 {
 				switch matches[1] {
 				case strings.ToLower(string(OperationFunction)):
@@ -327,6 +414,7 @@ func (sp *SchemaParser) parseOperationInfo(fn *types.Func) *OperationInfo {
 		if len(operationNameResults) < 3 {
 			return nil
 		}
+
 		result.Kind = OperationKind(operationNameResults[1])
 		result.Name = sp.formatOperationName(operationNameResults[2])
 	}
@@ -349,19 +437,26 @@ func findCommentsFromPos(pkg *packages.Package, scope *types.Scope, name string)
 			if len(cg.List) == 0 {
 				continue
 			}
+
 			exp := regexp.MustCompile(fmt.Sprintf(`^//\s+%s(\s|$)`, name))
 			if !exp.MatchString(cg.List[0].Text) {
 				continue
 			}
+
 			if _, obj := scope.LookupParent(name, cg.Pos()); obj != nil {
 				return cg
 			}
 		}
 	}
+
 	return nil
 }
 
-func evalPackageTypesLocation(moduleName string, filePath string, connectorDir string) (string, error) {
+func evalPackageTypesLocation(
+	moduleName string,
+	filePath string,
+	connectorDir string,
+) (string, error) {
 	matches, err := filepath.Glob(path.Join(filePath, "types", "*.go"))
 	if err == nil && len(matches) > 0 {
 		return moduleName + "/types", nil
@@ -373,5 +468,9 @@ func evalPackageTypesLocation(moduleName string, filePath string, connectorDir s
 			return fmt.Sprintf("%s/%s/types", moduleName, connectorDir), nil
 		}
 	}
-	return "", fmt.Errorf("the `types` package where the State struct is in must be placed in root or connector directory, %w", err)
+
+	return "", fmt.Errorf(
+		"the `types` package where the State struct is in must be placed in root or connector directory, %w",
+		err,
+	)
 }

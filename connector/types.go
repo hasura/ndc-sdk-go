@@ -22,7 +22,11 @@ type Connector[Configuration any, State any] interface {
 	//
 	// In addition, this function should register any
 	// connector-specific metrics with the metrics registry.
-	TryInitState(ctx context.Context, configuration *Configuration, metrics *TelemetryState) (*State, error)
+	TryInitState(
+		ctx context.Context,
+		configuration *Configuration,
+		metrics *TelemetryState,
+	) (*State, error)
 
 	// HealthCheck checks the health of the connector.
 	//
@@ -46,33 +50,57 @@ type Connector[Configuration any, State any] interface {
 	// This function implements the [schema endpoint] from the NDC specification.
 	//
 	// [schema endpoint]: https://hasura.github.io/ndc-spec/specification/schema/index.html
-	GetSchema(ctx context.Context, configuration *Configuration, state *State) (schema.SchemaResponseMarshaler, error)
+	GetSchema(
+		ctx context.Context,
+		configuration *Configuration,
+		state *State,
+	) (schema.SchemaResponseMarshaler, error)
 
 	// QueryExplain explains a query by creating an execution plan.
 	// This function implements the [explain endpoint] from the NDC specification.
 	//
 	// [explain endpoint]: https://hasura.github.io/ndc-spec/specification/explain.html
-	QueryExplain(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (*schema.ExplainResponse, error)
+	QueryExplain(
+		ctx context.Context,
+		configuration *Configuration,
+		state *State,
+		request *schema.QueryRequest,
+	) (*schema.ExplainResponse, error)
 
 	// MutationExplain explains a mutation by creating an execution plan.
 	// This function implements the [explain endpoint] from the NDC specification.
 	//
 	// [explain endpoint]: https://hasura.github.io/ndc-spec/specification/explain.html
-	MutationExplain(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest) (*schema.ExplainResponse, error)
+	MutationExplain(
+		ctx context.Context,
+		configuration *Configuration,
+		state *State,
+		request *schema.MutationRequest,
+	) (*schema.ExplainResponse, error)
 
 	// Mutation executes a mutation.
 	//
 	// This function implements the [mutation endpoint] from the NDC specification.
 	//
 	// [mutation endpoint]: https://hasura.github.io/ndc-spec/specification/mutations/index.html
-	Mutation(ctx context.Context, configuration *Configuration, state *State, request *schema.MutationRequest) (*schema.MutationResponse, error)
+	Mutation(
+		ctx context.Context,
+		configuration *Configuration,
+		state *State,
+		request *schema.MutationRequest,
+	) (*schema.MutationResponse, error)
 
 	// Query executes a query.
 	//
 	// This function implements the [query endpoint] from the NDC specification.
 	//
 	// [query endpoint]: https://hasura.github.io/ndc-spec/specification/queries/index.html
-	Query(ctx context.Context, configuration *Configuration, state *State, request *schema.QueryRequest) (schema.QueryResponse, error)
+	Query(
+		ctx context.Context,
+		configuration *Configuration,
+		state *State,
+		request *schema.QueryRequest,
+	) (schema.QueryResponse, error)
 }
 
 // the common serve options for the server.

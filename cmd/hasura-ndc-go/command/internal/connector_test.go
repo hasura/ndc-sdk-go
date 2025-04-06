@@ -2,7 +2,6 @@ package internal
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -21,7 +20,13 @@ var (
 )
 
 func formatTextContent(input string) string {
-	return strings.Trim(spacesRegexp.ReplaceAllString(tabRegexp.ReplaceAllString(newLinesRegexp.ReplaceAllString(input, "\n"), "  "), "\n"), "\n")
+	return strings.Trim(
+		spacesRegexp.ReplaceAllString(
+			tabRegexp.ReplaceAllString(newLinesRegexp.ReplaceAllString(input, "\n"), "  "),
+			"\n",
+		),
+		"\n",
+	)
 }
 
 func TestConnectorGeneration(t *testing.T) {
@@ -69,18 +74,18 @@ func TestConnectorGeneration(t *testing.T) {
 		},
 	}
 
-	rootDir, err := os.Getwd()
-	assert.NilError(t, err)
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			assert.NilError(t, os.Chdir(rootDir))
 			expectedSchemaBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/schema.json"))
 			assert.NilError(t, err)
-			connectorContentBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/connector.go.tmpl"))
+			connectorContentBytes, err := os.ReadFile(
+				path.Join(tc.BasePath, "expected/connector.go.tmpl"),
+			)
 			assert.NilError(t, err)
 
 			srcDir := path.Join(tc.BasePath, "source")
-			assert.NilError(t, os.Chdir(srcDir))
+			t.Chdir(srcDir)
+
 			err = ParseAndGenerateConnector(ConnectorGenerationArguments{
 				ConnectorDir: tc.ConnectorDir,
 				Directories:  tc.Directories,
@@ -110,10 +115,14 @@ func TestConnectorGeneration(t *testing.T) {
 
 			connectorBytes, err := os.ReadFile(path.Join(tc.ConnectorDir, "connector.generated.go"))
 			assert.NilError(t, err)
-			assert.Equal(t, formatTextContent(string(connectorContentBytes)), formatTextContent(string(connectorBytes)))
+			assert.Equal(
+				t,
+				formatTextContent(string(connectorContentBytes)),
+				formatTextContent(string(connectorBytes)),
+			)
 
 			// go to the base test directory
-			assert.NilError(t, os.Chdir(".."))
+			t.Chdir("..")
 
 			for _, td := range tc.Directories {
 				for _, globPath := range []string{filepath.Join("source", td, "types.generated.go"), filepath.Join("source", td, "**", "types.generated.go")} {
@@ -121,11 +130,13 @@ func TestConnectorGeneration(t *testing.T) {
 					assert.NilError(t, err)
 
 					for _, goFile := range goFiles {
-						log.Println("file", goFile)
+						expectedDir := filepath.Dir(
+							strings.Replace(goFile, "source/", "expected/", -1),
+						)
 
-						expectedDir := filepath.Dir(strings.Replace(goFile, "source/", "expected/", -1))
-
-						expectedFunctionTypesBytes, err := os.ReadFile(filepath.Join(expectedDir, "types.generated.go.tmpl"))
+						expectedFunctionTypesBytes, err := os.ReadFile(
+							filepath.Join(expectedDir, "types.generated.go.tmpl"),
+						)
 						assert.NilError(t, err)
 
 						functionTypesBytes, err := os.ReadFile(goFile)
@@ -143,16 +154,18 @@ func TestConnectorGeneration(t *testing.T) {
 	// go template
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			assert.NilError(t, os.Chdir(rootDir))
-
-			expectedSchemaBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/schema.go.tmpl"))
+			expectedSchemaBytes, err := os.ReadFile(
+				path.Join(tc.BasePath, "expected/schema.go.tmpl"),
+			)
 			if err != nil {
 				if os.IsNotExist(err) {
 					return
 				}
 				assert.NilError(t, err)
 			}
-			connectorContentBytes, err := os.ReadFile(path.Join(tc.BasePath, "expected/connector-go.go.tmpl"))
+			connectorContentBytes, err := os.ReadFile(
+				path.Join(tc.BasePath, "expected/connector-go.go.tmpl"),
+			)
 			if err != nil {
 				if os.IsNotExist(err) {
 					return
@@ -161,7 +174,7 @@ func TestConnectorGeneration(t *testing.T) {
 			}
 
 			srcDir := path.Join(tc.BasePath, "source")
-			assert.NilError(t, os.Chdir(srcDir))
+			t.Chdir(srcDir)
 			err = ParseAndGenerateConnector(ConnectorGenerationArguments{
 				ConnectorDir: tc.ConnectorDir,
 				Directories:  tc.Directories,
@@ -176,25 +189,62 @@ func TestConnectorGeneration(t *testing.T) {
 
 			schemaBytes, err := os.ReadFile(path.Join(tc.ConnectorDir, "schema.generated.go"))
 			assert.NilError(t, err)
-			assert.Equal(t, formatTextContent(string(expectedSchemaBytes)), formatTextContent(string(schemaBytes)))
+			assert.Equal(
+				t,
+				formatTextContent(string(expectedSchemaBytes)),
+				formatTextContent(string(schemaBytes)),
+			)
 
 			connectorBytes, err := os.ReadFile(path.Join(tc.ConnectorDir, "connector.generated.go"))
 			assert.NilError(t, err)
-			assert.Equal(t, formatTextContent(string(connectorContentBytes)), formatTextContent(string(connectorBytes)))
+			assert.Equal(
+				t,
+				formatTextContent(string(connectorContentBytes)),
+				formatTextContent(string(connectorBytes)),
+			)
 
 			// go to the base test directory
-			assert.NilError(t, os.Chdir(".."))
+			t.Chdir("..")
 
 			for _, td := range tc.Directories {
-				expectedFunctionTypesBytes, err := os.ReadFile(path.Join("expected", "functions.go.tmpl"))
+				expectedFunctionTypesBytes, err := os.ReadFile(
+					path.Join("expected", "functions.go.tmpl"),
+				)
 				if err == nil {
-					functionTypesBytes, err := os.ReadFile(path.Join("source", td, "types.generated.go"))
+					functionTypesBytes, err := os.ReadFile(
+						path.Join("source", td, "types.generated.go"),
+					)
 					assert.NilError(t, err)
-					assert.Equal(t, formatTextContent(string(expectedFunctionTypesBytes)), formatTextContent(string(functionTypesBytes)))
+					assert.Equal(
+						t,
+						formatTextContent(string(expectedFunctionTypesBytes)),
+						formatTextContent(string(functionTypesBytes)),
+					)
 				} else if !os.IsNotExist(err) {
 					assert.NilError(t, err)
 				}
 			}
 		})
 	}
+}
+
+func TestConnectorGenerationDuplicatedOperationFailure(t *testing.T) {
+	t.Run("function", func(t *testing.T) {
+		t.Chdir(filepath.Join(".", "testdata/duplicated_func/source"))
+
+		err := ParseAndGenerateConnector(
+			ConnectorGenerationArguments{},
+			"github.com/hasura/ndc-codegen-duplicated-func",
+		)
+		assert.ErrorContains(t, err, "GetArticles. Please choose another name")
+	})
+
+	t.Run("procedure", func(t *testing.T) {
+		t.Chdir(filepath.Join(".", "testdata/duplicated_proc/source"))
+		err := ParseAndGenerateConnector(
+			ConnectorGenerationArguments{},
+			"github.com/hasura/ndc-codegen-duplicated-proc",
+		)
+		assert.ErrorContains(t, err, "CreateArticle. Please choose another name")
+	})
 }

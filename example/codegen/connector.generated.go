@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"errors"
 
 	"fmt"
 	"os"
@@ -19,8 +20,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-var loadGlobalEnvOnce sync.Once
-var schemaResponse *schema.RawSchemaResponse
 var connectorQueryHandlers = []ConnectorQueryHandler{functions.DataConnectorHandler{}}
 var connectorMutationHandlers = []ConnectorMutationHandler{functions.DataConnectorHandler{}}
 
@@ -34,27 +33,17 @@ type ConnectorMutationHandler interface {
 	Mutation(ctx context.Context, state *types.State, request *schema.MutationOperation) (schema.MutationOperationResults, error)
 }
 
-func init() {
-	rawSchema, err := json.Marshal(GetConnectorSchema())
-	if err != nil {
-		panic(err)
-	}
-	schemaResponse, err = schema.NewRawSchemaResponse(rawSchema)
-	if err != nil {
-		panic(err)
-	}
-}
-
 // GetSchema gets the connector's schema.
 func (c *Connector) GetSchema(ctx context.Context, configuration *types.Configuration, _ *types.State) (schema.SchemaResponseMarshaler, error) {
-	return schemaResponse, nil
+	return schemaResponse(), nil
 }
 
 // Query executes a query.
 func (c *Connector) Query(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.QueryRequest) (schema.QueryResponse, error) {
 	if len(connectorQueryHandlers) == 0 {
-		return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported query: %s", request.Collection), nil)
+		return nil, schema.UnprocessableContentError("unsupported query: "+request.Collection, nil)
 	}
+
 	requestVars := request.Variables
 	if len(requestVars) == 0 {
 		requestVars = []schema.QueryRequestVariablesElem{make(schema.QueryRequestVariablesElem)}
@@ -64,16 +53,19 @@ func (c *Connector) Query(ctx context.Context, configuration *types.Configuratio
 	if concurrencyLimit <= 1 || len(request.Variables) <= 1 {
 		return c.execQuerySync(ctx, state, request, requestVars)
 	}
+
 	return c.execQueryAsync(ctx, state, request, requestVars, concurrencyLimit)
 }
 
 func (c *Connector) execQuerySync(ctx context.Context, state *types.State, request *schema.QueryRequest, requestVars []schema.QueryRequestVariablesElem) (schema.QueryResponse, error) {
 	rowSets := make([]schema.RowSet, len(requestVars))
+
 	for i, requestVar := range requestVars {
 		result, err := c.execQuery(ctx, state, request, requestVar, i)
 		if err != nil {
 			return nil, err
 		}
+
 		rowSets[i] = *result
 	}
 
@@ -92,7 +84,9 @@ func (c *Connector) execQueryAsync(ctx context.Context, state *types.State, requ
 				if err != nil {
 					return err
 				}
+
 				rowSets[index] = *result
+
 				return nil
 			})
 		}(i, requestVar)
@@ -101,6 +95,7 @@ func (c *Connector) execQueryAsync(ctx context.Context, state *types.State, requ
 	if err := eg.Wait(); err != nil {
 		return nil, err
 	}
+
 	return rowSets, nil
 }
 
@@ -112,6 +107,7 @@ func (c *Connector) execQuery(ctx context.Context, state *types.State, request *
 	if err != nil {
 		span.SetStatus(codes.Error, "failed to resolve argument variables")
 		span.RecordError(err)
+
 		return nil, schema.UnprocessableContentError("failed to resolve argument variables", map[string]any{
 			"cause": err.Error(),
 		})
@@ -123,15 +119,17 @@ func (c *Connector) execQuery(ctx context.Context, state *types.State, request *
 			return result, nil
 		}
 
-		if err != utils.ErrHandlerNotfound {
+		if !errors.Is(err, utils.ErrHandlerNotfound) {
 			span.SetStatus(codes.Error, fmt.Sprintf("failed to execute function %d", index))
 			span.RecordError(err)
+
 			return nil, err
 		}
 	}
 
-	errorMsg := fmt.Sprintf("unsupported query: %s", request.Collection)
+	errorMsg := "unsupported query: " + request.Collection
 	span.SetStatus(codes.Error, errorMsg)
+
 	return nil, schema.UnprocessableContentError(errorMsg, nil)
 }
 
@@ -151,11 +149,13 @@ func (c *Connector) Mutation(ctx context.Context, configuration *types.Configura
 
 func (c *Connector) execMutationSync(ctx context.Context, state *types.State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
 	operationResults := make([]schema.MutationOperationResults, len(request.Operations))
+
 	for i, operation := range request.Operations {
 		result, err := c.execMutation(ctx, state, operation, i)
 		if err != nil {
 			return nil, err
 		}
+
 		operationResults[i] = result
 	}
 
@@ -176,7 +176,9 @@ func (c *Connector) execMutationAsync(ctx context.Context, state *types.State, r
 				if err != nil {
 					return err
 				}
+
 				operationResults[index] = result
+
 				return nil
 			})
 		}(i, operation)
@@ -185,6 +187,7 @@ func (c *Connector) execMutationAsync(ctx context.Context, state *types.State, r
 	if err := eg.Wait(); err != nil {
 		return nil, err
 	}
+
 	return &schema.MutationResponse{
 		OperationResults: operationResults,
 	}, nil
@@ -196,7 +199,7 @@ func (c *Connector) execMutation(ctx context.Context, state *types.State, operat
 
 	span.SetAttributes(
 		attribute.String("operation.type", string(operation.Type)),
-		attribute.String("operation.name", string(operation.Name)),
+		attribute.String("operation.name", operation.Name),
 	)
 
 	switch operation.Type {
@@ -205,12 +208,15 @@ func (c *Connector) execMutation(ctx context.Context, state *types.State, operat
 		if err != nil {
 			span.SetStatus(codes.Error, fmt.Sprintf("failed to execute procedure %d", index))
 			span.RecordError(err)
+
 			return nil, err
 		}
+
 		return result, nil
 	default:
 		errorMsg := fmt.Sprintf("invalid operation type: %s", operation.Type)
 		span.SetStatus(codes.Error, errorMsg)
+
 		return nil, schema.UnprocessableContentError(errorMsg, nil)
 	}
 }
@@ -221,12 +227,13 @@ func (c *Connector) execProcedure(ctx context.Context, state *types.State, opera
 		if err == nil {
 			return result, nil
 		}
-		if err != utils.ErrHandlerNotfound {
+
+		if !errors.Is(err, utils.ErrHandlerNotfound) {
 			return nil, err
 		}
 	}
 
-	return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported procedure operation: %s", operation.Name), nil)
+	return nil, schema.UnprocessableContentError("unsupported procedure operation: "+operation.Name, nil)
 }
 
 type globalEnvironments struct {
@@ -246,15 +253,19 @@ func (ge globalEnvironments) GetQueryConcurrencyLimitByName(name string) int {
 	return ge.queryConcurrencyLimit
 }
 
-var _globalEnvironments = globalEnvironments{}
+var getGlobalEnvironments = sync.OnceValue(getGlobalEnvironmentsFunc)
+var schemaResponse = sync.OnceValue(getSchemaResponseFunc)
 
-func initGlobalEnvironments() {
+func getGlobalEnvironmentsFunc() *globalEnvironments {
+	_globalEnvironments := &globalEnvironments{}
+
 	rawQueryConcurrencyLimit := os.Getenv("QUERY_CONCURRENCY_LIMIT")
 	if rawQueryConcurrencyLimit != "" {
 		limit, err := strconv.ParseInt(rawQueryConcurrencyLimit, 10, 64)
 		if err != nil {
 			panic(fmt.Sprintf("QUERY_CONCURRENCY_LIMIT: invalid integer <%s>", rawQueryConcurrencyLimit))
 		}
+
 		_globalEnvironments.queryConcurrencyLimit = int(limit)
 	}
 
@@ -264,6 +275,7 @@ func initGlobalEnvironments() {
 		if err != nil {
 			panic(fmt.Sprintf("MUTATION_CONCURRENCY_LIMIT: invalid integer <%s>", rawMutationConcurrencyLimit))
 		}
+
 		_globalEnvironments.mutationConcurrencyLimit = int(limit)
 	}
 
@@ -271,10 +283,26 @@ func initGlobalEnvironments() {
 	if err != nil {
 		panic(fmt.Sprintf("QUERY_CONCURRENCY: %s", err))
 	}
+
 	_globalEnvironments.queryConcurrency = queryConcurrency
+
+	return _globalEnvironments
 }
 
-func getGlobalEnvironments() *globalEnvironments {
-	loadGlobalEnvOnce.Do(initGlobalEnvironments)
-	return &_globalEnvironments
+func getSchemaResponseFunc() *schema.RawSchemaResponse {
+	rawSchema, err := json.Marshal(GetConnectorSchema())
+	if err != nil {
+		panic(err)
+	}
+
+	result, err := schema.NewRawSchemaResponse(rawSchema)
+	if err != nil {
+		panic(err)
+	}
+
+	return result
+}
+
+func init() {
+	getGlobalEnvironments()
 }

@@ -3,13 +3,12 @@ package internal
 import (
 	"fmt"
 	"go/types"
-	"slices"
-	"strings"
 
 	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/utils"
 )
 
-// OperationKind the operation kind of connectors
+// OperationKind the operation kind of connectors.
 type OperationKind string
 
 const (
@@ -17,13 +16,13 @@ const (
 	OperationProcedure OperationKind = "Procedure"
 )
 
-// Scalar the structured information of the scalar
+// Scalar the structured information of the scalar.
 type Scalar struct {
 	Schema     schema.ScalarType
 	NativeType *TypeInfo
 }
 
-// Type the interface of a type schema
+// Type the interface of a type schema.
 type Type interface {
 	Kind() schema.TypeEnum
 	Schema() schema.TypeEncoder
@@ -33,7 +32,7 @@ type Type interface {
 	IsAnonymous() bool
 }
 
-// NullableType the information of the nullable type
+// NullableType the information of the nullable type.
 type NullableType struct {
 	UnderlyingType Type
 }
@@ -57,7 +56,9 @@ func (t NullableType) SchemaName(isAbsolute bool) string {
 	if isAbsolute {
 		result = "nullable_"
 	}
+
 	result += t.UnderlyingType.SchemaName(isAbsolute)
+
 	return result
 }
 
@@ -65,6 +66,7 @@ func (t *NullableType) Schema() schema.TypeEncoder {
 	if t.UnderlyingType.Kind() == schema.TypeNullable {
 		return t.UnderlyingType.Schema()
 	}
+
 	return schema.NewNullableType(t.UnderlyingType.Schema())
 }
 
@@ -76,7 +78,7 @@ func (t NullableType) String() string {
 	return "*" + t.UnderlyingType.String()
 }
 
-// ArrayType the information of the array type
+// ArrayType the information of the array type.
 type ArrayType struct {
 	ElementType Type
 }
@@ -104,7 +106,9 @@ func (t ArrayType) SchemaName(isAbsolute bool) string {
 	if isAbsolute {
 		result = "array_"
 	}
+
 	result += t.ElementType.SchemaName(isAbsolute)
+
 	return result
 }
 
@@ -116,7 +120,7 @@ func (t ArrayType) String() string {
 	return "[]" + t.ElementType.String()
 }
 
-// NamedType the information of a named type
+// NamedType the information of a named type.
 type NamedType struct {
 	Name       string
 	NativeType *TypeInfo
@@ -152,7 +156,7 @@ func (t *NamedType) String() string {
 	return t.NativeType.String()
 }
 
-// PredicateType the information of a predicate type
+// PredicateType the information of a predicate type.
 type PredicateType struct {
 	ObjectName string
 }
@@ -236,6 +240,7 @@ func (ti *TypeInfo) GetPackagePaths(currentPackagePath string) []string {
 
 func (ti *TypeInfo) getArgumentName(packagePath string, isAbsolute bool) string {
 	name := ti.Name
+
 	if isAbsolute {
 		if ti.PackagePath != "" {
 			name = ti.PackagePath + "." + ti.Name
@@ -253,6 +258,7 @@ func (ti *TypeInfo) getArgumentName(packagePath string, isAbsolute bool) string 
 				name += ", "
 			}
 		}
+
 		name += "]"
 	}
 
@@ -280,7 +286,9 @@ func (oi ObjectInfo) Schema() *schema.ObjectType {
 	result := &schema.ObjectType{
 		Description: oi.Description,
 		Fields:      oi.SchemaFields,
+		ForeignKeys: schema.ObjectTypeForeignKeys{},
 	}
+
 	return result
 }
 
@@ -310,6 +318,7 @@ func (op FunctionInfo) Schema() schema.FunctionInfo {
 		ResultType:  op.ResultType.Type.Schema().Encode(),
 		Arguments:   op.Arguments,
 	}
+
 	return result
 }
 
@@ -325,6 +334,7 @@ func (op ProcedureInfo) Schema() schema.ProcedureInfo {
 		ResultType:  op.ResultType.Type.Schema().Encode(),
 		Arguments:   schema.ProcedureInfoArguments(op.Arguments),
 	}
+
 	return result
 }
 
@@ -335,9 +345,9 @@ type RawConnectorSchema struct {
 	Imports           map[string]bool
 	Scalars           map[string]Scalar
 	Objects           map[string]ObjectInfo
-	Functions         []FunctionInfo
+	Functions         map[string]FunctionInfo
 	FunctionArguments map[string]ObjectInfo
-	Procedures        []ProcedureInfo
+	Procedures        map[string]ProcedureInfo
 }
 
 // NewRawConnectorSchema creates an empty RawConnectorSchema instance.
@@ -346,9 +356,9 @@ func NewRawConnectorSchema() *RawConnectorSchema {
 		Imports:           make(map[string]bool),
 		Scalars:           make(map[string]Scalar),
 		Objects:           make(map[string]ObjectInfo),
-		Functions:         []FunctionInfo{},
+		Functions:         map[string]FunctionInfo{},
 		FunctionArguments: make(map[string]ObjectInfo),
-		Procedures:        []ProcedureInfo{},
+		Procedures:        map[string]ProcedureInfo{},
 	}
 }
 
@@ -370,21 +380,20 @@ func (rcs RawConnectorSchema) Schema() *schema.SchemaResponse {
 		result.ObjectTypes[obj.Type.SchemaName] = *obj.Schema()
 	}
 
-	for _, function := range rcs.Functions {
+	functionKeys := utils.GetSortedKeys(rcs.Functions)
+
+	for _, key := range functionKeys {
+		function := rcs.Functions[key]
+
 		result.Functions = append(result.Functions, function.Schema())
 	}
 
-	slices.SortFunc(result.Functions, func(a, b schema.FunctionInfo) int {
-		return strings.Compare(a.Name, b.Name)
-	})
+	procKeys := utils.GetSortedKeys(rcs.Procedures)
 
-	for _, procedure := range rcs.Procedures {
+	for _, key := range procKeys {
+		procedure := rcs.Procedures[key]
 		result.Procedures = append(result.Procedures, procedure.Schema())
 	}
-
-	slices.SortFunc(result.Procedures, func(a, b schema.ProcedureInfo) int {
-		return strings.Compare(a.Name, b.Name)
-	})
 
 	return result
 }
@@ -393,6 +402,7 @@ func (rcs *RawConnectorSchema) SetScalar(name string, value Scalar) {
 	if rcs.Scalars == nil {
 		rcs.Scalars = map[string]Scalar{}
 	}
+
 	_, ok := rcs.Scalars[name]
 	if !ok {
 		rcs.Scalars[name] = value
@@ -404,6 +414,7 @@ func (rcs *RawConnectorSchema) setFunctionArgument(info ObjectInfo) {
 	if _, ok := rcs.FunctionArguments[key]; ok {
 		return
 	}
+
 	rcs.FunctionArguments[key] = info
 }
 
@@ -419,6 +430,7 @@ func (rcs RawConnectorSchema) GetScalarFromType(ty Type) *Scalar {
 			return &result
 		}
 	}
+
 	return nil
 }
 
@@ -460,6 +472,7 @@ func unwrapNullableType(input Type) (Type, bool) {
 	switch t := input.(type) {
 	case *NullableType:
 		result, _ := unwrapNullableType(t.UnderlyingType)
+
 		return result, true
 	case *ArrayType:
 		return t, false

@@ -32,6 +32,7 @@ func (c *CommentText) UnmarshalJSON(b []byte) error {
 
 func (ct *CommentText) FromValue(value any) (err error) {
 	ct.comment, err = utils.DecodeString(value)
+
 	return
 }
 

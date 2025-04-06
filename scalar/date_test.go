@@ -8,7 +8,7 @@ import (
 )
 
 func TestDate(t *testing.T) {
-	expected := NewDate(2014, 04, 1).String()
+	expected := NewDate(2014, 0o4, 1).String()
 	rawJSON := fmt.Sprintf(`"%s"`, expected)
 	var value Date
 	scalarName := value.ScalarName()

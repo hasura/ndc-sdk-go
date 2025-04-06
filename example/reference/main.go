@@ -26,9 +26,11 @@ type CLI struct {
 
 func (cli *CLI) Execute(ctx context.Context, command string) error {
 	logger := connector.GetLogger(ctx)
+
 	switch command {
 	case "version":
 		logger.Info("v0.1.0")
+
 		return nil
 	default:
 		return fmt.Errorf("unknown command <%s>", command)

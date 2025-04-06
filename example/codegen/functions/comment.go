@@ -22,10 +22,15 @@ type GetArticlesResult struct {
 
 // GetArticles
 // @function
-func GetArticles(ctx context.Context, state *types.State, arguments *GetArticlesArguments) ([]GetArticlesResult, error) {
+func GetArticles(
+	ctx context.Context,
+	state *types.State,
+	arguments *GetArticlesArguments,
+) ([]GetArticlesResult, error) {
 	if arguments.AuthorID > 0 {
 		time.Sleep(time.Duration(math.Min(float64(arguments.AuthorID), 2)) * time.Second)
 	}
+
 	return []GetArticlesResult{
 		{
 			ID:   uint(arguments.AuthorID),
@@ -48,10 +53,17 @@ type CreateArticleResult struct {
 
 // CreateArticle
 // @procedure create_article
-func CreateArticle(ctx context.Context, state *types.State, arguments *CreateArticleArguments) (CreateArticleResult, error) {
+func CreateArticle(
+	ctx context.Context,
+	state *types.State,
+	arguments *CreateArticleArguments,
+) (CreateArticleResult, error) {
 	if arguments.Author.ID > 0 {
-		time.Sleep(time.Duration(math.Min(float64(arguments.Author.ID), 2)) * 500 * time.Millisecond)
+		time.Sleep(
+			time.Duration(math.Min(float64(arguments.Author.ID), 2)) * 500 * time.Millisecond,
+		)
 	}
+
 	return CreateArticleResult{
 		ID:      uint(arguments.Author.ID),
 		Authors: []types.Author{},

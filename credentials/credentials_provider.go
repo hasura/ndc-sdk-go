@@ -18,8 +18,10 @@ import (
 )
 
 var (
-	errAuthWebhookUriRequired = errors.New("the env var HASURA_CREDENTIALS_PROVIDER_URI must be set and non-empty")
-	errEmptyCredentials       = errors.New("empty credentials")
+	ErrAuthWebhookUriRequired = errors.New(
+		"the env var HASURA_CREDENTIALS_PROVIDER_URI must be set and non-empty",
+	)
+	ErrEmptyCredentials = errors.New("empty credentials")
 )
 
 var defaultClient = CredentialClient{
@@ -61,7 +63,7 @@ func NewCredentialClient(httpClient *http.Client) (*CredentialClient, error) {
 func (cc *CredentialClient) reload() error {
 	rawProviderUri, providerUriExists := os.LookupEnv("HASURA_CREDENTIALS_PROVIDER_URI")
 	if !providerUriExists || rawProviderUri == "" {
-		return errAuthWebhookUriRequired
+		return ErrAuthWebhookUriRequired
 	}
 
 	providerUri, err := url.Parse(rawProviderUri)
@@ -81,7 +83,11 @@ func (cc *CredentialClient) reload() error {
 }
 
 // AcquireCredentials calls the credentials provider webhook to get the credentials for the given key.
-func (cc *CredentialClient) AcquireCredentials(ctx context.Context, key string, forceRefresh bool) (string, error) {
+func (cc *CredentialClient) AcquireCredentials(
+	ctx context.Context,
+	key string,
+	forceRefresh bool,
+) (string, error) {
 	ctx, span := tracer.Start(ctx, "AcquireCredentials", trace.WithSpanKind(trace.SpanKindClient))
 	defer span.End()
 
@@ -132,11 +138,14 @@ func (cc *CredentialClient) AcquireCredentials(ctx context.Context, key string, 
 		return "", fmt.Errorf("error making request: %w", err)
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	span.SetAttributes(attribute.Int("http.response.status_code", resp.StatusCode))
 
 	var payload Payload
+
 	err = json.NewDecoder(resp.Body).Decode(&payload)
 	if err != nil {
 		span.SetStatus(codes.Error, "failed to read the response")
@@ -146,10 +155,10 @@ func (cc *CredentialClient) AcquireCredentials(ctx context.Context, key string, 
 	}
 
 	if payload.Credentials == "" {
-		span.SetStatus(codes.Error, errEmptyCredentials.Error())
+		span.SetStatus(codes.Error, ErrEmptyCredentials.Error())
 		span.RecordError(err)
 
-		return "", errEmptyCredentials
+		return "", ErrEmptyCredentials
 	}
 
 	return payload.Credentials, nil

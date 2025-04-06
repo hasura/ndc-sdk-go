@@ -26,7 +26,13 @@ var enumValues_WriteFileStrategy = []WriteFileStrategy{
 func ParseWriteFileStrategy(input string) (WriteFileStrategy, error) {
 	result := WriteFileStrategy(input)
 	if !slices.Contains(enumValues_WriteFileStrategy, result) {
-		return WriteFileStrategy(""), fmt.Errorf("failed to parse WriteFileStrategy, expect one of %v, got: %s", enumValues_WriteFileStrategy, input)
+		return WriteFileStrategy(
+				"",
+			), fmt.Errorf(
+				"failed to parse WriteFileStrategy, expect one of %v, got: %s",
+				enumValues_WriteFileStrategy,
+				input,
+			)
 	}
 
 	return result, nil

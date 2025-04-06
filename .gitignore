@@ -20,6 +20,7 @@
 # Typegen third-party files
 typegen/*
 !typegen/regenerate-schema.sh
+!typegen/schema.patch.json
 
 # Go workspace files
 go.work
@@ -28,4 +29,5 @@ go.work.sum
 .idea/
 _output/
 release/
+coverage/
 coverage.out

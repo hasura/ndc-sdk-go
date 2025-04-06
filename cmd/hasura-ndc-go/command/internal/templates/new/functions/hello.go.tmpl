@@ -52,9 +52,11 @@ type HelloResult struct {
 //		}'
 func FunctionHello(ctx context.Context, state *types.State, arguments *HelloArguments) (*HelloResult, error) {
 	count := 1
+	
 	if arguments.Count != nil {
 		count = *arguments.Count + 1
 	}
+
 	return &HelloResult{
 		Reply: fmt.Sprintf("Hi! %s", arguments.Greeting),
 		Count: count,

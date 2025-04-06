@@ -63,3 +63,122 @@ func TestUnmarshalFunctionInfo(t *testing.T) {
 		})
 	}
 }
+
+func TestUnmarshalQueryRequest(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Raw      string
+		Expected QueryRequest
+	}{
+		{
+			Name: "nested_collection_with_grouping",
+			Raw: `{
+  "collection": "institutions",
+  "arguments": {},
+  "query": {
+    "fields": {
+      "id": {
+        "type": "column",
+        "column": "id"
+      },
+      "staff_groups": {
+        "type": "column",
+        "column": "staff",
+        "arguments": {
+          "limit": {
+            "type": "literal",
+            "value": null
+          }
+        },
+        "field_path": [],
+        "fields": {
+          "type": "collection",
+          "query": {
+            "groups": {
+              "dimensions": [
+                {
+                  "type": "column",
+                  "column_name": "last_name",
+                  "path": []
+                }
+              ],
+              "aggregates": {
+                "count": {
+                  "type": "star_count"
+                }
+              }
+            }
+          }
+        }
+      },
+      "staff": {
+        "type": "column",
+        "column": "staff",
+        "arguments": {
+          "limit": {
+            "type": "literal",
+            "value": null
+          }
+        },
+        "fields": {
+          "type": "array",
+          "fields": {
+            "type": "object",
+            "fields": {
+              "last_name": {
+                "type": "column",
+                "column": "last_name"
+              },
+              "first_name": {
+                "type": "column",
+                "column": "first_name"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "collection_relationships": {}
+}`,
+			Expected: QueryRequest{
+				CollectionRelationships: QueryRequestCollectionRelationships{},
+				Collection:              "institutions",
+				Arguments:               make(QueryRequestArguments),
+				Query: Query{
+					Fields: QueryFields{
+						"id": NewColumnField("id").Encode(),
+						"staff": NewColumnField("staff").
+							WithArgument("limit", NewArgumentLiteral(nil)).
+							WithNestedField(NewNestedArray(NewNestedObject(map[string]FieldEncoder{
+								"first_name": NewColumnField("first_name"),
+								"last_name":  NewColumnField("last_name"),
+							}))).
+							Encode(),
+						"staff_groups": NewColumnField("staff").
+							WithArgument("limit", NewArgumentLiteral(nil)).
+							WithNestedField(NewNestedCollection(Query{
+								Groups: &Grouping{
+									Aggregates: GroupingAggregates{
+										"count": NewAggregateStarCount().Encode(),
+									},
+									Dimensions: []Dimension{
+										NewDimensionColumn("last_name", nil).Encode(),
+									},
+								},
+							})).
+							Encode(),
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			var query QueryRequest
+			assert.NilError(t, json.Unmarshal([]byte(tc.Raw), &query))
+			assert.DeepEqual(t, tc.Expected, query)
+		})
+	}
+}

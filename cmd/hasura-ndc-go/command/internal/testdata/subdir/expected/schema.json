@@ -108,7 +108,8 @@
             }
           }
         }
-      }
+      },
+      "foreign_keys": {}
     },
     "GetArticlesResult": {
       "fields": {
@@ -154,7 +155,8 @@
             }
           }
         }
-      }
+      },
+      "foreign_keys": {}
     }
   },
   "procedures": [],

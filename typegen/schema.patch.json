@@ -1,0 +1,353 @@
+[
+  {
+    "op": "remove",
+    "path": "/definitions/Capabilities/properties/relationships/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/Capabilities/properties/relationships/$ref",
+    "value": "#/definitions/RelationshipCapabilities"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/QueryCapabilities/properties/aggregates/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/QueryCapabilities/properties/aggregates/$ref",
+    "value": "#/definitions/AggregateCapabilities"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/QueryCapabilities/properties/variables/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/QueryCapabilities/properties/variables/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/QueryCapabilities/properties/explain/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/QueryCapabilities/properties/explain/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/QueryCapabilities/properties/exists/allOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/QueryCapabilities/properties/exists/$ref",
+    "value": "#/definitions/ExistsCapabilities"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/AggregateCapabilities/properties/filter_by/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/AggregateCapabilities/properties/filter_by/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/AggregateCapabilities/properties/group_by/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/AggregateCapabilities/properties/group_by/$ref",
+    "value": "#/definitions/GroupByCapabilities"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/GroupByCapabilities/properties/filter/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/GroupByCapabilities/properties/filter/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/GroupByCapabilities/properties/order/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/GroupByCapabilities/properties/order/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/GroupByCapabilities/properties/paginate/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/GroupByCapabilities/properties/paginate/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/NestedFieldCapabilities/properties/filter_by/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/NestedFieldCapabilities/properties/filter_by/$ref",
+    "value": "#/definitions/NestedFieldFilterByCapabilities"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/NestedFieldCapabilities/properties/order_by/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/NestedFieldCapabilities/properties/order_by/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/NestedFieldCapabilities/properties/aggregates/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/NestedFieldCapabilities/properties/aggregates/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/NestedFieldCapabilities/properties/nested_collections/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/NestedFieldCapabilities/properties/nested_collections/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/NestedFieldFilterByCapabilities/properties/nested_arrays/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/NestedFieldFilterByCapabilities/properties/nested_arrays/$ref",
+    "value": "#/definitions/NestedArrayFilterByCapabilities"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/NestedArrayFilterByCapabilities/properties/contains/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/NestedArrayFilterByCapabilities/properties/contains/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/NestedArrayFilterByCapabilities/properties/is_empty/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/NestedArrayFilterByCapabilities/properties/is_empty/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/ExistsCapabilities/properties/named_scopes/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/ExistsCapabilities/properties/named_scopes/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/ExistsCapabilities/properties/unrelated/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/ExistsCapabilities/properties/unrelated/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/ExistsCapabilities/properties/nested_collections/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/ExistsCapabilities/properties/nested_collections/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/ExistsCapabilities/properties/nested_scalar_collections/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/ExistsCapabilities/properties/nested_scalar_collections/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/MutationCapabilities/properties/transactional/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/MutationCapabilities/properties/transactional/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/MutationCapabilities/properties/explain/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/MutationCapabilities/properties/explain/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/RelationshipCapabilities/properties/relation_comparisons/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/RelationshipCapabilities/properties/relation_comparisons/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/RelationshipCapabilities/properties/order_by_aggregate/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/RelationshipCapabilities/properties/order_by_aggregate/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/RelationshipCapabilities/properties/nested/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/RelationshipCapabilities/properties/nested/$ref",
+    "value": "#/definitions/NestedRelationshipCapabilities"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/NestedRelationshipCapabilities/properties/array/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/NestedRelationshipCapabilities/properties/array/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/NestedRelationshipCapabilities/properties/filtering/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/NestedRelationshipCapabilities/properties/filtering/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/NestedRelationshipCapabilities/properties/ordering/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/NestedRelationshipCapabilities/properties/ordering/$ref",
+    "value": "#/definitions/LeafCapability"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/SchemaResponse/properties/capabilities/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/SchemaResponse/properties/capabilities/$ref",
+    "value": "#/definitions/CapabilitySchemaInfo"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/Grouping/properties/order_by/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/Grouping/properties/order_by/$ref",
+    "value": "#/definitions/GroupOrderBy"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/Grouping/properties/predicate/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/Grouping/properties/predicate/$ref",
+    "value": "#/definitions/GroupExpression"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/Query/properties/predicate/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/Query/properties/predicate/$ref",
+    "value": "#/definitions/Expression"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/Query/properties/groups/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/Query/properties/groups/$ref",
+    "value": "#/definitions/Grouping"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/QueryCapabilitiesSchemaInfo/properties/aggregates/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/QueryCapabilitiesSchemaInfo/properties/aggregates/$ref",
+    "value": "#/definitions/AggregateCapabilitiesSchemaInfo"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/LeafCapability/properties",
+    "value": {
+      "delete_this": {
+        "type": "string"
+      }
+    }
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/QueryRequest/properties/query/allOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/QueryRequest/properties/query/$ref",
+    "value": "#/definitions/Query"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/CapabilitySchemaInfo/properties/query/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/CapabilitySchemaInfo/properties/query/$ref",
+    "value": "#/definitions/QueryCapabilitiesSchemaInfo"
+  },
+  {
+    "op": "remove",
+    "path": "/definitions/PathElement/properties/predicate/anyOf"
+  },
+  {
+    "op": "add",
+    "path": "/definitions/PathElement/properties/predicate/$ref",
+    "value": "#/definitions/Expression"
+  }
+]

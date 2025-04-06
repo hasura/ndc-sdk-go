@@ -18,7 +18,6 @@ import (
   "github.com/hasura/ndc-sdk-go/schema"
 )
 
-
 func toPtr[V any](value V) *V {
   return &value
 }
@@ -30,17 +29,24 @@ func GetConnectorSchema() *schema.SchemaResponse {
     ObjectTypes: schema.SchemaResponseObjectTypes{`)
 
 	objectKeys := utils.GetSortedKeys(rcs.Objects)
+
 	for _, key := range objectKeys {
 		objectType := rcs.Objects[key]
 		if err := rcs.writeObjectType(&builder, &objectType); err != nil {
 			return "", err
 		}
 	}
+
 	builder.WriteString(`
     },
     Functions: []schema.FunctionInfo{`)
-	for _, fn := range rcs.Functions {
+
+	functionKeys := utils.GetSortedKeys(rcs.Functions)
+
+	for _, fnKey := range functionKeys {
+		fn := rcs.Functions[fnKey]
 		op := OperationInfo(fn)
+
 		if err := rcs.writeOperationInfo(&builder, &op); err != nil {
 			return "", err
 		}
@@ -49,8 +55,13 @@ func GetConnectorSchema() *schema.SchemaResponse {
 	builder.WriteString(`
     },
     Procedures: []schema.ProcedureInfo{`)
-	for _, proc := range rcs.Procedures {
+
+	procKeys := utils.GetSortedKeys(rcs.Procedures)
+
+	for _, key := range procKeys {
+		proc := rcs.Procedures[key]
 		op := OperationInfo(proc)
+
 		if err := rcs.writeOperationInfo(&builder, &op); err != nil {
 			return "", err
 		}
@@ -59,6 +70,7 @@ func GetConnectorSchema() *schema.SchemaResponse {
 	builder.WriteString(`
     },
     ScalarTypes: schema.SchemaResponseScalarTypes{`)
+
 	scalarKeys := utils.GetSortedKeys(rcs.Scalars)
 	for _, key := range scalarKeys {
 		scalarType := rcs.Scalars[key]
@@ -68,11 +80,16 @@ func GetConnectorSchema() *schema.SchemaResponse {
 	}
 
 	builder.WriteString("\n    },\n  }\n}")
+
 	return builder.String(), nil
 }
 
-func (rcs RawConnectorSchema) writeOperationInfo(builder *strings.Builder, operation *OperationInfo) error {
+func (rcs RawConnectorSchema) writeOperationInfo(
+	builder *strings.Builder,
+	operation *OperationInfo,
+) error {
 	baseIndent := 6
+
 	builder.WriteString(`
       {
         Name: "`)
@@ -82,17 +99,21 @@ func (rcs RawConnectorSchema) writeOperationInfo(builder *strings.Builder, opera
 	writeIndent(builder, baseIndent+2)
 
 	builder.WriteString("ResultType: ")
+
 	retType, err := rcs.writeType(operation.ResultType.Type.Schema().Encode(), 0)
 	if err != nil {
 		return fmt.Errorf("failed to render function %s: %w", operation.Name, err)
 	}
+
 	builder.WriteString(retType)
 	builder.WriteString(",\n")
 	writeIndent(builder, baseIndent+2)
 	builder.WriteString("Arguments: map[string]schema.ArgumentInfo{")
+
 	argumentKeys := utils.GetSortedKeys(operation.Arguments)
 	for _, argKey := range argumentKeys {
 		argument := operation.Arguments[argKey]
+
 		builder.WriteRune('\n')
 		writeIndent(builder, baseIndent+4)
 		builder.WriteRune('"')
@@ -104,13 +125,20 @@ func (rcs RawConnectorSchema) writeOperationInfo(builder *strings.Builder, opera
 
 		argType, err := rcs.writeType(argument.Type, 0)
 		if err != nil {
-			return fmt.Errorf("failed to render argument %s of function %s: %w", argKey, operation.Name, err)
+			return fmt.Errorf(
+				"failed to render argument %s of function %s: %w",
+				argKey,
+				operation.Name,
+				err,
+			)
 		}
+
 		builder.WriteString(argType)
 		builder.WriteString(",\n")
 		writeIndent(builder, baseIndent+4)
 		builder.WriteString("},")
 	}
+
 	builder.WriteRune('\n')
 	writeIndent(builder, baseIndent+2)
 	builder.WriteString("},\n")
@@ -120,8 +148,13 @@ func (rcs RawConnectorSchema) writeOperationInfo(builder *strings.Builder, opera
 	return nil
 }
 
-func (rcs RawConnectorSchema) writeScalarType(builder *strings.Builder, key string, scalarType schema.ScalarType) error {
+func (rcs RawConnectorSchema) writeScalarType(
+	builder *strings.Builder,
+	key string,
+	scalarType schema.ScalarType,
+) error {
 	baseIndent := 6
+
 	builder.WriteRune('\n')
 	writeIndent(builder, baseIndent)
 	builder.WriteRune('"')
@@ -135,6 +168,7 @@ func (rcs RawConnectorSchema) writeScalarType(builder *strings.Builder, key stri
 		builder.WriteRune('\n')
 		writeIndent(builder, baseIndent+2)
 		builder.WriteString("Representation:      schema.NewTypeRepresentation")
+
 		rep, err := scalarType.Representation.InterfaceT()
 		switch t := rep.(type) {
 		case *schema.TypeRepresentationBoolean:
@@ -175,21 +209,26 @@ func (rcs RawConnectorSchema) writeScalarType(builder *strings.Builder, key stri
 			builder.WriteString("Geometry()")
 		case *schema.TypeRepresentationEnum:
 			builder.WriteString("Enum([]string{")
+
 			for i, enum := range t.OneOf {
 				if i > 0 {
 					builder.WriteString(", ")
 				}
+
 				builder.WriteRune('"')
 				builder.WriteString(enum)
 				builder.WriteRune('"')
 			}
+
 			builder.WriteString("})")
 		default:
 			return err
 		}
 	}
+
 	builder.WriteString(".Encode(),")
 	builder.WriteString("\n      },")
+
 	return nil
 }
 
@@ -201,8 +240,12 @@ func (rcs RawConnectorSchema) writeDescription(builder *strings.Builder, descrip
 	}
 }
 
-func (rcs RawConnectorSchema) writeObjectType(builder *strings.Builder, objectType *ObjectInfo) error {
+func (rcs RawConnectorSchema) writeObjectType(
+	builder *strings.Builder,
+	objectType *ObjectInfo,
+) error {
 	baseIndent := 6
+
 	builder.WriteRune('\n')
 	writeIndent(builder, baseIndent)
 	builder.WriteRune('"')
@@ -215,6 +258,7 @@ func (rcs RawConnectorSchema) writeObjectType(builder *strings.Builder, objectTy
 	fieldKeys := utils.GetSortedKeys(objectType.SchemaFields)
 	for _, fieldKey := range fieldKeys {
 		field := objectType.SchemaFields[fieldKey]
+
 		writeIndent(builder, baseIndent+4)
 		builder.WriteRune('"')
 		builder.WriteString(fieldKey)
@@ -225,6 +269,7 @@ func (rcs RawConnectorSchema) writeObjectType(builder *strings.Builder, objectTy
 		if err != nil {
 			return fmt.Errorf("%s: %w", objectType.Type.SchemaName, err)
 		}
+
 		writeIndent(builder, baseIndent+6)
 		builder.WriteString("Type: ")
 		builder.WriteString(ft)
@@ -232,8 +277,11 @@ func (rcs RawConnectorSchema) writeObjectType(builder *strings.Builder, objectTy
 		writeIndent(builder, baseIndent+4)
 		builder.WriteString("},\n")
 	}
+
 	writeIndent(builder, baseIndent+2)
 	builder.WriteString("},\n")
+	writeIndent(builder, baseIndent+2)
+	builder.WriteString("ForeignKeys: schema.ObjectTypeForeignKeys{},\n")
 	writeIndent(builder, baseIndent)
 	builder.WriteString("},")
 
@@ -242,6 +290,7 @@ func (rcs RawConnectorSchema) writeObjectType(builder *strings.Builder, objectTy
 
 func (rcs RawConnectorSchema) writeType(schemaType schema.Type, depth uint) (string, error) {
 	result := "schema."
+
 	ty, err := schemaType.InterfaceT()
 	switch t := ty.(type) {
 	case *schema.ArrayType:
@@ -249,12 +298,14 @@ func (rcs RawConnectorSchema) writeType(schemaType schema.Type, depth uint) (str
 		if err != nil {
 			return "", err
 		}
+
 		result += fmt.Sprintf("NewArrayType(%s)", nested)
 	case *schema.NullableType:
 		nested, err := rcs.writeType(t.UnderlyingType, depth+1)
 		if err != nil {
 			return "", err
 		}
+
 		result += fmt.Sprintf("NewNullableType(%s)", nested)
 	case *schema.NamedType:
 		result += fmt.Sprintf(`NewNamedType("%s")`, t.Name)
@@ -267,5 +318,6 @@ func (rcs RawConnectorSchema) writeType(schemaType schema.Type, depth uint) (str
 	if depth == 0 {
 		result += ".Encode()"
 	}
+
 	return result, nil
 }

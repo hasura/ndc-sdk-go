@@ -1,5 +1,5 @@
 # build context at repo root: docker build -f Dockerfile .
-FROM golang:1.23 AS builder
+FROM golang:1.24 AS builder
 
 WORKDIR /app
 COPY go.mod go.sum ./

@@ -16,6 +16,7 @@ func JSONAttribute(key string, data any) attribute.KeyValue {
 		if err != nil {
 			return attribute.String(key, err.Error())
 		}
+
 		return attribute.String(key, string(jsonBytes))
 	}
 }
@@ -31,5 +32,6 @@ func DebugJSONAttributes(data map[string]any, isDebug bool) []attribute.KeyValue
 	for k, v := range data {
 		attrs = append(attrs, JSONAttribute(k, v))
 	}
+
 	return attrs
 }

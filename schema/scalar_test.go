@@ -12,8 +12,8 @@ func TestTypeRepresentation(t *testing.T) {
 		typeRep := NewTypeRepresentationBoolean()
 		rawType := typeRep.Encode()
 
-		_, err := rawType.AsInteger()
-		assertError(t, err, "invalid TypeRepresentation type; expected integer, got boolean")
+		_, err := rawType.AsInt32()
+		assertError(t, err, "invalid TypeRepresentation type; expected int32, got boolean")
 
 		anyType, ok := rawType.Interface().(*TypeRepresentationBoolean)
 		assert.DeepEqual(t, true, ok)
@@ -24,34 +24,10 @@ func TestTypeRepresentation(t *testing.T) {
 		typeRep := NewTypeRepresentationString()
 		rawType := typeRep.Encode()
 
-		_, err := rawType.AsInteger()
-		assertError(t, err, "invalid TypeRepresentation type; expected integer, got string")
+		_, err := rawType.AsInt32()
+		assertError(t, err, "invalid TypeRepresentation type; expected int32, got string")
 
 		anyType, ok := rawType.Interface().(*TypeRepresentationString)
-		assert.DeepEqual(t, true, ok)
-		assert.DeepEqual(t, anyType, typeRep)
-	})
-
-	t.Run("integer", func(t *testing.T) {
-		typeRep := NewTypeRepresentationInteger()
-		rawType := typeRep.Encode()
-
-		_, err := rawType.AsString()
-		assertError(t, err, "invalid TypeRepresentation type; expected string, got integer")
-
-		anyType, ok := rawType.Interface().(*TypeRepresentationInteger)
-		assert.DeepEqual(t, true, ok)
-		assert.DeepEqual(t, anyType, typeRep)
-	})
-
-	t.Run("number", func(t *testing.T) {
-		typeRep := NewTypeRepresentationNumber()
-		rawType := typeRep.Encode()
-
-		_, err := rawType.AsString()
-		assertError(t, err, "invalid TypeRepresentation type; expected string, got number")
-
-		anyType, ok := rawType.Interface().(*TypeRepresentationNumber)
 		assert.DeepEqual(t, true, ok)
 		assert.DeepEqual(t, anyType, typeRep)
 	})
@@ -68,7 +44,11 @@ func TestTypeRepresentation(t *testing.T) {
 		}`)
 
 		var enumType TypeRepresentation
-		assertError(t, json.Unmarshal(rawEmptyBytes, &enumType), "TypeRepresentation requires at least 1 item in one_of field for enum type")
+		assertError(
+			t,
+			json.Unmarshal(rawEmptyBytes, &enumType),
+			"TypeRepresentation requires at least 1 item in one_of field for enum type",
+		)
 
 		assert.NilError(t, json.Unmarshal(rawBytes, &enumType))
 

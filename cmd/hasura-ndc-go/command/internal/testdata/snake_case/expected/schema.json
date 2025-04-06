@@ -1449,7 +1449,8 @@
             "type": "named"
           }
         }
-      }
+      },
+      "foreign_keys": {}
     },
     "CreateArticleArgumentsAuthor": {
       "fields": {
@@ -1465,7 +1466,8 @@
             "type": "named"
           }
         }
-      }
+      },
+      "foreign_keys": {}
     },
     "CreateArticleResult": {
       "fields": {
@@ -1484,7 +1486,8 @@
             "type": "named"
           }
         }
-      }
+      },
+      "foreign_keys": {}
     },
     "CreateAuthorResult": {
       "fields": {
@@ -1506,7 +1509,8 @@
             "type": "named"
           }
         }
-      }
+      },
+      "foreign_keys": {}
     },
     "GetArticlesResult": {
       "fields": {
@@ -1522,7 +1526,8 @@
             "type": "named"
           }
         }
-      }
+      },
+      "foreign_keys": {}
     },
     "GetTypesArguments": {
       "fields": {
@@ -2906,7 +2911,8 @@
             }
           }
         }
-      }
+      },
+      "foreign_keys": {}
     },
     "GetTypesArgumentsArrayObject": {
       "fields": {
@@ -2916,7 +2922,8 @@
             "type": "named"
           }
         }
-      }
+      },
+      "foreign_keys": {}
     },
     "GetTypesArgumentsArrayObjectPtr": {
       "fields": {
@@ -2926,7 +2933,8 @@
             "type": "named"
           }
         }
-      }
+      },
+      "foreign_keys": {}
     },
     "GetTypesArgumentsObject": {
       "fields": {
@@ -2942,7 +2950,8 @@
             "type": "named"
           }
         }
-      }
+      },
+      "foreign_keys": {}
     },
     "GetTypesArgumentsObjectPtr": {
       "fields": {
@@ -2958,7 +2967,8 @@
             "type": "named"
           }
         }
-      }
+      },
+      "foreign_keys": {}
     },
     "HelloResult": {
       "fields": {
@@ -2995,7 +3005,8 @@
             "type": "named"
           }
         }
-      }
+      },
+      "foreign_keys": {}
     }
   },
   "procedures": [

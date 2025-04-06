@@ -2,257 +2,269 @@
 package main
 
 import (
-  "context"
-  _ "embed"
-  "fmt"
-	"os"
-	"strconv"
-	"sync"
+    "context"
+    "errors"
+	_ "embed"
+    "fmt"
+    "os"
+    "strconv"
+    "sync"
 
 "github.com/hasura/ndc-codegen-test/functions"
 "github.com/hasura/ndc-codegen-test/types"
-  "github.com/hasura/ndc-sdk-go/schema"
-  "github.com/hasura/ndc-sdk-go/utils"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
-	"golang.org/x/sync/errgroup"
+    "github.com/hasura/ndc-sdk-go/schema"
+    "github.com/hasura/ndc-sdk-go/utils"
+    "go.opentelemetry.io/otel/attribute"
+    "go.opentelemetry.io/otel/codes"
+    "golang.org/x/sync/errgroup"
 )
 
-var loadGlobalEnvOnce sync.Once
-var schemaResponse *schema.RawSchemaResponse
 var connectorQueryHandlers = []ConnectorQueryHandler{functions.DataConnectorHandler{}}
 var connectorMutationHandlers = []ConnectorMutationHandler{functions.DataConnectorHandler{}}
 
 // ConnectorQueryHandler abstracts the connector query handler 
 type ConnectorQueryHandler interface {
-	Query(ctx context.Context, state *types.State, request *schema.QueryRequest, arguments map[string]any) (*schema.RowSet, error)
+    Query(ctx context.Context, state *types.State, request *schema.QueryRequest, arguments map[string]any) (*schema.RowSet, error)
 }
 
 // ConnectorMutationHandler abstracts the connector mutation handler 
 type ConnectorMutationHandler interface {
-	Mutation(ctx context.Context, state *types.State, request *schema.MutationOperation) (schema.MutationOperationResults, error)
-}
-
-//go:embed schema.generated.json
-var rawSchema []byte
-func init() {
-	var err error
-	schemaResponse, err = schema.NewRawSchemaResponse(rawSchema)
-	if err != nil {
-		panic(err)
-	}
+    Mutation(ctx context.Context, state *types.State, request *schema.MutationOperation) (schema.MutationOperationResults, error)
 }
 
 // GetSchema gets the connector's schema.
 func (c *Connector) GetSchema(ctx context.Context, configuration *types.Configuration, _ *types.State) (schema.SchemaResponseMarshaler, error) {
-	return schemaResponse, nil
+    return schemaResponse(), nil
 }
 
 // Query executes a query.
 func (c *Connector) Query(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.QueryRequest) (schema.QueryResponse, error) {
-	if len(connectorQueryHandlers) == 0 {
-		return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported query: %s", request.Collection), nil)
-	}
-	requestVars := request.Variables
-	if len(requestVars) == 0 {
-		requestVars = []schema.QueryRequestVariablesElem{make(schema.QueryRequestVariablesElem)}
-	}
+    if len(connectorQueryHandlers) == 0 {
+        return nil, schema.UnprocessableContentError("unsupported query: " + request.Collection, nil)
+    }
 
-	concurrencyLimit := getGlobalEnvironments().GetQueryConcurrencyLimitByName(request.Collection)
-	if concurrencyLimit <= 1 || len(request.Variables) <= 1 {
-		return c.execQuerySync(ctx, state, request, requestVars)
-	}
-	return c.execQueryAsync(ctx, state, request, requestVars, concurrencyLimit)
+    requestVars := request.Variables
+    if len(requestVars) == 0 {
+        requestVars = []schema.QueryRequestVariablesElem{make(schema.QueryRequestVariablesElem)}
+    }
+
+    concurrencyLimit := getGlobalEnvironments().GetQueryConcurrencyLimitByName(request.Collection)
+    if concurrencyLimit <= 1 || len(request.Variables) <= 1 {
+        return c.execQuerySync(ctx, state, request, requestVars)
+    }
+
+    return c.execQueryAsync(ctx, state, request, requestVars, concurrencyLimit)
 }
 
 func (c *Connector) execQuerySync(ctx context.Context, state *types.State, request *schema.QueryRequest, requestVars []schema.QueryRequestVariablesElem) (schema.QueryResponse, error) {
-	rowSets := make([]schema.RowSet, len(requestVars))
-	for i, requestVar := range requestVars {
-		result, err := c.execQuery(ctx, state, request, requestVar, i)
-		if err != nil {
-			return nil, err
-		}
-		rowSets[i] = *result
-	}
+    rowSets := make([]schema.RowSet, len(requestVars))
 
-	return rowSets, nil
+    for i, requestVar := range requestVars {
+        result, err := c.execQuery(ctx, state, request, requestVar, i)
+        if err != nil {
+            return nil, err
+        }
+
+        rowSets[i] = *result
+    }
+
+    return rowSets, nil
 }
 
 func (c *Connector) execQueryAsync(ctx context.Context, state *types.State, request *schema.QueryRequest, requestVars []schema.QueryRequestVariablesElem, concurrencyLimit int) (schema.QueryResponse, error) {
-	rowSets := make([]schema.RowSet, len(requestVars))
-	eg, ctx := errgroup.WithContext(ctx)
-	eg.SetLimit(concurrencyLimit)
+    rowSets := make([]schema.RowSet, len(requestVars))
+    eg, ctx := errgroup.WithContext(ctx)
+    eg.SetLimit(concurrencyLimit)
 
-	for i, requestVar := range requestVars {
-		func(index int, vars schema.QueryRequestVariablesElem) {
-			eg.Go(func() error {
-				result, err := c.execQuery(ctx, state, request, vars, index)
-				if err != nil {
-					return err
-				}
-				rowSets[index] = *result
-				return nil
-			})
-		}(i, requestVar)
-	}
+    for i, requestVar := range requestVars {
+        func(index int, vars schema.QueryRequestVariablesElem) {
+            eg.Go(func() error {
+                result, err := c.execQuery(ctx, state, request, vars, index)
+                if err != nil {
+                    return err
+                }
 
-	if err := eg.Wait(); err != nil {
-		return nil, err
-	}
-	return rowSets, nil
+                rowSets[index] = *result
+                
+                return nil
+            })
+        }(i, requestVar)
+    }
+
+    if err := eg.Wait(); err != nil {
+        return nil, err
+    }
+
+    return rowSets, nil
 }
 
 func (c *Connector) execQuery(ctx context.Context, state *types.State, request *schema.QueryRequest, variables map[string]any, index int) (*schema.RowSet, error) {
-	ctx, span := state.Tracer.Start(ctx, fmt.Sprintf("Execute Function %d", index))
-	defer span.End()
+    ctx, span := state.Tracer.Start(ctx, fmt.Sprintf("Execute Function %d", index))
+    defer span.End()
 
-	rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
-	if err != nil {
-		span.SetStatus(codes.Error, "failed to resolve argument variables")
-		span.RecordError(err)
-		return nil, schema.UnprocessableContentError("failed to resolve argument variables", map[string]any{
-			"cause": err.Error(),
-		})
-	}
+    rawArgs, err := utils.ResolveArgumentVariables(request.Arguments, variables)
+    if err != nil {
+        span.SetStatus(codes.Error, "failed to resolve argument variables")
+        span.RecordError(err)
 
-	for _, handler := range connectorQueryHandlers {
-		result, err := handler.Query(ctx, state, request, rawArgs)
-		if err == nil {
-			return result, nil
-		}
+        return nil, schema.UnprocessableContentError("failed to resolve argument variables", map[string]any{
+            "cause": err.Error(),
+        })
+    }
 
-		if err != utils.ErrHandlerNotfound {
-			span.SetStatus(codes.Error, fmt.Sprintf("failed to execute function %d", index))
-			span.RecordError(err)
-			return nil, err
-		}
-	}
+    for _, handler := range connectorQueryHandlers {
+        result, err := handler.Query(ctx, state, request, rawArgs)
+        if err == nil {
+            return result, nil
+        }
 
-	errorMsg := fmt.Sprintf("unsupported query: %s", request.Collection)
-	span.SetStatus(codes.Error, errorMsg)
-	return nil, schema.UnprocessableContentError(errorMsg, nil)
+        if !errors.Is(err, utils.ErrHandlerNotfound) {
+            span.SetStatus(codes.Error, fmt.Sprintf("failed to execute function %d", index))
+            span.RecordError(err)
+
+            return nil, err
+        }
+    }
+
+    errorMsg := "unsupported query: " + request.Collection
+    span.SetStatus(codes.Error, errorMsg)
+
+    return nil, schema.UnprocessableContentError(errorMsg, nil)
 }
 
 // Mutation executes a mutation.
 func (c *Connector) Mutation(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
-	if len(connectorMutationHandlers) == 0 {
-		return nil, schema.UnprocessableContentError("unsupported mutation", nil)
-	}
+    if len(connectorMutationHandlers) == 0 {
+        return nil, schema.UnprocessableContentError("unsupported mutation", nil)
+    }
 
-	concurrencyLimit := getGlobalEnvironments().mutationConcurrencyLimit
-	if len(request.Operations) <= 1 || concurrencyLimit <= 1 {
-		return c.execMutationSync(ctx, state, request)
-	}
+    concurrencyLimit := getGlobalEnvironments().mutationConcurrencyLimit
+    if len(request.Operations) <= 1 || concurrencyLimit <= 1 {
+        return c.execMutationSync(ctx, state, request)
+    }
 
-	return c.execMutationAsync(ctx, state, request, concurrencyLimit)
+    return c.execMutationAsync(ctx, state, request, concurrencyLimit)
 }
 
 func (c *Connector) execMutationSync(ctx context.Context, state *types.State, request *schema.MutationRequest) (*schema.MutationResponse, error) {
-	operationResults := make([]schema.MutationOperationResults, len(request.Operations))
-	for i, operation := range request.Operations {
-		result, err := c.execMutation(ctx, state, operation, i)
-		if err != nil {
-			return nil, err
-		}
-		operationResults[i] = result
-	}
+    operationResults := make([]schema.MutationOperationResults, len(request.Operations))
 
-	return &schema.MutationResponse{
-		OperationResults: operationResults,
-	}, nil
+    for i, operation := range request.Operations {
+        result, err := c.execMutation(ctx, state, operation, i)
+        if err != nil {
+            return nil, err
+        }
+
+        operationResults[i] = result
+    }
+
+    return &schema.MutationResponse{
+        OperationResults: operationResults,
+    }, nil
 }
 
 func (c *Connector) execMutationAsync(ctx context.Context, state *types.State, request *schema.MutationRequest, concurrencyLimit int) (*schema.MutationResponse, error) {
-	operationResults := make([]schema.MutationOperationResults, len(request.Operations))
-	eg, ctx := errgroup.WithContext(ctx)
-	eg.SetLimit(concurrencyLimit)
+    operationResults := make([]schema.MutationOperationResults, len(request.Operations))
+    eg, ctx := errgroup.WithContext(ctx)
+    eg.SetLimit(concurrencyLimit)
 
-	for i, operation := range request.Operations {
-		func(index int, op schema.MutationOperation) {
-			eg.Go(func() error {
-				result, err := c.execMutation(ctx, state, op, index)
-				if err != nil {
-					return err
-				}
-				operationResults[index] = result
-				return nil
-			})
-		}(i, operation)
-	}
+    for i, operation := range request.Operations {
+        func(index int, op schema.MutationOperation) {
+            eg.Go(func() error {
+                result, err := c.execMutation(ctx, state, op, index)
+                if err != nil {
+                    return err
+                }
 
-	if err := eg.Wait(); err != nil {
-		return nil, err
-	}
-	return &schema.MutationResponse{
-		OperationResults: operationResults,
-	}, nil
+                operationResults[index] = result
+                
+                return nil
+            })
+        }(i, operation)
+    }
+
+    if err := eg.Wait(); err != nil {
+        return nil, err
+    }
+
+    return &schema.MutationResponse{
+        OperationResults: operationResults,
+    }, nil
 }
 
 func (c *Connector) execMutation(ctx context.Context, state *types.State, operation schema.MutationOperation, index int) (schema.MutationOperationResults, error) {
-	ctx, span := state.Tracer.Start(ctx, fmt.Sprintf("Execute Procedure %d", index))
-	defer span.End()
+    ctx, span := state.Tracer.Start(ctx, fmt.Sprintf("Execute Procedure %d", index))
+    defer span.End()
 
-	span.SetAttributes(
-		attribute.String("operation.type", string(operation.Type)),
-		attribute.String("operation.name", string(operation.Name)),
-	)
+    span.SetAttributes(
+        attribute.String("operation.type", string(operation.Type)),
+        attribute.String("operation.name", operation.Name),
+    )
 
-	switch operation.Type {
-	case schema.MutationOperationProcedure:
-		result, err := c.execProcedure(ctx, state, &operation)
-		if err != nil {
-			span.SetStatus(codes.Error, fmt.Sprintf("failed to execute procedure %d", index))
-			span.RecordError(err)
-			return nil, err
-		}
-		return result, nil
-	default:
-		errorMsg := fmt.Sprintf("invalid operation type: %s", operation.Type)
-		span.SetStatus(codes.Error, errorMsg)
-		return nil, schema.UnprocessableContentError(errorMsg, nil)
-	}
+    switch operation.Type {
+    case schema.MutationOperationProcedure:
+        result, err := c.execProcedure(ctx, state, &operation)
+        if err != nil {
+            span.SetStatus(codes.Error, fmt.Sprintf("failed to execute procedure %d", index))
+            span.RecordError(err)
+
+            return nil, err
+        }
+        
+        return result, nil
+    default:
+        errorMsg := fmt.Sprintf("invalid operation type: %s", operation.Type)
+        span.SetStatus(codes.Error, errorMsg)
+
+        return nil, schema.UnprocessableContentError(errorMsg, nil)
+    }
 }
 
 func (c *Connector) execProcedure(ctx context.Context, state *types.State, operation *schema.MutationOperation) (schema.MutationOperationResults, error) {
-	for _, handler := range connectorMutationHandlers {
-		result, err := handler.Mutation(ctx, state, operation)
-		if err == nil {
-			return result, nil
-		}
-		if err != utils.ErrHandlerNotfound {
-			return nil, err
-		}
-	}
+    for _, handler := range connectorMutationHandlers {
+        result, err := handler.Mutation(ctx, state, operation)
+        if err == nil {
+            return result, nil
+        }
 
-	return nil, schema.UnprocessableContentError(fmt.Sprintf("unsupported procedure operation: %s", operation.Name), nil)
+        if !errors.Is(err, utils.ErrHandlerNotfound) {
+            return nil, err
+        }
+    }
+
+    return nil, schema.UnprocessableContentError("unsupported procedure operation: " + operation.Name, nil)
 }
 
 type globalEnvironments struct {
-	queryConcurrency         map[string]int
-	queryConcurrencyLimit    int
-	mutationConcurrencyLimit int
+    queryConcurrency         map[string]int
+    queryConcurrencyLimit    int
+    mutationConcurrencyLimit int
 }
 
 // GetQueryConcurrencyLimitByName gets the concurrency limit of the query by name
 func (ge globalEnvironments) GetQueryConcurrencyLimitByName(name string) int {
-	if len(ge.queryConcurrency) > 0 {
-		if limit, ok := ge.queryConcurrency[name]; ok {
-			return limit
-		}
-	}
+    if len(ge.queryConcurrency) > 0 {
+        if limit, ok := ge.queryConcurrency[name]; ok {
+            return limit
+        }
+    }
 
-	return ge.queryConcurrencyLimit
+    return ge.queryConcurrencyLimit
 }
 
-var _globalEnvironments = globalEnvironments{}
+var getGlobalEnvironments = sync.OnceValue(getGlobalEnvironmentsFunc)
+var schemaResponse = sync.OnceValue(getSchemaResponseFunc)
 
-func initGlobalEnvironments() {
+func getGlobalEnvironmentsFunc () *globalEnvironments {
+	_globalEnvironments := &globalEnvironments{}
+
 	rawQueryConcurrencyLimit := os.Getenv("QUERY_CONCURRENCY_LIMIT")
 	if rawQueryConcurrencyLimit != "" {
 		limit, err := strconv.ParseInt(rawQueryConcurrencyLimit, 10, 64)
 		if err != nil {
 			panic(fmt.Sprintf("QUERY_CONCURRENCY_LIMIT: invalid integer <%s>", rawQueryConcurrencyLimit))
 		}
+
 		_globalEnvironments.queryConcurrencyLimit = int(limit)
 	}
 
@@ -262,6 +274,7 @@ func initGlobalEnvironments() {
 		if err != nil {
 			panic(fmt.Sprintf("MUTATION_CONCURRENCY_LIMIT: invalid integer <%s>", rawMutationConcurrencyLimit))
 		}
+
 		_globalEnvironments.mutationConcurrencyLimit = int(limit)
 	}
 
@@ -269,10 +282,24 @@ func initGlobalEnvironments() {
 	if err != nil {
 		panic(fmt.Sprintf("QUERY_CONCURRENCY: %s", err))
 	}
+
 	_globalEnvironments.queryConcurrency = queryConcurrency
+
+	return _globalEnvironments
 }
 
-func getGlobalEnvironments() *globalEnvironments {
-	loadGlobalEnvOnce.Do(initGlobalEnvironments)
-	return &_globalEnvironments
+//go:embed schema.generated.json
+var rawSchema []byte
+
+func getSchemaResponseFunc() *schema.RawSchemaResponse {
+	result, err := schema.NewRawSchemaResponse(rawSchema)
+	if err != nil {
+		panic(err)
+	}
+
+	return result
+}
+
+func init() {
+	getGlobalEnvironments()
 }

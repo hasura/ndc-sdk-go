@@ -31,6 +31,7 @@ func ParseDate(value string) (*Date, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &Date{Time: t}, nil
 }
 
@@ -60,6 +61,7 @@ func (d *Date) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
+
 	*d = *date
 
 	return nil
@@ -71,6 +73,7 @@ func (d *Date) FromValue(value any) error {
 	if err != nil {
 		return err
 	}
+
 	if sValue == nil {
 		return nil
 	}
@@ -79,6 +82,7 @@ func (d *Date) FromValue(value any) error {
 	if err != nil {
 		return err
 	}
+
 	d.Time = date
 
 	return nil

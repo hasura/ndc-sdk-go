@@ -43,7 +43,7 @@ func TestEvalNestedFields(t *testing.T) {
 				Name: "John",
 			},
 			Selection: schema.NewNestedObject(map[string]schema.FieldEncoder{
-				"id": schema.NewColumnField("id", nil),
+				"id": schema.NewColumnField("id"),
 			}).Encode(),
 			Expected: map[string]any{
 				"id": "1",
@@ -70,23 +70,24 @@ func TestEvalNestedFields(t *testing.T) {
 					{
 						ID:        1,
 						Name:      "Article 1",
-						CreatedAt: time.Date(2020, 01, 01, 00, 0, 0, 0, time.UTC),
+						CreatedAt: time.Date(2020, 0o1, 0o1, 0o0, 0, 0, 0, time.UTC),
 					},
 				},
 			},
 			Selection: schema.NewNestedObject(map[string]schema.FieldEncoder{
-				"id": schema.NewColumnField("id", nil),
-				"articles": schema.NewColumnField("articles", schema.NewNestedArray(schema.NewNestedObject(map[string]schema.FieldEncoder{
-					"id":         schema.NewColumnField("id", nil),
-					"created_at": schema.NewColumnField("created_at", nil),
-				}))),
+				"id": schema.NewColumnField("id"),
+				"articles": schema.NewColumnField("articles").
+					WithNestedField(schema.NewNestedArray(schema.NewNestedObject(map[string]schema.FieldEncoder{
+						"id":         schema.NewColumnField("id"),
+						"created_at": schema.NewColumnField("created_at"),
+					}))),
 			}).Encode(),
 			Expected: map[string]any{
 				"id": "1",
 				"articles": []any{
 					map[string]any{
 						"id":         1,
-						"created_at": time.Date(2020, 01, 01, 00, 0, 0, 0, time.UTC),
+						"created_at": time.Date(2020, 0o1, 0o1, 0o0, 0, 0, 0, time.UTC),
 					},
 				},
 			},
@@ -111,11 +112,12 @@ func TestEvalNestedFields(t *testing.T) {
 				},
 			},
 			Selection: schema.NewNestedObject(map[string]schema.FieldEncoder{
-				"id":   schema.NewColumnField("id", nil),
-				"Name": schema.NewColumnField("name", nil),
-				"articles": schema.NewColumnField("articles", schema.NewNestedArray(schema.NewNestedObject(map[string]schema.FieldEncoder{
-					"name": schema.NewColumnField("Name", nil),
-				}))),
+				"id":   schema.NewColumnField("id"),
+				"Name": schema.NewColumnField("name"),
+				"articles": schema.NewColumnField("articles").
+					WithNestedField(schema.NewNestedArray(schema.NewNestedObject(map[string]schema.FieldEncoder{
+						"name": schema.NewColumnField("Name"),
+					}))),
 			}).Encode(),
 			Expected: map[string]any{
 				"id":   "1",
@@ -173,7 +175,8 @@ func TestMergeSchemas(t *testing.T) {
 						"GetTypesArguments": schema.ObjectType{
 							Fields: schema.ObjectTypeFields{
 								"ArrayBigInt": schema.ObjectField{
-									Type: schema.NewArrayType(schema.NewNamedType("BigInt")).Encode(),
+									Type: schema.NewArrayType(schema.NewNamedType("BigInt")).
+										Encode(),
 								},
 							},
 						},
@@ -197,7 +200,8 @@ func TestMergeSchemas(t *testing.T) {
 						"HelloResult": schema.ObjectType{
 							Fields: schema.ObjectTypeFields{
 								"error": schema.ObjectField{
-									Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
+									Type: schema.NewNullableType(schema.NewNamedType("JSON")).
+										Encode(),
 								},
 								"foo": schema.ObjectField{
 									Type: schema.NewNamedType("Foo").Encode(),
@@ -224,13 +228,15 @@ func TestMergeSchemas(t *testing.T) {
 						{
 							Name:        "hello",
 							Description: ToPtr("sends a hello message"),
-							ResultType:  schema.NewNullableType(schema.NewNamedType("HelloResult")).Encode(),
-							Arguments:   map[string]schema.ArgumentInfo{},
+							ResultType: schema.NewNullableType(schema.NewNamedType("HelloResult")).
+								Encode(),
+							Arguments: map[string]schema.ArgumentInfo{},
 						},
 						{
 							Name:        "getArticles",
 							Description: ToPtr("GetArticles"),
-							ResultType:  schema.NewArrayType(schema.NewNamedType("GetArticlesResult")).Encode(),
+							ResultType: schema.NewArrayType(schema.NewNamedType("GetArticlesResult")).
+								Encode(),
 							Arguments: map[string]schema.ArgumentInfo{
 								"Limit": {
 									Type: schema.NewNamedType("Float64").Encode(),
@@ -242,17 +248,20 @@ func TestMergeSchemas(t *testing.T) {
 						{
 							Name:        "create_article",
 							Description: ToPtr("CreateArticle"),
-							ResultType:  schema.NewNullableType(schema.NewNamedType("CreateArticleResult")).Encode(),
+							ResultType: schema.NewNullableType(schema.NewNamedType("CreateArticleResult")).
+								Encode(),
 							Arguments: map[string]schema.ArgumentInfo{
 								"author": {
-									Type: schema.NewNamedType("CreateArticleArgumentsAuthor").Encode(),
+									Type: schema.NewNamedType("CreateArticleArgumentsAuthor").
+										Encode(),
 								},
 							},
 						},
 						{
 							Name:        "createAuthor",
 							Description: ToPtr("creates an author"),
-							ResultType:  schema.NewNullableType(schema.NewNamedType("CreateAuthorResult")).Encode(),
+							ResultType: schema.NewNullableType(schema.NewNamedType("CreateAuthorResult")).
+								Encode(),
 							Arguments: map[string]schema.ArgumentInfo{
 								"name": {
 									Type: schema.NewNamedType("String").Encode(),
@@ -262,10 +271,12 @@ func TestMergeSchemas(t *testing.T) {
 						{
 							Name:        "createAuthors",
 							Description: ToPtr("creates a list of authors"),
-							ResultType:  schema.NewArrayType(schema.NewNamedType("CreateAuthorResult")).Encode(),
+							ResultType: schema.NewArrayType(schema.NewNamedType("CreateAuthorResult")).
+								Encode(),
 							Arguments: map[string]schema.ArgumentInfo{
 								"names": {
-									Type: schema.NewArrayType(schema.NewNamedType("String")).Encode(),
+									Type: schema.NewArrayType(schema.NewNamedType("String")).
+										Encode(),
 								},
 							},
 						},
@@ -324,7 +335,8 @@ func TestMergeSchemas(t *testing.T) {
 						"CreateArticleResult": schema.ObjectType{
 							Fields: schema.ObjectTypeFields{
 								"authors": schema.ObjectField{
-									Type: schema.NewArrayType(schema.NewNamedType("Author")).Encode(),
+									Type: schema.NewArrayType(schema.NewNamedType("Author")).
+										Encode(),
 								},
 								"id": schema.ObjectField{
 									Type: schema.NewNamedType("Int32").Encode(),
@@ -364,7 +376,8 @@ func TestMergeSchemas(t *testing.T) {
 						"HelloResult": schema.ObjectType{
 							Fields: schema.ObjectTypeFields{
 								"error": schema.ObjectField{
-									Type: schema.NewNullableType(schema.NewNamedType("JSON")).Encode(),
+									Type: schema.NewNullableType(schema.NewNamedType("JSON")).
+										Encode(),
 								},
 								"foo": schema.ObjectField{
 									Type: schema.NewNamedType("Foo").Encode(),
@@ -389,11 +402,13 @@ func TestMergeSchemas(t *testing.T) {
 							Arguments:   map[string]schema.ArgumentInfo{},
 						},
 						{
-							Name:       "getTypes",
-							ResultType: schema.NewNullableType(schema.NewNamedType("GetTypesArguments")).Encode(),
+							Name: "getTypes",
+							ResultType: schema.NewNullableType(schema.NewNamedType("GetTypesArguments")).
+								Encode(),
 							Arguments: map[string]schema.ArgumentInfo{
 								"ArrayBigInt": {
-									Type: schema.NewArrayType(schema.NewNamedType("BigInt")).Encode(),
+									Type: schema.NewArrayType(schema.NewNamedType("BigInt")).
+										Encode(),
 								},
 							},
 						},
@@ -402,10 +417,12 @@ func TestMergeSchemas(t *testing.T) {
 						{
 							Name:        "create_article",
 							Description: ToPtr("CreateArticle"),
-							ResultType:  schema.NewNullableType(schema.NewNamedType("CreateArticleResult")).Encode(),
+							ResultType: schema.NewNullableType(schema.NewNamedType("CreateArticleResult")).
+								Encode(),
 							Arguments: map[string]schema.ArgumentInfo{
 								"author": {
-									Type: schema.NewNamedType("CreateArticleArgumentsAuthor").Encode(),
+									Type: schema.NewNamedType("CreateArticleArgumentsAuthor").
+										Encode(),
 								},
 							},
 						},
@@ -556,7 +573,8 @@ func TestMergeSchemas(t *testing.T) {
 					{
 						Name:        "getArticles",
 						Description: ToPtr("GetArticles"),
-						ResultType:  schema.NewArrayType(schema.NewNamedType("GetArticlesResult")).Encode(),
+						ResultType: schema.NewArrayType(schema.NewNamedType("GetArticlesResult")).
+							Encode(),
 						Arguments: map[string]schema.ArgumentInfo{
 							"Limit": {
 								Type: schema.NewNamedType("Float64").Encode(),
@@ -570,8 +588,9 @@ func TestMergeSchemas(t *testing.T) {
 						Arguments:   map[string]schema.ArgumentInfo{},
 					},
 					{
-						Name:       "getTypes",
-						ResultType: schema.NewNullableType(schema.NewNamedType("GetTypesArguments")).Encode(),
+						Name: "getTypes",
+						ResultType: schema.NewNullableType(schema.NewNamedType("GetTypesArguments")).
+							Encode(),
 						Arguments: map[string]schema.ArgumentInfo{
 							"ArrayBigInt": {
 								Type: schema.NewArrayType(schema.NewNamedType("BigInt")).Encode(),
@@ -581,15 +600,17 @@ func TestMergeSchemas(t *testing.T) {
 					{
 						Name:        "hello",
 						Description: ToPtr("sends a hello message"),
-						ResultType:  schema.NewNullableType(schema.NewNamedType("HelloResult")).Encode(),
-						Arguments:   map[string]schema.ArgumentInfo{},
+						ResultType: schema.NewNullableType(schema.NewNamedType("HelloResult")).
+							Encode(),
+						Arguments: map[string]schema.ArgumentInfo{},
 					},
 				},
 				Procedures: []schema.ProcedureInfo{
 					{
 						Name:        "createAuthor",
 						Description: ToPtr("creates an author"),
-						ResultType:  schema.NewNullableType(schema.NewNamedType("CreateAuthorResult")).Encode(),
+						ResultType: schema.NewNullableType(schema.NewNamedType("CreateAuthorResult")).
+							Encode(),
 						Arguments: map[string]schema.ArgumentInfo{
 							"name": {
 								Type: schema.NewNamedType("String").Encode(),
@@ -599,7 +620,8 @@ func TestMergeSchemas(t *testing.T) {
 					{
 						Name:        "createAuthors",
 						Description: ToPtr("creates a list of authors"),
-						ResultType:  schema.NewArrayType(schema.NewNamedType("CreateAuthorResult")).Encode(),
+						ResultType: schema.NewArrayType(schema.NewNamedType("CreateAuthorResult")).
+							Encode(),
 						Arguments: map[string]schema.ArgumentInfo{
 							"names": {
 								Type: schema.NewArrayType(schema.NewNamedType("String")).Encode(),
@@ -609,7 +631,8 @@ func TestMergeSchemas(t *testing.T) {
 					{
 						Name:        "create_article",
 						Description: ToPtr("CreateArticle"),
-						ResultType:  schema.NewNullableType(schema.NewNamedType("CreateArticleResult")).Encode(),
+						ResultType: schema.NewNullableType(schema.NewNamedType("CreateArticleResult")).
+							Encode(),
 						Arguments: map[string]schema.ArgumentInfo{
 							"author": {
 								Type: schema.NewNamedType("CreateArticleArgumentsAuthor").Encode(),
@@ -664,7 +687,12 @@ func TestMergeSchemas(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			result, errs := MergeSchemas(tc.Inputs...)
-			assert.DeepEqual(t, tc.Errors, errs, cmp.Exporter(func(t reflect.Type) bool { return true }))
+			assert.DeepEqual(
+				t,
+				tc.Errors,
+				errs,
+				cmp.Exporter(func(t reflect.Type) bool { return true }),
+			)
 			assert.DeepEqual(t, tc.Expected.Collections, result.Collections)
 			assert.DeepEqual(t, tc.Expected.Functions, result.Functions)
 			assert.DeepEqual(t, tc.Expected.ObjectTypes, result.ObjectTypes)

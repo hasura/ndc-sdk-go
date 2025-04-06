@@ -43,9 +43,19 @@ func TestQueryRequest(t *testing.T) {
 				Collection: "articles",
 				Query: Query{
 					Aggregates: QueryAggregates{
-						"count":     NewAggregateStarCount().Encode(),
-						"min_id":    NewAggregateSingleColumn("id", "min", []string{"foo"}).Encode(),
-						"bar_count": NewAggregateColumnCount("id", true, []string{"bar"}).Encode(),
+						"count": NewAggregateStarCount().Encode(),
+						"min_id": NewAggregateSingleColumn(
+							"id",
+							"min",
+							[]string{"foo"},
+							nil,
+						).Encode(),
+						"bar_count": NewAggregateColumnCount(
+							"id",
+							true,
+							[]string{"bar"},
+							nil,
+						).Encode(),
 					},
 				},
 				CollectionRelationships: QueryRequestCollectionRelationships{},
@@ -84,7 +94,7 @@ func TestQueryRequest(t *testing.T) {
 						"author_articles": {
 								"arguments": {},
 								"column_mapping": {
-										"id": "author_id"
+										"id": ["author_id"]
 								},
 								"relationship_type": "array",
 								"target_collection": "articles"
@@ -95,8 +105,8 @@ func TestQueryRequest(t *testing.T) {
 				Collection: "authors",
 				Query: Query{
 					Fields: QueryFields{
-						"first_name": NewColumnField("first_name", nil).Encode(),
-						"last_name":  NewColumnField("last_name", nil).Encode(),
+						"first_name": NewColumnField("first_name").Encode(),
+						"last_name":  NewColumnField("last_name").Encode(),
 						"articles": NewRelationshipField(
 							Query{
 								Aggregates: QueryAggregates{
@@ -111,7 +121,7 @@ func TestQueryRequest(t *testing.T) {
 				CollectionRelationships: QueryRequestCollectionRelationships{
 					"author_articles": Relationship{
 						ColumnMapping: RelationshipColumnMapping{
-							"id": "author_id",
+							"id": []string{"author_id"},
 						},
 						RelationshipType: RelationshipTypeArray,
 						TargetCollection: "articles",
@@ -160,8 +170,7 @@ func TestQueryRequest(t *testing.T) {
 								"column": {
 										"type": "column",
 										"name": "location",
-										"field_path": ["city"],
-										"path": []
+										"field_path": ["city"]
 								},
 								"operator": "eq",
 								"value": {
@@ -176,15 +185,24 @@ func TestQueryRequest(t *testing.T) {
 				Collection: "institutions",
 				Query: Query{
 					Fields: QueryFields{
-						"id": NewColumnField("id", nil).Encode(),
-						"location": NewColumnField("location", NewNestedObject(map[string]FieldEncoder{
-							"city": NewColumnField("city", nil),
-							"campuses": NewColumnFieldWithArguments("campuses", nil, map[string]Argument{
-								"limit": NewArgumentLiteral(nil).Encode(),
+						"id": NewColumnField("id").Encode(),
+						"location": NewColumnField(
+							"location",
+						).WithNestedField(NewNestedObject(map[string]FieldEncoder{
+							"city": NewColumnField("city"),
+							"campuses": NewColumnField(
+								"campuses",
+							).WithArguments(map[string]ArgumentEncoder{
+								"limit": NewArgumentLiteral(nil),
 							}),
-						})).Encode(),
+						})).
+							Encode(),
 					},
-					Predicate: NewExpressionBinaryComparisonOperator(*NewComparisonTargetColumn("location", []string{"city"}, []PathElement{}), "eq", NewComparisonValueScalar("London")).Encode(),
+					Predicate: NewExpressionBinaryComparisonOperator(
+						*NewComparisonTargetColumn("location").WithFieldPath([]string{"city"}),
+						"eq",
+						NewComparisonValueScalar("London"),
+					).Encode(),
 				},
 				CollectionRelationships: QueryRequestCollectionRelationships{},
 			},
@@ -221,13 +239,13 @@ func TestQueryRequest(t *testing.T) {
 				Arguments:  QueryRequestArguments{},
 				Query: Query{
 					Fields: QueryFields{
-						"title": NewColumnField("title", nil).Encode(),
+						"title": NewColumnField("title").Encode(),
 					},
 					OrderBy: &OrderBy{
 						Elements: []OrderByElement{
 							{
 								OrderDirection: OrderDirectionDesc,
-								Target:         NewOrderByColumnName("title").Encode(),
+								Target:         NewOrderByColumn("title", nil).Encode(),
 							},
 						},
 					},
@@ -278,15 +296,25 @@ func TestQueryRequest(t *testing.T) {
 				CollectionRelationships: QueryRequestCollectionRelationships{},
 				Query: Query{
 					Fields: QueryFields{
-						"location": NewColumnField("location", NewNestedObject(map[string]FieldEncoder{
-							"country": NewColumnField("country", nil),
-						})).Encode(),
+						"location": NewColumnField(
+							"location",
+						).WithNestedField(NewNestedObject(map[string]FieldEncoder{
+							"country": NewColumnField("country"),
+						})).
+							Encode(),
 					},
 					OrderBy: &OrderBy{
 						Elements: []OrderByElement{
 							{
 								OrderDirection: OrderDirectionAsc,
-								Target:         NewOrderByColumn("location", []PathElement{}, []string{"country"}).Encode(),
+								Target: NewOrderByColumn(
+									"location",
+									[]PathElement{},
+								).WithFieldPath([]string{"country"}).
+									WithArgument("empty", NewArgumentLiteral("test")).
+									WithArgument("empty", nil).
+									WithArguments(nil).
+									Encode(),
 							},
 						},
 					},
@@ -296,60 +324,73 @@ func TestQueryRequest(t *testing.T) {
 		{
 			"order_by_aggregate",
 			[]byte(`{
-				"collection": "authors",
-				"arguments": {},
-				"query": {
-						"fields": {
-								"articles_aggregate": {
-										"type": "relationship",
-										"arguments": {},
-										"relationship": "author_articles",
-										"query": {
-												"aggregates": {
-														"count": {
-																"type": "star_count"
-														}
-												}
-										}
-								}
-						},
-						"order_by": {
-								"elements": [
-										{
-												"order_direction": "desc",
-												"target": {
-														"type": "star_count_aggregate",
-														"path": [
-																{
-																		"arguments": {},
-																		"relationship": "author_articles",
-																		"predicate": {
-																				"type": "and",
-																				"expressions": []
-																		}
-																}
-														]
-												}
-										}
-								]
-						}
-				},
-				"collection_relationships": {
-						"author_articles": {
-								"arguments": {},
-								"column_mapping": {
-										"id": "author_id"
-								},
-								"relationship_type": "array",
-								"target_collection": "articles"
-						}
-				}
-		}`),
+  "collection": "authors",
+  "arguments": {},
+  "query": {
+    "fields": {
+      "first_name": {
+        "type": "column",
+        "column": "first_name"
+      },
+      "last_name": {
+        "type": "column",
+        "column": "last_name"
+      },
+      "articles_aggregate": {
+        "type": "relationship",
+        "arguments": {},
+        "relationship": "author_articles",
+        "query": {
+          "aggregates": {
+            "count": {
+              "type": "star_count"
+            }
+          }
+        }
+      }
+    },
+    "order_by": {
+      "elements": [
+        {
+          "order_direction": "desc",
+          "target": {
+            "type": "aggregate",
+            "aggregate": {
+              "type": "star_count"
+            },
+            "path": [
+              {
+                "arguments": {},
+                "relationship": "author_articles",
+                "predicate": {
+                  "type": "and",
+                  "expressions": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "collection_relationships": {
+    "author_articles": {
+      "arguments": {},
+      "column_mapping": {
+        "id": ["author_id"]
+      },
+      "relationship_type": "array",
+      "target_collection": "articles"
+    }
+  }
+}`),
 			QueryRequest{
 				Collection: "authors",
 				Arguments:  QueryRequestArguments{},
 				Query: Query{
 					Fields: QueryFields{
+						"first_name": NewColumnField("first_name").Encode(),
+						"last_name":  NewColumnField("last_name").Encode(),
 						"articles_aggregate": NewRelationshipField(Query{
 							Aggregates: QueryAggregates{
 								"count": NewAggregateStarCount().Encode(),
@@ -360,7 +401,7 @@ func TestQueryRequest(t *testing.T) {
 						Elements: []OrderByElement{
 							{
 								OrderDirection: OrderDirectionDesc,
-								Target: NewOrderByStarCountAggregate([]PathElement{
+								Target: NewOrderByAggregate(NewAggregateStarCount(), []PathElement{
 									{
 										Arguments:    PathElementArguments{},
 										Relationship: "author_articles",
@@ -375,7 +416,7 @@ func TestQueryRequest(t *testing.T) {
 					"author_articles": Relationship{
 						Arguments: RelationshipArguments{},
 						ColumnMapping: RelationshipColumnMapping{
-							"id": "author_id",
+							"id": []string{"author_id"},
 						},
 						RelationshipType: RelationshipTypeArray,
 						TargetCollection: "articles",
@@ -387,61 +428,63 @@ func TestQueryRequest(t *testing.T) {
 		{
 			"order_by_aggregate_function",
 			[]byte(`{
-				"collection": "authors",
-				"arguments": {},
-				"query": {
-						"fields": {
-								"articles_aggregate": {
-										"type": "relationship",
-										"arguments": {},
-										"relationship": "author_articles",
-										"query": {
-												"aggregates": {
-														"max_id": {
-																"type": "single_column",
-																"column": "id",
-																"function": "max"
-														}
-												}
-										}
-								}
-						},
-						"order_by": {
-								"elements": [
-										{
-												"order_direction": "asc",
-												"target": {
-														"type": "single_column_aggregate",
-														"column": "id",
-														"function": "max",
-														"path": [
-																{
-																		"arguments": {},
-																		"relationship": "author_articles",
-																		"predicate": {
-																				"type": "and",
-																				"expressions": []
-																		}
-																}
-														],
-														"field_path": []
-												}
-										}
-								]
-						}
-				},
-				"collection_relationships": {
-						"author_articles": {
-								"arguments": {},
-								"column_mapping": {
-										"id": "author_id"
-								},
-								"relationship_type": "array",
-								"source_collection_or_type": "author",
-								"target_collection": "articles"
-						}
-				}
-		}`),
+  "collection": "authors",
+  "arguments": {},
+  "query": {
+    "fields": {
+      "articles_aggregate": {
+        "type": "relationship",
+        "arguments": {},
+        "relationship": "author_articles",
+        "query": {
+          "aggregates": {
+            "max_id": {
+              "type": "single_column",
+              "column": "id",
+              "function": "max"
+            }
+          }
+        }
+      }
+    },
+    "order_by": {
+      "elements": [
+        {
+          "order_direction": "asc",
+          "target": {
+            "type": "aggregate",
+            "aggregate": {
+              "type": "single_column",
+              "column": "id",
+              "function": "max"
+            },
+            "path": [
+              {
+                "arguments": {},
+                "relationship": "author_articles",
+                "predicate": {
+                  "type": "and",
+                  "expressions": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "collection_relationships": {
+    "author_articles": {
+      "arguments": {},
+      "column_mapping": {
+        "id": ["author_id"]
+      },
+      "relationship_type": "array",
+      "source_collection_or_type": "author",
+      "target_collection": "articles"
+    }
+  }
+}`),
 			QueryRequest{
 				Collection: "authors",
 				Arguments:  QueryRequestArguments{},
@@ -449,7 +492,7 @@ func TestQueryRequest(t *testing.T) {
 					Fields: QueryFields{
 						"articles_aggregate": NewRelationshipField(Query{
 							Aggregates: QueryAggregates{
-								"max_id": NewAggregateSingleColumn("id", "max", nil).Encode(),
+								"max_id": NewAggregateSingleColumn("id", "max", nil, nil).Encode(),
 							},
 						}, "author_articles", map[string]RelationshipArgument{}).Encode(),
 					},
@@ -457,13 +500,16 @@ func TestQueryRequest(t *testing.T) {
 						Elements: []OrderByElement{
 							{
 								OrderDirection: OrderDirectionAsc,
-								Target: NewOrderBySingleColumnAggregate("id", "max", []PathElement{
-									{
-										Arguments:    PathElementArguments{},
-										Relationship: "author_articles",
-										Predicate:    NewExpressionAnd().Encode(),
+								Target: NewOrderByAggregate(
+									NewAggregateSingleColumn("id", "max", nil, nil),
+									[]PathElement{
+										{
+											Arguments:    PathElementArguments{},
+											Relationship: "author_articles",
+											Predicate:    NewExpressionAnd().Encode(),
+										},
 									},
-								}, []string{}).Encode(),
+								).Encode(),
 							},
 						},
 					},
@@ -472,7 +518,7 @@ func TestQueryRequest(t *testing.T) {
 					"author_articles": Relationship{
 						Arguments: RelationshipArguments{},
 						ColumnMapping: RelationshipColumnMapping{
-							"id": "author_id",
+							"id": []string{"author_id"},
 						},
 						RelationshipType: RelationshipTypeArray,
 						TargetCollection: "articles",
@@ -523,8 +569,7 @@ func TestQueryRequest(t *testing.T) {
 										"type": "binary_comparison_operator",
 										"column": {
 												"type": "column",
-												"name": "last_name",
-												"path": []
+												"name": "last_name"
 										},
 										"operator": "like",
 										"value": {
@@ -542,20 +587,24 @@ func TestQueryRequest(t *testing.T) {
 				Arguments:  QueryRequestArguments{},
 				Query: Query{
 					Fields: QueryFields{
-						"id":   NewColumnField("id", nil).Encode(),
-						"name": NewColumnField("name", nil).Encode(),
-						"staff": NewColumnFieldWithArguments("staff", nil, map[string]Argument{
-							"limit": NewArgumentLiteral(nil).Encode(),
-						}).Encode(),
+						"id":   NewColumnField("id").Encode(),
+						"name": NewColumnField("name").Encode(),
+						"staff": NewColumnField(
+							"staff",
+						).WithArgument("limit", NewArgumentLiteral(nil)).
+							Encode(),
 					},
 					Predicate: NewExpressionExists(
 						NewExpressionBinaryComparisonOperator(
-							*NewComparisonTargetColumn("last_name", nil, []PathElement{}),
+							*NewComparisonTargetColumn("last_name"),
 							"like",
 							NewComparisonValueScalar("s"),
 						),
-						NewExistsInCollectionNestedCollection("staff", map[string]RelationshipArgument{
-							"limit": NewRelationshipArgumentLiteral(nil).Encode(),
+						NewExistsInCollectionNestedCollection("staff", map[string]Argument{
+							"limit": map[string]any{
+								"type":  "literal",
+								"value": nil,
+							},
 						}, nil),
 					).Encode(),
 				},
@@ -572,9 +621,18 @@ func TestQueryRequest(t *testing.T) {
 				t.FailNow()
 			}
 
-			assert.DeepEqual(t, tc.expected.Collection, q.Collection)
-			assert.DeepEqual(t, tc.expected.Query, q.Query)
-			assert.DeepEqual(t, tc.expected.CollectionRelationships, q.CollectionRelationships)
+			deepEqualJSON(t, tc.expected.Collection, q.Collection)
+			deepEqualJSON(t, tc.expected.Query, q.Query)
+			deepEqualJSON(t, tc.expected.CollectionRelationships, q.CollectionRelationships)
 		})
 	}
+}
+
+func deepEqualJSON[T any](t *testing.T, expected T, result T) {
+	expectedBytes, err := json.Marshal(expected)
+	assert.NilError(t, err)
+
+	jExpected := new(T)
+	assert.NilError(t, json.Unmarshal(expectedBytes, jExpected))
+	assert.DeepEqual(t, *jExpected, result)
 }

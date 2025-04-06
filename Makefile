@@ -8,29 +8,42 @@ typegen:
 
 .PHONY: format
 format:
-	gofmt -w -s .
-
+	golangci-lint fmt
 
 .PHONY: test-sdk
 test-sdk:
-	go test -v -race -timeout 3m ./...
+	mkdir -p coverage/sdk && \
+	go test -v -coverpkg=./... -race -timeout 3m \
+		-cover ./... -args -test.gocoverdir=$$PWD/coverage/sdk ./...
 
 .PHONY: test-hasura-ndc-go
 test-hasura-ndc-go:
-	cd cmd/hasura-ndc-go && \
-		go test -v -race ./...
+	mkdir -p coverage/cmd && \
+	go test -v -coverpkg=./... -race \
+		-cover ./cmd/hasura-ndc-go/... -args -test.gocoverdir=$$PWD/coverage/cmd ./...
 
 .PHONY: test-example-codegen
 test-example-codegen:
-	cd example/codegen && \
-		go test -v -race ./...
+	mkdir -p coverage/codegen && \
+	go test -v -coverpkg=./... -race \
+		-cover ./example/codegen/... -args -test.gocoverdir=$$PWD/coverage/codegen ./...
 
 .PHONY: test
-test: test-sdk test-hasura-ndc-go test-example-codegen
+test: clean-coverage test-sdk test-hasura-ndc-go test-example-codegen coverage
+	
+.PHONY: coverage
+coverage:
+	go tool covdata percent -i=./coverage/sdk,./coverage/cmd,./coverage/codegen
+	go tool covdata textfmt -i=./coverage/sdk,./coverage/cmd,./coverage/codegen -o ./coverage/profile.tmp
+	cat ./coverage/profile.tmp | grep -v "main.go" > ./coverage/profile
+
+.PHONY: clean-coverage
+clean-coverage:
+	rm -rf coverage
 
 .PHONY: go-tidy
 go-tidy:
-	cp go.work.testing go.work
+	@if [ ! -f go.work ]; then cp go.work.testing go.work; fi
 	go mod tidy
 	cd $(ROOT_DIR)/cmd/hasura-ndc-go && go mod tidy
 	cd $(ROOT_DIR)/cmd/hasura-ndc-go/command/internal/testdata/basic/source && go mod tidy
