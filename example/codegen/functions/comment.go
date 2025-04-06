@@ -30,6 +30,7 @@ func GetArticles(
 	if arguments.AuthorID > 0 {
 		time.Sleep(time.Duration(math.Min(float64(arguments.AuthorID), 2)) * time.Second)
 	}
+
 	return []GetArticlesResult{
 		{
 			ID:   uint(arguments.AuthorID),
@@ -62,6 +63,7 @@ func CreateArticle(
 			time.Duration(math.Min(float64(arguments.Author.ID), 2)) * 500 * time.Millisecond,
 		)
 	}
+
 	return CreateArticleResult{
 		ID:      uint(arguments.Author.ID),
 		Authors: []types.Author{},

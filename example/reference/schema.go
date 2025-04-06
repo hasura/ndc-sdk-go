@@ -7,7 +7,7 @@ import (
 
 var capabilities = schema.CapabilitiesResponse{
 	// the reference connector in the Rust SDK doesn't have the 'v' prefix
-	Version: schema.NDCVersion[1:],
+	Version: schema.NDCVersion,
 	Capabilities: schema.Capabilities{
 		Query: schema.QueryCapabilities{
 			Aggregates: &schema.AggregateCapabilities{

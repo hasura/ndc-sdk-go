@@ -44,7 +44,7 @@ func FunctionHello(ctx context.Context, state *types.State) (*HelloResult, error
 		ID:    uuid.MustParse("c67407a0-a825-49e3-9d4a-8265df1490a7"),
 		Num:   1,
 		Text:  "world",
-		Error: fmt.Errorf("unknown error"),
+		Error: errors.New("unknown error"),
 	}, nil
 }
 
@@ -92,12 +92,14 @@ func ProcedureCreateAuthors(
 	arguments *CreateAuthorsArguments,
 ) ([]CreateAuthorResult, error) {
 	results := make([]CreateAuthorResult, len(arguments.Authors))
+
 	for i, arg := range arguments.Authors {
 		results[i] = CreateAuthorResult{
 			ID:   i,
 			Name: arg.Name,
 		}
 	}
+
 	return results, nil
 }
 
@@ -196,12 +198,15 @@ func FunctionGetCustomHeaders(
 
 	arguments.Headers["X-Test-ResponseHeader"] = arguments.Input.Name
 	result := HelloResult{}
+
 	if arguments.Input != nil {
 		result.Text = types.Text(arguments.Input.Name)
 	}
+
 	if arguments.Other != nil {
 		result.Num = arguments.Other.Value
 	}
+
 	return GetCustomHeadersResult[HelloResult, int64]{
 		Headers:  arguments.Headers,
 		Response: result,
@@ -218,12 +223,15 @@ func FunctionGetGenericWithoutDecodingMethod(
 	if arguments.Headers == nil {
 		arguments.Headers = make(map[string]string)
 	}
+
 	arguments.Headers["X-Test-ResponseHeader"] = "I set this in the code"
 	result := HelloResult{}
+
 	if arguments.Input != nil {
 		result.ID = arguments.Input.ID
 		result.Num = arguments.Input.Num
 	}
+
 	return GetCustomHeadersResult[HelloResult, int64]{
 		Headers:  arguments.Headers,
 		Response: result,
@@ -236,11 +244,13 @@ func ProcedureDoCustomHeaders(
 	arguments *GetCustomHeadersArguments[*[]BaseAuthor, int],
 ) (*types.CustomHeadersResult[[]*BaseAuthor], error) {
 	resp := []*BaseAuthor{}
+
 	if arguments.Input != nil && *arguments.Input != nil {
 		for _, v := range **arguments.Input {
 			resp = append(resp, &v)
 		}
 	}
+
 	result := &types.CustomHeadersResult[[]*BaseAuthor]{
 		Headers:  arguments.Headers,
 		Response: resp,
@@ -249,6 +259,7 @@ func ProcedureDoCustomHeaders(
 	if result.Headers == nil {
 		result.Headers = map[string]string{}
 	}
+
 	result.Headers["X-Test-ResponseHeader"] = "I set this in the code"
 
 	return result, nil

@@ -13,6 +13,7 @@ import (
 	"runtime/trace"
 	"slices"
 	"strings"
+	"text/template"
 
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
@@ -228,7 +229,12 @@ func (cg *connectorGenerator) genConnectorCodeFromTemplate(w io.Writer, packageN
 		importLines = append(importLines, fmt.Sprintf(`"%s"`, importPath))
 	}
 
-	return getConnectorTemplate().Execute(w, map[string]any{
+	connectorTemplate, err := template.New(connectorOutputFile).Parse(connectorTemplateStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse connector template: %w", err)
+	}
+
+	return connectorTemplate.Execute(w, map[string]any{
 		"Imports":          strings.Join(importLines, "\n"),
 		"PackageName":      packageName,
 		"StateArgument":    cg.rawSchema.StateType.GetArgumentName(""),

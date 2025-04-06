@@ -44,10 +44,10 @@ type DataConnectorHandler struct{}
 	chb.writeMutation(bs.builder)
 
 	bs.builder.WriteString(`    
-func connector_addSpanEvent(span trace.Span, logger *slog.Logger, name string, data map[string]any, options ...trace.EventOption) {
+func connector_addSpanEvent(span trace.Span, logger *slog.Logger, name string, data map[string]any) {
   logger.Debug(name, slog.Any("data", data))
   attrs := utils.DebugJSONAttributes(data, utils.IsDebug(logger))
-  span.AddEvent(name, append(options, trace.WithAttributes(attrs...))...)
+  span.AddEvent(name, trace.WithAttributes(attrs...))
 }`)
 }
 

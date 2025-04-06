@@ -2,10 +2,7 @@ package internal
 
 import (
 	_ "embed"
-	"fmt"
 	"strings"
-	"sync"
-	"text/template"
 )
 
 const (
@@ -17,17 +14,6 @@ const (
 
 //go:embed templates/connector/connector.go.tmpl
 var connectorTemplateStr string
-
-func getConnectorTemplate() *template.Template {
-	return sync.OnceValue(func() *template.Template {
-		connectorTemplate, err := template.New(connectorOutputFile).Parse(connectorTemplateStr)
-		if err != nil {
-			panic(fmt.Errorf("failed to parse connector template: %w", err))
-		}
-
-		return connectorTemplate
-	})()
-}
 
 func writeFileHeader(builder *strings.Builder, packageName string) {
 	_, _ = builder.WriteString(

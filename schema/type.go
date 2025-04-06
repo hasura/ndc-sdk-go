@@ -13,7 +13,7 @@ const (
 	XHasuraNDCVersion = "X-Hasura-NDC-Version"
 
 	// NDCVersion holds the current supported version of the NDC Go SDK.
-	NDCVersion = "v0.2.0"
+	NDCVersion = "0.2.0"
 )
 
 /*

@@ -10,7 +10,6 @@ import (
 	"os"
 	"reflect"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -30,11 +29,7 @@ func createTestServer(
 	t *testing.T,
 	options ...connector.ServeOption,
 ) *connector.Server[types.Configuration, types.State] {
-	// reset global envs
-	loadGlobalEnvOnce = sync.Once{}
-	_globalEnvironments = globalEnvironments{}
-
-	server, err := connector.NewServer[types.Configuration, types.State](
+	server, err := connector.NewServer(
 		&Connector{},
 		&connector.ServerOptions{
 			Configuration: "{}",
