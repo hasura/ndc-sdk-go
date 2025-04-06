@@ -7,9 +7,18 @@ trap 'printf "\nkilling process..." && kill $serverPID' EXIT
 cd "$(dirname "${BASH_SOURCE[0]}")"
 mkdir -p ./dist
 
-if [ ! -f ./dist/ndc-test ]; then
-  curl -L https://github.com/hasura/ndc-spec/releases/download/v0.1.6/ndc-test-x86_64-unknown-linux-gnu -o ./dist/ndc-test
-  chmod +x ./dist/ndc-test
+NDC_TEST_VERSION=v0.2.0
+NDC_TEST_PATH=./dist/ndc-test
+
+if [ ! -f ./tmp/ndc-test ]; then
+  if [ "$(uname -m)" == "arm64" ]; then
+    curl -L https://github.com/hasura/ndc-spec/releases/download/$NDC_TEST_VERSION/ndc-test-aarch64-apple-darwin -o $NDC_TEST_PATH
+  elif [ $(uname) == "Darwin" ]; then
+    curl -L https://github.com/hasura/ndc-spec/releases/download/$NDC_TEST_VERSION/ndc-test-x86_64-apple-darwin -o $NDC_TEST_PATH
+  else
+    curl -L https://github.com/hasura/ndc-spec/releases/download/$NDC_TEST_VERSION/ndc-test-x86_64-unknown-linux-gnu -o $NDC_TEST_PATH
+  fi
+  chmod +x $NDC_TEST_PATH
 fi
 
 http_wait() {
@@ -35,4 +44,4 @@ serverPID=$!
 
 http_wait http://localhost:8080/health
 
-./dist/ndc-test test --endpoint http://localhost:8080
+$NDC_TEST_PATH test --endpoint http://localhost:8080
