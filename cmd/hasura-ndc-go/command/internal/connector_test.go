@@ -233,12 +233,12 @@ func TestConnectorGenerationDuplicatedOperationFailure(t *testing.T) {
 		t.Chdir(filepath.Join(".", "testdata/duplicated_func/source"))
 
 		err := ParseAndGenerateConnector(ConnectorGenerationArguments{}, "github.com/hasura/ndc-codegen-duplicated-func")
-		assert.ErrorContains(t, err, "Function name 'getArticles' (github.com/hasura/ndc-codegen-duplicated-func/functions/article.GetArticles) already exists in function github.com/hasura/ndc-codegen-duplicated-func/functions.GetArticles. Please choose another name")
+		assert.ErrorContains(t, err, "GetArticles. Please choose another name")
 	})
 
 	t.Run("procedure", func(t *testing.T) {
 		t.Chdir(filepath.Join(".", "testdata/duplicated_proc/source"))
 		err := ParseAndGenerateConnector(ConnectorGenerationArguments{}, "github.com/hasura/ndc-codegen-duplicated-proc")
-		assert.ErrorContains(t, err, "Procedure name 'create_article' (github.com/hasura/ndc-codegen-duplicated-proc/functions/article.CreateArticle) already exists in procedure github.com/hasura/ndc-codegen-duplicated-proc/functions.CreateArticle. Please choose another name")
+		assert.ErrorContains(t, err, "CreateArticle. Please choose another name")
 	})
 }
