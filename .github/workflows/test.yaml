@@ -29,8 +29,8 @@ jobs:
         run: |
           rm cmd/hasura-ndc-go/go.mod
           rm cmd/hasura-ndc-go/go.sum
-          go get -t -v ./...
-          go install ./...
+          go mod tidy
+          go mod download
       - name: Run Go unit tests for the SDK
         run: |
           cp go.work.testing go.work
