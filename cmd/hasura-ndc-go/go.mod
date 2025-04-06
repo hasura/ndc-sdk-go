@@ -6,7 +6,7 @@ require (
 	github.com/alecthomas/kong v1.10.0
 	github.com/fatih/structtag v1.2.0
 	github.com/google/uuid v1.6.0
-	github.com/hasura/ndc-sdk-go v1.9.2-0.20250405102537-3bc7516d2e1c
+	github.com/hasura/ndc-sdk-go v1.9.2-0.20250405185024-ca5d8c250588
 	github.com/huandu/xstrings v1.5.0
 	github.com/rs/zerolog v1.34.0
 	golang.org/x/mod v0.24.0

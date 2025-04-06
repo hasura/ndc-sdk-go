@@ -145,7 +145,7 @@ func generateNewProjectFiles(args *NewArguments, srcPath string) error {
 }
 
 func execGetLatestSDK(basePath string) error {
-	return execCommand(basePath, "go", "get", "github.com/hasura/ndc-sdk-go@v1")
+	return execCommand(basePath, "go", "get", "github.com/hasura/ndc-sdk-go@ca5d8c2")
 }
 
 func execGoModTidy(basePath string) error {
