@@ -2,6 +2,7 @@ package schema
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 
@@ -79,4 +80,82 @@ func NewRawCapabilitiesResponseUnsafe(data []byte) *RawCapabilitiesResponse {
 // MarshalCapabilitiesJSON encodes the NDC schema response to JSON.
 func (j RawCapabilitiesResponse) MarshalCapabilitiesJSON() ([]byte, error) {
 	return j.data, nil
+}
+
+// UnmarshalJSONMap decodes FunctionInfo from a JSON map.
+func (j *FunctionInfo) UnmarshalJSONMap(raw map[string]json.RawMessage) error {
+	rawArguments, ok := raw["arguments"]
+
+	var arguments FunctionInfoArguments
+
+	if ok && !isNullJSON(rawArguments) {
+		if err := json.Unmarshal(rawArguments, &arguments); err != nil {
+			return fmt.Errorf("FunctionInfo.arguments: %w", err)
+		}
+	}
+
+	rawName, ok := raw["name"]
+	if !ok || isNullJSON(rawName) {
+		return errors.New("FunctionInfo.name: required")
+	}
+
+	var name string
+
+	if err := json.Unmarshal(rawName, &name); err != nil {
+		return fmt.Errorf("FunctionInfo.name: %w", err)
+	}
+
+	if name == "" {
+		return errors.New("FunctionInfo.name: required")
+	}
+
+	rawDescription, ok := raw["description"]
+
+	var description *string
+
+	if ok && !isNullJSON(rawDescription) {
+		if err := json.Unmarshal(rawDescription, &description); err != nil {
+			return fmt.Errorf("FunctionInfo.description: %w", err)
+		}
+	}
+
+	rawResultType, ok := raw["result_type"]
+	if !ok || isNullJSON(rawResultType) {
+		return errors.New("FunctionInfo.result_type: required")
+	}
+
+	var resultType Type
+
+	if err := json.Unmarshal(rawResultType, &resultType); err != nil {
+		return fmt.Errorf("FunctionInfo.result_type: %w", err)
+	}
+
+	*j = FunctionInfo{
+		Arguments:   arguments,
+		Name:        name,
+		ResultType:  resultType,
+		Description: description,
+	}
+
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler.
+func (j ObjectType) MarshalJSON() ([]byte, error) {
+	if len(j.Fields) == 0 {
+		return nil, errors.New("fields in ObjectType must not be empty")
+	}
+
+	result := map[string]any{
+		"description": j.Description,
+		"fields":      j.Fields,
+	}
+
+	if j.ForeignKeys == nil {
+		result["foreign_keys"] = ObjectTypeForeignKeys{}
+	} else {
+		result["foreign_keys"] = j.ForeignKeys
+	}
+
+	return json.Marshal(result)
 }
