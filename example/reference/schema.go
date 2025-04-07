@@ -208,7 +208,6 @@ var ndcSchema = schema.SchemaResponse{
 					Type:        schema.NewNamedType("String").Encode(),
 				},
 			},
-			ForeignKeys: schema.ObjectTypeForeignKeys{},
 		},
 		"country": {
 			Description: utils.ToPtr("A country"),
