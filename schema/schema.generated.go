@@ -74,6 +74,10 @@ type Capabilities struct {
 	// Query corresponds to the JSON schema field "query".
 	Query QueryCapabilities `json:"query" yaml:"query" mapstructure:"query"`
 
+	// Does the connector support the relational query API? This feature is
+	// experimental and subject to breaking changes within minor versions.
+	RelationalQuery *RelationalQueryCapabilities `json:"relational_query,omitempty" yaml:"relational_query,omitempty" mapstructure:"relational_query,omitempty"`
+
 	// Relationships corresponds to the JSON schema field "relationships".
 	Relationships *RelationshipCapabilities `json:"relationships,omitempty" yaml:"relationships,omitempty" mapstructure:"relationships,omitempty"`
 }
@@ -187,6 +191,47 @@ func (j *CollectionInfo) UnmarshalJSON(b []byte) error {
 }
 
 // The definition of a comparison operator on a scalar type
+
+type DatePartScalarExpressionCapability struct {
+	// Day corresponds to the JSON schema field "day".
+	Day *LeafCapability `json:"day,omitempty" yaml:"day,omitempty" mapstructure:"day,omitempty"`
+
+	// DayOfWeek corresponds to the JSON schema field "day_of_week".
+	DayOfWeek *LeafCapability `json:"day_of_week,omitempty" yaml:"day_of_week,omitempty" mapstructure:"day_of_week,omitempty"`
+
+	// DayOfYear corresponds to the JSON schema field "day_of_year".
+	DayOfYear *LeafCapability `json:"day_of_year,omitempty" yaml:"day_of_year,omitempty" mapstructure:"day_of_year,omitempty"`
+
+	// Hour corresponds to the JSON schema field "hour".
+	Hour *LeafCapability `json:"hour,omitempty" yaml:"hour,omitempty" mapstructure:"hour,omitempty"`
+
+	// Microsecond corresponds to the JSON schema field "microsecond".
+	Microsecond *LeafCapability `json:"microsecond,omitempty" yaml:"microsecond,omitempty" mapstructure:"microsecond,omitempty"`
+
+	// Millisecond corresponds to the JSON schema field "millisecond".
+	Millisecond *LeafCapability `json:"millisecond,omitempty" yaml:"millisecond,omitempty" mapstructure:"millisecond,omitempty"`
+
+	// Minute corresponds to the JSON schema field "minute".
+	Minute *LeafCapability `json:"minute,omitempty" yaml:"minute,omitempty" mapstructure:"minute,omitempty"`
+
+	// Month corresponds to the JSON schema field "month".
+	Month *LeafCapability `json:"month,omitempty" yaml:"month,omitempty" mapstructure:"month,omitempty"`
+
+	// Nanosecond corresponds to the JSON schema field "nanosecond".
+	Nanosecond *LeafCapability `json:"nanosecond,omitempty" yaml:"nanosecond,omitempty" mapstructure:"nanosecond,omitempty"`
+
+	// Quarter corresponds to the JSON schema field "quarter".
+	Quarter *LeafCapability `json:"quarter,omitempty" yaml:"quarter,omitempty" mapstructure:"quarter,omitempty"`
+
+	// Second corresponds to the JSON schema field "second".
+	Second *LeafCapability `json:"second,omitempty" yaml:"second,omitempty" mapstructure:"second,omitempty"`
+
+	// Week corresponds to the JSON schema field "week".
+	Week *LeafCapability `json:"week,omitempty" yaml:"week,omitempty" mapstructure:"week,omitempty"`
+
+	// Year corresponds to the JSON schema field "year".
+	Year *LeafCapability `json:"year,omitempty" yaml:"year,omitempty" mapstructure:"year,omitempty"`
+}
 
 type ErrorResponse struct {
 	// Any additional structured information about the error
@@ -1015,6 +1060,520 @@ func (j *Query) UnmarshalJSON(b []byte) error {
 	}
 	*j = Query(plain)
 	return nil
+}
+
+type RelationalAggregateCapabilities struct {
+	// Expression corresponds to the JSON schema field "expression".
+	Expression RelationalExpressionCapabilities `json:"expression" yaml:"expression" mapstructure:"expression"`
+
+	// GroupBy corresponds to the JSON schema field "group_by".
+	GroupBy *LeafCapability `json:"group_by,omitempty" yaml:"group_by,omitempty" mapstructure:"group_by,omitempty"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationalAggregateCapabilities) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["expression"]; raw != nil && !ok {
+		return fmt.Errorf("field expression in RelationalAggregateCapabilities: required")
+	}
+	type Plain RelationalAggregateCapabilities
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = RelationalAggregateCapabilities(plain)
+	return nil
+}
+
+type RelationalAggregateExpressionCapabilities struct {
+	// Avg corresponds to the JSON schema field "avg".
+	Avg *LeafCapability `json:"avg,omitempty" yaml:"avg,omitempty" mapstructure:"avg,omitempty"`
+
+	// BoolAnd corresponds to the JSON schema field "bool_and".
+	BoolAnd *LeafCapability `json:"bool_and,omitempty" yaml:"bool_and,omitempty" mapstructure:"bool_and,omitempty"`
+
+	// BoolOr corresponds to the JSON schema field "bool_or".
+	BoolOr *LeafCapability `json:"bool_or,omitempty" yaml:"bool_or,omitempty" mapstructure:"bool_or,omitempty"`
+
+	// Count corresponds to the JSON schema field "count".
+	Count *LeafCapability `json:"count,omitempty" yaml:"count,omitempty" mapstructure:"count,omitempty"`
+
+	// FirstValue corresponds to the JSON schema field "first_value".
+	FirstValue *LeafCapability `json:"first_value,omitempty" yaml:"first_value,omitempty" mapstructure:"first_value,omitempty"`
+
+	// LastValue corresponds to the JSON schema field "last_value".
+	LastValue *LeafCapability `json:"last_value,omitempty" yaml:"last_value,omitempty" mapstructure:"last_value,omitempty"`
+
+	// Max corresponds to the JSON schema field "max".
+	Max *LeafCapability `json:"max,omitempty" yaml:"max,omitempty" mapstructure:"max,omitempty"`
+
+	// Median corresponds to the JSON schema field "median".
+	Median *LeafCapability `json:"median,omitempty" yaml:"median,omitempty" mapstructure:"median,omitempty"`
+
+	// Min corresponds to the JSON schema field "min".
+	Min *LeafCapability `json:"min,omitempty" yaml:"min,omitempty" mapstructure:"min,omitempty"`
+
+	// StringAgg corresponds to the JSON schema field "string_agg".
+	StringAgg *LeafCapability `json:"string_agg,omitempty" yaml:"string_agg,omitempty" mapstructure:"string_agg,omitempty"`
+
+	// Sum corresponds to the JSON schema field "sum".
+	Sum *LeafCapability `json:"sum,omitempty" yaml:"sum,omitempty" mapstructure:"sum,omitempty"`
+
+	// Var corresponds to the JSON schema field "var".
+	Var *LeafCapability `json:"var,omitempty" yaml:"var,omitempty" mapstructure:"var,omitempty"`
+}
+
+type RelationalAggregateFunctionCapabilities struct {
+	// Distinct corresponds to the JSON schema field "distinct".
+	Distinct *LeafCapability `json:"distinct,omitempty" yaml:"distinct,omitempty" mapstructure:"distinct,omitempty"`
+}
+
+type RelationalComparisonExpressionCapabilities struct {
+	// Between corresponds to the JSON schema field "between".
+	Between *LeafCapability `json:"between,omitempty" yaml:"between,omitempty" mapstructure:"between,omitempty"`
+
+	// Contains corresponds to the JSON schema field "contains".
+	Contains *LeafCapability `json:"contains,omitempty" yaml:"contains,omitempty" mapstructure:"contains,omitempty"`
+
+	// GreaterThan corresponds to the JSON schema field "greater_than".
+	GreaterThan *LeafCapability `json:"greater_than,omitempty" yaml:"greater_than,omitempty" mapstructure:"greater_than,omitempty"`
+
+	// GreaterThanEq corresponds to the JSON schema field "greater_than_eq".
+	GreaterThanEq *LeafCapability `json:"greater_than_eq,omitempty" yaml:"greater_than_eq,omitempty" mapstructure:"greater_than_eq,omitempty"`
+
+	// Ilike corresponds to the JSON schema field "ilike".
+	Ilike *LeafCapability `json:"ilike,omitempty" yaml:"ilike,omitempty" mapstructure:"ilike,omitempty"`
+
+	// InList corresponds to the JSON schema field "in_list".
+	InList *LeafCapability `json:"in_list,omitempty" yaml:"in_list,omitempty" mapstructure:"in_list,omitempty"`
+
+	// IsFalse corresponds to the JSON schema field "is_false".
+	IsFalse *LeafCapability `json:"is_false,omitempty" yaml:"is_false,omitempty" mapstructure:"is_false,omitempty"`
+
+	// IsNan corresponds to the JSON schema field "is_nan".
+	IsNan *LeafCapability `json:"is_nan,omitempty" yaml:"is_nan,omitempty" mapstructure:"is_nan,omitempty"`
+
+	// IsNull corresponds to the JSON schema field "is_null".
+	IsNull *LeafCapability `json:"is_null,omitempty" yaml:"is_null,omitempty" mapstructure:"is_null,omitempty"`
+
+	// IsTrue corresponds to the JSON schema field "is_true".
+	IsTrue *LeafCapability `json:"is_true,omitempty" yaml:"is_true,omitempty" mapstructure:"is_true,omitempty"`
+
+	// IsZero corresponds to the JSON schema field "is_zero".
+	IsZero *LeafCapability `json:"is_zero,omitempty" yaml:"is_zero,omitempty" mapstructure:"is_zero,omitempty"`
+
+	// LessThan corresponds to the JSON schema field "less_than".
+	LessThan *LeafCapability `json:"less_than,omitempty" yaml:"less_than,omitempty" mapstructure:"less_than,omitempty"`
+
+	// LessThanEq corresponds to the JSON schema field "less_than_eq".
+	LessThanEq *LeafCapability `json:"less_than_eq,omitempty" yaml:"less_than_eq,omitempty" mapstructure:"less_than_eq,omitempty"`
+
+	// Like corresponds to the JSON schema field "like".
+	Like *LeafCapability `json:"like,omitempty" yaml:"like,omitempty" mapstructure:"like,omitempty"`
+}
+
+type RelationalConditionalExpressionCapabilities struct {
+	// Case corresponds to the JSON schema field "case".
+	Case *LeafCapability `json:"case,omitempty" yaml:"case,omitempty" mapstructure:"case,omitempty"`
+
+	// Nullif corresponds to the JSON schema field "nullif".
+	Nullif *LeafCapability `json:"nullif,omitempty" yaml:"nullif,omitempty" mapstructure:"nullif,omitempty"`
+}
+
+type RelationalExpressionCapabilities struct {
+	// Aggregate corresponds to the JSON schema field "aggregate".
+	Aggregate RelationalAggregateExpressionCapabilities `json:"aggregate" yaml:"aggregate" mapstructure:"aggregate"`
+
+	// Comparison corresponds to the JSON schema field "comparison".
+	Comparison RelationalComparisonExpressionCapabilities `json:"comparison" yaml:"comparison" mapstructure:"comparison"`
+
+	// Conditional corresponds to the JSON schema field "conditional".
+	Conditional RelationalConditionalExpressionCapabilities `json:"conditional" yaml:"conditional" mapstructure:"conditional"`
+
+	// Scalar corresponds to the JSON schema field "scalar".
+	Scalar RelationalScalarExpressionCapabilities `json:"scalar" yaml:"scalar" mapstructure:"scalar"`
+
+	// Window corresponds to the JSON schema field "window".
+	Window RelationalWindowExpressionCapabilities `json:"window" yaml:"window" mapstructure:"window"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationalExpressionCapabilities) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["aggregate"]; raw != nil && !ok {
+		return fmt.Errorf("field aggregate in RelationalExpressionCapabilities: required")
+	}
+	if _, ok := raw["comparison"]; raw != nil && !ok {
+		return fmt.Errorf("field comparison in RelationalExpressionCapabilities: required")
+	}
+	if _, ok := raw["conditional"]; raw != nil && !ok {
+		return fmt.Errorf("field conditional in RelationalExpressionCapabilities: required")
+	}
+	if _, ok := raw["scalar"]; raw != nil && !ok {
+		return fmt.Errorf("field scalar in RelationalExpressionCapabilities: required")
+	}
+	if _, ok := raw["window"]; raw != nil && !ok {
+		return fmt.Errorf("field window in RelationalExpressionCapabilities: required")
+	}
+	type Plain RelationalExpressionCapabilities
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = RelationalExpressionCapabilities(plain)
+	return nil
+}
+
+type RelationalJoinCapabilities struct {
+	// Expression corresponds to the JSON schema field "expression".
+	Expression RelationalExpressionCapabilities `json:"expression" yaml:"expression" mapstructure:"expression"`
+
+	// JoinTypes corresponds to the JSON schema field "join_types".
+	JoinTypes RelationalJoinTypeCapabilities `json:"join_types" yaml:"join_types" mapstructure:"join_types"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationalJoinCapabilities) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["expression"]; raw != nil && !ok {
+		return fmt.Errorf("field expression in RelationalJoinCapabilities: required")
+	}
+	if _, ok := raw["join_types"]; raw != nil && !ok {
+		return fmt.Errorf("field join_types in RelationalJoinCapabilities: required")
+	}
+	type Plain RelationalJoinCapabilities
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = RelationalJoinCapabilities(plain)
+	return nil
+}
+
+type RelationalJoinTypeCapabilities struct {
+	// Full corresponds to the JSON schema field "full".
+	Full *LeafCapability `json:"full,omitempty" yaml:"full,omitempty" mapstructure:"full,omitempty"`
+
+	// Inner corresponds to the JSON schema field "inner".
+	Inner *LeafCapability `json:"inner,omitempty" yaml:"inner,omitempty" mapstructure:"inner,omitempty"`
+
+	// Left corresponds to the JSON schema field "left".
+	Left *LeafCapability `json:"left,omitempty" yaml:"left,omitempty" mapstructure:"left,omitempty"`
+
+	// LeftAnti corresponds to the JSON schema field "left_anti".
+	LeftAnti *LeafCapability `json:"left_anti,omitempty" yaml:"left_anti,omitempty" mapstructure:"left_anti,omitempty"`
+
+	// LeftSemi corresponds to the JSON schema field "left_semi".
+	LeftSemi *LeafCapability `json:"left_semi,omitempty" yaml:"left_semi,omitempty" mapstructure:"left_semi,omitempty"`
+
+	// Right corresponds to the JSON schema field "right".
+	Right *LeafCapability `json:"right,omitempty" yaml:"right,omitempty" mapstructure:"right,omitempty"`
+
+	// RightAnti corresponds to the JSON schema field "right_anti".
+	RightAnti *LeafCapability `json:"right_anti,omitempty" yaml:"right_anti,omitempty" mapstructure:"right_anti,omitempty"`
+
+	// RightSemi corresponds to the JSON schema field "right_semi".
+	RightSemi *LeafCapability `json:"right_semi,omitempty" yaml:"right_semi,omitempty" mapstructure:"right_semi,omitempty"`
+}
+
+type RelationalProjectionCapabilities struct {
+	// Expression corresponds to the JSON schema field "expression".
+	Expression RelationalExpressionCapabilities `json:"expression" yaml:"expression" mapstructure:"expression"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationalProjectionCapabilities) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["expression"]; raw != nil && !ok {
+		return fmt.Errorf("field expression in RelationalProjectionCapabilities: required")
+	}
+	type Plain RelationalProjectionCapabilities
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = RelationalProjectionCapabilities(plain)
+	return nil
+}
+
+// Describes which features of the relational query API are supported by the
+// connector. This feature is experimental and subject to breaking changes within
+// minor versions.
+type RelationalQueryCapabilities struct {
+	// Aggregate corresponds to the JSON schema field "aggregate".
+	Aggregate *LeafCapability `json:"aggregate,omitempty" yaml:"aggregate,omitempty" mapstructure:"aggregate,omitempty"`
+
+	// Filter corresponds to the JSON schema field "filter".
+	Filter *LeafCapability `json:"filter,omitempty" yaml:"filter,omitempty" mapstructure:"filter,omitempty"`
+
+	// Join corresponds to the JSON schema field "join".
+	Join *LeafCapability `json:"join,omitempty" yaml:"join,omitempty" mapstructure:"join,omitempty"`
+
+	// Project corresponds to the JSON schema field "project".
+	Project RelationalProjectionCapabilities `json:"project" yaml:"project" mapstructure:"project"`
+
+	// Sort corresponds to the JSON schema field "sort".
+	Sort *LeafCapability `json:"sort,omitempty" yaml:"sort,omitempty" mapstructure:"sort,omitempty"`
+
+	// Window corresponds to the JSON schema field "window".
+	Window *LeafCapability `json:"window,omitempty" yaml:"window,omitempty" mapstructure:"window,omitempty"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationalQueryCapabilities) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["project"]; raw != nil && !ok {
+		return fmt.Errorf("field project in RelationalQueryCapabilities: required")
+	}
+	type Plain RelationalQueryCapabilities
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = RelationalQueryCapabilities(plain)
+	return nil
+}
+
+type RelationalScalarExpressionCapabilities struct {
+	// Abs corresponds to the JSON schema field "abs".
+	Abs *LeafCapability `json:"abs,omitempty" yaml:"abs,omitempty" mapstructure:"abs,omitempty"`
+
+	// And corresponds to the JSON schema field "and".
+	And *LeafCapability `json:"and,omitempty" yaml:"and,omitempty" mapstructure:"and,omitempty"`
+
+	// ArrayElement corresponds to the JSON schema field "array_element".
+	ArrayElement *LeafCapability `json:"array_element,omitempty" yaml:"array_element,omitempty" mapstructure:"array_element,omitempty"`
+
+	// Btrim corresponds to the JSON schema field "btrim".
+	Btrim *LeafCapability `json:"btrim,omitempty" yaml:"btrim,omitempty" mapstructure:"btrim,omitempty"`
+
+	// Ceil corresponds to the JSON schema field "ceil".
+	Ceil *LeafCapability `json:"ceil,omitempty" yaml:"ceil,omitempty" mapstructure:"ceil,omitempty"`
+
+	// CharacterLength corresponds to the JSON schema field "character_length".
+	CharacterLength *LeafCapability `json:"character_length,omitempty" yaml:"character_length,omitempty" mapstructure:"character_length,omitempty"`
+
+	// Coalesce corresponds to the JSON schema field "coalesce".
+	Coalesce *LeafCapability `json:"coalesce,omitempty" yaml:"coalesce,omitempty" mapstructure:"coalesce,omitempty"`
+
+	// Concat corresponds to the JSON schema field "concat".
+	Concat *LeafCapability `json:"concat,omitempty" yaml:"concat,omitempty" mapstructure:"concat,omitempty"`
+
+	// Cos corresponds to the JSON schema field "cos".
+	Cos *LeafCapability `json:"cos,omitempty" yaml:"cos,omitempty" mapstructure:"cos,omitempty"`
+
+	// CurrentDate corresponds to the JSON schema field "current_date".
+	CurrentDate *LeafCapability `json:"current_date,omitempty" yaml:"current_date,omitempty" mapstructure:"current_date,omitempty"`
+
+	// CurrentTime corresponds to the JSON schema field "current_time".
+	CurrentTime *LeafCapability `json:"current_time,omitempty" yaml:"current_time,omitempty" mapstructure:"current_time,omitempty"`
+
+	// CurrentTimestamp corresponds to the JSON schema field "current_timestamp".
+	CurrentTimestamp *LeafCapability `json:"current_timestamp,omitempty" yaml:"current_timestamp,omitempty" mapstructure:"current_timestamp,omitempty"`
+
+	// DatePart corresponds to the JSON schema field "date_part".
+	DatePart *LeafCapability `json:"date_part,omitempty" yaml:"date_part,omitempty" mapstructure:"date_part,omitempty"`
+
+	// DateTrunc corresponds to the JSON schema field "date_trunc".
+	DateTrunc *LeafCapability `json:"date_trunc,omitempty" yaml:"date_trunc,omitempty" mapstructure:"date_trunc,omitempty"`
+
+	// Divide corresponds to the JSON schema field "divide".
+	Divide *LeafCapability `json:"divide,omitempty" yaml:"divide,omitempty" mapstructure:"divide,omitempty"`
+
+	// Exp corresponds to the JSON schema field "exp".
+	Exp *LeafCapability `json:"exp,omitempty" yaml:"exp,omitempty" mapstructure:"exp,omitempty"`
+
+	// Floor corresponds to the JSON schema field "floor".
+	Floor *LeafCapability `json:"floor,omitempty" yaml:"floor,omitempty" mapstructure:"floor,omitempty"`
+
+	// GetField corresponds to the JSON schema field "get_field".
+	GetField *LeafCapability `json:"get_field,omitempty" yaml:"get_field,omitempty" mapstructure:"get_field,omitempty"`
+
+	// Greatest corresponds to the JSON schema field "greatest".
+	Greatest *LeafCapability `json:"greatest,omitempty" yaml:"greatest,omitempty" mapstructure:"greatest,omitempty"`
+
+	// Least corresponds to the JSON schema field "least".
+	Least *LeafCapability `json:"least,omitempty" yaml:"least,omitempty" mapstructure:"least,omitempty"`
+
+	// Left corresponds to the JSON schema field "left".
+	Left *LeafCapability `json:"left,omitempty" yaml:"left,omitempty" mapstructure:"left,omitempty"`
+
+	// Ln corresponds to the JSON schema field "ln".
+	Ln *LeafCapability `json:"ln,omitempty" yaml:"ln,omitempty" mapstructure:"ln,omitempty"`
+
+	// Log corresponds to the JSON schema field "log".
+	Log *LeafCapability `json:"log,omitempty" yaml:"log,omitempty" mapstructure:"log,omitempty"`
+
+	// Log10 corresponds to the JSON schema field "log10".
+	Log10 *LeafCapability `json:"log10,omitempty" yaml:"log10,omitempty" mapstructure:"log10,omitempty"`
+
+	// Log2 corresponds to the JSON schema field "log2".
+	Log2 *LeafCapability `json:"log2,omitempty" yaml:"log2,omitempty" mapstructure:"log2,omitempty"`
+
+	// Lpad corresponds to the JSON schema field "lpad".
+	Lpad *LeafCapability `json:"lpad,omitempty" yaml:"lpad,omitempty" mapstructure:"lpad,omitempty"`
+
+	// Ltrim corresponds to the JSON schema field "ltrim".
+	Ltrim *LeafCapability `json:"ltrim,omitempty" yaml:"ltrim,omitempty" mapstructure:"ltrim,omitempty"`
+
+	// Minus corresponds to the JSON schema field "minus".
+	Minus *LeafCapability `json:"minus,omitempty" yaml:"minus,omitempty" mapstructure:"minus,omitempty"`
+
+	// Modulo corresponds to the JSON schema field "modulo".
+	Modulo *LeafCapability `json:"modulo,omitempty" yaml:"modulo,omitempty" mapstructure:"modulo,omitempty"`
+
+	// Multiply corresponds to the JSON schema field "multiply".
+	Multiply *LeafCapability `json:"multiply,omitempty" yaml:"multiply,omitempty" mapstructure:"multiply,omitempty"`
+
+	// Negate corresponds to the JSON schema field "negate".
+	Negate *LeafCapability `json:"negate,omitempty" yaml:"negate,omitempty" mapstructure:"negate,omitempty"`
+
+	// Not corresponds to the JSON schema field "not".
+	Not *LeafCapability `json:"not,omitempty" yaml:"not,omitempty" mapstructure:"not,omitempty"`
+
+	// Nvl corresponds to the JSON schema field "nvl".
+	Nvl *LeafCapability `json:"nvl,omitempty" yaml:"nvl,omitempty" mapstructure:"nvl,omitempty"`
+
+	// Or corresponds to the JSON schema field "or".
+	Or *LeafCapability `json:"or,omitempty" yaml:"or,omitempty" mapstructure:"or,omitempty"`
+
+	// Plus corresponds to the JSON schema field "plus".
+	Plus *LeafCapability `json:"plus,omitempty" yaml:"plus,omitempty" mapstructure:"plus,omitempty"`
+
+	// Power corresponds to the JSON schema field "power".
+	Power *LeafCapability `json:"power,omitempty" yaml:"power,omitempty" mapstructure:"power,omitempty"`
+
+	// Random corresponds to the JSON schema field "random".
+	Random *LeafCapability `json:"random,omitempty" yaml:"random,omitempty" mapstructure:"random,omitempty"`
+
+	// Replace corresponds to the JSON schema field "replace".
+	Replace *LeafCapability `json:"replace,omitempty" yaml:"replace,omitempty" mapstructure:"replace,omitempty"`
+
+	// Reverse corresponds to the JSON schema field "reverse".
+	Reverse *LeafCapability `json:"reverse,omitempty" yaml:"reverse,omitempty" mapstructure:"reverse,omitempty"`
+
+	// Right corresponds to the JSON schema field "right".
+	Right *LeafCapability `json:"right,omitempty" yaml:"right,omitempty" mapstructure:"right,omitempty"`
+
+	// Round corresponds to the JSON schema field "round".
+	Round *LeafCapability `json:"round,omitempty" yaml:"round,omitempty" mapstructure:"round,omitempty"`
+
+	// Rpad corresponds to the JSON schema field "rpad".
+	Rpad *LeafCapability `json:"rpad,omitempty" yaml:"rpad,omitempty" mapstructure:"rpad,omitempty"`
+
+	// Rtrim corresponds to the JSON schema field "rtrim".
+	Rtrim *LeafCapability `json:"rtrim,omitempty" yaml:"rtrim,omitempty" mapstructure:"rtrim,omitempty"`
+
+	// Sqrt corresponds to the JSON schema field "sqrt".
+	Sqrt *LeafCapability `json:"sqrt,omitempty" yaml:"sqrt,omitempty" mapstructure:"sqrt,omitempty"`
+
+	// StrPos corresponds to the JSON schema field "str_pos".
+	StrPos *LeafCapability `json:"str_pos,omitempty" yaml:"str_pos,omitempty" mapstructure:"str_pos,omitempty"`
+
+	// Substr corresponds to the JSON schema field "substr".
+	Substr *LeafCapability `json:"substr,omitempty" yaml:"substr,omitempty" mapstructure:"substr,omitempty"`
+
+	// SubstrIndex corresponds to the JSON schema field "substr_index".
+	SubstrIndex *LeafCapability `json:"substr_index,omitempty" yaml:"substr_index,omitempty" mapstructure:"substr_index,omitempty"`
+
+	// Tan corresponds to the JSON schema field "tan".
+	Tan *LeafCapability `json:"tan,omitempty" yaml:"tan,omitempty" mapstructure:"tan,omitempty"`
+
+	// ToDate corresponds to the JSON schema field "to_date".
+	ToDate *LeafCapability `json:"to_date,omitempty" yaml:"to_date,omitempty" mapstructure:"to_date,omitempty"`
+
+	// ToLower corresponds to the JSON schema field "to_lower".
+	ToLower *LeafCapability `json:"to_lower,omitempty" yaml:"to_lower,omitempty" mapstructure:"to_lower,omitempty"`
+
+	// ToTimestamp corresponds to the JSON schema field "to_timestamp".
+	ToTimestamp *LeafCapability `json:"to_timestamp,omitempty" yaml:"to_timestamp,omitempty" mapstructure:"to_timestamp,omitempty"`
+
+	// ToUpper corresponds to the JSON schema field "to_upper".
+	ToUpper *LeafCapability `json:"to_upper,omitempty" yaml:"to_upper,omitempty" mapstructure:"to_upper,omitempty"`
+
+	// Trunc corresponds to the JSON schema field "trunc".
+	Trunc *LeafCapability `json:"trunc,omitempty" yaml:"trunc,omitempty" mapstructure:"trunc,omitempty"`
+}
+
+type RelationalSortCapabilities struct {
+	// Expression corresponds to the JSON schema field "expression".
+	Expression RelationalExpressionCapabilities `json:"expression" yaml:"expression" mapstructure:"expression"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationalSortCapabilities) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["expression"]; raw != nil && !ok {
+		return fmt.Errorf("field expression in RelationalSortCapabilities: required")
+	}
+	type Plain RelationalSortCapabilities
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = RelationalSortCapabilities(plain)
+	return nil
+}
+
+type RelationalWindowCapabilities struct {
+	// Expression corresponds to the JSON schema field "expression".
+	Expression RelationalExpressionCapabilities `json:"expression" yaml:"expression" mapstructure:"expression"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationalWindowCapabilities) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["expression"]; raw != nil && !ok {
+		return fmt.Errorf("field expression in RelationalWindowCapabilities: required")
+	}
+	type Plain RelationalWindowCapabilities
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = RelationalWindowCapabilities(plain)
+	return nil
+}
+
+type RelationalWindowExpressionCapabilities struct {
+	// CumeDist corresponds to the JSON schema field "cume_dist".
+	CumeDist *LeafCapability `json:"cume_dist,omitempty" yaml:"cume_dist,omitempty" mapstructure:"cume_dist,omitempty"`
+
+	// DenseRank corresponds to the JSON schema field "dense_rank".
+	DenseRank *LeafCapability `json:"dense_rank,omitempty" yaml:"dense_rank,omitempty" mapstructure:"dense_rank,omitempty"`
+
+	// Ntile corresponds to the JSON schema field "ntile".
+	Ntile *LeafCapability `json:"ntile,omitempty" yaml:"ntile,omitempty" mapstructure:"ntile,omitempty"`
+
+	// PercentRank corresponds to the JSON schema field "percent_rank".
+	PercentRank *LeafCapability `json:"percent_rank,omitempty" yaml:"percent_rank,omitempty" mapstructure:"percent_rank,omitempty"`
+
+	// Rank corresponds to the JSON schema field "rank".
+	Rank *LeafCapability `json:"rank,omitempty" yaml:"rank,omitempty" mapstructure:"rank,omitempty"`
+
+	// RowNumber corresponds to the JSON schema field "row_number".
+	RowNumber *LeafCapability `json:"row_number,omitempty" yaml:"row_number,omitempty" mapstructure:"row_number,omitempty"`
 }
 
 type Relationship struct {
