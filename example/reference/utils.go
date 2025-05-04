@@ -115,6 +115,7 @@ func compare(v1 any, v2 any) (int, error) {
 		return boolToInt(value1) - boolToInt(value2), nil
 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
 		numValue1, _ := utils.DecodeFloat[float64](v1)
+
 		numValue2, err := utils.DecodeFloat[float64](v2)
 		if err != nil {
 			return 0, err
