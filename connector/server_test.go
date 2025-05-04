@@ -551,7 +551,10 @@ func TestServerConnector(t *testing.T) {
 		}
 
 		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
-			Message: fmt.Sprintf("NDC version range ^%s does not match implemented version v0.1.6", schema.NDCVersion),
+			Message: fmt.Sprintf(
+				"NDC version range ^%s does not match implemented version v0.1.6",
+				schema.NDCVersion,
+			),
 			Details: map[string]any{},
 		})
 	})

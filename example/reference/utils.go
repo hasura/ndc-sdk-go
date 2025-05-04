@@ -113,42 +113,14 @@ func compare(v1 any, v2 any) (int, error) {
 		}
 
 		return boolToInt(value1) - boolToInt(value2), nil
-	case int:
-		value2, ok := v2.(int)
-		if !ok {
-			return 0, errInvalidType
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
+		numValue1, _ := utils.DecodeFloat[float64](v1)
+		numValue2, err := utils.DecodeFloat[float64](v2)
+		if err != nil {
+			return 0, err
 		}
 
-		return value1 - value2, nil
-	case int8:
-		value2, ok := v2.(int8)
-		if !ok {
-			return 0, errInvalidType
-		}
-
-		return int(value1 - value2), nil
-	case int16:
-		value2, ok := v2.(int16)
-		if !ok {
-			return 0, errInvalidType
-		}
-
-		return int(value1 - value2), nil
-	case int32:
-		value2, ok := v2.(int32)
-		if !ok {
-			return 0, errInvalidType
-		}
-
-		return int(value1 - value2), nil
-	case int64:
-		value2, ok := v2.(int64)
-
-		if !ok {
-			return 0, errInvalidType
-		}
-
-		return int(value1 - value2), nil
+		return int(math.Ceil(numValue1 - numValue2)), nil
 	case string:
 		value2, ok := v2.(string)
 		if !ok {
@@ -390,6 +362,7 @@ func evalAggregateFunction(function string, values []any) (any, error) {
 	}
 
 	var numValues []float64
+
 	var stringValues []string
 
 	for _, value := range values {
@@ -435,7 +408,10 @@ func evalAggregateFunction(function string, values []any) (any, error) {
 
 			return &avg, nil
 		default:
-			return nil, schema.UnprocessableContentError(function+": invalid aggregation function", nil)
+			return nil, schema.UnprocessableContentError(
+				function+": invalid aggregation function",
+				nil,
+			)
 		}
 	}
 

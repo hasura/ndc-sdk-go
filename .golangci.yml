@@ -14,6 +14,7 @@ linters:
     - nilnil
     - mnd
     - recvcheck
+    - funcorder
   settings:
     tagliatelle:
       # Checks the struct tag name case.
