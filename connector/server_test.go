@@ -246,6 +246,8 @@ func httpPostJSONWithNDCVersion(url string, ndcVersion string, body any) (*http.
 }
 
 func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int, expectedBody B) {
+	t.Helper()
+
 	defer res.Body.Close()
 
 	bodyBytes, err := io.ReadAll(res.Body)
@@ -549,7 +551,10 @@ func TestServerConnector(t *testing.T) {
 		}
 
 		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
-			Message: "NDC version range ^0.2.0 does not match implemented version v0.1.6",
+			Message: fmt.Sprintf(
+				"NDC version range ^%s does not match implemented version v0.1.6",
+				schema.NDCVersion,
+			),
 			Details: map[string]any{},
 		})
 	})

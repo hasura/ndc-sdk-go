@@ -337,6 +337,10 @@
         "query": {
           "$ref": "#/definitions/QueryCapabilities"
         },
+        "relational_query": {
+          "$ref": "#/definitions/RelationalQueryCapabilities",
+          "description": "Does the connector support the relational query API? This feature is experimental and subject to breaking changes within minor versions."
+        },
         "relationships": {
           "$ref": "#/definitions/RelationshipCapabilities"
         }
@@ -780,6 +784,51 @@
           }
         }
       ]
+    },
+    "DatePartScalarExpressionCapability": {
+      "properties": {
+        "day": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "day_of_week": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "day_of_year": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "hour": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "microsecond": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "millisecond": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "minute": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "month": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "nanosecond": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "quarter": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "second": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "week": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "year": {
+          "$ref": "#/definitions/LeafCapability"
+        }
+      },
+      "title": "Date Part Scalar Expression Capability",
+      "type": "object"
     },
     "Dimension": {
       "title": "Dimension",
@@ -1225,6 +1274,25 @@
               "type": "string",
               "enum": [
                 "microsecond"
+              ]
+            },
+            "result_type": {
+              "description": "The result type, which must be a defined scalar type in the schema response.",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "result_type",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "millisecond"
               ]
             },
             "result_type": {
@@ -2599,6 +2667,459 @@
       "items": {
         "$ref": "#/definitions/RowSet"
       }
+    },
+    "RelationalAggregateCapabilities": {
+      "properties": {
+        "expression": {
+          "$ref": "#/definitions/RelationalExpressionCapabilities"
+        },
+        "group_by": {
+          "$ref": "#/definitions/LeafCapability"
+        }
+      },
+      "required": [
+        "expression"
+      ],
+      "title": "Relational Aggregate Capabilities",
+      "type": "object"
+    },
+    "RelationalAggregateExpressionCapabilities": {
+      "properties": {
+        "avg": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "bool_and": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "bool_or": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "count": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "first_value": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "last_value": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "max": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "median": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "min": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "string_agg": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "sum": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "var": {
+          "$ref": "#/definitions/LeafCapability"
+        }
+      },
+      "title": "Relational Aggregate Expression Capabilities",
+      "type": "object"
+    },
+    "RelationalAggregateFunctionCapabilities": {
+      "properties": {
+        "distinct": {
+          "$ref": "#/definitions/LeafCapability"
+        }
+      },
+      "title": "Relational Aggregate Function Capabilities",
+      "type": "object"
+    },
+    "RelationalComparisonExpressionCapabilities": {
+      "properties": {
+        "between": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "contains": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "greater_than": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "greater_than_eq": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "ilike": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "in_list": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "is_false": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "is_nan": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "is_null": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "is_true": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "is_zero": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "less_than": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "less_than_eq": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "like": {
+          "$ref": "#/definitions/LeafCapability"
+        }
+      },
+      "title": "Relational Filter Expression Capabilities",
+      "type": "object"
+    },
+    "RelationalConditionalExpressionCapabilities": {
+      "properties": {
+        "case": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "nullif": {
+          "$ref": "#/definitions/LeafCapability"
+        }
+      },
+      "title": "Relational Conditional Expression Capabilities",
+      "type": "object"
+    },
+    "RelationalExpressionCapabilities": {
+      "title": "Relational Expression Capabilities",
+      "type": "object",
+      "required": [
+        "aggregate",
+        "comparison",
+        "conditional",
+        "scalar",
+        "window"
+      ],
+      "properties": {
+        "conditional": {
+          "$ref": "#/definitions/RelationalConditionalExpressionCapabilities"
+        },
+        "comparison": {
+          "$ref": "#/definitions/RelationalComparisonExpressionCapabilities"
+        },
+        "scalar": {
+          "$ref": "#/definitions/RelationalScalarExpressionCapabilities"
+        },
+        "aggregate": {
+          "$ref": "#/definitions/RelationalAggregateExpressionCapabilities"
+        },
+        "window": {
+          "$ref": "#/definitions/RelationalWindowExpressionCapabilities"
+        }
+      }
+    },
+    "RelationalJoinCapabilities": {
+      "title": "Relational Join Capabilities",
+      "type": "object",
+      "required": [
+        "expression",
+        "join_types"
+      ],
+      "properties": {
+        "expression": {
+          "$ref": "#/definitions/RelationalExpressionCapabilities"
+        },
+        "join_types": {
+          "$ref": "#/definitions/RelationalJoinTypeCapabilities"
+        }
+      }
+    },
+    "RelationalJoinTypeCapabilities": {
+      "properties": {
+        "full": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "inner": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "left": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "left_anti": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "left_semi": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "right": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "right_anti": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "right_semi": {
+          "$ref": "#/definitions/LeafCapability"
+        }
+      },
+      "title": "Relational Join Type Capabilities",
+      "type": "object"
+    },
+    "RelationalProjectionCapabilities": {
+      "title": "Relational Projection Capabilities",
+      "type": "object",
+      "required": [
+        "expression"
+      ],
+      "properties": {
+        "expression": {
+          "$ref": "#/definitions/RelationalExpressionCapabilities"
+        }
+      }
+    },
+    "RelationalQueryCapabilities": {
+      "description": "Describes which features of the relational query API are supported by the connector. This feature is experimental and subject to breaking changes within minor versions.",
+      "properties": {
+        "aggregate": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "filter": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "join": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "project": {
+          "$ref": "#/definitions/RelationalProjectionCapabilities"
+        },
+        "sort": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "window": {
+          "$ref": "#/definitions/LeafCapability"
+        }
+      },
+      "required": [
+        "project"
+      ],
+      "title": "Relational Query Capabilities",
+      "type": "object"
+    },
+    "RelationalScalarExpressionCapabilities": {
+      "properties": {
+        "abs": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "and": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "array_element": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "btrim": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "ceil": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "character_length": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "coalesce": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "concat": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "cos": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "current_date": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "current_time": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "current_timestamp": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "date_part": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "date_trunc": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "divide": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "exp": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "floor": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "get_field": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "greatest": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "least": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "left": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "ln": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "log": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "log10": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "log2": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "lpad": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "ltrim": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "minus": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "modulo": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "multiply": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "negate": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "not": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "nvl": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "or": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "plus": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "power": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "random": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "replace": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "reverse": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "right": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "round": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "rpad": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "rtrim": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "sqrt": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "str_pos": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "substr": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "substr_index": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "tan": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "to_date": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "to_lower": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "to_timestamp": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "to_upper": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "trunc": {
+          "$ref": "#/definitions/LeafCapability"
+        }
+      },
+      "title": "Relational Scalar Expression Capabilities",
+      "type": "object"
+    },
+    "RelationalSortCapabilities": {
+      "title": "Relational Sort Capabilities",
+      "type": "object",
+      "required": [
+        "expression"
+      ],
+      "properties": {
+        "expression": {
+          "$ref": "#/definitions/RelationalExpressionCapabilities"
+        }
+      }
+    },
+    "RelationalWindowCapabilities": {
+      "title": "Relational Window Capabilities",
+      "type": "object",
+      "required": [
+        "expression"
+      ],
+      "properties": {
+        "expression": {
+          "$ref": "#/definitions/RelationalExpressionCapabilities"
+        }
+      }
+    },
+    "RelationalWindowExpressionCapabilities": {
+      "properties": {
+        "cume_dist": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "dense_rank": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "ntile": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "percent_rank": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "rank": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "row_number": {
+          "$ref": "#/definitions/LeafCapability"
+        }
+      },
+      "title": "Relational Window Expression Capabilities",
+      "type": "object"
     },
     "Relationship": {
       "title": "Relationship",

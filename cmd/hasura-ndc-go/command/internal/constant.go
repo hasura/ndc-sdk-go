@@ -156,7 +156,7 @@ var (
 	ndcOperationNameRegex    = regexp.MustCompile(`^(Function|Procedure)([A-Z][A-Za-z0-9]*)$`)
 	ndcOperationCommentRegex = regexp.MustCompile(`^@(function|procedure)(\s+([A-Za-z]\w*))?`)
 	ndcScalarNameRegex       = regexp.MustCompile(`^Scalar([A-Z]\w*)$`)
-	ndcScalarCommentRegex    = regexp.MustCompile(`^@scalar(\s+(\w+))?(\s+([a-z]+))?$`)
+	ndcScalarCommentRegex    = regexp.MustCompile(`^@scalar(\s+(\w+))?(\s+([a-z]+))?\.?$`)
 	ndcEnumCommentRegex      = regexp.MustCompile(`^@enum\s+([\w-.,!@#$%^&*()+=~\s\t]+)$`)
 )
 

@@ -7,7 +7,7 @@ trap 'printf "\nkilling process..." && kill $serverPID' EXIT
 cd "$(dirname "${BASH_SOURCE[0]}")"
 mkdir -p ./dist
 
-NDC_TEST_VERSION=v0.2.0
+NDC_TEST_VERSION=v0.2.2
 NDC_TEST_PATH=./dist/ndc-test
 
 if [ ! -f ./tmp/ndc-test ]; then

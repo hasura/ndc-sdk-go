@@ -1,13 +1,14 @@
 package main
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
 	"reflect"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/hasura/ndc-sdk-go/schema"
@@ -112,42 +113,15 @@ func compare(v1 any, v2 any) (int, error) {
 		}
 
 		return boolToInt(value1) - boolToInt(value2), nil
-	case int:
-		value2, ok := v2.(int)
-		if !ok {
-			return 0, errInvalidType
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
+		numValue1, _ := utils.DecodeFloat[float64](v1)
+
+		numValue2, err := utils.DecodeFloat[float64](v2)
+		if err != nil {
+			return 0, err
 		}
 
-		return value1 - value2, nil
-	case int8:
-		value2, ok := v2.(int8)
-		if !ok {
-			return 0, errInvalidType
-		}
-
-		return int(value1 - value2), nil
-	case int16:
-		value2, ok := v2.(int16)
-		if !ok {
-			return 0, errInvalidType
-		}
-
-		return int(value1 - value2), nil
-	case int32:
-		value2, ok := v2.(int32)
-		if !ok {
-			return 0, errInvalidType
-		}
-
-		return int(value1 - value2), nil
-	case int64:
-		value2, ok := v2.(int64)
-
-		if !ok {
-			return 0, errInvalidType
-		}
-
-		return int(value1 - value2), nil
+		return int(math.Ceil(numValue1 - numValue2)), nil
 	case string:
 		value2, ok := v2.(string)
 		if !ok {
@@ -383,38 +357,84 @@ func evalComparisonOperator( //nolint:gocyclo,cyclop,funlen
 	}
 }
 
-func evalAggregateFunction(function string, values []any) (*int, error) {
+func evalAggregateFunction(function string, values []any) (any, error) {
 	if len(values) == 0 {
 		return nil, nil
 	}
 
-	var intValues []int
+	var numValues []float64
+
+	var stringValues []string
 
 	for _, value := range values {
 		switch v := value.(type) {
 		case int:
-			intValues = append(intValues, v)
+			numValues = append(numValues, float64(v))
 		case int16:
-			intValues = append(intValues, int(v))
+			numValues = append(numValues, float64(v))
 		case int32:
-			intValues = append(intValues, int(v))
+			numValues = append(numValues, float64(v))
 		case int64:
-			intValues = append(intValues, int(v))
+			numValues = append(numValues, float64(v))
+		case float32:
+			numValues = append(numValues, float64(v))
+		case float64:
+			numValues = append(numValues, v)
+		case string:
+			stringValues = append(stringValues, v)
 		default:
 			return nil, schema.UnprocessableContentError(fmt.Sprintf("%s: column is not an integer, got %+v", function, reflect.ValueOf(v).Kind()), nil)
 		}
 	}
 
-	sort.Ints(intValues)
+	if len(numValues) == 0 && len(stringValues) == 0 {
+		return nil, nil
+	}
+
+	if len(numValues) > 0 {
+		slices.Sort(numValues)
+
+		switch function {
+		case "min":
+			return &numValues[0], nil
+		case "max":
+			return &numValues[len(numValues)-1], nil
+		case "sum":
+			s := sum(numValues)
+
+			return &s, nil
+		case "avg":
+			s := sum(numValues)
+			avg := s / float64(len(numValues))
+
+			return &avg, nil
+		default:
+			return nil, schema.UnprocessableContentError(
+				function+": invalid aggregation function",
+				nil,
+			)
+		}
+	}
+
+	slices.Sort(stringValues)
 
 	switch function {
 	case "min":
-		return &intValues[0], nil
+		return &stringValues[0], nil
 	case "max":
-		return &intValues[len(intValues)-1], nil
+		return &stringValues[len(stringValues)-1], nil
 	default:
 		return nil, schema.UnprocessableContentError(function+": invalid aggregation function", nil)
 	}
+}
+
+func sum[T cmp.Ordered](intValues []T) T {
+	sum := intValues[0]
+	for i := 1; i < len(intValues); i++ {
+		sum += intValues[i]
+	}
+
+	return sum
 }
 
 func isEqual(leftVal, rightVal any) bool {
