@@ -339,8 +339,6 @@ func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.R
 
 // the common unmarshal json body method.
 func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, r *http.Request, counter metric.Int64Counter, body any) error {
-	defer r.Body.Close()
-
 	// Validate the max body size. In the worst scenario, if the Content-Length header doesn't exist,
 	// the server will validate again after reading the body.
 	if r.ContentLength > 0 {
