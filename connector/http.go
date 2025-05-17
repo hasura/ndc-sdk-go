@@ -332,7 +332,7 @@ func writeJson(w http.ResponseWriter, logger *slog.Logger, statusCode int, body 
 	})
 }
 
-func writeError(w http.ResponseWriter, logger *slog.Logger, err error) int {
+func writeError(w http.ResponseWriter, logger *slog.Logger, err error, defaultHttpStatus int) int {
 	w.Header().Add("Content-Type", "application/json")
 
 	var connectorErrorPtr *schema.ConnectorError
@@ -344,19 +344,19 @@ func writeError(w http.ResponseWriter, logger *slog.Logger, err error) int {
 
 	var errorResponse schema.ErrorResponse
 	if errors.As(err, &errorResponse) {
-		writeJson(w, logger, http.StatusBadRequest, errorResponse)
+		writeJson(w, logger, defaultHttpStatus, errorResponse)
 
 		return http.StatusInternalServerError
 	}
 
 	var errorResponsePtr *schema.ErrorResponse
 	if errors.As(err, &errorResponsePtr) {
-		writeJson(w, logger, http.StatusBadRequest, errorResponsePtr)
+		writeJson(w, logger, defaultHttpStatus, errorResponsePtr)
 
 		return http.StatusInternalServerError
 	}
 
-	writeJson(w, logger, http.StatusBadRequest, schema.ErrorResponse{
+	writeJson(w, logger, defaultHttpStatus, schema.ErrorResponse{
 		Message: err.Error(),
 	})
 
