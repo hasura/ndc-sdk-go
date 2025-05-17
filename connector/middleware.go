@@ -28,6 +28,7 @@ func (s *Server[Configuration, State]) withNDCVersionCheck(w http.ResponseWriter
 					),
 					nil,
 				),
+				http.StatusUnprocessableEntity,
 			)
 			s.increaseFailureCounterMetric(r, http.StatusBadRequest)
 
@@ -46,6 +47,7 @@ func (s *Server[Configuration, State]) withNDCVersionCheck(w http.ResponseWriter
 					),
 					nil,
 				),
+				http.StatusUnprocessableEntity,
 			)
 			s.increaseFailureCounterMetric(r, http.StatusBadRequest)
 

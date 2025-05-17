@@ -88,7 +88,7 @@ func (cc *CredentialClient) AcquireCredentials(
 	key string,
 	forceRefresh bool,
 ) (string, error) {
-	ctx, span := tracer.Start(ctx, "AcquireCredentials", trace.WithSpanKind(trace.SpanKindClient))
+	ctx, span := tracer.Start(ctx, "AcquireCredentials", trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(attribute.String("internal.visibility", "user")))
 	defer span.End()
 
 	if forceRefresh || cc.providerUri == nil {

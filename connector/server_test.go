@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -277,11 +279,34 @@ func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int,
 
 func TestNewServer(t *testing.T) {
 	t.Run("start server", func(t *testing.T) {
-		s, err := NewServer(&mockConnector{}, &ServerOptions{})
+		s, err := NewServer(&mockConnector{}, &ServerOptions{
+			HTTPServerConfig: HTTPServerConfig{
+				ServerMaxBodyMegabytes: 1,
+			},
+		})
 		if err != nil {
 			t.Errorf("NewServerWithoutConfig: expected no error, got %s", err)
 			t.FailNow()
 		}
+
+		// test max size validation
+		collectionName := strings.Repeat("xxxxxxxxxxxxxxxx", 1024*1024/16)
+		mockBody, err := json.Marshal(schema.QueryRequest{
+			Collection: collectionName,
+		})
+		assert.NilError(t, err)
+
+		w := httptest.NewRecorder()
+		r := &http.Request{
+			Method: http.MethodPost,
+			Body:   io.NopCloser(bytes.NewBuffer(mockBody)),
+		}
+		s.Query(w, r)
+
+		assertHTTPResponse(t, w.Result(), http.StatusUnprocessableEntity, schema.ErrorResponse{
+			Message: "request body size exceeded 1 MB(s)",
+			Details: map[string]any{},
+		})
 
 		go func() {
 			if err := s.ListenAndServe(18080); err != nil {
@@ -299,6 +324,9 @@ func TestServerAuth(t *testing.T) {
 		Configuration:      "{}",
 		InlineConfig:       true,
 		ServiceTokenSecret: "random-secret",
+		HTTPServerConfig: HTTPServerConfig{
+			ServerMaxBodyMegabytes: 1,
+		},
 	})
 	if err != nil {
 		t.Errorf("NewServerAuth: expected no error, got %s", err)
@@ -349,6 +377,9 @@ func TestServerConnector(t *testing.T) {
 	server, err := NewServer(&mockConnector{}, &ServerOptions{
 		Configuration: "{}",
 		InlineConfig:  true,
+		HTTPServerConfig: HTTPServerConfig{
+			ServerMaxBodyMegabytes: 1,
+		},
 	})
 	if err != nil {
 		t.Errorf("NewServer: expected no error, got %s", err)
@@ -468,7 +499,27 @@ func TestServerConnector(t *testing.T) {
 		}
 
 		assertHTTPResponse(t, res, http.StatusBadRequest, schema.ErrorResponse{
-			Message: "Invalid X-Hasura-NDC-Version header, expected a semver version string, got: unknown",
+			Message: "Invalid X-Hasura-NDC-Version header, expected a semver version string, got: unknown", Details: map[string]any{},
+		})
+	})
+
+	t.Run("POST_query_max_body_size", func(t *testing.T) {
+		collectionName := strings.Repeat("xxxxxxxxxxxxxxxx", 1024*1024/16)
+
+		res, err := httpPostJSON(fmt.Sprintf("%s/query", httpServer.URL), schema.QueryRequest{
+			Collection:              collectionName,
+			Arguments:               schema.QueryRequestArguments{},
+			CollectionRelationships: schema.QueryRequestCollectionRelationships{},
+			Query:                   schema.Query{},
+			Variables:               []schema.QueryRequestVariablesElem{},
+		})
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+			t.FailNow()
+		}
+
+		assertHTTPResponse(t, res, http.StatusUnprocessableEntity, schema.ErrorResponse{
+			Message: "request body size exceeded 1 MB(s)",
 			Details: map[string]any{},
 		})
 	})
@@ -545,6 +596,7 @@ func TestServerConnector(t *testing.T) {
 				CollectionRelationships: schema.MutationRequestCollectionRelationships{},
 			},
 		)
+
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
@@ -555,6 +607,29 @@ func TestServerConnector(t *testing.T) {
 				"NDC version range ^%s does not match implemented version v0.1.6",
 				schema.NDCVersion,
 			),
+			Details: map[string]any{},
+		})
+	})
+
+	t.Run("POST_mutation_max_body_size", func(t *testing.T) {
+		collectionName := strings.Repeat("xxxxxxxxxxxxxxxx", 1024*1024/16)
+		res, err := httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), schema.MutationRequest{
+			Operations: []schema.MutationOperation{
+				{
+					Type: "procedure",
+					Name: collectionName,
+				},
+			},
+			CollectionRelationships: schema.MutationRequestCollectionRelationships{},
+		})
+
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+			t.FailNow()
+		}
+
+		assertHTTPResponse(t, res, http.StatusUnprocessableEntity, schema.ErrorResponse{
+			Message: "request body size exceeded 1 MB(s)",
 			Details: map[string]any{},
 		})
 	})
