@@ -139,19 +139,19 @@ The prefix is empty by default. You can set the prefix for your connector by `Wi
 
 ### Logging
 
-NDC Go SDK uses the standard [log/slog](https://pkg.go.dev/log/slog) that provides highly customizable and structured logging. By default, the logger is printed in JSON format and configurable level with `--log-level` (HASURA_LOG_LEVEL) flag. You also can replace it with different logging libraries that can wrap the `slog.Handler` interface, and set the logger with the `WithLogger` or `WithLoggerFunc` option.
+NDC Go SDK uses the standard [log/slog](https://pkg.go.dev/log/slog) that provides highly customizable and structured logging. By default, the logger is printed in JSON format and configurable level with `--log-level` (HASURA_LOG_LEVEL) flag. You can also replace it with different logging libraries that can wrap the `slog.Handler` interface, and set the logger with the `WithLogger` or `WithLoggerFunc` option.
 
 ## Best Practices 
 
 ### Error Handling
 
-You should wraps exception errors with the `ConnectorError` struct and specify the explicit HTTP error status. `HASURA_SERVER_DEFAULT_HTTP_ERROR_STATUS` (default to `422`) will be returned if you don't wrap the error. The connector supports helper functions to create connector errors in the [schema](./schema/error.go) package.
+You should wrap exception errors with the `ConnectorError` struct and specify the explicit HTTP error status. `HASURA_SERVER_DEFAULT_HTTP_ERROR_STATUS` (default to `422`) will be returned if you don't wrap the error. The connector supports helper functions to create connector errors in the [schema](./schema/error.go) package.
 
-The Hasura engine v3 shows the explicit error content only if the connector returns HTTP 422 Unprocessable Content. Otherwise, the general internal error is responded. Therefore, you should actively control which error is safe to show it to end users.
+The Hasura engine v3 shows the explicit error content only if the connector returns HTTP 422 Unprocessable Content. Otherwise, the general internal error is responded to. Therefore, you should actively control which error is safe to show it to end users.
 
 ## Customize the CLI
 
-The SDK uses [Kong](https://github.com/alecthomas/kong), a lightweight command-line parser to implement the CLI interface.
+The SDK uses [Kong](https://github.com/alecthomas/kong), a lightweight command-line parser, to implement the CLI interface.
 
 The default CLI already implements the `serve` command, so you don't need to do anything. However, it's also easy to extend if you want to add more custom commands.
 
