@@ -366,6 +366,8 @@ func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, 
 			failureStatusAttribute,
 			httpStatusAttribute(http.StatusUnprocessableEntity),
 		))
+
+		return err
 	}
 
 	return s.validateMaxBodySize(w, r, counter, requestReader.size)
