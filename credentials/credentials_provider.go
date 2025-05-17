@@ -82,7 +82,7 @@ func (cc *CredentialClient) reload() error {
 
 // AcquireCredentials calls the credentials provider webhook to get the credentials for the given key.
 func (cc *CredentialClient) AcquireCredentials(ctx context.Context, key string, forceRefresh bool) (string, error) {
-	ctx, span := tracer.Start(ctx, "AcquireCredentials", trace.WithSpanKind(trace.SpanKindClient))
+	ctx, span := tracer.Start(ctx, "AcquireCredentials", trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(attribute.String("internal.visibility", "user")))
 	defer span.End()
 
 	if forceRefresh || cc.providerUri == nil {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net"
 	"net/http"
@@ -39,6 +40,7 @@ type HTTPServerConfig struct {
 	ServerWriteTimeout       time.Duration `help:"Maximum duration before timing out writes of the response. A zero or negative value means there will be no timeout" env:"HASURA_SERVER_WRITE_TIMEOUT"`
 	ServerIdleTimeout        time.Duration `help:"Maximum amount of time to wait for the next request when keep-alives are enabled. If zero, the value of ReadTimeout is used" env:"HASURA_SERVER_IDLE_TIMEOUT"`
 	ServerMaxHeaderKilobytes int           `help:"Maximum number of kilobytes the server will read parsing the request header's keys and values, including the request line" default:"1024" env:"HASURA_SERVER_MAX_HEADER_KILOBYTES"`
+	ServerMaxBodyMegabytes   int           `help:"Maximum size of the request body in megabytes that the server accepts" default:"30" env:"HASURA_SERVER_MAX_BODY_MEGABYTES"`
 	ServerTLSCertFile        string        `help:"Path of the TLS certificate file" env:"HASURA_SERVER_TLS_CERT_FILE"`
 	ServerTLSKeyFile         string        `help:"Path of the TLS key file" env:"HASURA_SERVER_TLS_KEY_FILE"`
 }
@@ -56,6 +58,7 @@ type Server[Configuration any, State any] struct {
 	configuration *Configuration
 	options       *ServerOptions
 	telemetry     *TelemetryState
+	maxBodySize   int64
 }
 
 // NewServer creates a Server instance.
@@ -93,6 +96,10 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 		return nil, err
 	}
 
+	if options.ServerMaxBodyMegabytes <= 0 {
+		options.ServerMaxBodyMegabytes = 30
+	}
+
 	return &Server[Configuration, State]{
 		context:       ctx,
 		stop:          stop,
@@ -102,6 +109,7 @@ func NewServer[Configuration any, State any](connector Connector[Configuration, 
 		options:       options,
 		telemetry:     telemetry,
 		serveOptions:  defaultOptions,
+		maxBodySize:   int64(options.ServerMaxBodyMegabytes) * 1024 * 1024,
 	}, nil
 }
 
@@ -331,7 +339,21 @@ func (s *Server[Configuration, State]) Mutation(w http.ResponseWriter, r *http.R
 
 // the common unmarshal json body method.
 func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, r *http.Request, counter metric.Int64Counter, body any) error {
-	err := json.NewDecoder(r.Body).Decode(body)
+	defer r.Body.Close()
+
+	// Validate the max body size. In the worst scenario, if the Content-Length header doesn't exist,
+	// the server will validate again after reading the body.
+	if r.ContentLength > 0 {
+		if err := s.validateMaxBodySize(w, r, counter, r.ContentLength); err != nil {
+			return err
+		}
+	}
+
+	requestReader := &sizeReader{
+		reader: r.Body,
+	}
+
+	err := json.NewDecoder(requestReader).Decode(body)
 	if err != nil {
 		writeJson(w, GetLogger(r.Context()), http.StatusUnprocessableEntity, schema.ErrorResponse{
 			Message: "failed to decode json request body",
@@ -345,6 +367,26 @@ func (s *Server[Configuration, State]) unmarshalBodyJSON(w http.ResponseWriter, 
 			httpStatusAttribute(http.StatusUnprocessableEntity),
 		))
 	}
+
+	return s.validateMaxBodySize(w, r, counter, requestReader.size)
+}
+
+func (s *Server[Configuration, State]) validateMaxBodySize(w http.ResponseWriter, r *http.Request, counter metric.Int64Counter, contentLength int64) error {
+	if contentLength <= s.maxBodySize {
+		return nil
+	}
+
+	err := fmt.Errorf("request body size exceeded %d MB(s)", s.options.ServerMaxBodyMegabytes)
+
+	writeJson(w, GetLogger(r.Context()), http.StatusUnprocessableEntity, schema.ErrorResponse{
+		Message: err.Error(),
+		Details: map[string]any{},
+	})
+
+	counter.Add(r.Context(), 1, metric.WithAttributes(
+		failureStatusAttribute,
+		httpStatusAttribute(http.StatusUnprocessableEntity),
+	))
 
 	return err
 }
@@ -455,4 +497,17 @@ func createPrometheusServer(port uint) *http.Server {
 		Handler:           mux,
 		ReadHeaderTimeout: 30 * time.Second,
 	}
+}
+
+// A reader wrapper to estimate the size when decoding with json.Decoder.
+type sizeReader struct {
+	size   int64
+	reader io.Reader
+}
+
+func (sr *sizeReader) Read(p []byte) (int, error) {
+	size, err := sr.reader.Read(p)
+	sr.size += int64(size)
+
+	return size, err
 }

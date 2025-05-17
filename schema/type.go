@@ -7,6 +7,11 @@ import (
 	"slices"
 )
 
+const (
+	// NDCVersion holds the current supported version of the NDC Go SDK.
+	NDCVersion = "0.1.6"
+)
+
 /*
  * Types track the valid representations of values as JSON
  */
