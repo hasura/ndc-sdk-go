@@ -37,15 +37,15 @@ type ServerOptions struct {
 
 // HTTPServerConfig the configuration of the HTTP server.
 type HTTPServerConfig struct {
-	ServerReadTimeout            time.Duration `help:"Maximum duration for reading the entire request, including the body. A zero or negative value means there will be no timeout" env:"HASURA_SERVER_READ_TIMEOUT"`
-	ServerReadHeaderTimeout      time.Duration `help:"Amount of time allowed to read request headers. If zero, the value of ReadTimeout is used" env:"HASURA_SERVER_READ_HEADER_TIMEOUT"`
-	ServerWriteTimeout           time.Duration `help:"Maximum duration before timing out writes of the response. A zero or negative value means there will be no timeout" env:"HASURA_SERVER_WRITE_TIMEOUT"`
-	ServerIdleTimeout            time.Duration `help:"Maximum amount of time to wait for the next request when keep-alives are enabled. If zero, the value of ReadTimeout is used" env:"HASURA_SERVER_IDLE_TIMEOUT"`
-	ServerMaxHeaderKilobytes     int           `help:"Maximum number of kilobytes the server will read parsing the request header's keys and values, including the request line" default:"1024" env:"HASURA_SERVER_MAX_HEADER_KILOBYTES"`
-	ServerMaxBodyMegabytes       int           `help:"Maximum size of the request body in megabytes that the server accepts" default:"30" env:"HASURA_SERVER_MAX_BODY_MEGABYTES"`
-	ServerDefaultHTTPErrorStatus int           `help:"Default HTTP status code if the error does not specify the explicit status" enum:"400,422,500" default:"422" env:"HASURA_SERVER_DEFAULT_HTTP_ERROR_STATUS"`
-	ServerTLSCertFile            string        `help:"Path of the TLS certificate file" env:"HASURA_SERVER_TLS_CERT_FILE"`
-	ServerTLSKeyFile             string        `help:"Path of the TLS key file" env:"HASURA_SERVER_TLS_KEY_FILE"`
+	ServerReadTimeout            time.Duration `env:"HASURA_SERVER_READ_TIMEOUT"              help:"Maximum duration for reading the entire request, including the body. A zero or negative value means there will be no timeout"`
+	ServerReadHeaderTimeout      time.Duration `env:"HASURA_SERVER_READ_HEADER_TIMEOUT"       help:"Amount of time allowed to read request headers. If zero, the value of ReadTimeout is used"`
+	ServerWriteTimeout           time.Duration `env:"HASURA_SERVER_WRITE_TIMEOUT"             help:"Maximum duration before timing out writes of the response. A zero or negative value means there will be no timeout"`
+	ServerIdleTimeout            time.Duration `env:"HASURA_SERVER_IDLE_TIMEOUT"              help:"Maximum amount of time to wait for the next request when keep-alives are enabled. If zero, the value of ReadTimeout is used"`
+	ServerMaxHeaderKilobytes     int           `env:"HASURA_SERVER_MAX_HEADER_KILOBYTES"      help:"Maximum number of kilobytes the server will read parsing the request header's keys and values, including the request line"    default:"1024"`
+	ServerMaxBodyMegabytes       int           `env:"HASURA_SERVER_MAX_BODY_MEGABYTES"        help:"Maximum size of the request body in megabytes that the server accepts"                                                        default:"30"`
+	ServerDefaultHTTPErrorStatus int           `env:"HASURA_SERVER_DEFAULT_HTTP_ERROR_STATUS" help:"Default HTTP status code if the error does not specify the explicit status"                                                   default:"422"  enum:"400,422,500"`
+	ServerTLSCertFile            string        `env:"HASURA_SERVER_TLS_CERT_FILE"             help:"Path of the TLS certificate file"`
+	ServerTLSKeyFile             string        `env:"HASURA_SERVER_TLS_KEY_FILE"              help:"Path of the TLS key file"`
 }
 
 // Validate checks valid configurations and set default values.
@@ -54,7 +54,11 @@ func (hsc *HTTPServerConfig) Validate() error {
 		hsc.ServerMaxBodyMegabytes = 30
 	}
 
-	allowedHttpErrorCodes := []int{http.StatusBadRequest, http.StatusUnprocessableEntity, http.StatusInternalServerError}
+	allowedHttpErrorCodes := []int{
+		http.StatusBadRequest,
+		http.StatusUnprocessableEntity,
+		http.StatusInternalServerError,
+	}
 
 	if hsc.ServerDefaultHTTPErrorStatus == 0 {
 		hsc.ServerDefaultHTTPErrorStatus = http.StatusUnprocessableEntity
@@ -98,7 +102,7 @@ func NewServer[Configuration any, State any](
 		options.ServiceName = defaultOptions.serviceName
 	}
 
-	if err := options.HTTPServerConfig.Validate(); err != nil {
+	if err := options.Validate(); err != nil {
 		return nil, err
 	}
 
@@ -161,6 +165,7 @@ func (s *Server[Configuration, State]) GetCapabilities(w http.ResponseWriter, r 
 	capabilities := s.connector.GetCapabilities(s.configuration)
 	if capabilities == nil {
 		s.writeError(w, logger, schema.InternalServerError("capabilities is empty", nil))
+
 		return
 	}
 
@@ -174,6 +179,7 @@ func (s *Server[Configuration, State]) Health(w http.ResponseWriter, r *http.Req
 	logger := GetLogger(r.Context())
 	if err := s.connector.HealthCheck(r.Context(), s.configuration, s.state); err != nil {
 		s.writeError(w, logger, err)
+
 		return
 	}
 
@@ -183,14 +189,17 @@ func (s *Server[Configuration, State]) Health(w http.ResponseWriter, r *http.Req
 // GetSchema implements a handler for the /schema endpoint, GET method.
 func (s *Server[Configuration, State]) GetSchema(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r.Context())
+
 	schemaResult, err := s.connector.GetSchema(r.Context(), s.configuration, s.state)
 	if err != nil {
 		s.writeError(w, logger, err)
+
 		return
 	}
 
 	if schemaResult == nil {
 		s.writeError(w, logger, schema.InternalServerError("schema is empty", nil))
+
 		return
 	}
 
@@ -455,7 +464,12 @@ func (s *Server[Configuration, State]) unmarshalBodyJSON(
 	return s.validateMaxBodySize(w, r, counter, requestReader.size)
 }
 
-func (s *Server[Configuration, State]) validateMaxBodySize(w http.ResponseWriter, r *http.Request, counter metric.Int64Counter, contentLength int64) error {
+func (s *Server[Configuration, State]) validateMaxBodySize(
+	w http.ResponseWriter,
+	r *http.Request,
+	counter metric.Int64Counter,
+	contentLength int64,
+) error {
 	if contentLength <= s.maxBodySize {
 		return nil
 	}
@@ -475,7 +489,11 @@ func (s *Server[Configuration, State]) validateMaxBodySize(w http.ResponseWriter
 	return err
 }
 
-func (s *Server[Configuration, State]) writeError(w http.ResponseWriter, logger *slog.Logger, err error) int {
+func (s *Server[Configuration, State]) writeError(
+	w http.ResponseWriter,
+	logger *slog.Logger,
+	err error,
+) int {
 	return writeError(w, logger, err, s.options.ServerDefaultHTTPErrorStatus)
 }
 
