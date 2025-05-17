@@ -76,6 +76,8 @@ linters:
       min-complexity: 31
     tagalign:
       strict: false
+      align: false
+      sort: false
 
   # Defines a set of rules to ignore issues.
   # It does not skip the analysis, and so does not ignore "typecheck" errors.

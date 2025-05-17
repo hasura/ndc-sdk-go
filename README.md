@@ -58,42 +58,46 @@ Flags:
   -h, --help                                   Show context-sensitive help.
       --log-level="info"                       Log level ($HASURA_LOG_LEVEL).
 
-      --service-name=STRING                    OpenTelemetry service name ($OTEL_SERVICE_NAME).
-      --otlp-endpoint=STRING                   OpenTelemetry receiver endpoint that is set as default for all types ($OTEL_EXPORTER_OTLP_ENDPOINT).
-      --otlp-traces-endpoint=STRING            OpenTelemetry endpoint for traces ($OTEL_EXPORTER_OTLP_TRACES_ENDPOINT).
-      --otlp-metrics-endpoint=STRING           OpenTelemetry endpoint for metrics ($OTEL_EXPORTER_OTLP_METRICS_ENDPOINT).
-      --otlp-logs-endpoint=STRING              OpenTelemetry endpoint for logs ($OTEL_EXPORTER_OTLP_LOGS_ENDPOINT).
-      --otlp-insecure                          Disable LTS for OpenTelemetry exporters ($OTEL_EXPORTER_OTLP_INSECURE).
-      --otlp-traces-insecure                   Disable LTS for OpenTelemetry traces exporter ($OTEL_EXPORTER_OTLP_TRACES_INSECURE).
-      --otlp-metrics-insecure                  Disable LTS for OpenTelemetry metrics exporter ($OTEL_EXPORTER_OTLP_METRICS_INSECURE).
-      --otlp-logs-insecure                     Disable LTS for OpenTelemetry logs exporter ($OTEL_EXPORTER_OTLP_LOGS_INSECURE).
-      --otlp-protocol=STRING                   OpenTelemetry receiver protocol for all types ($OTEL_EXPORTER_OTLP_PROTOCOL).
-      --otlp-traces-protocol=STRING            OpenTelemetry receiver protocol for traces ($OTEL_EXPORTER_OTLP_TRACES_PROTOCOL).
-      --otlp-metrics-protocol=STRING           OpenTelemetry receiver protocol for metrics ($OTEL_EXPORTER_OTLP_METRICS_PROTOCOL).
-      --otlp-logs-protocol=STRING              OpenTelemetry receiver protocol for logs ($OTEL_EXPORTER_OTLP_LOGS_PROTOCOL).
-      --otlp-compression="gzip"                Enable compression for OTLP exporters. Accept: none, gzip ($OTEL_EXPORTER_OTLP_COMPRESSION)
-      --otlp-trace-compression="gzip"          Enable compression for OTLP traces exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_TRACES_COMPRESSION)
-      --otlp-metrics-compression="gzip"        Enable compression for OTLP metrics exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_METRICS_COMPRESSION)
-      --otlp-logs-compression="gzip"           Enable compression for OTLP logs exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_LOGS_COMPRESSION)
-      --metrics-exporter="none"                Metrics export type. Accept: none, otlp, prometheus ($OTEL_METRICS_EXPORTER)
-      --logs-exporter="none"                   Logs export type. Accept: none, otlp ($OTEL_LOGS_EXPORTER)
-      --prometheus-port=PROMETHEUS-PORT        Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty
-                                               ($OTEL_EXPORTER_PROMETHEUS_PORT)
-      --disable-go-metrics                     Disable internal Go and process metrics
-      --server-read-timeout=DURATION           Maximum duration for reading the entire request, including the body. A zero or negative value means there will be no timeout
-                                               ($HASURA_SERVER_READ_TIMEOUT)
-      --server-read-header-timeout=DURATION    Amount of time allowed to read request headers. If zero, the value of ReadTimeout is used ($HASURA_SERVER_READ_HEADER_TIMEOUT)
-      --server-write-timeout=DURATION          Maximum duration before timing out writes of the response. A zero or negative value means there will be no timeout
-                                               ($HASURA_SERVER_WRITE_TIMEOUT)
-      --server-idle-timeout=DURATION           Maximum amount of time to wait for the next request when keep-alives are enabled. If zero, the value of ReadTimeout is used
-                                               ($HASURA_SERVER_IDLE_TIMEOUT)
-      --server-max-header-kilobytes=1024       Maximum number of kilobytes the server will read parsing the request header's keys and values, including the request line
-                                               ($HASURA_SERVER_MAX_HEADER_KILOBYTES)
-      --server-tls-cert-file=STRING            Path of the TLS certificate file ($HASURA_SERVER_TLS_CERT_FILE)
-      --server-tls-key-file=STRING             Path of the TLS key file ($HASURA_SERVER_TLS_KEY_FILE)
-      --configuration=STRING                   Configuration directory ($HASURA_CONFIGURATION_DIRECTORY)
-      --port=8080                              Serve Port ($HASURA_CONNECTOR_PORT)
-      --service-token-secret=STRING            Service token secret ($HASURA_SERVICE_TOKEN_SECRET)
+      --service-name=STRING                     OpenTelemetry service name ($OTEL_SERVICE_NAME).
+      --otlp-endpoint=STRING                    OpenTelemetry receiver endpoint that is set as default for all types ($OTEL_EXPORTER_OTLP_ENDPOINT).
+      --otlp-traces-endpoint=STRING             OpenTelemetry endpoint for traces ($OTEL_EXPORTER_OTLP_TRACES_ENDPOINT).
+      --otlp-metrics-endpoint=STRING            OpenTelemetry endpoint for metrics ($OTEL_EXPORTER_OTLP_METRICS_ENDPOINT).
+      --otlp-logs-endpoint=STRING               OpenTelemetry endpoint for logs ($OTEL_EXPORTER_OTLP_LOGS_ENDPOINT).
+      --otlp-insecure                           Disable LTS for OpenTelemetry exporters ($OTEL_EXPORTER_OTLP_INSECURE).
+      --otlp-traces-insecure                    Disable LTS for OpenTelemetry traces exporter ($OTEL_EXPORTER_OTLP_TRACES_INSECURE).
+      --otlp-metrics-insecure                   Disable LTS for OpenTelemetry metrics exporter ($OTEL_EXPORTER_OTLP_METRICS_INSECURE).
+      --otlp-logs-insecure                      Disable LTS for OpenTelemetry logs exporter ($OTEL_EXPORTER_OTLP_LOGS_INSECURE).
+      --otlp-protocol=STRING                    OpenTelemetry receiver protocol for all types ($OTEL_EXPORTER_OTLP_PROTOCOL).
+      --otlp-traces-protocol=STRING             OpenTelemetry receiver protocol for traces ($OTEL_EXPORTER_OTLP_TRACES_PROTOCOL).
+      --otlp-metrics-protocol=STRING            OpenTelemetry receiver protocol for metrics ($OTEL_EXPORTER_OTLP_METRICS_PROTOCOL).
+      --otlp-logs-protocol=STRING               OpenTelemetry receiver protocol for logs ($OTEL_EXPORTER_OTLP_LOGS_PROTOCOL).
+      --otlp-compression="gzip"                 Enable compression for OTLP exporters. Accept: none, gzip ($OTEL_EXPORTER_OTLP_COMPRESSION)
+      --otlp-trace-compression="gzip"           Enable compression for OTLP traces exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_TRACES_COMPRESSION)
+      --otlp-metrics-compression="gzip"         Enable compression for OTLP metrics exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_METRICS_COMPRESSION)
+      --otlp-logs-compression="gzip"            Enable compression for OTLP logs exporter. Accept: none, gzip ($OTEL_EXPORTER_OTLP_LOGS_COMPRESSION)
+      --metrics-exporter="none"                 Metrics export type. Accept: none, otlp, prometheus ($OTEL_METRICS_EXPORTER)
+      --logs-exporter="none"                    Logs export type. Accept: none, otlp ($OTEL_LOGS_EXPORTER)
+      --prometheus-port=PROMETHEUS-PORT         Prometheus port for the Prometheus HTTP server. Use /metrics endpoint of the connector server if empty
+                                                ($OTEL_EXPORTER_PROMETHEUS_PORT)
+      --disable-go-metrics                      Disable internal Go and process metrics
+      --server-read-timeout=DURATION            Maximum duration for reading the entire request, including the body. A zero or negative value means there
+                                                will be no timeout ($HASURA_SERVER_READ_TIMEOUT)
+      --server-read-header-timeout=DURATION     Amount of time allowed to read request headers. If zero, the value of ReadTimeout is used
+                                                ($HASURA_SERVER_READ_HEADER_TIMEOUT)
+      --server-write-timeout=DURATION           Maximum duration before timing out writes of the response. A zero or negative value means there will be no
+                                                timeout ($HASURA_SERVER_WRITE_TIMEOUT)
+      --server-idle-timeout=DURATION            Maximum amount of time to wait for the next request when keep-alives are enabled. If zero, the value of
+                                                ReadTimeout is used ($HASURA_SERVER_IDLE_TIMEOUT)
+      --server-max-header-kilobytes=1024        Maximum number of kilobytes the server will read parsing the request header's keys and values, including the
+                                                request line ($HASURA_SERVER_MAX_HEADER_KILOBYTES)
+      --server-max-body-megabytes=30            Maximum size of the request body in megabytes that the server accepts ($HASURA_SERVER_MAX_BODY_MEGABYTES)
+      --server-default-http-error-status=422    Default HTTP status code if the error does not specify the explicit status
+                                                ($HASURA_SERVER_DEFAULT_HTTP_ERROR_STATUS)
+      --server-tls-cert-file=STRING             Path of the TLS certificate file ($HASURA_SERVER_TLS_CERT_FILE)
+      --server-tls-key-file=STRING              Path of the TLS key file ($HASURA_SERVER_TLS_KEY_FILE)
+      --configuration=STRING                    Configuration directory ($HASURA_CONFIGURATION_DIRECTORY)
+      --port=8080                               Serve Port ($HASURA_CONNECTOR_PORT)
+      --service-token-secret=STRING             Service token secret ($HASURA_SERVICE_TOKEN_SECRET)
 ```
 
 Please refer to the [NDC Spec](https://hasura.github.io/ndc-spec/) for details on implementing the Connector interface, or see [examples](./example).
@@ -135,11 +139,19 @@ The prefix is empty by default. You can set the prefix for your connector by `Wi
 
 ### Logging
 
-NDC Go SDK uses the standard [log/slog](https://pkg.go.dev/log/slog) that provides highly customizable and structured logging. By default, the logger is printed in JSON format and configurable level with `--log-level` (HASURA_LOG_LEVEL) flag. You also can replace it with different logging libraries that can wrap the `slog.Handler` interface, and set the logger with the `WithLogger` or `WithLoggerFunc` option.
+NDC Go SDK uses the standard [log/slog](https://pkg.go.dev/log/slog) that provides highly customizable and structured logging. By default, the logger is printed in JSON format and configurable level with `--log-level` (HASURA_LOG_LEVEL) flag. You can also replace it with different logging libraries that can wrap the `slog.Handler` interface, and set the logger with the `WithLogger` or `WithLoggerFunc` option.
+
+## Best Practices 
+
+### Error Handling
+
+You should wrap exception errors with the `ConnectorError` struct and specify the explicit HTTP error status. `HASURA_SERVER_DEFAULT_HTTP_ERROR_STATUS` (default to `422`) will be returned if you don't wrap the error. The connector supports helper functions to create connector errors in the [schema](./schema/error.go) package.
+
+The Hasura engine v3 shows the explicit error content only if the connector returns HTTP 422 Unprocessable Content. Otherwise, the general internal error is responded to. Therefore, you should actively control which error is safe to show it to end users.
 
 ## Customize the CLI
 
-The SDK uses [Kong](https://github.com/alecthomas/kong), a lightweight command-line parser to implement the CLI interface.
+The SDK uses [Kong](https://github.com/alecthomas/kong), a lightweight command-line parser, to implement the CLI interface.
 
 The default CLI already implements the `serve` command, so you don't need to do anything. However, it's also easy to extend if you want to add more custom commands.
 
