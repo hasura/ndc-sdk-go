@@ -10,7 +10,7 @@ jobs:
 
   build-cli-binaries:
     name: build the CLI binaries
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: [tests]
     steps:
       - name: Checkout
