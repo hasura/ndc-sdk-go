@@ -145,7 +145,7 @@ func SetupOTelExporters(
 	otelDisabled := os.Getenv("OTEL_SDK_DISABLED") == "true"
 
 	// Set up resource.
-	res := newResource(logger, config.ServiceName, serviceVersion)
+	res := newResource(config.ServiceName, serviceVersion)
 
 	traceProvider, err := setupOTelTraceProvider(ctx, config, res, otelDisabled)
 	if err != nil {
@@ -375,7 +375,7 @@ func setupOTelMetricsProvider(
 	return meterProvider, nil
 }
 
-func newResource(logger *slog.Logger, serviceName, serviceVersion string) *resource.Resource {
+func newResource(serviceName, serviceVersion string) *resource.Resource {
 	hostname, _ := os.Hostname()
 
 	return resource.NewWithAttributes(semconv.SchemaURL,

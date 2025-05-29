@@ -37,7 +37,8 @@ func (s *Server[Configuration, State]) withNDCVersionCheck(w http.ResponseWriter
 
 		// The connector may implement the patch version ahead of the engine
 		// so the connector should validate major and minor version only.
-		if s.ndcVersionConstraint.Major() != parsedVersion.Major() || s.ndcVersionConstraint.Minor() != parsedVersion.Minor() {
+		if s.ndcVersionConstraint.Major() != parsedVersion.Major() ||
+			s.ndcVersionConstraint.Minor() != parsedVersion.Minor() {
 			writeError(
 				w,
 				logger,
