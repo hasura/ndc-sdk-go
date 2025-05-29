@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
+	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
@@ -28,10 +29,11 @@ import (
 	"go.opentelemetry.io/otel/log/global"
 	metricapi "go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.32.0"
 	traceapi "go.opentelemetry.io/otel/trace"
 )
 
@@ -374,19 +376,17 @@ func setupOTelMetricsProvider(
 }
 
 func newResource(logger *slog.Logger, serviceName, serviceVersion string) *resource.Resource {
-	attrs := resource.NewWithAttributes(semconv.SchemaURL,
+	hostname, _ := os.Hostname()
+
+	return resource.NewWithAttributes(semconv.SchemaURL,
 		semconv.ServiceName(serviceName),
 		semconv.ServiceVersion(serviceVersion),
+		semconv.HostNameKey.String(hostname),
+		semconv.TelemetrySDKLanguageGo,
+		semconv.TelemetrySDKVersion(sdk.Version()),
+		semconv.ProcessPIDKey.Int64(int64(os.Getpid())),
+		attribute.String("ndc.spec.version", schema.NDCVersion),
 	)
-
-	res, err := resource.Merge(resource.Default(), attrs)
-	if err != nil {
-		logger.Warn(err.Error())
-
-		return attrs
-	}
-
-	return res
 }
 
 func newPropagator() propagation.TextMapPropagator {
