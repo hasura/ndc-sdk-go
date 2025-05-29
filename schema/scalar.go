@@ -16,6 +16,7 @@ func NewScalarType() *ScalarType {
 	return &ScalarType{
 		AggregateFunctions:  ScalarTypeAggregateFunctions{},
 		ComparisonOperators: map[string]ComparisonOperatorDefinition{},
+		ExtractionFunctions: ScalarTypeExtractionFunctions{},
 	}
 }
 
