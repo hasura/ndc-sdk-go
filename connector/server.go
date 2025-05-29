@@ -75,15 +75,15 @@ func (hsc *HTTPServerConfig) Validate() error {
 type Server[Configuration any, State any] struct {
 	*serveOptions
 
-	context               context.Context //nolint:containedctx
-	stop                  context.CancelFunc
-	connector             Connector[Configuration, State]
-	state                 *State
-	configuration         *Configuration
-	options               *ServerOptions
-	telemetry             *TelemetryState
-	ndcVersionConstraints *semver.Constraints
-	maxBodySize           int64
+	context              context.Context //nolint:containedctx
+	stop                 context.CancelFunc
+	connector            Connector[Configuration, State]
+	state                *State
+	configuration        *Configuration
+	options              *ServerOptions
+	telemetry            *TelemetryState
+	ndcVersionConstraint *semver.Version
+	maxBodySize          int64
 }
 
 // NewServer creates a Server instance.
@@ -139,22 +139,22 @@ func NewServer[Configuration any, State any](
 		return nil, err
 	}
 
-	ndcVersionConstraint, err := semver.NewConstraint("^" + schema.NDCVersion)
+	ndcVersionConstraint, err := semver.NewVersion(schema.NDCVersion)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Server[Configuration, State]{
-		context:               ctx,
-		stop:                  stop,
-		connector:             connector,
-		state:                 state,
-		configuration:         configuration,
-		options:               options,
-		telemetry:             telemetry,
-		serveOptions:          defaultOptions,
-		ndcVersionConstraints: ndcVersionConstraint,
-		maxBodySize:           int64(options.ServerMaxBodyMegabytes) * 1024 * 1024,
+		context:              ctx,
+		stop:                 stop,
+		connector:            connector,
+		state:                state,
+		configuration:        configuration,
+		options:              options,
+		telemetry:            telemetry,
+		serveOptions:         defaultOptions,
+		ndcVersionConstraint: ndcVersionConstraint,
+		maxBodySize:          int64(options.ServerMaxBodyMegabytes) * 1024 * 1024,
 	}, nil
 }
 
