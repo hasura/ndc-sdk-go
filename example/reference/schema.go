@@ -443,4 +443,9 @@ var ndcSchema = schema.SchemaResponse{
 			},
 		},
 	},
+	RequestArguments: &schema.RequestLevelArguments{
+		MutationArguments:        make(schema.RequestLevelArgumentsMutationArguments),
+		QueryArguments:           make(schema.RequestLevelArgumentsQueryArguments),
+		RelationalQueryArguments: make(schema.RequestLevelArgumentsRelationalQueryArguments),
+	},
 }

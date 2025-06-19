@@ -337,6 +337,10 @@
         "query": {
           "$ref": "#/definitions/QueryCapabilities"
         },
+        "relational_mutation": {
+          "$ref": "#/definitions/RelationalMutationCapabilities",
+          "description": "Does the connector support the relational mutation API? This feature is experimental and subject to breaking changes within minor versions."
+        },
         "relational_query": {
           "$ref": "#/definitions/RelationalQueryCapabilities",
           "description": "Does the connector support the relational query API? This feature is experimental and subject to breaking changes within minor versions."
@@ -379,18 +383,13 @@
       "type": "object"
     },
     "CollectionInfo": {
-      "title": "Collection Info",
-      "type": "object",
-      "required": [
-        "arguments",
-        "name",
-        "type",
-        "uniqueness_constraints"
-      ],
       "properties": {
-        "name": {
-          "description": "The name of the collection\n\nNote: these names are abstract - there is no requirement that this name correspond to the name of an actual collection in the database.",
-          "type": "string"
+        "arguments": {
+          "description": "Any arguments that this collection requires",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ArgumentInfo"
+          }
         },
         "description": {
           "description": "Description of the collection",
@@ -399,12 +398,13 @@
             "null"
           ]
         },
-        "arguments": {
-          "description": "Any arguments that this collection requires",
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/ArgumentInfo"
-          }
+        "name": {
+          "description": "The name of the collection\n\nNote: these names are abstract - there is no requirement that this name correspond to the name of an actual collection in the database.",
+          "type": "string"
+        },
+        "relational_mutations": {
+          "$ref": "#/definitions/RelationalMutationInfo",
+          "description": "Information about relational mutation capabilities for this collection"
         },
         "type": {
           "description": "The name of the collection's object type",
@@ -417,7 +417,15 @@
             "$ref": "#/definitions/UniquenessConstraint"
           }
         }
-      }
+      },
+      "required": [
+        "arguments",
+        "name",
+        "type",
+        "uniqueness_constraints"
+      ],
+      "title": "Collection Info",
+      "type": "object"
     },
     "ComparisonOperatorDefinition": {
       "title": "Comparison Operator Definition",
@@ -794,6 +802,9 @@
           "$ref": "#/definitions/LeafCapability"
         },
         "day_of_year": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "epoch": {
           "$ref": "#/definitions/LeafCapability"
         },
         "hour": {
@@ -2102,6 +2113,14 @@
           "additionalProperties": {
             "$ref": "#/definitions/Relationship"
           }
+        },
+        "request_arguments": {
+          "description": "Values to be provided to request-level arguments.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
         }
       }
     },
@@ -2639,6 +2658,14 @@
           "$ref": "#/definitions/Query",
           "description": "The query syntax tree"
         },
+        "request_arguments": {
+          "description": "Values to be provided to request-level arguments.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        },
         "variables": {
           "description": "One set of named variables for each rowset to fetch. Each variable set should be subtituted in turn, and a fresh set of rows returned. Only used if the 'query.variables' capability is supported.",
           "type": [
@@ -2868,6 +2895,45 @@
       "title": "Relational Join Type Capabilities",
       "type": "object"
     },
+    "RelationalMutationCapabilities": {
+      "description": "Describes which features of the relational mutation API are supported by the connector. This feature is experimental and subject to breaking changes within minor versions.",
+      "properties": {
+        "delete": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "insert": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "update": {
+          "$ref": "#/definitions/LeafCapability"
+        }
+      },
+      "title": "Relational Mutation Capabilities",
+      "type": "object"
+    },
+    "RelationalMutationInfo": {
+      "title": "Relational Mutation Info",
+      "type": "object",
+      "required": [
+        "deletable",
+        "insertable",
+        "updatable"
+      ],
+      "properties": {
+        "insertable": {
+          "description": "Whether inserts are supported for this collection",
+          "type": "boolean"
+        },
+        "updatable": {
+          "description": "Whether updates are supported for this collection",
+          "type": "boolean"
+        },
+        "deletable": {
+          "description": "Whether deletes are supported for this collection",
+          "type": "boolean"
+        }
+      }
+    },
     "RelationalProjectionCapabilities": {
       "title": "Relational Projection Capabilities",
       "type": "object",
@@ -2898,6 +2964,9 @@
         "sort": {
           "$ref": "#/definitions/LeafCapability"
         },
+        "union": {
+          "$ref": "#/definitions/LeafCapability"
+        },
         "window": {
           "$ref": "#/definitions/LeafCapability"
         }
@@ -2917,6 +2986,9 @@
           "$ref": "#/definitions/LeafCapability"
         },
         "array_element": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "binary_concat": {
           "$ref": "#/definitions/LeafCapability"
         },
         "btrim": {
@@ -3242,6 +3314,38 @@
         "array"
       ]
     },
+    "RequestLevelArguments": {
+      "title": "Request Level Arguments",
+      "type": "object",
+      "required": [
+        "mutation_arguments",
+        "query_arguments",
+        "relational_query_arguments"
+      ],
+      "properties": {
+        "query_arguments": {
+          "description": "Any arguments that all Query requests require",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ArgumentInfo"
+          }
+        },
+        "mutation_arguments": {
+          "description": "Any arguments that all Mutation requests require",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ArgumentInfo"
+          }
+        },
+        "relational_query_arguments": {
+          "description": "Any arguments that all Relational Query requests require",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ArgumentInfo"
+          }
+        }
+      }
+    },
     "RowFieldValue": {
       "title": "Row Field Value"
     },
@@ -3357,6 +3461,10 @@
           "items": {
             "$ref": "#/definitions/ProcedureInfo"
           }
+        },
+        "request_arguments": {
+          "$ref": "#/definitions/RequestLevelArguments",
+          "description": "Request level arguments which are required for queries and mutations"
         },
         "scalar_types": {
           "description": "A list of scalar types which will be used as the types of collection columns",
