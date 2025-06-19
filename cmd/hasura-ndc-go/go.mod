@@ -6,7 +6,7 @@ require (
 	github.com/alecthomas/kong v1.11.0
 	github.com/fatih/structtag v1.2.0
 	github.com/google/uuid v1.6.0
-	github.com/hasura/ndc-sdk-go v1.9.2-0.20250529034129-0f324fadea32
+	github.com/hasura/ndc-sdk-go v1.9.2-0.20250619150334-09d4d913b6e7
 	github.com/huandu/xstrings v1.5.0
 	github.com/rs/zerolog v1.34.0
 	golang.org/x/mod v0.24.0
@@ -15,7 +15,7 @@ require (
 )
 
 require (
-	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
