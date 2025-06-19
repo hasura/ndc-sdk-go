@@ -74,6 +74,10 @@ type Capabilities struct {
 	// Query corresponds to the JSON schema field "query".
 	Query QueryCapabilities `json:"query" yaml:"query" mapstructure:"query"`
 
+	// Does the connector support the relational mutation API? This feature is
+	// experimental and subject to breaking changes within minor versions.
+	RelationalMutation interface{} `json:"relational_mutation,omitempty" yaml:"relational_mutation,omitempty" mapstructure:"relational_mutation,omitempty"`
+
 	// Does the connector support the relational query API? This feature is
 	// experimental and subject to breaking changes within minor versions.
 	RelationalQuery *RelationalQueryCapabilities `json:"relational_query,omitempty" yaml:"relational_query,omitempty" mapstructure:"relational_query,omitempty"`
@@ -150,6 +154,9 @@ type CollectionInfo struct {
 	// correspond to the name of an actual collection in the database.
 	Name string `json:"name" yaml:"name" mapstructure:"name"`
 
+	// Information about relational mutation capabilities for this collection
+	RelationalMutations interface{} `json:"relational_mutations,omitempty" yaml:"relational_mutations,omitempty" mapstructure:"relational_mutations,omitempty"`
+
 	// The name of the collection's object type
 	Type string `json:"type" yaml:"type" mapstructure:"type"`
 
@@ -201,6 +208,9 @@ type DatePartScalarExpressionCapability struct {
 
 	// DayOfYear corresponds to the JSON schema field "day_of_year".
 	DayOfYear *LeafCapability `json:"day_of_year,omitempty" yaml:"day_of_year,omitempty" mapstructure:"day_of_year,omitempty"`
+
+	// Epoch corresponds to the JSON schema field "epoch".
+	Epoch interface{} `json:"epoch,omitempty" yaml:"epoch,omitempty" mapstructure:"epoch,omitempty"`
 
 	// Hour corresponds to the JSON schema field "hour".
 	Hour *LeafCapability `json:"hour,omitempty" yaml:"hour,omitempty" mapstructure:"hour,omitempty"`
@@ -570,11 +580,17 @@ type MutationRequest struct {
 
 	// The mutation operations to perform
 	Operations []MutationOperation `json:"operations" yaml:"operations" mapstructure:"operations"`
+
+	// Values to be provided to request-level arguments.
+	RequestArguments MutationRequestRequestArguments `json:"request_arguments,omitempty" yaml:"request_arguments,omitempty" mapstructure:"request_arguments,omitempty"`
 }
 
 // The relationships between collections involved in the entire mutation request.
 // Only used if the 'relationships' capability is supported.
 type MutationRequestCollectionRelationships map[string]Relationship
+
+// Values to be provided to request-level arguments.
+type MutationRequestRequestArguments map[string]interface{}
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *MutationRequest) UnmarshalJSON(b []byte) error {
@@ -999,6 +1015,9 @@ type QueryRequest struct {
 	// The query syntax tree
 	Query Query `json:"query" yaml:"query" mapstructure:"query"`
 
+	// Values to be provided to request-level arguments.
+	RequestArguments QueryRequestRequestArguments `json:"request_arguments,omitempty" yaml:"request_arguments,omitempty" mapstructure:"request_arguments,omitempty"`
+
 	// One set of named variables for each rowset to fetch. Each variable set should
 	// be subtituted in turn, and a fresh set of rows returned. Only used if the
 	// 'query.variables' capability is supported.
@@ -1011,6 +1030,9 @@ type QueryRequestArguments map[string]Argument
 // Any relationships between collections involved in the query request. Only used
 // if the 'relationships' capability is supported.
 type QueryRequestCollectionRelationships map[string]Relationship
+
+// Values to be provided to request-level arguments.
+type QueryRequestRequestArguments map[string]interface{}
 
 type QueryRequestVariablesElem map[string]interface{}
 
@@ -1285,6 +1307,55 @@ type RelationalJoinTypeCapabilities struct {
 	RightSemi *LeafCapability `json:"right_semi,omitempty" yaml:"right_semi,omitempty" mapstructure:"right_semi,omitempty"`
 }
 
+// Describes which features of the relational mutation API are supported by the
+// connector. This feature is experimental and subject to breaking changes within
+// minor versions.
+type RelationalMutationCapabilities struct {
+	// Delete corresponds to the JSON schema field "delete".
+	Delete interface{} `json:"delete,omitempty" yaml:"delete,omitempty" mapstructure:"delete,omitempty"`
+
+	// Insert corresponds to the JSON schema field "insert".
+	Insert interface{} `json:"insert,omitempty" yaml:"insert,omitempty" mapstructure:"insert,omitempty"`
+
+	// Update corresponds to the JSON schema field "update".
+	Update interface{} `json:"update,omitempty" yaml:"update,omitempty" mapstructure:"update,omitempty"`
+}
+
+type RelationalMutationInfo struct {
+	// Whether deletes are supported for this collection
+	Deletable bool `json:"deletable" yaml:"deletable" mapstructure:"deletable"`
+
+	// Whether inserts are supported for this collection
+	Insertable bool `json:"insertable" yaml:"insertable" mapstructure:"insertable"`
+
+	// Whether updates are supported for this collection
+	Updatable bool `json:"updatable" yaml:"updatable" mapstructure:"updatable"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationalMutationInfo) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["deletable"]; raw != nil && !ok {
+		return fmt.Errorf("field deletable in RelationalMutationInfo: required")
+	}
+	if _, ok := raw["insertable"]; raw != nil && !ok {
+		return fmt.Errorf("field insertable in RelationalMutationInfo: required")
+	}
+	if _, ok := raw["updatable"]; raw != nil && !ok {
+		return fmt.Errorf("field updatable in RelationalMutationInfo: required")
+	}
+	type Plain RelationalMutationInfo
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = RelationalMutationInfo(plain)
+	return nil
+}
+
 type RelationalProjectionCapabilities struct {
 	// Expression corresponds to the JSON schema field "expression".
 	Expression RelationalExpressionCapabilities `json:"expression" yaml:"expression" mapstructure:"expression"`
@@ -1327,6 +1398,9 @@ type RelationalQueryCapabilities struct {
 	// Sort corresponds to the JSON schema field "sort".
 	Sort *LeafCapability `json:"sort,omitempty" yaml:"sort,omitempty" mapstructure:"sort,omitempty"`
 
+	// Union corresponds to the JSON schema field "union".
+	Union interface{} `json:"union,omitempty" yaml:"union,omitempty" mapstructure:"union,omitempty"`
+
 	// Window corresponds to the JSON schema field "window".
 	Window *LeafCapability `json:"window,omitempty" yaml:"window,omitempty" mapstructure:"window,omitempty"`
 }
@@ -1358,6 +1432,9 @@ type RelationalScalarExpressionCapabilities struct {
 
 	// ArrayElement corresponds to the JSON schema field "array_element".
 	ArrayElement *LeafCapability `json:"array_element,omitempty" yaml:"array_element,omitempty" mapstructure:"array_element,omitempty"`
+
+	// BinaryConcat corresponds to the JSON schema field "binary_concat".
+	BinaryConcat interface{} `json:"binary_concat,omitempty" yaml:"binary_concat,omitempty" mapstructure:"binary_concat,omitempty"`
 
 	// Btrim corresponds to the JSON schema field "btrim".
 	Btrim *LeafCapability `json:"btrim,omitempty" yaml:"btrim,omitempty" mapstructure:"btrim,omitempty"`
@@ -1676,6 +1753,50 @@ func (j *Relationship) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+type RequestLevelArguments struct {
+	// Any arguments that all Mutation requests require
+	MutationArguments RequestLevelArgumentsMutationArguments `json:"mutation_arguments" yaml:"mutation_arguments" mapstructure:"mutation_arguments"`
+
+	// Any arguments that all Query requests require
+	QueryArguments RequestLevelArgumentsQueryArguments `json:"query_arguments" yaml:"query_arguments" mapstructure:"query_arguments"`
+
+	// Any arguments that all Relational Query requests require
+	RelationalQueryArguments RequestLevelArgumentsRelationalQueryArguments `json:"relational_query_arguments" yaml:"relational_query_arguments" mapstructure:"relational_query_arguments"`
+}
+
+// Any arguments that all Mutation requests require
+type RequestLevelArgumentsMutationArguments map[string]ArgumentInfo
+
+// Any arguments that all Query requests require
+type RequestLevelArgumentsQueryArguments map[string]ArgumentInfo
+
+// Any arguments that all Relational Query requests require
+type RequestLevelArgumentsRelationalQueryArguments map[string]ArgumentInfo
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RequestLevelArguments) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["mutation_arguments"]; raw != nil && !ok {
+		return fmt.Errorf("field mutation_arguments in RequestLevelArguments: required")
+	}
+	if _, ok := raw["query_arguments"]; raw != nil && !ok {
+		return fmt.Errorf("field query_arguments in RequestLevelArguments: required")
+	}
+	if _, ok := raw["relational_query_arguments"]; raw != nil && !ok {
+		return fmt.Errorf("field relational_query_arguments in RequestLevelArguments: required")
+	}
+	type Plain RequestLevelArguments
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = RequestLevelArguments(plain)
+	return nil
+}
+
 type RowSet struct {
 	// The results of the aggregates returned by the query
 	Aggregates RowSetAggregates `json:"aggregates,omitempty" yaml:"aggregates,omitempty" mapstructure:"aggregates,omitempty"`
@@ -1833,6 +1954,9 @@ type SchemaResponse struct {
 
 	// Procedures which are available for execution as part of mutations
 	Procedures []ProcedureInfo `json:"procedures" yaml:"procedures" mapstructure:"procedures"`
+
+	// Request level arguments which are required for queries and mutations
+	RequestArguments interface{} `json:"request_arguments,omitempty" yaml:"request_arguments,omitempty" mapstructure:"request_arguments,omitempty"`
 
 	// A list of scalar types which will be used as the types of collection columns
 	ScalarTypes SchemaResponseScalarTypes `json:"scalar_types" yaml:"scalar_types" mapstructure:"scalar_types"`
