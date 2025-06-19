@@ -76,7 +76,7 @@ type Capabilities struct {
 
 	// Does the connector support the relational mutation API? This feature is
 	// experimental and subject to breaking changes within minor versions.
-	RelationalMutation interface{} `json:"relational_mutation,omitempty" yaml:"relational_mutation,omitempty" mapstructure:"relational_mutation,omitempty"`
+	RelationalMutation *RelationalMutationCapabilities `json:"relational_mutation,omitempty" yaml:"relational_mutation,omitempty" mapstructure:"relational_mutation,omitempty"`
 
 	// Does the connector support the relational query API? This feature is
 	// experimental and subject to breaking changes within minor versions.
@@ -155,7 +155,7 @@ type CollectionInfo struct {
 	Name string `json:"name" yaml:"name" mapstructure:"name"`
 
 	// Information about relational mutation capabilities for this collection
-	RelationalMutations interface{} `json:"relational_mutations,omitempty" yaml:"relational_mutations,omitempty" mapstructure:"relational_mutations,omitempty"`
+	RelationalMutations *RelationalMutationInfo `json:"relational_mutations,omitempty" yaml:"relational_mutations,omitempty" mapstructure:"relational_mutations,omitempty"`
 
 	// The name of the collection's object type
 	Type string `json:"type" yaml:"type" mapstructure:"type"`
@@ -210,7 +210,7 @@ type DatePartScalarExpressionCapability struct {
 	DayOfYear *LeafCapability `json:"day_of_year,omitempty" yaml:"day_of_year,omitempty" mapstructure:"day_of_year,omitempty"`
 
 	// Epoch corresponds to the JSON schema field "epoch".
-	Epoch interface{} `json:"epoch,omitempty" yaml:"epoch,omitempty" mapstructure:"epoch,omitempty"`
+	Epoch *LeafCapability `json:"epoch,omitempty" yaml:"epoch,omitempty" mapstructure:"epoch,omitempty"`
 
 	// Hour corresponds to the JSON schema field "hour".
 	Hour *LeafCapability `json:"hour,omitempty" yaml:"hour,omitempty" mapstructure:"hour,omitempty"`
@@ -1312,13 +1312,13 @@ type RelationalJoinTypeCapabilities struct {
 // minor versions.
 type RelationalMutationCapabilities struct {
 	// Delete corresponds to the JSON schema field "delete".
-	Delete interface{} `json:"delete,omitempty" yaml:"delete,omitempty" mapstructure:"delete,omitempty"`
+	Delete *LeafCapability `json:"delete,omitempty" yaml:"delete,omitempty" mapstructure:"delete,omitempty"`
 
 	// Insert corresponds to the JSON schema field "insert".
-	Insert interface{} `json:"insert,omitempty" yaml:"insert,omitempty" mapstructure:"insert,omitempty"`
+	Insert *LeafCapability `json:"insert,omitempty" yaml:"insert,omitempty" mapstructure:"insert,omitempty"`
 
 	// Update corresponds to the JSON schema field "update".
-	Update interface{} `json:"update,omitempty" yaml:"update,omitempty" mapstructure:"update,omitempty"`
+	Update *LeafCapability `json:"update,omitempty" yaml:"update,omitempty" mapstructure:"update,omitempty"`
 }
 
 type RelationalMutationInfo struct {
@@ -1399,7 +1399,7 @@ type RelationalQueryCapabilities struct {
 	Sort *LeafCapability `json:"sort,omitempty" yaml:"sort,omitempty" mapstructure:"sort,omitempty"`
 
 	// Union corresponds to the JSON schema field "union".
-	Union interface{} `json:"union,omitempty" yaml:"union,omitempty" mapstructure:"union,omitempty"`
+	Union *LeafCapability `json:"union,omitempty" yaml:"union,omitempty" mapstructure:"union,omitempty"`
 
 	// Window corresponds to the JSON schema field "window".
 	Window *LeafCapability `json:"window,omitempty" yaml:"window,omitempty" mapstructure:"window,omitempty"`
@@ -1434,7 +1434,7 @@ type RelationalScalarExpressionCapabilities struct {
 	ArrayElement *LeafCapability `json:"array_element,omitempty" yaml:"array_element,omitempty" mapstructure:"array_element,omitempty"`
 
 	// BinaryConcat corresponds to the JSON schema field "binary_concat".
-	BinaryConcat interface{} `json:"binary_concat,omitempty" yaml:"binary_concat,omitempty" mapstructure:"binary_concat,omitempty"`
+	BinaryConcat *LeafCapability `json:"binary_concat,omitempty" yaml:"binary_concat,omitempty" mapstructure:"binary_concat,omitempty"`
 
 	// Btrim corresponds to the JSON schema field "btrim".
 	Btrim *LeafCapability `json:"btrim,omitempty" yaml:"btrim,omitempty" mapstructure:"btrim,omitempty"`
@@ -1956,7 +1956,7 @@ type SchemaResponse struct {
 	Procedures []ProcedureInfo `json:"procedures" yaml:"procedures" mapstructure:"procedures"`
 
 	// Request level arguments which are required for queries and mutations
-	RequestArguments interface{} `json:"request_arguments,omitempty" yaml:"request_arguments,omitempty" mapstructure:"request_arguments,omitempty"`
+	RequestArguments *RequestLevelArguments `json:"request_arguments,omitempty" yaml:"request_arguments,omitempty" mapstructure:"request_arguments,omitempty"`
 
 	// A list of scalar types which will be used as the types of collection columns
 	ScalarTypes SchemaResponseScalarTypes `json:"scalar_types" yaml:"scalar_types" mapstructure:"scalar_types"`

@@ -1393,5 +1393,86 @@
 		"op": "add",
 		"path": "/definitions/RelationalWindowExpressionCapabilities/properties/percent_rank/$ref",
 		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/Capabilities/properties/relational_mutation/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/Capabilities/properties/relational_mutation/$ref",
+		"value": "#/definitions/RelationalMutationCapabilities"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/CollectionInfo/properties/relational_mutations/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/CollectionInfo/properties/relational_mutations/$ref",
+		"value": "#/definitions/RelationalMutationInfo"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/DatePartScalarExpressionCapability/properties/epoch/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/DatePartScalarExpressionCapability/properties/epoch/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalMutationCapabilities/properties/insert/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalMutationCapabilities/properties/insert/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalMutationCapabilities/properties/update/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalMutationCapabilities/properties/update/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalMutationCapabilities/properties/delete/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalMutationCapabilities/properties/delete/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalQueryCapabilities/properties/union/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalQueryCapabilities/properties/union/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/binary_concat/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/binary_concat/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/SchemaResponse/properties/request_arguments/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/SchemaResponse/properties/request_arguments/$ref",
+		"value": "#/definitions/RequestLevelArguments"
 	}
 ]
