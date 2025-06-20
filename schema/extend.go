@@ -1791,7 +1791,9 @@ func (f ComparisonValueColumn) WithFieldPath(fieldPath []string) *ComparisonValu
 }
 
 // WithArguments return a new instance with arguments set.
-func (f ComparisonValueColumn) WithArguments(arguments map[string]ArgumentEncoder) *ComparisonValueColumn {
+func (f ComparisonValueColumn) WithArguments(
+	arguments map[string]ArgumentEncoder,
+) *ComparisonValueColumn {
 	if arguments == nil {
 		f.Arguments = nil
 
@@ -2400,14 +2402,18 @@ func (ei ExistsInCollectionNestedCollection) Type() ExistsInCollectionType {
 }
 
 // WithFieldPath returns a new instance with field_path set.
-func (f ExistsInCollectionNestedCollection) WithFieldPath(fieldPath []string) *ExistsInCollectionNestedCollection {
+func (f ExistsInCollectionNestedCollection) WithFieldPath(
+	fieldPath []string,
+) *ExistsInCollectionNestedCollection {
 	f.FieldPath = fieldPath
 
 	return &f
 }
 
 // WithArguments return a new instance with arguments set.
-func (f ExistsInCollectionNestedCollection) WithArguments(arguments map[string]ArgumentEncoder) *ExistsInCollectionNestedCollection {
+func (f ExistsInCollectionNestedCollection) WithArguments(
+	arguments map[string]ArgumentEncoder,
+) *ExistsInCollectionNestedCollection {
 	if arguments == nil {
 		f.Arguments = nil
 
@@ -2479,7 +2485,9 @@ type ExistsInCollectionNestedScalarCollection struct {
 }
 
 // NewExistsInCollectionNestedScalarCollection creates an ExistsInCollectionNestedScalarCollection instance.
-func NewExistsInCollectionNestedScalarCollection(columnName string) *ExistsInCollectionNestedScalarCollection {
+func NewExistsInCollectionNestedScalarCollection(
+	columnName string,
+) *ExistsInCollectionNestedScalarCollection {
 	return &ExistsInCollectionNestedScalarCollection{
 		ColumnName: columnName,
 	}
@@ -2491,14 +2499,18 @@ func (ei ExistsInCollectionNestedScalarCollection) Type() ExistsInCollectionType
 }
 
 // WithFieldPath returns a new instance with field_path set.
-func (f ExistsInCollectionNestedScalarCollection) WithFieldPath(fieldPath []string) *ExistsInCollectionNestedScalarCollection {
+func (f ExistsInCollectionNestedScalarCollection) WithFieldPath(
+	fieldPath []string,
+) *ExistsInCollectionNestedScalarCollection {
 	f.FieldPath = fieldPath
 
 	return &f
 }
 
 // WithArguments return a new instance with arguments set.
-func (f ExistsInCollectionNestedScalarCollection) WithArguments(arguments map[string]ArgumentEncoder) *ExistsInCollectionNestedScalarCollection {
+func (f ExistsInCollectionNestedScalarCollection) WithArguments(
+	arguments map[string]ArgumentEncoder,
+) *ExistsInCollectionNestedScalarCollection {
 	if arguments == nil {
 		f.Arguments = nil
 
@@ -3776,7 +3788,9 @@ func (f AggregateSingleColumn) WithFieldPath(fieldPath []string) *AggregateSingl
 }
 
 // WithArguments return a new instance with arguments set.
-func (f AggregateSingleColumn) WithArguments(arguments map[string]ArgumentEncoder) *AggregateSingleColumn {
+func (f AggregateSingleColumn) WithArguments(
+	arguments map[string]ArgumentEncoder,
+) *AggregateSingleColumn {
 	if arguments == nil {
 		f.Arguments = nil
 

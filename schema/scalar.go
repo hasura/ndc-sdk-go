@@ -2423,7 +2423,9 @@ type AggregateFunctionDefinitionCustom struct {
 }
 
 // NewAggregateFunctionDefinitionCustom creates an AggregateFunctionDefinitionCustom instance.
-func NewAggregateFunctionDefinitionCustom[T TypeEncoder](resultType T) *AggregateFunctionDefinitionCustom {
+func NewAggregateFunctionDefinitionCustom[T TypeEncoder](
+	resultType T,
+) *AggregateFunctionDefinitionCustom {
 	return &AggregateFunctionDefinitionCustom{
 		ResultType: resultType.Encode(),
 	}
