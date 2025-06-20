@@ -1771,25 +1771,73 @@ type ComparisonValueColumn struct {
 }
 
 // NewComparisonValueColumn creates a new ComparisonValueColumn instance.
-func NewComparisonValueColumn(
-	name string,
-	path []PathElement,
-	arguments map[string]Argument,
-	fieldPath []string,
-	scope *uint,
-) *ComparisonValueColumn {
+func NewComparisonValueColumn(name string, path []PathElement) *ComparisonValueColumn {
 	return &ComparisonValueColumn{
-		Name:      name,
-		Path:      path,
-		Arguments: arguments,
-		FieldPath: fieldPath,
-		Scope:     scope,
+		Name: name,
+		Path: path,
 	}
 }
 
 // Type return the type name of the instance.
 func (cv ComparisonValueColumn) Type() ComparisonValueType {
 	return ComparisonValueTypeColumn
+}
+
+// WithFieldPath returns a new instance with field_path set.
+func (f ComparisonValueColumn) WithFieldPath(fieldPath []string) *ComparisonValueColumn {
+	f.FieldPath = fieldPath
+
+	return &f
+}
+
+// WithArguments return a new instance with arguments set.
+func (f ComparisonValueColumn) WithArguments(
+	arguments map[string]ArgumentEncoder,
+) *ComparisonValueColumn {
+	if arguments == nil {
+		f.Arguments = nil
+
+		return &f
+	}
+
+	args := make(map[string]Argument)
+
+	for key, arg := range arguments {
+		if arg == nil {
+			continue
+		}
+
+		args[key] = arg.Encode()
+	}
+
+	f.Arguments = args
+
+	return &f
+}
+
+// WithArgument return a new instance with an arguments set.
+func (f ComparisonValueColumn) WithArgument(
+	key string,
+	argument ArgumentEncoder,
+) *ComparisonValueColumn {
+	if argument == nil {
+		delete(f.Arguments, key)
+	} else {
+		if f.Arguments == nil {
+			f.Arguments = make(map[string]Argument)
+		}
+
+		f.Arguments[key] = argument.Encode()
+	}
+
+	return &f
+}
+
+// WithScope return a new instance with a scope set.
+func (f ComparisonValueColumn) WithScope(scope *uint) *ComparisonValueColumn {
+	f.Scope = scope
+
+	return &f
 }
 
 // Encode converts to the raw comparison value.
@@ -2342,21 +2390,67 @@ type ExistsInCollectionNestedCollection struct {
 }
 
 // NewExistsInCollectionNestedCollection creates an ExistsInCollectionNestedCollection instance.
-func NewExistsInCollectionNestedCollection(
-	columnName string,
-	arguments map[string]Argument,
-	fieldPath []string,
-) *ExistsInCollectionNestedCollection {
+func NewExistsInCollectionNestedCollection(columnName string) *ExistsInCollectionNestedCollection {
 	return &ExistsInCollectionNestedCollection{
 		ColumnName: columnName,
-		Arguments:  arguments,
-		FieldPath:  fieldPath,
 	}
 }
 
 // Type return the type name of the instance.
 func (ei ExistsInCollectionNestedCollection) Type() ExistsInCollectionType {
 	return ExistsInCollectionTypeNestedCollection
+}
+
+// WithFieldPath returns a new instance with field_path set.
+func (f ExistsInCollectionNestedCollection) WithFieldPath(
+	fieldPath []string,
+) *ExistsInCollectionNestedCollection {
+	f.FieldPath = fieldPath
+
+	return &f
+}
+
+// WithArguments return a new instance with arguments set.
+func (f ExistsInCollectionNestedCollection) WithArguments(
+	arguments map[string]ArgumentEncoder,
+) *ExistsInCollectionNestedCollection {
+	if arguments == nil {
+		f.Arguments = nil
+
+		return &f
+	}
+
+	args := make(map[string]Argument)
+
+	for key, arg := range arguments {
+		if arg == nil {
+			continue
+		}
+
+		args[key] = arg.Encode()
+	}
+
+	f.Arguments = args
+
+	return &f
+}
+
+// WithArgument return a new instance with an arguments set.
+func (f ExistsInCollectionNestedCollection) WithArgument(
+	key string,
+	argument ArgumentEncoder,
+) *ExistsInCollectionNestedCollection {
+	if argument == nil {
+		delete(f.Arguments, key)
+	} else {
+		if f.Arguments == nil {
+			f.Arguments = make(map[string]Argument)
+		}
+
+		f.Arguments[key] = argument.Encode()
+	}
+
+	return &f
 }
 
 // Encode converts the instance to its raw type.
@@ -2393,19 +2487,67 @@ type ExistsInCollectionNestedScalarCollection struct {
 // NewExistsInCollectionNestedScalarCollection creates an ExistsInCollectionNestedScalarCollection instance.
 func NewExistsInCollectionNestedScalarCollection(
 	columnName string,
-	arguments map[string]Argument,
-	fieldPath []string,
 ) *ExistsInCollectionNestedScalarCollection {
 	return &ExistsInCollectionNestedScalarCollection{
 		ColumnName: columnName,
-		Arguments:  arguments,
-		FieldPath:  fieldPath,
 	}
 }
 
 // Type return the type name of the instance.
 func (ei ExistsInCollectionNestedScalarCollection) Type() ExistsInCollectionType {
 	return ExistsInCollectionTypeNestedScalarCollection
+}
+
+// WithFieldPath returns a new instance with field_path set.
+func (f ExistsInCollectionNestedScalarCollection) WithFieldPath(
+	fieldPath []string,
+) *ExistsInCollectionNestedScalarCollection {
+	f.FieldPath = fieldPath
+
+	return &f
+}
+
+// WithArguments return a new instance with arguments set.
+func (f ExistsInCollectionNestedScalarCollection) WithArguments(
+	arguments map[string]ArgumentEncoder,
+) *ExistsInCollectionNestedScalarCollection {
+	if arguments == nil {
+		f.Arguments = nil
+
+		return &f
+	}
+
+	args := make(map[string]Argument)
+
+	for key, arg := range arguments {
+		if arg == nil {
+			continue
+		}
+
+		args[key] = arg.Encode()
+	}
+
+	f.Arguments = args
+
+	return &f
+}
+
+// WithArgument return a new instance with an arguments set.
+func (f ExistsInCollectionNestedScalarCollection) WithArgument(
+	key string,
+	argument ArgumentEncoder,
+) *ExistsInCollectionNestedScalarCollection {
+	if argument == nil {
+		delete(f.Arguments, key)
+	} else {
+		if f.Arguments == nil {
+			f.Arguments = make(map[string]Argument)
+		}
+
+		f.Arguments[key] = argument.Encode()
+	}
+
+	return &f
 }
 
 // Encode converts the instance to its raw type.
@@ -3626,23 +3768,66 @@ type AggregateSingleColumn struct {
 }
 
 // NewAggregateSingleColumn creates a new AggregateSingleColumn instance.
-func NewAggregateSingleColumn(
-	column string,
-	function string,
-	fieldPath []string,
-	arguments map[string]Argument,
-) *AggregateSingleColumn {
+func NewAggregateSingleColumn(column string, function string) *AggregateSingleColumn {
 	return &AggregateSingleColumn{
-		Column:    column,
-		Function:  function,
-		FieldPath: fieldPath,
-		Arguments: arguments,
+		Column:   column,
+		Function: function,
 	}
 }
 
 // Type return the type name of the instance.
 func (ag AggregateSingleColumn) Type() AggregateType {
 	return AggregateTypeSingleColumn
+}
+
+// WithFieldPath returns a new instance with field_path set.
+func (f AggregateSingleColumn) WithFieldPath(fieldPath []string) *AggregateSingleColumn {
+	f.FieldPath = fieldPath
+
+	return &f
+}
+
+// WithArguments return a new instance with arguments set.
+func (f AggregateSingleColumn) WithArguments(
+	arguments map[string]ArgumentEncoder,
+) *AggregateSingleColumn {
+	if arguments == nil {
+		f.Arguments = nil
+
+		return &f
+	}
+
+	args := make(map[string]Argument)
+
+	for key, arg := range arguments {
+		if arg == nil {
+			continue
+		}
+
+		args[key] = arg.Encode()
+	}
+
+	f.Arguments = args
+
+	return &f
+}
+
+// WithArgument return a new instance with an arguments set.
+func (f AggregateSingleColumn) WithArgument(
+	key string,
+	argument ArgumentEncoder,
+) *AggregateSingleColumn {
+	if argument == nil {
+		delete(f.Arguments, key)
+	} else {
+		if f.Arguments == nil {
+			f.Arguments = make(map[string]Argument)
+		}
+
+		f.Arguments[key] = argument.Encode()
+	}
+
+	return &f
 }
 
 // Encode converts the instance to raw Aggregate.
@@ -3678,23 +3863,66 @@ type AggregateColumnCount struct {
 }
 
 // NewAggregateColumnCount creates a new AggregateColumnCount instance.
-func NewAggregateColumnCount(
-	column string,
-	distinct bool,
-	fieldPath []string,
-	arguments map[string]Argument,
-) *AggregateColumnCount {
+func NewAggregateColumnCount(column string, distinct bool) *AggregateColumnCount {
 	return &AggregateColumnCount{
-		Column:    column,
-		Distinct:  distinct,
-		FieldPath: fieldPath,
-		Arguments: arguments,
+		Column:   column,
+		Distinct: distinct,
 	}
 }
 
 // Type return the type name of the instance.
 func (ag AggregateColumnCount) Type() AggregateType {
 	return AggregateTypeColumnCount
+}
+
+// WithFieldPath returns a new instance with field_path set.
+func (f AggregateColumnCount) WithFieldPath(fieldPath []string) *AggregateColumnCount {
+	f.FieldPath = fieldPath
+
+	return &f
+}
+
+// WithArguments return a new instance with arguments set.
+func (f AggregateColumnCount) WithArguments(
+	arguments map[string]ArgumentEncoder,
+) *AggregateColumnCount {
+	if arguments == nil {
+		f.Arguments = nil
+
+		return &f
+	}
+
+	args := make(map[string]Argument)
+
+	for key, arg := range arguments {
+		if arg == nil {
+			continue
+		}
+
+		args[key] = arg.Encode()
+	}
+
+	f.Arguments = args
+
+	return &f
+}
+
+// WithArgument return a new instance with an arguments set.
+func (f AggregateColumnCount) WithArgument(
+	key string,
+	argument ArgumentEncoder,
+) *AggregateColumnCount {
+	if argument == nil {
+		delete(f.Arguments, key)
+	} else {
+		if f.Arguments == nil {
+			f.Arguments = make(map[string]Argument)
+		}
+
+		f.Arguments[key] = argument.Encode()
+	}
+
+	return &f
 }
 
 // Encode converts the instance to raw Aggregate.

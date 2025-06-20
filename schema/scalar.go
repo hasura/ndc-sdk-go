@@ -2423,9 +2423,11 @@ type AggregateFunctionDefinitionCustom struct {
 }
 
 // NewAggregateFunctionDefinitionCustom creates an AggregateFunctionDefinitionCustom instance.
-func NewAggregateFunctionDefinitionCustom(resultType Type) *AggregateFunctionDefinitionCustom {
+func NewAggregateFunctionDefinitionCustom[T TypeEncoder](
+	resultType T,
+) *AggregateFunctionDefinitionCustom {
 	return &AggregateFunctionDefinitionCustom{
-		ResultType: resultType,
+		ResultType: resultType.Encode(),
 	}
 }
 
@@ -3135,7 +3137,7 @@ type ComparisonOperatorCustom struct {
 }
 
 // NewComparisonOperatorCustom create a new ComparisonOperatorCustom instance.
-func NewComparisonOperatorCustom(argumentType TypeEncoder) *ComparisonOperatorCustom {
+func NewComparisonOperatorCustom[T TypeEncoder](argumentType T) *ComparisonOperatorCustom {
 	return &ComparisonOperatorCustom{
 		ArgumentType: argumentType.Encode(),
 	}

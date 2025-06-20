@@ -323,7 +323,7 @@ type ArrayComparisonContains struct {
 }
 
 // NewArrayComparisonContains creates an ArrayComparisonContains instance.
-func NewArrayComparisonContains(value ComparisonValueEncoder) *ArrayComparisonContains {
+func NewArrayComparisonContains[T ComparisonValueEncoder](value T) *ArrayComparisonContains {
 	return &ArrayComparisonContains{
 		Value: value.Encode(),
 	}
@@ -346,9 +346,7 @@ func (j ArrayComparisonContains) Encode() ArrayComparison {
 
 // ArrayComparisonIsEmpty checks if the array is empty.
 // Only used if the 'query.nested_fields.filter_by.nested_arrays.is_empty' capability is supported.
-type ArrayComparisonIsEmpty struct {
-	Value ComparisonValue `json:"value" mapstructure:"value" yaml:"value"`
-}
+type ArrayComparisonIsEmpty struct{}
 
 // NewArrayComparisonIsEmpty creates an ArrayComparisonIsEmpty instance.
 func NewArrayComparisonIsEmpty() *ArrayComparisonIsEmpty {
