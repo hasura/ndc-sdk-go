@@ -47,15 +47,11 @@ func TestQueryRequest(t *testing.T) {
 						"min_id": NewAggregateSingleColumn(
 							"id",
 							"min",
-							[]string{"foo"},
-							nil,
-						).Encode(),
+						).WithFieldPath([]string{"foo"}).Encode(),
 						"bar_count": NewAggregateColumnCount(
 							"id",
 							true,
-							[]string{"bar"},
-							nil,
-						).Encode(),
+						).WithFieldPath([]string{"bar"}).Encode(),
 					},
 				},
 				CollectionRelationships: QueryRequestCollectionRelationships{},
@@ -492,7 +488,7 @@ func TestQueryRequest(t *testing.T) {
 					Fields: QueryFields{
 						"articles_aggregate": NewRelationshipField(Query{
 							Aggregates: QueryAggregates{
-								"max_id": NewAggregateSingleColumn("id", "max", nil, nil).Encode(),
+								"max_id": NewAggregateSingleColumn("id", "max").Encode(),
 							},
 						}, "author_articles", map[string]RelationshipArgument{}).Encode(),
 					},
@@ -501,7 +497,7 @@ func TestQueryRequest(t *testing.T) {
 							{
 								OrderDirection: OrderDirectionAsc,
 								Target: NewOrderByAggregate(
-									NewAggregateSingleColumn("id", "max", nil, nil),
+									NewAggregateSingleColumn("id", "max"),
 									[]PathElement{
 										{
 											Arguments:    PathElementArguments{},
@@ -600,12 +596,9 @@ func TestQueryRequest(t *testing.T) {
 							"like",
 							NewComparisonValueScalar("s"),
 						),
-						NewExistsInCollectionNestedCollection("staff", map[string]Argument{
-							"limit": map[string]any{
-								"type":  "literal",
-								"value": nil,
-							},
-						}, nil),
+						NewExistsInCollectionNestedCollection("staff").WithArguments(map[string]ArgumentEncoder{
+							"limit": NewArgumentLiteral(nil),
+						}),
 					).Encode(),
 				},
 				CollectionRelationships: QueryRequestCollectionRelationships{},
