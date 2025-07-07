@@ -580,6 +580,7 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 	if s.options.MetricsExporter == string(otelMetricsExporterPrometheus) &&
 		s.options.PrometheusPort != nil {
 		promServer := createPrometheusServer(*s.options.PrometheusPort)
+
 		defer func() {
 			_ = promServer.Shutdown(context.Background())
 		}()

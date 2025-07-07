@@ -530,6 +530,7 @@ func (tp *TypeParser) parseTypeInfoFromComments(
 			if matchesLen > 1 {
 				if matchesLen > 3 && matches[3] != "" {
 					typeInfo.SchemaName = matches[2]
+
 					typeRep, err := schema.ParseTypeRepresentationType(
 						strings.TrimSpace(matches[3]),
 					)

@@ -55,6 +55,7 @@ var debugApiPaths = []string{apiPathMetrics, apiPathHealth}
 // define a custom response write to capture response information for logging.
 type customResponseWriter struct {
 	http.ResponseWriter
+
 	statusCode int
 	bodyLength int
 	body       []byte
