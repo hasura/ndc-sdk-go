@@ -106,6 +106,7 @@ func ParseAndGenerateConnector(args ConnectorGenerationArguments, moduleName str
 	}
 
 	parseCtx, parseTask := trace.NewTask(context.TODO(), "parse")
+
 	sm, err := parseRawConnectorSchemaFromGoCode(parseCtx, moduleName, ".", &args)
 	if err != nil {
 		parseTask.End()
@@ -202,6 +203,7 @@ func (cg *connectorGenerator) generateConnector(name string) error {
 		}()
 
 		w := bufio.NewWriter(f)
+
 		defer func() {
 			_ = w.Flush()
 		}()

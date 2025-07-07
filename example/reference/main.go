@@ -21,6 +21,7 @@ func main() {
 
 type CLI struct {
 	connector.ServeCLI
+
 	Version struct{} `cmd:"" help:"Print the version."`
 }
 

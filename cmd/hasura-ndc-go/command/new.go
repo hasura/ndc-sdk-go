@@ -165,6 +165,7 @@ func execCommand(basePath string, commandName string, args ...string) error {
 	l := log.With().Strs("args", args).Str("command", commandName).Logger()
 
 	var errBuf bytes.Buffer
+
 	cmd.Stderr = &errBuf
 
 	out, err := cmd.Output()

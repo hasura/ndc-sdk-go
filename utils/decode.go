@@ -846,8 +846,8 @@ func DecodeFloatReflection[T float32 | float64](value reflect.Value) (T, error) 
 		result = T(value.Float())
 	case reflect.String:
 		v := value.String()
-		newVal, parseErr := strconv.ParseFloat(v, 64)
 
+		newVal, parseErr := strconv.ParseFloat(v, 64)
 		if parseErr != nil {
 			return T(0), fmt.Errorf("failed to convert Float, got: %s", v)
 		}
@@ -855,8 +855,8 @@ func DecodeFloatReflection[T float32 | float64](value reflect.Value) (T, error) 
 		result = T(newVal)
 	case reflect.Interface:
 		v := fmt.Sprint(value.Interface())
-		newVal, parseErr := strconv.ParseFloat(v, 64)
 
+		newVal, parseErr := strconv.ParseFloat(v, 64)
 		if parseErr != nil {
 			return T(0), fmt.Errorf("failed to convert Float, got: %s", v)
 		}
@@ -2113,6 +2113,7 @@ func decodeValueHookFunc() mapstructure.DecodeHookFunc { //nolint:gocognit
 
 		if ok {
 			var err error
+
 			switch v := fromValue.(type) {
 			case map[string]any:
 				err = objDecoder.FromValue(v)

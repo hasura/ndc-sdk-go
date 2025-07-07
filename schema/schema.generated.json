@@ -2712,6 +2712,15 @@
     },
     "RelationalAggregateExpressionCapabilities": {
       "properties": {
+        "approx_distinct": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "approx_percentile_cont": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "array_agg": {
+          "$ref": "#/definitions/LeafCapability"
+        },
         "avg": {
           "$ref": "#/definitions/LeafCapability"
         },
@@ -2737,6 +2746,12 @@
           "$ref": "#/definitions/LeafCapability"
         },
         "min": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "stddev": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "stddev_pop": {
           "$ref": "#/definitions/LeafCapability"
         },
         "string_agg": {
