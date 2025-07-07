@@ -1111,6 +1111,16 @@ func (j *RelationalAggregateCapabilities) UnmarshalJSON(b []byte) error {
 }
 
 type RelationalAggregateExpressionCapabilities struct {
+	// ApproxDistinct corresponds to the JSON schema field "approx_distinct".
+	ApproxDistinct *LeafCapability `json:"approx_distinct,omitempty" yaml:"approx_distinct,omitempty" mapstructure:"approx_distinct,omitempty"`
+
+	// ApproxPercentileCont corresponds to the JSON schema field
+	// "approx_percentile_cont".
+	ApproxPercentileCont *LeafCapability `json:"approx_percentile_cont,omitempty" yaml:"approx_percentile_cont,omitempty" mapstructure:"approx_percentile_cont,omitempty"`
+
+	// ArrayAgg corresponds to the JSON schema field "array_agg".
+	ArrayAgg *LeafCapability `json:"array_agg,omitempty" yaml:"array_agg,omitempty" mapstructure:"array_agg,omitempty"`
+
 	// Avg corresponds to the JSON schema field "avg".
 	Avg *LeafCapability `json:"avg,omitempty" yaml:"avg,omitempty" mapstructure:"avg,omitempty"`
 
@@ -1137,6 +1147,12 @@ type RelationalAggregateExpressionCapabilities struct {
 
 	// Min corresponds to the JSON schema field "min".
 	Min *LeafCapability `json:"min,omitempty" yaml:"min,omitempty" mapstructure:"min,omitempty"`
+
+	// Stddev corresponds to the JSON schema field "stddev".
+	Stddev *LeafCapability `json:"stddev,omitempty" yaml:"stddev,omitempty" mapstructure:"stddev,omitempty"`
+
+	// StddevPop corresponds to the JSON schema field "stddev_pop".
+	StddevPop *LeafCapability `json:"stddev_pop,omitempty" yaml:"stddev_pop,omitempty" mapstructure:"stddev_pop,omitempty"`
 
 	// StringAgg corresponds to the JSON schema field "string_agg".
 	StringAgg *LeafCapability `json:"string_agg,omitempty" yaml:"string_agg,omitempty" mapstructure:"string_agg,omitempty"`

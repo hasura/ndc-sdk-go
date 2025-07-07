@@ -595,6 +595,51 @@
 	},
 	{
 		"op": "remove",
+		"path": "/definitions/RelationalAggregateExpressionCapabilities/properties/approx_distinct/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalAggregateExpressionCapabilities/properties/approx_distinct/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalAggregateExpressionCapabilities/properties/approx_percentile_cont/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalAggregateExpressionCapabilities/properties/approx_percentile_cont/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalAggregateExpressionCapabilities/properties/array_agg/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalAggregateExpressionCapabilities/properties/array_agg/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalAggregateExpressionCapabilities/properties/stddev/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalAggregateExpressionCapabilities/properties/stddev/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalAggregateExpressionCapabilities/properties/stddev_pop/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalAggregateExpressionCapabilities/properties/stddev_pop/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
 		"path": "/definitions/RelationalAggregateFunctionCapabilities/properties/distinct/anyOf"
 	},
 	{
