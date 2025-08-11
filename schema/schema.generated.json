@@ -2776,6 +2776,15 @@
       "title": "Relational Aggregate Function Capabilities",
       "type": "object"
     },
+    "RelationalCaseCapabilities": {
+      "properties": {
+        "scrutinee": {
+          "$ref": "#/definitions/LeafCapability"
+        }
+      },
+      "title": "Relational Case Capabilities",
+      "type": "object"
+    },
     "RelationalComparisonExpressionCapabilities": {
       "properties": {
         "between": {
@@ -2794,6 +2803,9 @@
           "$ref": "#/definitions/LeafCapability"
         },
         "in_list": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "is_distinct_from": {
           "$ref": "#/definitions/LeafCapability"
         },
         "is_false": {
@@ -2837,8 +2849,26 @@
       "type": "object"
     },
     "RelationalExpressionCapabilities": {
-      "title": "Relational Expression Capabilities",
-      "type": "object",
+      "properties": {
+        "aggregate": {
+          "$ref": "#/definitions/RelationalAggregateExpressionCapabilities"
+        },
+        "comparison": {
+          "$ref": "#/definitions/RelationalComparisonExpressionCapabilities"
+        },
+        "conditional": {
+          "$ref": "#/definitions/RelationalConditionalExpressionCapabilities"
+        },
+        "scalar": {
+          "$ref": "#/definitions/RelationalScalarExpressionCapabilities"
+        },
+        "scalar_types": {
+          "$ref": "#/definitions/RelationalScalarTypeCapabilities"
+        },
+        "window": {
+          "$ref": "#/definitions/RelationalWindowExpressionCapabilities"
+        }
+      },
       "required": [
         "aggregate",
         "comparison",
@@ -2846,23 +2876,8 @@
         "scalar",
         "window"
       ],
-      "properties": {
-        "conditional": {
-          "$ref": "#/definitions/RelationalConditionalExpressionCapabilities"
-        },
-        "comparison": {
-          "$ref": "#/definitions/RelationalComparisonExpressionCapabilities"
-        },
-        "scalar": {
-          "$ref": "#/definitions/RelationalScalarExpressionCapabilities"
-        },
-        "aggregate": {
-          "$ref": "#/definitions/RelationalAggregateExpressionCapabilities"
-        },
-        "window": {
-          "$ref": "#/definitions/RelationalWindowExpressionCapabilities"
-        }
-      }
+      "title": "Relational Expression Capabilities",
+      "type": "object"
     },
     "RelationalJoinCapabilities": {
       "title": "Relational Join Capabilities",
@@ -2948,6 +2963,18 @@
           "type": "boolean"
         }
       }
+    },
+    "RelationalOrderedAggregateFunctionCapabilities": {
+      "properties": {
+        "distinct": {
+          "$ref": "#/definitions/LeafCapability"
+        },
+        "order_by": {
+          "$ref": "#/definitions/LeafCapability"
+        }
+      },
+      "title": "Relational Ordered Aggregate Function Capabilities",
+      "type": "object"
     },
     "RelationalProjectionCapabilities": {
       "title": "Relational Projection Capabilities",
@@ -3158,6 +3185,20 @@
         }
       },
       "title": "Relational Scalar Expression Capabilities",
+      "type": "object"
+    },
+    "RelationalScalarTypeCapabilities": {
+      "properties": {
+        "from_type": {
+          "$ref": "#/definitions/LeafCapability",
+          "description": "Does the connector support `from_type` in cast?"
+        },
+        "interval": {
+          "$ref": "#/definitions/LeafCapability",
+          "description": "Does the connector support the INTERVAL scalar type? Both interval literals and casts to the INTERVAL type are implied by this capability."
+        }
+      },
+      "title": "Relational Scalar Type Capabilities",
       "type": "object"
     },
     "RelationalSortCapabilities": {

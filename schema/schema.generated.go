@@ -1169,6 +1169,11 @@ type RelationalAggregateFunctionCapabilities struct {
 	Distinct *LeafCapability `json:"distinct,omitempty" yaml:"distinct,omitempty" mapstructure:"distinct,omitempty"`
 }
 
+type RelationalCaseCapabilities struct {
+	// Scrutinee corresponds to the JSON schema field "scrutinee".
+	Scrutinee *LeafCapability `json:"scrutinee,omitempty" yaml:"scrutinee,omitempty" mapstructure:"scrutinee,omitempty"`
+}
+
 type RelationalComparisonExpressionCapabilities struct {
 	// Between corresponds to the JSON schema field "between".
 	Between *LeafCapability `json:"between,omitempty" yaml:"between,omitempty" mapstructure:"between,omitempty"`
@@ -1187,6 +1192,9 @@ type RelationalComparisonExpressionCapabilities struct {
 
 	// InList corresponds to the JSON schema field "in_list".
 	InList *LeafCapability `json:"in_list,omitempty" yaml:"in_list,omitempty" mapstructure:"in_list,omitempty"`
+
+	// IsDistinctFrom corresponds to the JSON schema field "is_distinct_from".
+	IsDistinctFrom *LeafCapability `json:"is_distinct_from,omitempty" yaml:"is_distinct_from,omitempty" mapstructure:"is_distinct_from,omitempty"`
 
 	// IsFalse corresponds to the JSON schema field "is_false".
 	IsFalse *LeafCapability `json:"is_false,omitempty" yaml:"is_false,omitempty" mapstructure:"is_false,omitempty"`
@@ -1233,6 +1241,9 @@ type RelationalExpressionCapabilities struct {
 
 	// Scalar corresponds to the JSON schema field "scalar".
 	Scalar RelationalScalarExpressionCapabilities `json:"scalar" yaml:"scalar" mapstructure:"scalar"`
+
+	// ScalarTypes corresponds to the JSON schema field "scalar_types".
+	ScalarTypes *RelationalScalarTypeCapabilities `json:"scalar_types,omitempty" yaml:"scalar_types,omitempty" mapstructure:"scalar_types,omitempty"`
 
 	// Window corresponds to the JSON schema field "window".
 	Window RelationalWindowExpressionCapabilities `json:"window" yaml:"window" mapstructure:"window"`
@@ -1370,6 +1381,14 @@ func (j *RelationalMutationInfo) UnmarshalJSON(b []byte) error {
 	}
 	*j = RelationalMutationInfo(plain)
 	return nil
+}
+
+type RelationalOrderedAggregateFunctionCapabilities struct {
+	// Distinct corresponds to the JSON schema field "distinct".
+	Distinct *LeafCapability `json:"distinct,omitempty" yaml:"distinct,omitempty" mapstructure:"distinct,omitempty"`
+
+	// OrderBy corresponds to the JSON schema field "order_by".
+	OrderBy *LeafCapability `json:"order_by" yaml:"order_by" mapstructure:"order_by"`
 }
 
 type RelationalProjectionCapabilities struct {
@@ -1601,6 +1620,15 @@ type RelationalScalarExpressionCapabilities struct {
 
 	// Trunc corresponds to the JSON schema field "trunc".
 	Trunc *LeafCapability `json:"trunc,omitempty" yaml:"trunc,omitempty" mapstructure:"trunc,omitempty"`
+}
+
+type RelationalScalarTypeCapabilities struct {
+	// Does the connector support `from_type` in cast?
+	FromType *LeafCapability `json:"from_type,omitempty" yaml:"from_type,omitempty" mapstructure:"from_type,omitempty"`
+
+	// Does the connector support the INTERVAL scalar type? Both interval literals and
+	// casts to the INTERVAL type are implied by this capability.
+	Interval *LeafCapability `json:"interval,omitempty" yaml:"interval,omitempty" mapstructure:"interval,omitempty"`
 }
 
 type RelationalSortCapabilities struct {

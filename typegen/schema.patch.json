@@ -775,6 +775,24 @@
 	},
 	{
 		"op": "remove",
+		"path": "/definitions/RelationalComparisonExpressionCapabilities/properties/is_distinct_from/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalComparisonExpressionCapabilities/properties/is_distinct_from/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalExpressionCapabilities/properties/scalar_types/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalExpressionCapabilities/properties/scalar_types/$ref",
+		"value": "#/definitions/RelationalScalarTypeCapabilities"
+	},
+	{
+		"op": "remove",
 		"path": "/definitions/RelationalConditionalExpressionCapabilities/properties/case/anyOf"
 	},
 	{
@@ -1519,5 +1537,50 @@
 		"op": "add",
 		"path": "/definitions/SchemaResponse/properties/request_arguments/$ref",
 		"value": "#/definitions/RequestLevelArguments"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalCaseCapabilities/properties/scrutinee/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalCaseCapabilities/properties/scrutinee/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalOrderedAggregateFunctionCapabilities/properties/distinct/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalOrderedAggregateFunctionCapabilities/properties/distinct/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalOrderedAggregateFunctionCapabilities/properties/order_by/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalOrderedAggregateFunctionCapabilities/properties/order_by/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalScalarTypeCapabilities/properties/interval/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalScalarTypeCapabilities/properties/interval/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalScalarTypeCapabilities/properties/from_type/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalScalarTypeCapabilities/properties/from_type/$ref",
+		"value": "#/definitions/LeafCapability"
 	}
 ]
