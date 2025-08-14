@@ -16,6 +16,8 @@ linters:
     - recvcheck
     - funcorder
     - noinlineerr
+    - wsl
+    - wsl_v5
   settings:
     tagliatelle:
       # Checks the struct tag name case.

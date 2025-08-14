@@ -573,7 +573,7 @@
 	{
 		"op": "add",
 		"path": "/definitions/RelationalAggregateExpressionCapabilities/properties/string_agg/$ref",
-		"value": "#/definitions/LeafCapability"
+		"value": "#/definitions/RelationalOrderedAggregateFunctionCapabilities"
 	},
 	{
 		"op": "remove",
@@ -618,7 +618,7 @@
 	{
 		"op": "add",
 		"path": "/definitions/RelationalAggregateExpressionCapabilities/properties/array_agg/$ref",
-		"value": "#/definitions/LeafCapability"
+		"value": "#/definitions/RelationalOrderedAggregateFunctionCapabilities"
 	},
 	{
 		"op": "remove",
@@ -798,7 +798,7 @@
 	{
 		"op": "add",
 		"path": "/definitions/RelationalConditionalExpressionCapabilities/properties/case/$ref",
-		"value": "#/definitions/LeafCapability"
+		"value": "#/definitions/RelationalCaseCapabilities"
 	},
 	{
 		"op": "remove",
@@ -1582,5 +1582,23 @@
 		"op": "add",
 		"path": "/definitions/RelationalScalarTypeCapabilities/properties/from_type/$ref",
 		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalDeleteRequest/properties/relation/allOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalDeleteRequest/properties/relation/$ref",
+		"value": "#/definitions/Relation"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalUpdateRequest/properties/relation/allOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalUpdateRequest/properties/relation/$ref",
+		"value": "#/definitions/Relation"
 	}
 ]

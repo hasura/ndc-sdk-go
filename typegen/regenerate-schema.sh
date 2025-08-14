@@ -22,7 +22,9 @@ fi
 
 # download the schema json file from ndc-sdk-typescript repository and regenerate schema 
 if [ ! -f ./schema.generated.json ]; then
-  curl -L https://raw.githubusercontent.com/hasura/ndc-sdk-typescript/refs/tags/v8.0.0/src/schema/schema.generated.json -o schema.generated.json
+  echo "copy the schema.generated.json file from ndc-sdk-typescript"
+  exit 1
+  # curl -L https://raw.githubusercontent.com/hasura/ndc-sdk-typescript/refs/tags/v8.2.0/src/schema/schema.generated.json -o schema.generated.json
 fi
 
 cat schema.generated.json | json-patch -p schema.patch.json > schema.patched.json
@@ -62,7 +64,7 @@ $SED_CMD 's/OrderByElementTarget/OrderByTarget/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/PathElementArguments map\[string\]interface{}/PathElementArguments map[string]RelationshipArgument/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type Type interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/ResultType interface{}/ResultType Type/g' $GENERATED_SCHEMA_GO
-$SED_CMD 's/Type interface{}/Type Type/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/Type interface{} /Type Type /g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/QueryFields map\[string\]interface{}/QueryFields map[string]Field/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type ComparisonValue interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type ExistsInCollection interface{}//g' $GENERATED_SCHEMA_GO
@@ -109,6 +111,32 @@ $SED_CMD 's/type ExtractionFunctionDefinition interface{}//g' $GENERATED_SCHEMA_
 $SED_CMD 's/type ScalarTypeExtractionFunctions map\[string\]interface{}/type ScalarTypeExtractionFunctions map[string]ExtractionFunctionDefinition/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/plain.ExtractionFunctions = map\[string\]interface{}{}/plain.ExtractionFunctions = map[string]ExtractionFunctionDefinition{}/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/enumValues_UnaryComparisonOperator = \[\]interface{}{/enumValues_UnaryComparisonOperator = \[\]UnaryComparisonOperator{/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type RelationalExpression interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type Relation interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type CaseWhenThen interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type CaseWhenWhen interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/CaseWhenThen/RelationalExpression/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/CaseWhenWhen/RelationalExpression/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type JoinOnLeft interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type JoinOnRight interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/JoinOnLeft/RelationalExpression/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/JoinOnRight/RelationalExpression/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type SortExpr interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/SortExpr/RelationalExpression/g' $GENERATED_SCHEMA_GO
+
+$SED_CMD 's/type RelationalLiteral interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type RelationalUpdateRequestArguments map\[string\]interface{}/type RelationalUpdateRequestArguments map[string]Argument/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type RelationalUpdateRequestRelation interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/RelationalUpdateRequestRelation/Relation/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type RelationalDeleteRequestArguments map\[string\]interface{}/type RelationalDeleteRequestArguments map[string]Argument/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type RelationalDeleteRequestRelation interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/RelationalDeleteRequestRelation/Relation/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type RelationalQueryRootRelation interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/RelationalQueryRootRelation/Relation/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type RelationalInsertRequestArguments map\[string\]interface{}/type RelationalInsertRequestArguments map[string]Argument/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type JoinType interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type CastType interface{}//g' $GENERATED_SCHEMA_GO
+
 $SED_CMD 's/^.*DeleteThis .*$//g' $GENERATED_SCHEMA_GO
 
 rm -f "$GENERATED_SCHEMA_GO.bak"

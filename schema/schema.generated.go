@@ -141,6 +141,35 @@ type CapabilitySchemaInfo struct {
 	Query *QueryCapabilitiesSchemaInfo `json:"query,omitempty" yaml:"query,omitempty" mapstructure:"query,omitempty"`
 }
 
+type CaseWhen struct {
+	// Then corresponds to the JSON schema field "then".
+	Then RelationalExpression `json:"then" yaml:"then" mapstructure:"then"`
+
+	// When corresponds to the JSON schema field "when".
+	When RelationalExpression `json:"when" yaml:"when" mapstructure:"when"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *CaseWhen) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["then"]; raw != nil && !ok {
+		return fmt.Errorf("field then in CaseWhen: required")
+	}
+	if _, ok := raw["when"]; raw != nil && !ok {
+		return fmt.Errorf("field when in CaseWhen: required")
+	}
+	type Plain CaseWhen
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = CaseWhen(plain)
+	return nil
+}
+
 type CollectionInfo struct {
 	// Any arguments that this collection requires
 	Arguments CollectionInfoArguments `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
@@ -241,6 +270,60 @@ type DatePartScalarExpressionCapability struct {
 
 	// Year corresponds to the JSON schema field "year".
 	Year *LeafCapability `json:"year,omitempty" yaml:"year,omitempty" mapstructure:"year,omitempty"`
+}
+
+type DatePartUnit string
+
+const DatePartUnitDay DatePartUnit = "day"
+const DatePartUnitDayOfWeek DatePartUnit = "day_of_week"
+const DatePartUnitDayOfYear DatePartUnit = "day_of_year"
+const DatePartUnitEpoch DatePartUnit = "epoch"
+const DatePartUnitHour DatePartUnit = "hour"
+const DatePartUnitMicrosecond DatePartUnit = "microsecond"
+const DatePartUnitMillisecond DatePartUnit = "millisecond"
+const DatePartUnitMinute DatePartUnit = "minute"
+const DatePartUnitMonth DatePartUnit = "month"
+const DatePartUnitNanosecond DatePartUnit = "nanosecond"
+const DatePartUnitQuarter DatePartUnit = "quarter"
+const DatePartUnitSecond DatePartUnit = "second"
+const DatePartUnitWeek DatePartUnit = "week"
+const DatePartUnitYear DatePartUnit = "year"
+
+var enumValues_DatePartUnit = []interface{}{
+	"year",
+	"quarter",
+	"month",
+	"week",
+	"day_of_week",
+	"day_of_year",
+	"day",
+	"hour",
+	"minute",
+	"second",
+	"microsecond",
+	"millisecond",
+	"nanosecond",
+	"epoch",
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *DatePartUnit) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	var ok bool
+	for _, expected := range enumValues_DatePartUnit {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_DatePartUnit, v)
+	}
+	*j = DatePartUnit(v)
+	return nil
 }
 
 type ErrorResponse struct {
@@ -560,6 +643,35 @@ func (j *Grouping) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+type JoinOn struct {
+	// Left corresponds to the JSON schema field "left".
+	Left RelationalExpression `json:"left" yaml:"left" mapstructure:"left"`
+
+	// Right corresponds to the JSON schema field "right".
+	Right RelationalExpression `json:"right" yaml:"right" mapstructure:"right"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *JoinOn) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["left"]; raw != nil && !ok {
+		return fmt.Errorf("field left in JoinOn: required")
+	}
+	if _, ok := raw["right"]; raw != nil && !ok {
+		return fmt.Errorf("field right in JoinOn: required")
+	}
+	type Plain JoinOn
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = JoinOn(plain)
+	return nil
+}
+
 // A unit value to indicate a particular leaf capability is supported. This is an
 // empty struct to allow for future sub-capabilities.
 type LeafCapability struct {
@@ -681,6 +793,36 @@ type NestedRelationshipCapabilities struct {
 	// Does the connector support ordering over a relationship that starts from inside
 	// a nested object
 	Ordering *LeafCapability `json:"ordering,omitempty" yaml:"ordering,omitempty" mapstructure:"ordering,omitempty"`
+}
+
+type NullsSort string
+
+const NullsSortNullsFirst NullsSort = "nulls_first"
+const NullsSortNullsLast NullsSort = "nulls_last"
+
+var enumValues_NullsSort = []interface{}{
+	"nulls_first",
+	"nulls_last",
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *NullsSort) UnmarshalJSON(b []byte) error {
+	var v string
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	var ok bool
+	for _, expected := range enumValues_NullsSort {
+		if reflect.DeepEqual(v, expected) {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return fmt.Errorf("invalid value (expected one of %#v): %#v", enumValues_NullsSort, v)
+	}
+	*j = NullsSort(v)
+	return nil
 }
 
 // The definition of an object field
@@ -1119,7 +1261,7 @@ type RelationalAggregateExpressionCapabilities struct {
 	ApproxPercentileCont *LeafCapability `json:"approx_percentile_cont,omitempty" yaml:"approx_percentile_cont,omitempty" mapstructure:"approx_percentile_cont,omitempty"`
 
 	// ArrayAgg corresponds to the JSON schema field "array_agg".
-	ArrayAgg *LeafCapability `json:"array_agg,omitempty" yaml:"array_agg,omitempty" mapstructure:"array_agg,omitempty"`
+	ArrayAgg *RelationalOrderedAggregateFunctionCapabilities `json:"array_agg,omitempty" yaml:"array_agg,omitempty" mapstructure:"array_agg,omitempty"`
 
 	// Avg corresponds to the JSON schema field "avg".
 	Avg *LeafCapability `json:"avg,omitempty" yaml:"avg,omitempty" mapstructure:"avg,omitempty"`
@@ -1155,7 +1297,7 @@ type RelationalAggregateExpressionCapabilities struct {
 	StddevPop *LeafCapability `json:"stddev_pop,omitempty" yaml:"stddev_pop,omitempty" mapstructure:"stddev_pop,omitempty"`
 
 	// StringAgg corresponds to the JSON schema field "string_agg".
-	StringAgg *LeafCapability `json:"string_agg,omitempty" yaml:"string_agg,omitempty" mapstructure:"string_agg,omitempty"`
+	StringAgg *RelationalOrderedAggregateFunctionCapabilities `json:"string_agg,omitempty" yaml:"string_agg,omitempty" mapstructure:"string_agg,omitempty"`
 
 	// Sum corresponds to the JSON schema field "sum".
 	Sum *LeafCapability `json:"sum,omitempty" yaml:"sum,omitempty" mapstructure:"sum,omitempty"`
@@ -1223,10 +1365,76 @@ type RelationalComparisonExpressionCapabilities struct {
 
 type RelationalConditionalExpressionCapabilities struct {
 	// Case corresponds to the JSON schema field "case".
-	Case *LeafCapability `json:"case,omitempty" yaml:"case,omitempty" mapstructure:"case,omitempty"`
+	Case *RelationalCaseCapabilities `json:"case,omitempty" yaml:"case,omitempty" mapstructure:"case,omitempty"`
 
 	// Nullif corresponds to the JSON schema field "nullif".
 	Nullif *LeafCapability `json:"nullif,omitempty" yaml:"nullif,omitempty" mapstructure:"nullif,omitempty"`
+}
+
+type RelationalDeleteRequest struct {
+	// Values to be provided to any collection arguments
+	Arguments RelationalDeleteRequestArguments `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
+
+	// The name of the collection to delete from
+	Collection string `json:"collection" yaml:"collection" mapstructure:"collection"`
+
+	// The relation that identifies which rows to delete
+	Relation Relation `json:"relation" yaml:"relation" mapstructure:"relation"`
+}
+
+// Values to be provided to any collection arguments
+type RelationalDeleteRequestArguments map[string]Argument
+
+// The relation that identifies which rows to delete
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationalDeleteRequest) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["arguments"]; raw != nil && !ok {
+		return fmt.Errorf("field arguments in RelationalDeleteRequest: required")
+	}
+	if _, ok := raw["collection"]; raw != nil && !ok {
+		return fmt.Errorf("field collection in RelationalDeleteRequest: required")
+	}
+	if _, ok := raw["relation"]; raw != nil && !ok {
+		return fmt.Errorf("field relation in RelationalDeleteRequest: required")
+	}
+	type Plain RelationalDeleteRequest
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = RelationalDeleteRequest(plain)
+	return nil
+}
+
+type RelationalDeleteResponse struct {
+	// The number of rows that were deleted
+	AffectedRows int `json:"affected_rows" yaml:"affected_rows" mapstructure:"affected_rows"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationalDeleteResponse) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["affected_rows"]; raw != nil && !ok {
+		return fmt.Errorf("field affected_rows in RelationalDeleteResponse: required")
+	}
+	type Plain RelationalDeleteResponse
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	if 0 > plain.AffectedRows {
+		return fmt.Errorf("field %s: must be >= %v", "affected_rows", 0)
+	}
+	*j = RelationalDeleteResponse(plain)
+	return nil
 }
 
 type RelationalExpressionCapabilities struct {
@@ -1276,6 +1484,76 @@ func (j *RelationalExpressionCapabilities) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	*j = RelationalExpressionCapabilities(plain)
+	return nil
+}
+
+type RelationalInsertRequest struct {
+	// Values to be provided to any collection arguments
+	Arguments RelationalInsertRequestArguments `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
+
+	// The name of the collection to insert into
+	Collection string `json:"collection" yaml:"collection" mapstructure:"collection"`
+
+	// The columns to insert values for
+	Columns []string `json:"columns" yaml:"columns" mapstructure:"columns"`
+
+	// The rows to insert, each row containing values for the specified columns
+	Rows [][]interface{} `json:"rows" yaml:"rows" mapstructure:"rows"`
+}
+
+// Values to be provided to any collection arguments
+type RelationalInsertRequestArguments map[string]Argument
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationalInsertRequest) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["arguments"]; raw != nil && !ok {
+		return fmt.Errorf("field arguments in RelationalInsertRequest: required")
+	}
+	if _, ok := raw["collection"]; raw != nil && !ok {
+		return fmt.Errorf("field collection in RelationalInsertRequest: required")
+	}
+	if _, ok := raw["columns"]; raw != nil && !ok {
+		return fmt.Errorf("field columns in RelationalInsertRequest: required")
+	}
+	if _, ok := raw["rows"]; raw != nil && !ok {
+		return fmt.Errorf("field rows in RelationalInsertRequest: required")
+	}
+	type Plain RelationalInsertRequest
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = RelationalInsertRequest(plain)
+	return nil
+}
+
+type RelationalInsertResponse struct {
+	// The number of rows that were inserted
+	AffectedRows int `json:"affected_rows" yaml:"affected_rows" mapstructure:"affected_rows"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationalInsertResponse) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["affected_rows"]; raw != nil && !ok {
+		return fmt.Errorf("field affected_rows in RelationalInsertResponse: required")
+	}
+	type Plain RelationalInsertResponse
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	if 0 > plain.AffectedRows {
+		return fmt.Errorf("field %s: must be >= %v", "affected_rows", 0)
+	}
+	*j = RelationalInsertResponse(plain)
 	return nil
 }
 
@@ -1414,6 +1692,14 @@ func (j *RelationalProjectionCapabilities) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+type RelationalQuery struct {
+	// Values to be provided to request-level arguments.
+	RequestArguments RelationalQueryRequestArguments `json:"request_arguments,omitempty" yaml:"request_arguments,omitempty" mapstructure:"request_arguments,omitempty"`
+
+	// RootRelation corresponds to the JSON schema field "root_relation".
+	RootRelation Relation `json:"root_relation" yaml:"root_relation" mapstructure:"root_relation"`
+}
+
 // Describes which features of the relational query API are supported by the
 // connector. This feature is experimental and subject to breaking changes within
 // minor versions.
@@ -1455,6 +1741,50 @@ func (j *RelationalQueryCapabilities) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	*j = RelationalQueryCapabilities(plain)
+	return nil
+}
+
+// Values to be provided to request-level arguments.
+type RelationalQueryRequestArguments map[string]Argument
+
+type RelationalQueryResponse struct {
+	// Rows corresponds to the JSON schema field "rows".
+	Rows [][]interface{} `json:"rows" yaml:"rows" mapstructure:"rows"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationalQueryResponse) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["rows"]; raw != nil && !ok {
+		return fmt.Errorf("field rows in RelationalQueryResponse: required")
+	}
+	type Plain RelationalQueryResponse
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = RelationalQueryResponse(plain)
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationalQuery) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["root_relation"]; raw != nil && !ok {
+		return fmt.Errorf("field root_relation in RelationalQuery: required")
+	}
+	type Plain RelationalQuery
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = RelationalQuery(plain)
 	return nil
 }
 
@@ -1651,6 +1981,72 @@ func (j *RelationalSortCapabilities) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	*j = RelationalSortCapabilities(plain)
+	return nil
+}
+
+type RelationalUpdateRequest struct {
+	// Values to be provided to any collection arguments
+	Arguments RelationalUpdateRequestArguments `json:"arguments" yaml:"arguments" mapstructure:"arguments"`
+
+	// The name of the collection to update
+	Collection string `json:"collection" yaml:"collection" mapstructure:"collection"`
+
+	// The relation that identifies which rows to update
+	Relation Relation `json:"relation" yaml:"relation" mapstructure:"relation"`
+}
+
+// Values to be provided to any collection arguments
+type RelationalUpdateRequestArguments map[string]Argument
+
+// The relation that identifies which rows to update
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationalUpdateRequest) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["arguments"]; raw != nil && !ok {
+		return fmt.Errorf("field arguments in RelationalUpdateRequest: required")
+	}
+	if _, ok := raw["collection"]; raw != nil && !ok {
+		return fmt.Errorf("field collection in RelationalUpdateRequest: required")
+	}
+	if _, ok := raw["relation"]; raw != nil && !ok {
+		return fmt.Errorf("field relation in RelationalUpdateRequest: required")
+	}
+	type Plain RelationalUpdateRequest
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = RelationalUpdateRequest(plain)
+	return nil
+}
+
+type RelationalUpdateResponse struct {
+	// The number of rows that were updated
+	AffectedRows int `json:"affected_rows" yaml:"affected_rows" mapstructure:"affected_rows"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *RelationalUpdateResponse) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["affected_rows"]; raw != nil && !ok {
+		return fmt.Errorf("field affected_rows in RelationalUpdateResponse: required")
+	}
+	type Plain RelationalUpdateResponse
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	if 0 > plain.AffectedRows {
+		return fmt.Errorf("field %s: must be >= %v", "affected_rows", 0)
+	}
+	*j = RelationalUpdateResponse(plain)
 	return nil
 }
 
@@ -1933,6 +2329,37 @@ type SchemaPatchedJson struct {
 	// QueryResponse corresponds to the JSON schema field "query_response".
 	QueryResponse QueryResponse `json:"query_response" yaml:"query_response" mapstructure:"query_response"`
 
+	// RelationalDeleteRequest corresponds to the JSON schema field
+	// "relational_delete_request".
+	RelationalDeleteRequest RelationalDeleteRequest `json:"relational_delete_request" yaml:"relational_delete_request" mapstructure:"relational_delete_request"`
+
+	// RelationalDeleteResponse corresponds to the JSON schema field
+	// "relational_delete_response".
+	RelationalDeleteResponse RelationalDeleteResponse `json:"relational_delete_response" yaml:"relational_delete_response" mapstructure:"relational_delete_response"`
+
+	// RelationalInsertRequest corresponds to the JSON schema field
+	// "relational_insert_request".
+	RelationalInsertRequest RelationalInsertRequest `json:"relational_insert_request" yaml:"relational_insert_request" mapstructure:"relational_insert_request"`
+
+	// RelationalInsertResponse corresponds to the JSON schema field
+	// "relational_insert_response".
+	RelationalInsertResponse RelationalInsertResponse `json:"relational_insert_response" yaml:"relational_insert_response" mapstructure:"relational_insert_response"`
+
+	// RelationalQuery corresponds to the JSON schema field "relational_query".
+	RelationalQuery RelationalQuery `json:"relational_query" yaml:"relational_query" mapstructure:"relational_query"`
+
+	// RelationalQueryResponse corresponds to the JSON schema field
+	// "relational_query_response".
+	RelationalQueryResponse RelationalQueryResponse `json:"relational_query_response" yaml:"relational_query_response" mapstructure:"relational_query_response"`
+
+	// RelationalUpdateRequest corresponds to the JSON schema field
+	// "relational_update_request".
+	RelationalUpdateRequest RelationalUpdateRequest `json:"relational_update_request" yaml:"relational_update_request" mapstructure:"relational_update_request"`
+
+	// RelationalUpdateResponse corresponds to the JSON schema field
+	// "relational_update_response".
+	RelationalUpdateResponse RelationalUpdateResponse `json:"relational_update_response" yaml:"relational_update_response" mapstructure:"relational_update_response"`
+
 	// SchemaResponse corresponds to the JSON schema field "schema_response".
 	SchemaResponse SchemaResponse `json:"schema_response" yaml:"schema_response" mapstructure:"schema_response"`
 
@@ -1966,6 +2393,30 @@ func (j *SchemaPatchedJson) UnmarshalJSON(b []byte) error {
 	}
 	if _, ok := raw["query_response"]; raw != nil && !ok {
 		return fmt.Errorf("field query_response in SchemaPatchedJson: required")
+	}
+	if _, ok := raw["relational_delete_request"]; raw != nil && !ok {
+		return fmt.Errorf("field relational_delete_request in SchemaPatchedJson: required")
+	}
+	if _, ok := raw["relational_delete_response"]; raw != nil && !ok {
+		return fmt.Errorf("field relational_delete_response in SchemaPatchedJson: required")
+	}
+	if _, ok := raw["relational_insert_request"]; raw != nil && !ok {
+		return fmt.Errorf("field relational_insert_request in SchemaPatchedJson: required")
+	}
+	if _, ok := raw["relational_insert_response"]; raw != nil && !ok {
+		return fmt.Errorf("field relational_insert_response in SchemaPatchedJson: required")
+	}
+	if _, ok := raw["relational_query"]; raw != nil && !ok {
+		return fmt.Errorf("field relational_query in SchemaPatchedJson: required")
+	}
+	if _, ok := raw["relational_query_response"]; raw != nil && !ok {
+		return fmt.Errorf("field relational_query_response in SchemaPatchedJson: required")
+	}
+	if _, ok := raw["relational_update_request"]; raw != nil && !ok {
+		return fmt.Errorf("field relational_update_request in SchemaPatchedJson: required")
+	}
+	if _, ok := raw["relational_update_response"]; raw != nil && !ok {
+		return fmt.Errorf("field relational_update_response in SchemaPatchedJson: required")
 	}
 	if _, ok := raw["schema_response"]; raw != nil && !ok {
 		return fmt.Errorf("field schema_response in SchemaPatchedJson: required")
@@ -2040,6 +2491,41 @@ func (j *SchemaResponse) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	*j = SchemaResponse(plain)
+	return nil
+}
+
+type Sort struct {
+	// Direction corresponds to the JSON schema field "direction".
+	Direction OrderDirection `json:"direction" yaml:"direction" mapstructure:"direction"`
+
+	// Expr corresponds to the JSON schema field "expr".
+	Expr RelationalExpression `json:"expr" yaml:"expr" mapstructure:"expr"`
+
+	// NullsSort corresponds to the JSON schema field "nulls_sort".
+	NullsSort NullsSort `json:"nulls_sort" yaml:"nulls_sort" mapstructure:"nulls_sort"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Sort) UnmarshalJSON(b []byte) error {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return err
+	}
+	if _, ok := raw["direction"]; raw != nil && !ok {
+		return fmt.Errorf("field direction in Sort: required")
+	}
+	if _, ok := raw["expr"]; raw != nil && !ok {
+		return fmt.Errorf("field expr in Sort: required")
+	}
+	if _, ok := raw["nulls_sort"]; raw != nil && !ok {
+		return fmt.Errorf("field nulls_sort in Sort: required")
+	}
+	type Plain Sort
+	var plain Plain
+	if err := json.Unmarshal(b, &plain); err != nil {
+		return err
+	}
+	*j = Sort(plain)
 	return nil
 }
 

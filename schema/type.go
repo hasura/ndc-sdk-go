@@ -479,34 +479,6 @@ func (ty PredicateType) String() string {
 	return fmt.Sprintf("Predicate<%s>", ty.ObjectTypeName)
 }
 
-// GetUnderlyingNamedType gets the underlying named type of the input type recursively if exists.
-func GetUnderlyingNamedType(input Type) *NamedType {
-	if len(input) == 0 {
-		return nil
-	}
-
-	switch ty := input.Interface().(type) {
-	case *NullableType:
-		return GetUnderlyingNamedType(ty.UnderlyingType)
-	case *ArrayType:
-		return GetUnderlyingNamedType(ty.ElementType)
-	case *NamedType:
-		return ty
-	default:
-		return nil
-	}
-}
-
-// UnwrapNullableType unwraps nullable types from the input type recursively.
-func UnwrapNullableType(input Type) Type {
-	if input == nil || input.IsZero() {
-		return nil
-	}
-
-	switch ty := input.Interface().(type) {
-	case *NullableType:
-		return UnwrapNullableType(ty.UnderlyingType)
-	default:
-		return input
-	}
+type rawTypeStruct struct {
+	Type string `json:"type" yaml:"type" mapstructure:"type"`
 }
