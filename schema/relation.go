@@ -294,9 +294,9 @@ func (j Relation) Interface() RelationEncoder {
 
 // RelationFrom represents a from relation.
 type RelationFrom struct {
-	Collection string                       `json:"collection" mapstructure:"collection" yaml:"collection"`
-	Columns    []string                     `json:"columns" mapstructure:"columns" yaml:"columns"`
-	Arguments  map[string]RelationalLiteral `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
+	Collection string                       `json:"collection"          mapstructure:"collection" yaml:"collection"`
+	Columns    []string                     `json:"columns"             mapstructure:"columns"    yaml:"columns"`
+	Arguments  map[string]RelationalLiteral `json:"arguments,omitempty" mapstructure:"arguments"  yaml:"arguments,omitempty"`
 }
 
 // NewRelationFrom creates a RelationFrom instance.
@@ -374,7 +374,7 @@ func (j RelationFrom) ToMap() map[string]any {
 type RelationPaginate struct {
 	Input Relation `json:"input" mapstructure:"input" yaml:"input"`
 	Fetch *uint64  `json:"fetch" mapstructure:"fetch" yaml:"fetch"`
-	Skip  uint64   `json:"skip" mapstructure:"skip" yaml:"skip"`
+	Skip  uint64   `json:"skip"  mapstructure:"skip"  yaml:"skip"`
 }
 
 // NewRelationPaginate creates a RelationPaginate instance.
@@ -413,7 +413,10 @@ type RelationProject struct {
 }
 
 // NewRelationProject creates a RelationProject instance.
-func NewRelationProject[R RelationEncoder](input R, expressions []RelationalExpressionEncoder) *RelationProject {
+func NewRelationProject[R RelationEncoder](
+	input R,
+	expressions []RelationalExpressionEncoder,
+) *RelationProject {
 	exprs := []RelationalExpression{}
 
 	for _, expr := range expressions {
@@ -451,12 +454,15 @@ func (j RelationProject) Encode() Relation {
 
 // RelationFilter represents a filter relation.
 type RelationFilter struct {
-	Input     Relation             `json:"input" mapstructure:"input" yaml:"input"`
+	Input     Relation             `json:"input"     mapstructure:"input"     yaml:"input"`
 	Predicate RelationalExpression `json:"predicate" mapstructure:"predicate" yaml:"predicate"`
 }
 
 // NewRelationFilter creates a RelationFilter instance.
-func NewRelationFilter[R RelationEncoder, P RelationalExpressionEncoder](input R, predicate P) *RelationFilter {
+func NewRelationFilter[R RelationEncoder, P RelationalExpressionEncoder](
+	input R,
+	predicate P,
+) *RelationFilter {
 	return &RelationFilter{
 		Input:     NewRelation(input),
 		Predicate: predicate.Encode(),
@@ -517,14 +523,19 @@ func (j RelationSort) Encode() Relation {
 
 // RelationJoin represents a join relation.
 type RelationJoin struct {
-	Left     Relation `json:"left" mapstructure:"left" yaml:"left"`
-	Right    Relation `json:"right" mapstructure:"right" yaml:"right"`
-	On       []JoinOn `json:"on" mapstructure:"on" yaml:"on"`
+	Left     Relation `json:"left"      mapstructure:"left"      yaml:"left"`
+	Right    Relation `json:"right"     mapstructure:"right"     yaml:"right"`
+	On       []JoinOn `json:"on"        mapstructure:"on"        yaml:"on"`
 	JoinType JoinType `json:"join_type" mapstructure:"join_type" yaml:"join_type"`
 }
 
 // NewRelationJoin creates a RelationJoin instance.
-func NewRelationJoin[L RelationEncoder, R RelationEncoder](left L, right R, on []JoinOn, joinType JoinType) *RelationJoin {
+func NewRelationJoin[L RelationEncoder, R RelationEncoder](
+	left L,
+	right R,
+	on []JoinOn,
+	joinType JoinType,
+) *RelationJoin {
 	return &RelationJoin{
 		Left:     NewRelation(left),
 		Right:    NewRelation(right),
@@ -556,14 +567,18 @@ func (j RelationJoin) Encode() Relation {
 
 // RelationAggregate represents an aggregate relation.
 type RelationAggregate struct {
-	Input Relation `json:"input" mapstructure:"input" yaml:"input"`
+	Input Relation `json:"input"      mapstructure:"input"      yaml:"input"`
 	// Only non-empty if the 'relational_query.aggregate.group_by' capability is supported.
-	GroupBy    []RelationalExpression `json:"group_by" mapstructure:"group_by" yaml:"group_by"`
+	GroupBy    []RelationalExpression `json:"group_by"   mapstructure:"group_by"   yaml:"group_by"`
 	Aggregates []RelationalExpression `json:"aggregates" mapstructure:"aggregates" yaml:"aggregates"`
 }
 
 // NewRelationAggregate creates a RelationAggregate instance.
-func NewRelationAggregate[R RelationEncoder](input R, groupBy []RelationalExpressionEncoder, aggregates []RelationalExpressionEncoder) *RelationAggregate {
+func NewRelationAggregate[R RelationEncoder](
+	input R,
+	groupBy []RelationalExpressionEncoder,
+	aggregates []RelationalExpressionEncoder,
+) *RelationAggregate {
 	groups := []RelationalExpression{}
 	aggs := []RelationalExpression{}
 
@@ -613,7 +628,10 @@ type RelationWindow struct {
 }
 
 // NewRelationWindow creates a RelationWindow instance.
-func NewRelationWindow[R RelationEncoder](input R, expressions []RelationalExpressionEncoder) *RelationWindow {
+func NewRelationWindow[R RelationEncoder](
+	input R,
+	expressions []RelationalExpressionEncoder,
+) *RelationWindow {
 	exprs := []RelationalExpression{}
 
 	for _, expr := range expressions {
@@ -1514,11 +1532,15 @@ func (j RelationalLiteralFloat64) Encode() RelationalLiteral {
 type RelationalLiteralDecimal128 struct {
 	Value int64 `json:"value" mapstructure:"value" yaml:"value"`
 	Scale int8  `json:"scale" mapstructure:"scale" yaml:"scale"`
-	Spec  uint8 `json:"prec" mapstructure:"prec" yaml:"prec"`
+	Spec  uint8 `json:"prec"  mapstructure:"prec"  yaml:"prec"`
 }
 
 // NewRelationalLiteralDecimal128 creates a RelationalLiteralDecimal128 instance.
-func NewRelationalLiteralDecimal128(value int64, scale int8, spec uint8) *RelationalLiteralDecimal128 {
+func NewRelationalLiteralDecimal128(
+	value int64,
+	scale int8,
+	spec uint8,
+) *RelationalLiteralDecimal128 {
 	return &RelationalLiteralDecimal128{
 		Value: value,
 		Scale: scale,
@@ -1550,11 +1572,15 @@ func (j RelationalLiteralDecimal128) Encode() RelationalLiteral {
 type RelationalLiteralDecimal256 struct {
 	Value string `json:"value" mapstructure:"value" yaml:"value"`
 	Scale int8   `json:"scale" mapstructure:"scale" yaml:"scale"`
-	Spec  uint8  `json:"prec" mapstructure:"prec" yaml:"prec"`
+	Spec  uint8  `json:"prec"  mapstructure:"prec"  yaml:"prec"`
 }
 
 // NewRelationalLiteralDecimal256 creates a RelationalLiteralDecimal256 instance.
-func NewRelationalLiteralDecimal256(value string, scale int8, spec uint8) *RelationalLiteralDecimal256 {
+func NewRelationalLiteralDecimal256(
+	value string,
+	scale int8,
+	spec uint8,
+) *RelationalLiteralDecimal256 {
 	return &RelationalLiteralDecimal256{
 		Value: value,
 		Scale: scale,
@@ -2019,13 +2045,17 @@ func (j RelationalLiteralDurationNanosecond) Encode() RelationalLiteral {
 // RelationalLiteralInterval represents a RelationalLiteral
 // with Interval represented as months, days, and nanoseconds.
 type RelationalLiteralInterval struct {
-	Months      int32 `json:"months" mapstructure:"months" yaml:"months"`
-	Days        int32 `json:"days" mapstructure:"days" yaml:"days"`
+	Months      int32 `json:"months"      mapstructure:"months"      yaml:"months"`
+	Days        int32 `json:"days"        mapstructure:"days"        yaml:"days"`
 	Nanoseconds int64 `json:"nanoseconds" mapstructure:"nanoseconds" yaml:"nanoseconds"`
 }
 
 // NewRelationalLiteralInterval creates a RelationalLiteralInterval instance.
-func NewRelationalLiteralInterval(months int32, days int32, nanoseconds int64) *RelationalLiteralInterval {
+func NewRelationalLiteralInterval(
+	months int32,
+	days int32,
+	nanoseconds int64,
+) *RelationalLiteralInterval {
 	return &RelationalLiteralInterval{
 		Months:      months,
 		Days:        days,

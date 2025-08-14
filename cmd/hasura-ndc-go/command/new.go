@@ -3,6 +3,7 @@ package command
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"embed"
 	"errors"
 	"io/fs"
@@ -157,7 +158,7 @@ func execGoFormat(basePath string) error {
 }
 
 func execCommand(basePath string, commandName string, args ...string) error {
-	cmd := exec.Command(commandName, args...)
+	cmd := exec.CommandContext(context.Background(), commandName, args...)
 	if basePath != "" {
 		cmd.Dir = basePath
 	}

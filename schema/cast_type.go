@@ -514,7 +514,7 @@ func (j CastTypeFloat64) Encode() CastType {
 // CastTypeDecimal128 represents a CastType with unsigned 128-bit decimal.
 type CastTypeDecimal128 struct {
 	Scale int8  `json:"scale" mapstructure:"scale" yaml:"scale"`
-	Spec  uint8 `json:"prec" mapstructure:"prec" yaml:"prec"`
+	Spec  uint8 `json:"prec"  mapstructure:"prec"  yaml:"prec"`
 }
 
 // NewCastTypeDecimal128 creates a CastTypeDecimal128 instance.
@@ -547,7 +547,7 @@ func (j CastTypeDecimal128) Encode() CastType {
 // CastTypeDecimal256 represents a CastType with unsigned 256-bit decimal.
 type CastTypeDecimal256 struct {
 	Scale int8  `json:"scale" mapstructure:"scale" yaml:"scale"`
-	Spec  uint8 `json:"prec" mapstructure:"prec" yaml:"prec"`
+	Spec  uint8 `json:"prec"  mapstructure:"prec"  yaml:"prec"`
 }
 
 // NewCastTypeDecimal256 creates a CastTypeDecimal256 instance.

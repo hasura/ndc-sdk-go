@@ -2,6 +2,8 @@ version: "2"
 
 linters:
   default: all
+  enable:
+    - wsl_v5
   disable:
     - err113
     - lll
@@ -17,7 +19,6 @@ linters:
     - funcorder
     - noinlineerr
     - wsl
-    - wsl_v5
   settings:
     tagliatelle:
       # Checks the struct tag name case.
@@ -81,7 +82,10 @@ linters:
       strict: false
       align: false
       sort: false
-
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+      branch-max-lines: 2
   # Defines a set of rules to ignore issues.
   # It does not skip the analysis, and so does not ignore "typecheck" errors.
   exclusions:
@@ -110,6 +114,14 @@ linters:
       - path: snapshots_gen\.go
         linters:
           - noctx
+
+      - path: schema/
+        linters:
+          - gocognit
+          - gocyclo
+          - cyclop
+          - funlen
+          - maintidx
 
       - path: example/reference/
         linters:

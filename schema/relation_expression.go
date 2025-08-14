@@ -357,7 +357,10 @@ func (j *RelationalExpression) UnmarshalJSON(b []byte) error {
 
 		err := json.Unmarshal(b, &result)
 		if err != nil {
-			return fmt.Errorf("failed to unmarshal RelationalExpressionApproxPercentileCont: %w", err)
+			return fmt.Errorf(
+				"failed to unmarshal RelationalExpressionApproxPercentileCont: %w",
+				err,
+			)
 		}
 
 		j.inner = &result
@@ -1287,7 +1290,9 @@ type RelationalExpressionLiteral struct {
 }
 
 // NewRelationalExpressionLiteral creates a RelationalExpressionLiteral instance.
-func NewRelationalExpressionLiteral[R RelationalLiteralEncoder](literal R) *RelationalExpressionLiteral {
+func NewRelationalExpressionLiteral[R RelationalLiteralEncoder](
+	literal R,
+) *RelationalExpressionLiteral {
 	return &RelationalExpressionLiteral{
 		Literal: literal.Encode(),
 	}
@@ -1348,11 +1353,11 @@ func (j RelationalExpressionColumn) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.conditional.case`
 // * During joining: `relational_query.join.expression.conditional.case`
 // * During aggregation: `relational_query.aggregate.expression.conditional.case`
-// * During windowing: `relational_query.window.expression.conditional.case`
+// * During windowing: `relational_query.window.expression.conditional.case`.
 type RelationalExpressionCase struct {
-	When      []CaseWhen            `json:"when" mapstructure:"when" yaml:"when"`
+	When      []CaseWhen            `json:"when"                mapstructure:"when"                yaml:"when"`
 	Scrutinee *RelationalExpression `json:"scrutinee,omitempty" mapstructure:"scrutinee,omitempty" yaml:"scrutinee,omitempty"`
-	Default   *RelationalExpression `json:"default,omitempty" mapstructure:"default,omitempty" yaml:"default,omitempty"`
+	Default   *RelationalExpression `json:"default,omitempty"   mapstructure:"default,omitempty"   yaml:"default,omitempty"`
 }
 
 // NewRelationalExpressionCase creates a RelationalExpressionCase instance.
@@ -1363,14 +1368,18 @@ func NewRelationalExpressionCase(when []CaseWhen) *RelationalExpressionCase {
 }
 
 // WithScrutinee returns the RelationalExpressionCase with scrutinee.
-func (j RelationalExpressionCase) WithScrutinee(scrutinee *RelationalExpression) *RelationalExpressionCase {
+func (j RelationalExpressionCase) WithScrutinee(
+	scrutinee *RelationalExpression,
+) *RelationalExpressionCase {
 	j.Scrutinee = scrutinee
 
 	return &j
 }
 
 // WithDefault returns the RelationalExpressionCase with default expression.
-func (j RelationalExpressionCase) WithDefault(defaultExpr *RelationalExpression) *RelationalExpressionCase {
+func (j RelationalExpressionCase) WithDefault(
+	defaultExpr *RelationalExpression,
+) *RelationalExpressionCase {
 	j.Default = defaultExpr
 
 	return &j
@@ -1407,12 +1416,15 @@ func (j RelationalExpressionCase) Encode() RelationalExpression {
 
 // RelationalExpressionAnd represents a RelationalExpression with the and type.
 type RelationalExpressionAnd struct {
-	Left  RelationalExpression `json:"left" mapstructure:"left" yaml:"left"`
+	Left  RelationalExpression `json:"left"  mapstructure:"left"  yaml:"left"`
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
 // NewRelationalExpressionAnd creates a RelationalExpressionAnd instance.
-func NewRelationalExpressionAnd[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionAnd {
+func NewRelationalExpressionAnd[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionAnd {
 	return &RelationalExpressionAnd{
 		Left:  left.Encode(),
 		Right: right.Encode(),
@@ -1440,12 +1452,15 @@ func (j RelationalExpressionAnd) Encode() RelationalExpression {
 
 // RelationalExpressionOr represents a RelationalExpression with the or type.
 type RelationalExpressionOr struct {
-	Left  RelationalExpression `json:"left" mapstructure:"left" yaml:"left"`
+	Left  RelationalExpression `json:"left"  mapstructure:"left"  yaml:"left"`
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
 // NewRelationalExpressionOr creates a RelationalExpressionOr instance.
-func NewRelationalExpressionOr[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionOr {
+func NewRelationalExpressionOr[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionOr {
 	return &RelationalExpressionOr{
 		Left:  left.Encode(),
 		Right: right.Encode(),
@@ -1503,12 +1518,15 @@ func (j RelationalExpressionNot) Encode() RelationalExpression {
 
 // RelationalExpressionEq represents a RelationalExpression with the eq type.
 type RelationalExpressionEq struct {
-	Left  RelationalExpression `json:"left" mapstructure:"left" yaml:"left"`
+	Left  RelationalExpression `json:"left"  mapstructure:"left"  yaml:"left"`
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
 // NewRelationalExpressionEq creates a RelationalExpressionEq instance.
-func NewRelationalExpressionEq[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionEq {
+func NewRelationalExpressionEq[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionEq {
 	return &RelationalExpressionEq{
 		Left:  left.Encode(),
 		Right: right.Encode(),
@@ -1536,12 +1554,15 @@ func (j RelationalExpressionEq) Encode() RelationalExpression {
 
 // RelationalExpressionNotEq represents a RelationalExpression with the not_eq type.
 type RelationalExpressionNotEq struct {
-	Left  RelationalExpression `json:"left" mapstructure:"left" yaml:"left"`
+	Left  RelationalExpression `json:"left"  mapstructure:"left"  yaml:"left"`
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
 // NewRelationalExpressionNotEq creates a RelationalExpressionNotEq instance.
-func NewRelationalExpressionNotEq[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionNotEq {
+func NewRelationalExpressionNotEq[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionNotEq {
 	return &RelationalExpressionNotEq{
 		Left:  left.Encode(),
 		Right: right.Encode(),
@@ -1574,14 +1595,17 @@ func (j RelationalExpressionNotEq) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.comparison.is_distinct_from`
 // * During joining: `relational_query.join.expression.comparison.is_distinct_from`
 // * During aggregation: `relational_query.aggregate.expression.comparison.is_distinct_from`
-// * During windowing: `relational_query.window.expression.comparison.is_distinct_from`
+// * During windowing: `relational_query.window.expression.comparison.is_distinct_from`.
 type RelationalExpressionIsDistinctFrom struct {
-	Left  RelationalExpression `json:"left" mapstructure:"left" yaml:"left"`
+	Left  RelationalExpression `json:"left"  mapstructure:"left"  yaml:"left"`
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
 // NewRelationalExpressionIsDistinctFrom creates a RelationalExpressionIsDistinctFrom instance.
-func NewRelationalExpressionIsDistinctFrom[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionIsDistinctFrom {
+func NewRelationalExpressionIsDistinctFrom[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionIsDistinctFrom {
 	return &RelationalExpressionIsDistinctFrom{
 		Left:  left.Encode(),
 		Right: right.Encode(),
@@ -1614,14 +1638,17 @@ func (j RelationalExpressionIsDistinctFrom) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.comparison.is_not_distinct_from`
 // * During joining: `relational_query.join.expression.comparison.is_not_distinct_from`
 // * During aggregation: `relational_query.aggregate.expression.comparison.is_not_distinct_from`
-// * During windowing: `relational_query.window.expression.comparison.is_not_distinct_from`
+// * During windowing: `relational_query.window.expression.comparison.is_not_distinct_from`.
 type RelationalExpressionIsNotDistinctFrom struct {
-	Left  RelationalExpression `json:"left" mapstructure:"left" yaml:"left"`
+	Left  RelationalExpression `json:"left"  mapstructure:"left"  yaml:"left"`
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
 // NewRelationalExpressionIsDistinctFrom creates a RelationalExpressionIsDistinctFrom instance.
-func NewRelationalExpressionIsNotDistinctFrom[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionIsNotDistinctFrom {
+func NewRelationalExpressionIsNotDistinctFrom[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionIsNotDistinctFrom {
 	return &RelationalExpressionIsNotDistinctFrom{
 		Left:  left.Encode(),
 		Right: right.Encode(),
@@ -1649,12 +1676,15 @@ func (j RelationalExpressionIsNotDistinctFrom) Encode() RelationalExpression {
 
 // RelationalExpressionLt represents a RelationalExpression with the lt type.
 type RelationalExpressionLt struct {
-	Left  RelationalExpression `json:"left" mapstructure:"left" yaml:"left"`
+	Left  RelationalExpression `json:"left"  mapstructure:"left"  yaml:"left"`
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
 // NewRelationalExpressionLt creates a RelationalExpressionLt instance.
-func NewRelationalExpressionLt[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionLt {
+func NewRelationalExpressionLt[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionLt {
 	return &RelationalExpressionLt{
 		Left:  left.Encode(),
 		Right: right.Encode(),
@@ -1682,12 +1712,15 @@ func (j RelationalExpressionLt) Encode() RelationalExpression {
 
 // RelationalExpressionLtEq represents a RelationalExpression with the lt_eq type.
 type RelationalExpressionLtEq struct {
-	Left  RelationalExpression `json:"left" mapstructure:"left" yaml:"left"`
+	Left  RelationalExpression `json:"left"  mapstructure:"left"  yaml:"left"`
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
 // NewRelationalExpressionLtEq creates a RelationalExpressionLtEq instance.
-func NewRelationalExpressionLtEq[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionLtEq {
+func NewRelationalExpressionLtEq[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionLtEq {
 	return &RelationalExpressionLtEq{
 		Left:  left.Encode(),
 		Right: right.Encode(),
@@ -1715,12 +1748,15 @@ func (j RelationalExpressionLtEq) Encode() RelationalExpression {
 
 // RelationalExpressionGt represents a RelationalExpression with the gt type.
 type RelationalExpressionGt struct {
-	Left  RelationalExpression `json:"left" mapstructure:"left" yaml:"left"`
+	Left  RelationalExpression `json:"left"  mapstructure:"left"  yaml:"left"`
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
 // NewRelationalExpressionGt creates a RelationalExpressionGt instance.
-func NewRelationalExpressionGt[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionGt {
+func NewRelationalExpressionGt[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionGt {
 	return &RelationalExpressionGt{
 		Left:  left.Encode(),
 		Right: right.Encode(),
@@ -1748,12 +1784,15 @@ func (j RelationalExpressionGt) Encode() RelationalExpression {
 
 // RelationalExpressionGtEq represents a RelationalExpression with the gt_eq type.
 type RelationalExpressionGtEq struct {
-	Left  RelationalExpression `json:"left" mapstructure:"left" yaml:"left"`
+	Left  RelationalExpression `json:"left"  mapstructure:"left"  yaml:"left"`
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
 // NewRelationalExpressionGtEq creates a RelationalExpressionGtEq instance.
-func NewRelationalExpressionGtEq[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionGtEq {
+func NewRelationalExpressionGtEq[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionGtEq {
 	return &RelationalExpressionGtEq{
 		Left:  left.Encode(),
 		Right: right.Encode(),
@@ -1785,7 +1824,9 @@ type RelationalExpressionIsNotNull struct {
 }
 
 // NewRelationalExpressionIsNotNull creates a RelationalExpressionIsNotNull instance.
-func NewRelationalExpressionIsNotNull[E RelationalExpressionEncoder](expr E) *RelationalExpressionIsNotNull {
+func NewRelationalExpressionIsNotNull[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionIsNotNull {
 	return &RelationalExpressionIsNotNull{
 		Expr: expr.Encode(),
 	}
@@ -1815,7 +1856,9 @@ type RelationalExpressionIsNull struct {
 }
 
 // NewRelationalExpressionIsNull creates a RelationalExpressionIsNull instance.
-func NewRelationalExpressionIsNull[E RelationalExpressionEncoder](expr E) *RelationalExpressionIsNull {
+func NewRelationalExpressionIsNull[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionIsNull {
 	return &RelationalExpressionIsNull{
 		Expr: expr.Encode(),
 	}
@@ -1845,7 +1888,9 @@ type RelationalExpressionIsTrue struct {
 }
 
 // NewRelationalExpressionIsTrue creates a RelationalExpressionIsTrue instance.
-func NewRelationalExpressionIsTrue[E RelationalExpressionEncoder](expr E) *RelationalExpressionIsTrue {
+func NewRelationalExpressionIsTrue[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionIsTrue {
 	return &RelationalExpressionIsTrue{
 		Expr: expr.Encode(),
 	}
@@ -1875,7 +1920,9 @@ type RelationalExpressionIsFalse struct {
 }
 
 // NewRelationalExpressionIsFalse creates a RelationalExpressionIsFalse instance.
-func NewRelationalExpressionIsFalse[E RelationalExpressionEncoder](expr E) *RelationalExpressionIsFalse {
+func NewRelationalExpressionIsFalse[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionIsFalse {
 	return &RelationalExpressionIsFalse{
 		Expr: expr.Encode(),
 	}
@@ -1905,7 +1952,9 @@ type RelationalExpressionIsNotTrue struct {
 }
 
 // NewRelationalExpressionIsNotTrue creates a RelationalExpressionIsNotTrue instance.
-func NewRelationalExpressionIsNotTrue[E RelationalExpressionEncoder](expr E) *RelationalExpressionIsNotTrue {
+func NewRelationalExpressionIsNotTrue[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionIsNotTrue {
 	return &RelationalExpressionIsNotTrue{
 		Expr: expr.Encode(),
 	}
@@ -1935,7 +1984,9 @@ type RelationalExpressionIsNotFalse struct {
 }
 
 // NewRelationalExpressionIsNotFalse creates a RelationalExpressionIsNotFalse instance.
-func NewRelationalExpressionIsNotFalse[E RelationalExpressionEncoder](expr E) *RelationalExpressionIsNotFalse {
+func NewRelationalExpressionIsNotFalse[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionIsNotFalse {
 	return &RelationalExpressionIsNotFalse{
 		Expr: expr.Encode(),
 	}
@@ -1966,7 +2017,10 @@ type RelationalExpressionIn struct {
 }
 
 // NewRelationalExpressionIn creates a RelationalExpressionIn instance.
-func NewRelationalExpressionIn[E RelationalExpressionEncoder](expr E, list []RelationalExpressionEncoder) *RelationalExpressionIn {
+func NewRelationalExpressionIn[E RelationalExpressionEncoder](
+	expr E,
+	list []RelationalExpressionEncoder,
+) *RelationalExpressionIn {
 	ls := []RelationalExpression{}
 
 	for _, item := range list {
@@ -2007,7 +2061,10 @@ type RelationalExpressionNotIn struct {
 }
 
 // NewRelationalExpressionNotIn creates a RelationalExpressionNotIn instance.
-func NewRelationalExpressionNotIn[E RelationalExpressionEncoder](expr E, list []RelationalExpressionEncoder) *RelationalExpressionNotIn {
+func NewRelationalExpressionNotIn[E RelationalExpressionEncoder](
+	expr E,
+	list []RelationalExpressionEncoder,
+) *RelationalExpressionNotIn {
 	ls := []RelationalExpression{}
 
 	for _, item := range list {
@@ -2048,14 +2105,17 @@ func (j RelationalExpressionNotIn) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.comparison.like`
 // * During joining: `relational_query.join.expression.comparison.like`
 // * During aggregation: `relational_query.aggregate.expression.comparison.like`
-// * During windowing: `relational_query.window.expression.comparison.like`
+// * During windowing: `relational_query.window.expression.comparison.like`.
 type RelationalExpressionLike struct {
-	Expr    RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
+	Expr    RelationalExpression `json:"expr"    mapstructure:"expr"    yaml:"expr"`
 	Pattern RelationalExpression `json:"pattern" mapstructure:"pattern" yaml:"pattern"`
 }
 
 // NewRelationalExpressionLike creates a RelationalExpressionLike instance.
-func NewRelationalExpressionLike[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionLike {
+func NewRelationalExpressionLike[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionLike {
 	return &RelationalExpressionLike{
 		Expr:    left.Encode(),
 		Pattern: right.Encode(),
@@ -2088,14 +2148,17 @@ func (j RelationalExpressionLike) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.comparison.like`
 // * During joining: `relational_query.join.expression.comparison.like`
 // * During aggregation: `relational_query.aggregate.expression.comparison.like`
-// * During windowing: `relational_query.window.expression.comparison.like`
+// * During windowing: `relational_query.window.expression.comparison.like`.
 type RelationalExpressionNotLike struct {
-	Expr    RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
+	Expr    RelationalExpression `json:"expr"    mapstructure:"expr"    yaml:"expr"`
 	Pattern RelationalExpression `json:"pattern" mapstructure:"pattern" yaml:"pattern"`
 }
 
 // NewRelationalExpressionNotLike creates a RelationalExpressionNotLike instance.
-func NewRelationalExpressionNotLike[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionNotLike {
+func NewRelationalExpressionNotLike[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionNotLike {
 	return &RelationalExpressionNotLike{
 		Expr:    left.Encode(),
 		Pattern: right.Encode(),
@@ -2128,14 +2191,17 @@ func (j RelationalExpressionNotLike) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.comparison.ilike`
 // * During joining: `relational_query.join.expression.comparison.ilike`
 // * During aggregation: `relational_query.aggregate.expression.comparison.ilike`
-// * During windowing: `relational_query.window.expression.comparison.ilike`
+// * During windowing: `relational_query.window.expression.comparison.ilike`.
 type RelationalExpressionILike struct {
-	Expr    RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
+	Expr    RelationalExpression `json:"expr"    mapstructure:"expr"    yaml:"expr"`
 	Pattern RelationalExpression `json:"pattern" mapstructure:"pattern" yaml:"pattern"`
 }
 
 // NewRelationalExpressionILike creates a RelationalExpressionILike instance.
-func NewRelationalExpressionILike[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionILike {
+func NewRelationalExpressionILike[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionILike {
 	return &RelationalExpressionILike{
 		Expr:    left.Encode(),
 		Pattern: right.Encode(),
@@ -2168,14 +2234,17 @@ func (j RelationalExpressionILike) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.comparison.ilike`
 // * During joining: `relational_query.join.expression.comparison.ilike`
 // * During aggregation: `relational_query.aggregate.expression.comparison.ilike`
-// * During windowing: `relational_query.window.expression.comparison.ilike`
+// * During windowing: `relational_query.window.expression.comparison.ilike`.
 type RelationalExpressionNotILike struct {
-	Expr    RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
+	Expr    RelationalExpression `json:"expr"    mapstructure:"expr"    yaml:"expr"`
 	Pattern RelationalExpression `json:"pattern" mapstructure:"pattern" yaml:"pattern"`
 }
 
 // NewRelationalExpressionNotILike creates a RelationalExpressionNotILike instance.
-func NewRelationalExpressionNotILike[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionNotILike {
+func NewRelationalExpressionNotILike[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionNotILike {
 	return &RelationalExpressionNotILike{
 		Expr:    left.Encode(),
 		Pattern: right.Encode(),
@@ -2208,15 +2277,19 @@ func (j RelationalExpressionNotILike) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.comparison.between`
 // * During joining: `relational_query.join.expression.comparison.between`
 // * During aggregation: `relational_query.aggregate.expression.comparison.between`
-// * During windowing: `relational_query.window.expression.comparison.between`
+// * During windowing: `relational_query.window.expression.comparison.between`.
 type RelationalExpressionBetween struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
-	Low  RelationalExpression `json:"low" mapstructure:"low" yaml:"low"`
+	Low  RelationalExpression `json:"low"  mapstructure:"low"  yaml:"low"`
 	High RelationalExpression `json:"high" mapstructure:"high" yaml:"high"`
 }
 
 // NewRelationalExpressionBetween creates a RelationalExpressionBetween instance.
-func NewRelationalExpressionBetween[E RelationalExpressionEncoder, L RelationalExpressionEncoder, H RelationalExpressionEncoder](expr E, low L, high H) *RelationalExpressionBetween {
+func NewRelationalExpressionBetween[E RelationalExpressionEncoder, L RelationalExpressionEncoder, H RelationalExpressionEncoder](
+	expr E,
+	low L,
+	high H,
+) *RelationalExpressionBetween {
 	return &RelationalExpressionBetween{
 		Expr: expr.Encode(),
 		Low:  low.Encode(),
@@ -2251,15 +2324,19 @@ func (j RelationalExpressionBetween) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.comparison.between`
 // * During joining: `relational_query.join.expression.comparison.between`
 // * During aggregation: `relational_query.aggregate.expression.comparison.between`
-// * During windowing: `relational_query.window.expression.comparison.between`
+// * During windowing: `relational_query.window.expression.comparison.between`.
 type RelationalExpressionNotBetween struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
-	Low  RelationalExpression `json:"low" mapstructure:"low" yaml:"low"`
+	Low  RelationalExpression `json:"low"  mapstructure:"low"  yaml:"low"`
 	High RelationalExpression `json:"high" mapstructure:"high" yaml:"high"`
 }
 
 // NewRelationalExpressionNotBetween creates a RelationalExpressionNotBetween instance.
-func NewRelationalExpressionNotBetween[E RelationalExpressionEncoder, L RelationalExpressionEncoder, H RelationalExpressionEncoder](expr E, low L, high H) *RelationalExpressionNotBetween {
+func NewRelationalExpressionNotBetween[E RelationalExpressionEncoder, L RelationalExpressionEncoder, H RelationalExpressionEncoder](
+	expr E,
+	low L,
+	high H,
+) *RelationalExpressionNotBetween {
 	return &RelationalExpressionNotBetween{
 		Expr: expr.Encode(),
 		Low:  low.Encode(),
@@ -2294,14 +2371,17 @@ func (j RelationalExpressionNotBetween) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.comparison.contains`
 // * During joining: `relational_query.join.expression.comparison.contains`
 // * During aggregation: `relational_query.aggregate.expression.comparison.contains`
-// * During windowing: `relational_query.window.expression.comparison.contains`
+// * During windowing: `relational_query.window.expression.comparison.contains`.
 type RelationalExpressionContains struct {
-	Str       RelationalExpression `json:"str" mapstructure:"str" yaml:"str"`
+	Str       RelationalExpression `json:"str"        mapstructure:"str"        yaml:"str"`
 	SearchStr RelationalExpression `json:"search_str" mapstructure:"search_str" yaml:"search_str"`
 }
 
 // NewRelationalExpressionContains creates a RelationalExpressionContains instance.
-func NewRelationalExpressionContains[S RelationalExpressionEncoder, SS RelationalExpressionEncoder](str S, searchStr SS) *RelationalExpressionContains {
+func NewRelationalExpressionContains[S RelationalExpressionEncoder, SS RelationalExpressionEncoder](
+	str S,
+	searchStr SS,
+) *RelationalExpressionContains {
 	return &RelationalExpressionContains{
 		Str:       str.Encode(),
 		SearchStr: searchStr.Encode(),
@@ -2334,13 +2414,15 @@ func (j RelationalExpressionContains) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.comparison.is_nan`
 // * During joining: `relational_query.join.expression.comparison.is_nan`
 // * During aggregation: `relational_query.aggregate.expression.comparison.is_nan`
-// * During windowing: `relational_query.window.expression.comparison.is_nan`
+// * During windowing: `relational_query.window.expression.comparison.is_nan`.
 type RelationalExpressionIsNaN struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
 
 // NewRelationalExpressionIsNaN creates a RelationalExpressionIsNaN instance.
-func NewRelationalExpressionIsNaN[E RelationalExpressionEncoder](expr E) *RelationalExpressionIsNaN {
+func NewRelationalExpressionIsNaN[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionIsNaN {
 	return &RelationalExpressionIsNaN{
 		Expr: expr.Encode(),
 	}
@@ -2371,13 +2453,15 @@ func (j RelationalExpressionIsNaN) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.comparison.is_zero`
 // * During joining: `relational_query.join.expression.comparison.is_zero`
 // * During aggregation: `relational_query.aggregate.expression.comparison.is_zero`
-// * During windowing: `relational_query.window.expression.comparison.is_zero
+// * During windowing: `relational_query.window.expression.comparison.is_zero.
 type RelationalExpressionIsZero struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
 
 // NewRelationalExpressionIsZero creates a RelationalExpressionIsZero instance.
-func NewRelationalExpressionIsZero[E RelationalExpressionEncoder](expr E) *RelationalExpressionIsZero {
+func NewRelationalExpressionIsZero[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionIsZero {
 	return &RelationalExpressionIsZero{
 		Expr: expr.Encode(),
 	}
@@ -2403,12 +2487,15 @@ func (j RelationalExpressionIsZero) Encode() RelationalExpression {
 
 // RelationalExpressionPlus represents a RelationalExpression with the plus type.
 type RelationalExpressionPlus struct {
-	Left  RelationalExpression `json:"left" mapstructure:"left" yaml:"left"`
+	Left  RelationalExpression `json:"left"  mapstructure:"left"  yaml:"left"`
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
 // NewRelationalExpressionPlus creates a RelationalExpressionPlus instance.
-func NewRelationalExpressionPlus[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionPlus {
+func NewRelationalExpressionPlus[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionPlus {
 	return &RelationalExpressionPlus{
 		Left:  left.Encode(),
 		Right: right.Encode(),
@@ -2436,12 +2523,15 @@ func (j RelationalExpressionPlus) Encode() RelationalExpression {
 
 // RelationalExpressionMinus represents a RelationalExpression with the minus type.
 type RelationalExpressionMinus struct {
-	Left  RelationalExpression `json:"left" mapstructure:"left" yaml:"left"`
+	Left  RelationalExpression `json:"left"  mapstructure:"left"  yaml:"left"`
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
 // NewRelationalExpressionMinus creates a RelationalExpressionMinus instance.
-func NewRelationalExpressionMinus[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionMinus {
+func NewRelationalExpressionMinus[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionMinus {
 	return &RelationalExpressionMinus{
 		Left:  left.Encode(),
 		Right: right.Encode(),
@@ -2469,12 +2559,15 @@ func (j RelationalExpressionMinus) Encode() RelationalExpression {
 
 // RelationalExpressionMultiply represents a RelationalExpression with the multiply type.
 type RelationalExpressionMultiply struct {
-	Left  RelationalExpression `json:"left" mapstructure:"left" yaml:"left"`
+	Left  RelationalExpression `json:"left"  mapstructure:"left"  yaml:"left"`
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
 // NewRelationalExpressionMultiply creates a RelationalExpressionMultiply instance.
-func NewRelationalExpressionMultiply[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionMultiply {
+func NewRelationalExpressionMultiply[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionMultiply {
 	return &RelationalExpressionMultiply{
 		Left:  left.Encode(),
 		Right: right.Encode(),
@@ -2502,12 +2595,15 @@ func (j RelationalExpressionMultiply) Encode() RelationalExpression {
 
 // RelationalExpressionDivide represents a RelationalExpression with the divide type.
 type RelationalExpressionDivide struct {
-	Left  RelationalExpression `json:"left" mapstructure:"left" yaml:"left"`
+	Left  RelationalExpression `json:"left"  mapstructure:"left"  yaml:"left"`
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
 // NewRelationalExpressionDivide creates a RelationalExpressionDivide instance.
-func NewRelationalExpressionDivide[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionDivide {
+func NewRelationalExpressionDivide[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionDivide {
 	return &RelationalExpressionDivide{
 		Left:  left.Encode(),
 		Right: right.Encode(),
@@ -2535,12 +2631,15 @@ func (j RelationalExpressionDivide) Encode() RelationalExpression {
 
 // RelationalExpressionModulo represents a RelationalExpression with the modulo type.
 type RelationalExpressionModulo struct {
-	Left  RelationalExpression `json:"left" mapstructure:"left" yaml:"left"`
+	Left  RelationalExpression `json:"left"  mapstructure:"left"  yaml:"left"`
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
 // NewRelationalExpressionModulo creates a RelationalExpressionModulo instance.
-func NewRelationalExpressionModulo[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionModulo {
+func NewRelationalExpressionModulo[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionModulo {
 	return &RelationalExpressionModulo{
 		Left:  left.Encode(),
 		Right: right.Encode(),
@@ -2572,7 +2671,9 @@ type RelationalExpressionNegate struct {
 }
 
 // NewRelationalExpressionNegate creates a RelationalExpressionNegate instance.
-func NewRelationalExpressionNegate[E RelationalExpressionEncoder](expr E) *RelationalExpressionNegate {
+func NewRelationalExpressionNegate[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionNegate {
 	return &RelationalExpressionNegate{
 		Expr: expr.Encode(),
 	}
@@ -2598,14 +2699,17 @@ func (j RelationalExpressionNegate) Encode() RelationalExpression {
 
 // RelationalExpressionCast represents a RelationalExpression with the cast type.
 type RelationalExpressionCast struct {
-	Expr   RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
-	AsType CastType             `json:"as_type" mapstructure:"as_type" yaml:"as_type"`
+	Expr   RelationalExpression `json:"expr"                mapstructure:"expr"                yaml:"expr"`
+	AsType CastType             `json:"as_type"             mapstructure:"as_type"             yaml:"as_type"`
 	// Optional for now, but will be required in the future
 	FromType *CastType `json:"from_type,omitempty" mapstructure:"from_type,omitempty" yaml:"from_type,omitempty"`
 }
 
 // NewRelationalExpressionCast creates a RelationalExpressionCast instance.
-func NewRelationalExpressionCast[E RelationalExpressionEncoder, C CastTypeEncoder](expr E, asType C) *RelationalExpressionCast {
+func NewRelationalExpressionCast[E RelationalExpressionEncoder, C CastTypeEncoder](
+	expr E,
+	asType C,
+) *RelationalExpressionCast {
 	return &RelationalExpressionCast{
 		Expr:   expr.Encode(),
 		AsType: asType.Encode(),
@@ -2651,14 +2755,17 @@ func (j RelationalExpressionCast) Encode() RelationalExpression {
 
 // RelationalExpressionTryCast represents a RelationalExpression with the try_cast type.
 type RelationalExpressionTryCast struct {
-	Expr   RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
-	AsType CastType             `json:"as_type" mapstructure:"as_type" yaml:"as_type"`
+	Expr   RelationalExpression `json:"expr"                mapstructure:"expr"                yaml:"expr"`
+	AsType CastType             `json:"as_type"             mapstructure:"as_type"             yaml:"as_type"`
 	// Optional for now, but will be required in the future
 	FromType *CastType `json:"from_type,omitempty" mapstructure:"from_type,omitempty" yaml:"from_type,omitempty"`
 }
 
 // NewRelationalExpressionTryCast creates a RelationalExpressionTryCast instance.
-func NewRelationalExpressionTryCast[E RelationalExpressionEncoder, C CastTypeEncoder](expr E, asType C) *RelationalExpressionTryCast {
+func NewRelationalExpressionTryCast[E RelationalExpressionEncoder, C CastTypeEncoder](
+	expr E,
+	asType C,
+) *RelationalExpressionTryCast {
 	return &RelationalExpressionTryCast{
 		Expr:   expr.Encode(),
 		AsType: asType.Encode(),
@@ -2666,7 +2773,9 @@ func NewRelationalExpressionTryCast[E RelationalExpressionEncoder, C CastTypeEnc
 }
 
 // WithFromType return the instance with from_type set.
-func (j RelationalExpressionTryCast) WithFromType(fromType CastTypeEncoder) *RelationalExpressionTryCast {
+func (j RelationalExpressionTryCast) WithFromType(
+	fromType CastTypeEncoder,
+) *RelationalExpressionTryCast {
 	if fromType == nil {
 		j.FromType = nil
 	} else {
@@ -2709,7 +2818,7 @@ func (j RelationalExpressionTryCast) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.abs`
 // * During joining: `relational_query.join.expression.scalar.abs`
 // * During aggregation: `relational_query.aggregate.expression.scalar.abs`
-// * During windowing: `relational_query.window.expression.scalar.abs`
+// * During windowing: `relational_query.window.expression.scalar.abs`.
 type RelationalExpressionAbs struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
@@ -2746,14 +2855,17 @@ func (j RelationalExpressionAbs) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.array_element`
 // * During joining: `relational_query.join.expression.scalar.array_element`
 // * During aggregation: `relational_query.aggregate.expression.scalar.array_element`
-// * During windowing: `relational_query.window.expression.scalar.array_element`
+// * During windowing: `relational_query.window.expression.scalar.array_element`.
 type RelationalExpressionArrayElement struct {
 	Column RelationalExpression `json:"column" mapstructure:"column" yaml:"column"`
-	Index  uint                 `json:"index" mapstructure:"index" yaml:"index"`
+	Index  uint                 `json:"index"  mapstructure:"index"  yaml:"index"`
 }
 
 // NewRelationalExpressionArrayElement creates a RelationalExpressionArrayElement instance.
-func NewRelationalExpressionArrayElement[E RelationalExpressionEncoder](column E, index uint) *RelationalExpressionArrayElement {
+func NewRelationalExpressionArrayElement[E RelationalExpressionEncoder](
+	column E,
+	index uint,
+) *RelationalExpressionArrayElement {
 	return &RelationalExpressionArrayElement{
 		Column: column.Encode(),
 		Index:  index,
@@ -2786,9 +2898,9 @@ func (j RelationalExpressionArrayElement) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.btrim`
 // * During joining: `relational_query.join.expression.scalar.btrim`
 // * During aggregation: `relational_query.aggregate.expression.scalar.btrim`
-// * During windowing: `relational_query.window.expression.scalar.btrim`
+// * During windowing: `relational_query.window.expression.scalar.btrim`.
 type RelationalExpressionBTrim struct {
-	Str     RelationalExpression  `json:"str" mapstructure:"str" yaml:"str"`
+	Str     RelationalExpression  `json:"str"                mapstructure:"str"                yaml:"str"`
 	TrimStr *RelationalExpression `json:"trim_str,omitempty" mapstructure:"trim_str,omitempty" yaml:"trim_str,omitempty"`
 }
 
@@ -2800,7 +2912,9 @@ func NewRelationalExpressionBTrim[E RelationalExpressionEncoder](str E) *Relatio
 }
 
 // WithTrimStr return the instance with new trim_str.
-func (j RelationalExpressionBTrim) WithTrimStr(trimStr RelationalExpressionEncoder) *RelationalExpressionBTrim {
+func (j RelationalExpressionBTrim) WithTrimStr(
+	trimStr RelationalExpressionEncoder,
+) *RelationalExpressionBTrim {
 	if trimStr == nil {
 		j.TrimStr = nil
 	} else {
@@ -2842,7 +2956,7 @@ func (j RelationalExpressionBTrim) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.ceil`
 // * During joining: `relational_query.join.expression.scalar.ceil`
 // * During aggregation: `relational_query.aggregate.expression.scalar.ceil`
-// * During windowing: `relational_query.window.expression.scalar.ceil`
+// * During windowing: `relational_query.window.expression.scalar.ceil`.
 type RelationalExpressionCeil struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
@@ -2879,13 +2993,15 @@ func (j RelationalExpressionCeil) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.character_length`
 // * During joining: `relational_query.join.expression.scalar.character_length`
 // * During aggregation: `relational_query.aggregate.expression.scalar.character_length`
-// * During windowing: `relational_query.window.expression.scalar.character_length`
+// * During windowing: `relational_query.window.expression.scalar.character_length`.
 type RelationalExpressionCharacterLength struct {
 	Str RelationalExpression `json:"str" mapstructure:"str" yaml:"str"`
 }
 
 // NewRelationalExpressionCharacterLength creates a RelationalExpressionCharacterLength instance.
-func NewRelationalExpressionCharacterLength[E RelationalExpressionEncoder](str E) *RelationalExpressionCharacterLength {
+func NewRelationalExpressionCharacterLength[E RelationalExpressionEncoder](
+	str E,
+) *RelationalExpressionCharacterLength {
 	return &RelationalExpressionCharacterLength{
 		Str: str.Encode(),
 	}
@@ -2915,7 +3031,9 @@ type RelationalExpressionCoalesce struct {
 }
 
 // NewRelationalExpressionCoalesce creates a RelationalExpressionCoalesce instance.
-func NewRelationalExpressionCoalesce(expressions []RelationalExpressionEncoder) *RelationalExpressionCoalesce {
+func NewRelationalExpressionCoalesce(
+	expressions []RelationalExpressionEncoder,
+) *RelationalExpressionCoalesce {
 	exprs := []RelationalExpression{}
 
 	for _, expr := range expressions {
@@ -2954,13 +3072,15 @@ func (j RelationalExpressionCoalesce) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.concat`
 // * During joining: `relational_query.join.expression.scalar.concat`
 // * During aggregation: `relational_query.aggregate.expression.scalar.concat`
-// * During windowing: `relational_query.window.expression.scalar.concat`
+// * During windowing: `relational_query.window.expression.scalar.concat`.
 type RelationalExpressionConcat struct {
 	Exprs []RelationalExpression `json:"exprs" mapstructure:"exprs" yaml:"exprs"`
 }
 
 // NewRelationalExpressionConcat creates a RelationalExpressionConcat instance.
-func NewRelationalExpressionConcat(expressions []RelationalExpressionEncoder) *RelationalExpressionConcat {
+func NewRelationalExpressionConcat(
+	expressions []RelationalExpressionEncoder,
+) *RelationalExpressionConcat {
 	exprs := []RelationalExpression{}
 
 	for _, expr := range expressions {
@@ -2999,7 +3119,7 @@ func (j RelationalExpressionConcat) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.cos`
 // * During joining: `relational_query.join.expression.scalar.cos`
 // * During aggregation: `relational_query.aggregate.expression.scalar.cos`
-// * During windowing: `relational_query.window.expression.scalar.cos`
+// * During windowing: `relational_query.window.expression.scalar.cos`.
 type RelationalExpressionCos struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
@@ -3036,7 +3156,7 @@ func (j RelationalExpressionCos) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.current_date`
 // * During joining: `relational_query.join.expression.scalar.current_date`
 // * During aggregation: `relational_query.aggregate.expression.scalar.current_date`
-// * During windowing: `relational_query.window.expression.scalar.current_date`
+// * During windowing: `relational_query.window.expression.scalar.current_date`.
 type RelationalExpressionCurrentDate struct{}
 
 // NewRelationalExpressionCurrentDate creates a RelationalExpressionCurrentDate instance.
@@ -3068,7 +3188,7 @@ func (j RelationalExpressionCurrentDate) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.current_time`
 // * During joining: `relational_query.join.expression.scalar.current_time`
 // * During aggregation: `relational_query.aggregate.expression.scalar.current_time`
-// * During windowing: `relational_query.window.expression.scalar.current_time`
+// * During windowing: `relational_query.window.expression.scalar.current_time`.
 type RelationalExpressionCurrentTime struct{}
 
 // NewRelationalExpressionCurrentTime creates a RelationalExpressionCurrentTime instance.
@@ -3100,7 +3220,7 @@ func (j RelationalExpressionCurrentTime) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.current_timestamp`
 // * During joining: `relational_query.join.expression.scalar.current_timestamp`
 // * During aggregation: `relational_query.aggregate.expression.scalar.current_timestamp`
-// * During windowing: `relational_query.window.expression.scalar.current_timestamp`
+// * During windowing: `relational_query.window.expression.scalar.current_timestamp`.
 type RelationalExpressionCurrentTimestamp struct{}
 
 // NewRelationalExpressionCurrentTimestamp creates a RelationalExpressionCurrentTime instance.
@@ -3132,14 +3252,17 @@ func (j RelationalExpressionCurrentTimestamp) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.date_part`
 // * During joining: `relational_query.join.expression.scalar.date_part`
 // * During aggregation: `relational_query.aggregate.expression.scalar.date_part`
-// * During windowing: `relational_query.window.expression.scalar.date_part`
+// * During windowing: `relational_query.window.expression.scalar.date_part`.
 type RelationalExpressionDatePart struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 	Part DatePartUnit         `json:"part" mapstructure:"part" yaml:"part"`
 }
 
 // NewRelationalExpressionDatePart creates a RelationalExpressionDatePart instance.
-func NewRelationalExpressionDatePart[E RelationalExpressionEncoder](expr E, part DatePartUnit) *RelationalExpressionDatePart {
+func NewRelationalExpressionDatePart[E RelationalExpressionEncoder](
+	expr E,
+	part DatePartUnit,
+) *RelationalExpressionDatePart {
 	return &RelationalExpressionDatePart{
 		Expr: expr.Encode(),
 		Part: part,
@@ -3172,14 +3295,17 @@ func (j RelationalExpressionDatePart) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.date_trunc`
 // * During joining: `relational_query.join.expression.scalar.date_trunc`
 // * During aggregation: `relational_query.aggregate.expression.scalar.date_trunc`
-// * During windowing: `relational_query.window.expression.scalar.date_trunc`
+// * During windowing: `relational_query.window.expression.scalar.date_trunc`.
 type RelationalExpressionDateTrunc struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 	Part RelationalExpression `json:"part" mapstructure:"part" yaml:"part"`
 }
 
 // NewRelationalExpressionDateTrunc creates a RelationalExpressionDateTrunc instance.
-func NewRelationalExpressionDateTrunc[E RelationalExpressionEncoder, R RelationalExpressionEncoder](expr E, part R) *RelationalExpressionDateTrunc {
+func NewRelationalExpressionDateTrunc[E RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	expr E,
+	part R,
+) *RelationalExpressionDateTrunc {
 	return &RelationalExpressionDateTrunc{
 		Expr: expr.Encode(),
 		Part: part.Encode(),
@@ -3212,7 +3338,7 @@ func (j RelationalExpressionDateTrunc) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.exp`
 // * During joining: `relational_query.join.expression.scalar.exp`
 // * During aggregation: `relational_query.aggregate.expression.scalar.exp`
-// * During windowing: `relational_query.window.expression.scalar.exp`
+// * During windowing: `relational_query.window.expression.scalar.exp`.
 type RelationalExpressionExp struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
@@ -3249,13 +3375,15 @@ func (j RelationalExpressionExp) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.floor`
 // * During joining: `relational_query.join.expression.scalar.floor`
 // * During aggregation: `relational_query.aggregate.expression.scalar.floor`
-// * During windowing: `relational_query.window.expression.scalar.floor`
+// * During windowing: `relational_query.window.expression.scalar.floor`.
 type RelationalExpressionFloor struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
 
 // NewRelationalExpressionFloor creates a RelationalExpressionFloor instance.
-func NewRelationalExpressionFloor[E RelationalExpressionEncoder](expr E) *RelationalExpressionFloor {
+func NewRelationalExpressionFloor[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionFloor {
 	return &RelationalExpressionFloor{
 		Expr: expr.Encode(),
 	}
@@ -3286,14 +3414,17 @@ func (j RelationalExpressionFloor) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.get_field`
 // * During joining: `relational_query.join.expression.scalar.get_field`
 // * During aggregation: `relational_query.aggregate.expression.scalar.get_field`
-// * During windowing: `relational_query.window.expression.scalar.get_field`
+// * During windowing: `relational_query.window.expression.scalar.get_field`.
 type RelationalExpressionGetField struct {
 	Column RelationalExpression `json:"column" mapstructure:"column" yaml:"column"`
-	Field  string               `json:"field" mapstructure:"field" yaml:"field"`
+	Field  string               `json:"field"  mapstructure:"field"  yaml:"field"`
 }
 
 // NewRelationalExpressionGetField creates a RelationalExpressionGetField instance.
-func NewRelationalExpressionGetField[E RelationalExpressionEncoder](column E, field string) *RelationalExpressionGetField {
+func NewRelationalExpressionGetField[E RelationalExpressionEncoder](
+	column E,
+	field string,
+) *RelationalExpressionGetField {
 	return &RelationalExpressionGetField{
 		Column: column.Encode(),
 		Field:  field,
@@ -3326,13 +3457,15 @@ func (j RelationalExpressionGetField) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.greatest`
 // * During joining: `relational_query.join.expression.scalar.greatest`
 // * During aggregation: `relational_query.aggregate.expression.scalar.greatest`
-// * During windowing: `relational_query.window.expression.scalar.greatest`
+// * During windowing: `relational_query.window.expression.scalar.greatest`.
 type RelationalExpressionGreatest struct {
 	Exprs []RelationalExpression `json:"exprs" mapstructure:"exprs" yaml:"exprs"`
 }
 
 // NewRelationalExpressionGreatest creates a RelationalExpressionGreatest instance.
-func NewRelationalExpressionGreatest(expressions []RelationalExpressionEncoder) *RelationalExpressionGreatest {
+func NewRelationalExpressionGreatest(
+	expressions []RelationalExpressionEncoder,
+) *RelationalExpressionGreatest {
 	exprs := []RelationalExpression{}
 
 	for _, expr := range expressions {
@@ -3371,13 +3504,15 @@ func (j RelationalExpressionGreatest) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.least`
 // * During joining: `relational_query.join.expression.scalar.least`
 // * During aggregation: `relational_query.aggregate.expression.scalar.least`
-// * During windowing: `relational_query.window.expression.scalar.least`
+// * During windowing: `relational_query.window.expression.scalar.least`.
 type RelationalExpressionLeast struct {
 	Exprs []RelationalExpression `json:"least" mapstructure:"least" yaml:"least"`
 }
 
 // NewRelationalExpressionLeast creates a RelationalExpressionLeast instance.
-func NewRelationalExpressionLeast(expressions []RelationalExpressionEncoder) *RelationalExpressionLeast {
+func NewRelationalExpressionLeast(
+	expressions []RelationalExpressionEncoder,
+) *RelationalExpressionLeast {
 	exprs := []RelationalExpression{}
 
 	for _, expr := range expressions {
@@ -3416,14 +3551,17 @@ func (j RelationalExpressionLeast) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.left`
 // * During joining: `relational_query.join.expression.scalar.left`
 // * During aggregation: `relational_query.aggregate.expression.scalar.left`
-// * During windowing: `relational_query.window.expression.scalar.left`
+// * During windowing: `relational_query.window.expression.scalar.left`.
 type RelationalExpressionLeft struct {
 	Str RelationalExpression `json:"str" mapstructure:"str" yaml:"str"`
-	N   RelationalExpression `json:"n" mapstructure:"n" yaml:"n"`
+	N   RelationalExpression `json:"n"   mapstructure:"n"   yaml:"n"`
 }
 
 // NewRelationalExpressionLeft creates a RelationalExpressionLeft instance.
-func NewRelationalExpressionLeft[E RelationalExpressionEncoder, N RelationalExpressionEncoder](str E, n N) *RelationalExpressionLeft {
+func NewRelationalExpressionLeft[E RelationalExpressionEncoder, N RelationalExpressionEncoder](
+	str E,
+	n N,
+) *RelationalExpressionLeft {
 	return &RelationalExpressionLeft{
 		Str: str.Encode(),
 		N:   n.Encode(),
@@ -3456,7 +3594,7 @@ func (j RelationalExpressionLeft) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.ln`
 // * During joining: `relational_query.join.expression.scalar.ln`
 // * During aggregation: `relational_query.aggregate.expression.scalar.ln`
-// * During windowing: `relational_query.window.expression.scalar.ln`
+// * During windowing: `relational_query.window.expression.scalar.ln`.
 type RelationalExpressionLn struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
@@ -3493,9 +3631,9 @@ func (j RelationalExpressionLn) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.log`
 // * During joining: `relational_query.join.expression.scalar.log`
 // * During aggregation: `relational_query.aggregate.expression.scalar.log`
-// * During windowing: `relational_query.window.expression.scalar.log`
+// * During windowing: `relational_query.window.expression.scalar.log`.
 type RelationalExpressionLog struct {
-	Expr RelationalExpression  `json:"expr" mapstructure:"expr" yaml:"expr"`
+	Expr RelationalExpression  `json:"expr"           mapstructure:"expr"           yaml:"expr"`
 	Base *RelationalExpression `json:"base,omitempty" mapstructure:"base,omitempty" yaml:"base,omitempty"`
 }
 
@@ -3507,7 +3645,9 @@ func NewRelationalExpressionLog[E RelationalExpressionEncoder](expr E) *Relation
 }
 
 // WithBase return the instance with a new base set.
-func (j RelationalExpressionLog) WithBase(base RelationalExpressionEncoder) *RelationalExpressionLog {
+func (j RelationalExpressionLog) WithBase(
+	base RelationalExpressionEncoder,
+) *RelationalExpressionLog {
 	if base == nil {
 		j.Base = nil
 	} else {
@@ -3549,13 +3689,15 @@ func (j RelationalExpressionLog) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.log10`
 // * During joining: `relational_query.join.expression.scalar.log10`
 // * During aggregation: `relational_query.aggregate.expression.scalar.log10`
-// * During windowing: `relational_query.window.expression.scalar.log10`
+// * During windowing: `relational_query.window.expression.scalar.log10`.
 type RelationalExpressionLog10 struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
 
 // NewRelationalExpressionLog10 creates a RelationalExpressionLog10 instance.
-func NewRelationalExpressionLog10[E RelationalExpressionEncoder](expr E) *RelationalExpressionLog10 {
+func NewRelationalExpressionLog10[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionLog10 {
 	return &RelationalExpressionLog10{
 		Expr: expr.Encode(),
 	}
@@ -3586,7 +3728,7 @@ func (j RelationalExpressionLog10) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.log2`
 // * During joining: `relational_query.join.expression.scalar.log2`
 // * During aggregation: `relational_query.aggregate.expression.scalar.log2`
-// * During windowing: `relational_query.window.expression.scalar.log2`
+// * During windowing: `relational_query.window.expression.scalar.log2`.
 type RelationalExpressionLog2 struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
@@ -3623,15 +3765,18 @@ func (j RelationalExpressionLog2) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.lpad`
 // * During joining: `relational_query.join.expression.scalar.lpad`
 // * During aggregation: `relational_query.aggregate.expression.scalar.lpad`
-// * During windowing: `relational_query.window.expression.scalar.lpad`
+// * During windowing: `relational_query.window.expression.scalar.lpad`.
 type RelationalExpressionLPad struct {
-	Str        RelationalExpression  `json:"str" mapstructure:"str" yaml:"str"`
-	N          RelationalExpression  `json:"n" mapstructure:"n" yaml:"n"`
+	Str        RelationalExpression  `json:"str"                   mapstructure:"str"                   yaml:"str"`
+	N          RelationalExpression  `json:"n"                     mapstructure:"n"                     yaml:"n"`
 	PaddingStr *RelationalExpression `json:"padding_str,omitempty" mapstructure:"padding_str,omitempty" yaml:"padding_str,omitempty"`
 }
 
 // NewRelationalExpressionLPad creates a RelationalExpressionLPad instance.
-func NewRelationalExpressionLPad[E RelationalExpressionEncoder, N RelationalExpressionEncoder](str E, n N) *RelationalExpressionLPad {
+func NewRelationalExpressionLPad[E RelationalExpressionEncoder, N RelationalExpressionEncoder](
+	str E,
+	n N,
+) *RelationalExpressionLPad {
 	return &RelationalExpressionLPad{
 		Str: str.Encode(),
 		N:   n.Encode(),
@@ -3639,7 +3784,9 @@ func NewRelationalExpressionLPad[E RelationalExpressionEncoder, N RelationalExpr
 }
 
 // WithPaddingStr returns the new instance with padding str set.
-func (j RelationalExpressionLPad) WithPaddingStr(paddingStr RelationalExpressionEncoder) *RelationalExpressionLPad {
+func (j RelationalExpressionLPad) WithPaddingStr(
+	paddingStr RelationalExpressionEncoder,
+) *RelationalExpressionLPad {
 	if paddingStr == nil {
 		j.PaddingStr = nil
 	} else {
@@ -3682,9 +3829,9 @@ func (j RelationalExpressionLPad) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.ltrim`
 // * During joining: `relational_query.join.expression.scalar.ltrim`
 // * During aggregation: `relational_query.aggregate.expression.scalar.ltrim`
-// * During windowing: `relational_query.window.expression.scalar.ltrim`
+// * During windowing: `relational_query.window.expression.scalar.ltrim`.
 type RelationalExpressionLTrim struct {
-	Str     RelationalExpression  `json:"str" mapstructure:"str" yaml:"str"`
+	Str     RelationalExpression  `json:"str"                mapstructure:"str"                yaml:"str"`
 	TrimStr *RelationalExpression `json:"trim_str,omitempty" mapstructure:"trim_str,omitempty" yaml:"trim_str,omitempty"`
 }
 
@@ -3696,7 +3843,9 @@ func NewRelationalExpressionLTrim[E RelationalExpressionEncoder](str E) *Relatio
 }
 
 // WithTrimStr returns the new instance with trim str set.
-func (j RelationalExpressionLTrim) WithTrimStr(trimStr RelationalExpressionEncoder) *RelationalExpressionLTrim {
+func (j RelationalExpressionLTrim) WithTrimStr(
+	trimStr RelationalExpressionEncoder,
+) *RelationalExpressionLTrim {
 	if trimStr == nil {
 		j.TrimStr = nil
 	} else {
@@ -3738,7 +3887,10 @@ type RelationalExpressionNullIf struct {
 }
 
 // NewRelationalExpressionNullIf creates a RelationalExpressionNullIf instance.
-func NewRelationalExpressionNullIf[L RelationalExpressionEncoder, R RelationalExpressionEncoder](expr1 L, expr2 R) *RelationalExpressionNullIf {
+func NewRelationalExpressionNullIf[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	expr1 L,
+	expr2 R,
+) *RelationalExpressionNullIf {
 	return &RelationalExpressionNullIf{
 		Expr1: expr1.Encode(),
 		Expr2: expr2.Encode(),
@@ -3771,14 +3923,17 @@ func (j RelationalExpressionNullIf) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.nvl`
 // * During joining: `relational_query.join.expression.scalar.nvl`
 // * During aggregation: `relational_query.aggregate.expression.scalar.nvl`
-// * During windowing: `relational_query.window.expression.scalar.nvl`
+// * During windowing: `relational_query.window.expression.scalar.nvl`.
 type RelationalExpressionNvl struct {
 	Expr1 RelationalExpression `json:"expr1" mapstructure:"expr1" yaml:"expr1"`
 	Expr2 RelationalExpression `json:"expr2" mapstructure:"expr2" yaml:"expr2"`
 }
 
 // NewRelationalExpressionNvl creates a RelationalExpressionNvl instance.
-func NewRelationalExpressionNvl[L RelationalExpressionEncoder, R RelationalExpressionEncoder](expr1 L, expr2 R) *RelationalExpressionNvl {
+func NewRelationalExpressionNvl[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	expr1 L,
+	expr2 R,
+) *RelationalExpressionNvl {
 	return &RelationalExpressionNvl{
 		Expr1: expr1.Encode(),
 		Expr2: expr2.Encode(),
@@ -3811,14 +3966,17 @@ func (j RelationalExpressionNvl) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.power`
 // * During joining: `relational_query.join.expression.scalar.power`
 // * During aggregation: `relational_query.aggregate.expression.scalar.power`
-// * During windowing: `relational_query.window.expression.scalar.power`
+// * During windowing: `relational_query.window.expression.scalar.power`.
 type RelationalExpressionPower struct {
 	Base RelationalExpression `json:"base" mapstructure:"base" yaml:"base"`
-	Exp  RelationalExpression `json:"exp" mapstructure:"exp" yaml:"exp"`
+	Exp  RelationalExpression `json:"exp"  mapstructure:"exp"  yaml:"exp"`
 }
 
 // NewRelationalExpressionPower creates a RelationalExpressionPower instance.
-func NewRelationalExpressionPower[L RelationalExpressionEncoder, R RelationalExpressionEncoder](base L, exp R) *RelationalExpressionPower {
+func NewRelationalExpressionPower[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	base L,
+	exp R,
+) *RelationalExpressionPower {
 	return &RelationalExpressionPower{
 		Base: base.Encode(),
 		Exp:  exp.Encode(),
@@ -3851,7 +4009,7 @@ func (j RelationalExpressionPower) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.random`
 // * During joining: `relational_query.join.expression.scalar.random`
 // * During aggregation: `relational_query.aggregate.expression.scalar.random`
-// * During windowing: `relational_query.window.expression.scalar.random`
+// * During windowing: `relational_query.window.expression.scalar.random`.
 type RelationalExpressionRandom struct{}
 
 // NewRelationalExpressionRandom creates a RelationalExpressionRandom instance.
@@ -3883,15 +4041,19 @@ func (j RelationalExpressionRandom) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.replace`
 // * During joining: `relational_query.join.expression.scalar.replace`
 // * During aggregation: `relational_query.aggregate.expression.scalar.replace`
-// * During windowing: `relational_query.window.expression.scalar.replace`
+// * During windowing: `relational_query.window.expression.scalar.replace`.
 type RelationalExpressionReplace struct {
-	Str         RelationalExpression `json:"str" mapstructure:"str" yaml:"str"`
-	Substr      RelationalExpression `json:"substr" mapstructure:"substr" yaml:"substr"`
+	Str         RelationalExpression `json:"str"         mapstructure:"str"         yaml:"str"`
+	Substr      RelationalExpression `json:"substr"      mapstructure:"substr"      yaml:"substr"`
 	Replacement RelationalExpression `json:"replacement" mapstructure:"replacement" yaml:"replacement"`
 }
 
 // NewRelationalExpressionReplace creates a RelationalExpressionReplace instance.
-func NewRelationalExpressionReplace[S RelationalExpressionEncoder, SS RelationalExpressionEncoder, R RelationalExpressionEncoder](str S, substr SS, replacement R) *RelationalExpressionReplace {
+func NewRelationalExpressionReplace[S RelationalExpressionEncoder, SS RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	str S,
+	substr SS,
+	replacement R,
+) *RelationalExpressionReplace {
 	return &RelationalExpressionReplace{
 		Str:         str.Encode(),
 		Substr:      substr.Encode(),
@@ -3926,13 +4088,15 @@ func (j RelationalExpressionReplace) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.reverse`
 // * During joining: `relational_query.join.expression.scalar.reverse`
 // * During aggregation: `relational_query.aggregate.expression.scalar.reverse`
-// * During windowing: `relational_query.window.expression.scalar.reverse`
+// * During windowing: `relational_query.window.expression.scalar.reverse`.
 type RelationalExpressionReverse struct {
 	Str RelationalExpression `json:"str" mapstructure:"str" yaml:"str"`
 }
 
 // NewRelationalExpressionReverse creates a RelationalExpressionReverse instance.
-func NewRelationalExpressionReverse[S RelationalExpressionEncoder](str S) *RelationalExpressionReverse {
+func NewRelationalExpressionReverse[S RelationalExpressionEncoder](
+	str S,
+) *RelationalExpressionReverse {
 	return &RelationalExpressionReverse{
 		Str: str.Encode(),
 	}
@@ -3963,14 +4127,17 @@ func (j RelationalExpressionReverse) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.right`
 // * During joining: `relational_query.join.expression.scalar.right`
 // * During aggregation: `relational_query.aggregate.expression.scalar.right`
-// * During windowing: `relational_query.window.expression.scalar.right`
+// * During windowing: `relational_query.window.expression.scalar.right`.
 type RelationalExpressionRight struct {
 	Str RelationalExpression `json:"str" mapstructure:"str" yaml:"str"`
-	N   RelationalExpression `json:"n" mapstructure:"n" yaml:"n"`
+	N   RelationalExpression `json:"n"   mapstructure:"n"   yaml:"n"`
 }
 
 // NewRelationalExpressionRight creates a RelationalExpressionRight instance.
-func NewRelationalExpressionRight[E RelationalExpressionEncoder, N RelationalExpressionEncoder](str E, n N) *RelationalExpressionRight {
+func NewRelationalExpressionRight[E RelationalExpressionEncoder, N RelationalExpressionEncoder](
+	str E,
+	n N,
+) *RelationalExpressionRight {
 	return &RelationalExpressionRight{
 		Str: str.Encode(),
 		N:   n.Encode(),
@@ -4003,9 +4170,9 @@ func (j RelationalExpressionRight) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.round`
 // * During joining: `relational_query.join.expression.scalar.round`
 // * During aggregation: `relational_query.aggregate.expression.scalar.round`
-// * During windowing: `relational_query.window.expression.scalar.round`
+// * During windowing: `relational_query.window.expression.scalar.round`.
 type RelationalExpressionRound struct {
-	Expr RelationalExpression  `json:"expr" mapstructure:"expr" yaml:"expr"`
+	Expr RelationalExpression  `json:"expr"           mapstructure:"expr"           yaml:"expr"`
 	Prec *RelationalExpression `json:"prec,omitempty" mapstructure:"prec,omitempty" yaml:"prec,omitempty"`
 }
 
@@ -4017,7 +4184,9 @@ func NewRelationalExpressionRound[E RelationalExpressionEncoder](str E) *Relatio
 }
 
 // WithPrec returns the new instance with prec set.
-func (j RelationalExpressionRound) WithPrec(prec RelationalExpressionEncoder) *RelationalExpressionRound {
+func (j RelationalExpressionRound) WithPrec(
+	prec RelationalExpressionEncoder,
+) *RelationalExpressionRound {
 	if prec == nil {
 		j.Prec = nil
 	} else {
@@ -4059,15 +4228,18 @@ func (j RelationalExpressionRound) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.rpad`
 // * During joining: `relational_query.join.expression.scalar.rpad`
 // * During aggregation: `relational_query.aggregate.expression.scalar.rpad`
-// * During windowing: `relational_query.window.expression.scalar.rpad`
+// * During windowing: `relational_query.window.expression.scalar.rpad`.
 type RelationalExpressionRPad struct {
-	Str        RelationalExpression  `json:"str" mapstructure:"str" yaml:"str"`
-	N          RelationalExpression  `json:"n" mapstructure:"n" yaml:"n"`
+	Str        RelationalExpression  `json:"str"                   mapstructure:"str"                   yaml:"str"`
+	N          RelationalExpression  `json:"n"                     mapstructure:"n"                     yaml:"n"`
 	PaddingStr *RelationalExpression `json:"padding_str,omitempty" mapstructure:"padding_str,omitempty" yaml:"padding_str,omitempty"`
 }
 
 // NewRelationalExpressionRPad creates a RelationalExpressionRPad instance.
-func NewRelationalExpressionRPad[E RelationalExpressionEncoder, N RelationalExpressionEncoder](str E, n N) *RelationalExpressionRPad {
+func NewRelationalExpressionRPad[E RelationalExpressionEncoder, N RelationalExpressionEncoder](
+	str E,
+	n N,
+) *RelationalExpressionRPad {
 	return &RelationalExpressionRPad{
 		Str: str.Encode(),
 		N:   n.Encode(),
@@ -4075,7 +4247,9 @@ func NewRelationalExpressionRPad[E RelationalExpressionEncoder, N RelationalExpr
 }
 
 // WithPaddingStr returns the new instance with padding str set.
-func (j RelationalExpressionRPad) WithPaddingStr(paddingStr RelationalExpressionEncoder) *RelationalExpressionRPad {
+func (j RelationalExpressionRPad) WithPaddingStr(
+	paddingStr RelationalExpressionEncoder,
+) *RelationalExpressionRPad {
 	if paddingStr == nil {
 		j.PaddingStr = nil
 	} else {
@@ -4118,9 +4292,9 @@ func (j RelationalExpressionRPad) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.rtrim`
 // * During joining: `relational_query.join.expression.scalar.rtrim`
 // * During aggregation: `relational_query.aggregate.expression.scalar.rtrim`
-// * During windowing: `relational_query.window.expression.scalar.rtrim`
+// * During windowing: `relational_query.window.expression.scalar.rtrim`.
 type RelationalExpressionRTrim struct {
-	Str     RelationalExpression  `json:"str" mapstructure:"str" yaml:"str"`
+	Str     RelationalExpression  `json:"str"                mapstructure:"str"                yaml:"str"`
 	TrimStr *RelationalExpression `json:"trim_str,omitempty" mapstructure:"trim_str,omitempty" yaml:"trim_str,omitempty"`
 }
 
@@ -4132,7 +4306,9 @@ func NewRelationalExpressionRTrim[E RelationalExpressionEncoder](str E) *Relatio
 }
 
 // WithTrimStr returns the new instance with trim str set.
-func (j RelationalExpressionRTrim) WithTrimStr(trimStr RelationalExpressionEncoder) *RelationalExpressionRTrim {
+func (j RelationalExpressionRTrim) WithTrimStr(
+	trimStr RelationalExpressionEncoder,
+) *RelationalExpressionRTrim {
 	if trimStr == nil {
 		j.TrimStr = nil
 	} else {
@@ -4174,7 +4350,7 @@ func (j RelationalExpressionRTrim) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.sqrt`
 // * During joining: `relational_query.join.expression.scalar.sqrt`
 // * During aggregation: `relational_query.aggregate.expression.scalar.sqrt`
-// * During windowing: `relational_query.window.expression.scalar.sqrt`
+// * During windowing: `relational_query.window.expression.scalar.sqrt`.
 type RelationalExpressionSqrt struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
@@ -4211,14 +4387,17 @@ func (j RelationalExpressionSqrt) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.strpos`
 // * During joining: `relational_query.join.expression.scalar.strpos`
 // * During aggregation: `relational_query.aggregate.expression.scalar.strpos`
-// * During windowing: `relational_query.window.expression.scalar.strpos`
+// * During windowing: `relational_query.window.expression.scalar.strpos`.
 type RelationalExpressionStrPos struct {
-	Str    RelationalExpression `json:"str" mapstructure:"str" yaml:"str"`
+	Str    RelationalExpression `json:"str"    mapstructure:"str"    yaml:"str"`
 	Substr RelationalExpression `json:"substr" mapstructure:"substr" yaml:"substr"`
 }
 
 // NewRelationalExpressionStrPos creates a RelationalExpressionStrPos instance.
-func NewRelationalExpressionStrPos[S RelationalExpressionEncoder, SS RelationalExpressionEncoder](str S, substr SS) *RelationalExpressionStrPos {
+func NewRelationalExpressionStrPos[S RelationalExpressionEncoder, SS RelationalExpressionEncoder](
+	str S,
+	substr SS,
+) *RelationalExpressionStrPos {
 	return &RelationalExpressionStrPos{
 		Str:    str.Encode(),
 		Substr: substr.Encode(),
@@ -4251,15 +4430,18 @@ func (j RelationalExpressionStrPos) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.substr`
 // * During joining: `relational_query.join.expression.scalar.substr`
 // * During aggregation: `relational_query.aggregate.expression.scalar.substr`
-// * During windowing: `relational_query.window.expression.scalar.substr`
+// * During windowing: `relational_query.window.expression.scalar.substr`.
 type RelationalExpressionSubstr struct {
-	Str      RelationalExpression  `json:"str" mapstructure:"str" yaml:"str"`
-	StartPos RelationalExpression  `json:"start_pos" mapstructure:"start_pos" yaml:"start_pos"`
+	Str      RelationalExpression  `json:"str"           mapstructure:"str"           yaml:"str"`
+	StartPos RelationalExpression  `json:"start_pos"     mapstructure:"start_pos"     yaml:"start_pos"`
 	Len      *RelationalExpression `json:"len,omitempty" mapstructure:"len,omitempty" yaml:"len,omitempty"`
 }
 
 // NewRelationalExpressionSubstr creates a RelationalExpressionSubstr instance.
-func NewRelationalExpressionSubstr[S RelationalExpressionEncoder, SP RelationalExpressionEncoder](str S, startPos SP) *RelationalExpressionSubstr {
+func NewRelationalExpressionSubstr[S RelationalExpressionEncoder, SP RelationalExpressionEncoder](
+	str S,
+	startPos SP,
+) *RelationalExpressionSubstr {
 	return &RelationalExpressionSubstr{
 		Str:      str.Encode(),
 		StartPos: startPos.Encode(),
@@ -4267,11 +4449,13 @@ func NewRelationalExpressionSubstr[S RelationalExpressionEncoder, SP RelationalE
 }
 
 // WithLen returns the new instance with len set.
-func (j RelationalExpressionSubstr) WithLen(len RelationalExpressionEncoder) *RelationalExpressionSubstr {
-	if len == nil {
+func (j RelationalExpressionSubstr) WithLen(
+	length RelationalExpressionEncoder,
+) *RelationalExpressionSubstr {
+	if length == nil {
 		j.Len = nil
 	} else {
-		l := len.Encode()
+		l := length.Encode()
 		j.Len = &l
 	}
 
@@ -4310,15 +4494,19 @@ func (j RelationalExpressionSubstr) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.substr_index`
 // * During joining: `relational_query.join.expression.scalar.substr_index`
 // * During aggregation: `relational_query.aggregate.expression.scalar.substr_index`
-// * During windowing: `relational_query.window.expression.scalar.substr_index`
+// * During windowing: `relational_query.window.expression.scalar.substr_index`.
 type RelationalExpressionSubstrIndex struct {
-	Str   RelationalExpression `json:"str" mapstructure:"str" yaml:"str"`
+	Str   RelationalExpression `json:"str"   mapstructure:"str"   yaml:"str"`
 	Delim RelationalExpression `json:"delim" mapstructure:"delim" yaml:"delim"`
 	Count RelationalExpression `json:"count" mapstructure:"count" yaml:"count"`
 }
 
 // NewRelationalExpressionSubstrIndex creates a RelationalExpressionSubstrIndex instance.
-func NewRelationalExpressionSubstrIndex[S RelationalExpressionEncoder, D RelationalExpressionEncoder, C RelationalExpressionEncoder](str S, delim D, count C) *RelationalExpressionSubstrIndex {
+func NewRelationalExpressionSubstrIndex[S RelationalExpressionEncoder, D RelationalExpressionEncoder, C RelationalExpressionEncoder](
+	str S,
+	delim D,
+	count C,
+) *RelationalExpressionSubstrIndex {
 	return &RelationalExpressionSubstrIndex{
 		Str:   str.Encode(),
 		Delim: delim.Encode(),
@@ -4353,7 +4541,7 @@ func (j RelationalExpressionSubstrIndex) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.tan`
 // * During joining: `relational_query.join.expression.scalar.tan`
 // * During aggregation: `relational_query.aggregate.expression.scalar.tan`
-// * During windowing: `relational_query.window.expression.scalar.tan`
+// * During windowing: `relational_query.window.expression.scalar.tan`.
 type RelationalExpressionTan struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
@@ -4390,13 +4578,15 @@ func (j RelationalExpressionTan) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.to_date`
 // * During joining: `relational_query.join.expression.scalar.to_date`
 // * During aggregation: `relational_query.aggregate.expression.scalar.to_date`
-// * During windowing: `relational_query.window.expression.scalar.to_date`
+// * During windowing: `relational_query.window.expression.scalar.to_date`.
 type RelationalExpressionToDate struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
 
 // NewRelationalExpressionToDate creates a RelationalExpressionToDate instance.
-func NewRelationalExpressionToDate[E RelationalExpressionEncoder](expr E) *RelationalExpressionToDate {
+func NewRelationalExpressionToDate[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionToDate {
 	return &RelationalExpressionToDate{
 		Expr: expr.Encode(),
 	}
@@ -4427,13 +4617,15 @@ func (j RelationalExpressionToDate) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.to_timestamp`
 // * During joining: `relational_query.join.expression.scalar.to_timestamp`
 // * During aggregation: `relational_query.aggregate.expression.scalar.to_timestamp`
-// * During windowing: `relational_query.window.expression.scalar.to_timestamp`
+// * During windowing: `relational_query.window.expression.scalar.to_timestamp`.
 type RelationalExpressionToTimestamp struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
 
 // NewRelationalExpressionToTimestamp creates a RelationalExpressionToTimestamp instance.
-func NewRelationalExpressionToTimestamp[E RelationalExpressionEncoder](expr E) *RelationalExpressionToTimestamp {
+func NewRelationalExpressionToTimestamp[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionToTimestamp {
 	return &RelationalExpressionToTimestamp{
 		Expr: expr.Encode(),
 	}
@@ -4464,9 +4656,9 @@ func (j RelationalExpressionToTimestamp) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.trunc`
 // * During joining: `relational_query.join.expression.scalar.trunc`
 // * During aggregation: `relational_query.aggregate.expression.scalar.trunc`
-// * During windowing: `relational_query.window.expression.scalar.trunc`
+// * During windowing: `relational_query.window.expression.scalar.trunc`.
 type RelationalExpressionTrunc struct {
-	Expr RelationalExpression  `json:"expr" mapstructure:"expr" yaml:"expr"`
+	Expr RelationalExpression  `json:"expr"           mapstructure:"expr"           yaml:"expr"`
 	Prec *RelationalExpression `json:"prec,omitempty" mapstructure:"prec,omitempty" yaml:"prec,omitempty"`
 }
 
@@ -4478,7 +4670,9 @@ func NewRelationalExpressionTrunc[E RelationalExpressionEncoder](str E) *Relatio
 }
 
 // WithPrec returns the new instance with prec set.
-func (j RelationalExpressionTrunc) WithPrec(prec RelationalExpressionEncoder) *RelationalExpressionTrunc {
+func (j RelationalExpressionTrunc) WithPrec(
+	prec RelationalExpressionEncoder,
+) *RelationalExpressionTrunc {
 	if prec == nil {
 		j.Prec = nil
 	} else {
@@ -4520,13 +4714,15 @@ func (j RelationalExpressionTrunc) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.to_lower`
 // * During joining: `relational_query.join.expression.scalar.to_lower`
 // * During aggregation: `relational_query.aggregate.expression.scalar.to_lower`
-// * During windowing: `relational_query.window.expression.scalar.to_lower`
+// * During windowing: `relational_query.window.expression.scalar.to_lower`.
 type RelationalExpressionToLower struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
 
 // NewRelationalExpressionToLower creates a RelationalExpressionToLower instance.
-func NewRelationalExpressionToLower[E RelationalExpressionEncoder](expr E) *RelationalExpressionToLower {
+func NewRelationalExpressionToLower[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionToLower {
 	return &RelationalExpressionToLower{
 		Expr: expr.Encode(),
 	}
@@ -4557,13 +4753,15 @@ func (j RelationalExpressionToLower) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.to_upper`
 // * During joining: `relational_query.join.expression.scalar.to_upper`
 // * During aggregation: `relational_query.aggregate.expression.scalar.to_upper`
-// * During windowing: `relational_query.window.expression.scalar.to_upper`
+// * During windowing: `relational_query.window.expression.scalar.to_upper`.
 type RelationalExpressionToUpper struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
 
 // NewRelationalExpressionToUpper creates a RelationalExpressionToUpper instance.
-func NewRelationalExpressionToUpper[E RelationalExpressionEncoder](expr E) *RelationalExpressionToUpper {
+func NewRelationalExpressionToUpper[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionToUpper {
 	return &RelationalExpressionToUpper{
 		Expr: expr.Encode(),
 	}
@@ -4594,14 +4792,17 @@ func (j RelationalExpressionToUpper) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.scalar.binary_concat`
 // * During joining: `relational_query.join.expression.scalar.binary_concat`
 // * During aggregation: `relational_query.aggregate.expression.scalar.binary_concat`
-// * During windowing: `relational_query.window.expression.scalar.binary_concat`
+// * During windowing: `relational_query.window.expression.scalar.binary_concat`.
 type RelationalExpressionBinaryConcat struct {
-	Left  RelationalExpression `json:"left" mapstructure:"left" yaml:"left"`
+	Left  RelationalExpression `json:"left"  mapstructure:"left"  yaml:"left"`
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
 // NewRelationalExpressionBinaryConcat creates a RelationalExpressionBinaryConcat instance.
-func NewRelationalExpressionBinaryConcat[L RelationalExpressionEncoder, R RelationalExpressionEncoder](left L, right R) *RelationalExpressionBinaryConcat {
+func NewRelationalExpressionBinaryConcat[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+	left L,
+	right R,
+) *RelationalExpressionBinaryConcat {
 	return &RelationalExpressionBinaryConcat{
 		Left:  left.Encode(),
 		Right: right.Encode(),
@@ -4633,7 +4834,9 @@ type RelationalExpressionAverage struct {
 }
 
 // NewRelationalExpressionAverage creates a RelationalExpressionAverage instance.
-func NewRelationalExpressionAverage[E RelationalExpressionEncoder](expr E) *RelationalExpressionAverage {
+func NewRelationalExpressionAverage[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionAverage {
 	return &RelationalExpressionAverage{
 		Expr: expr.Encode(),
 	}
@@ -4664,13 +4867,15 @@ func (j RelationalExpressionAverage) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.aggregate.bool_and`
 // * During joining: `relational_query.join.expression.aggregate.bool_and`
 // * During aggregation: `relational_query.aggregate.expression.aggregate.bool_and`
-// * During windowing: `relational_query.window.expression.aggregate.bool_and`
+// * During windowing: `relational_query.window.expression.aggregate.bool_and`.
 type RelationalExpressionBoolAnd struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
 
 // NewRelationalExpressionBoolAnd creates a RelationalExpressionBoolAnd instance.
-func NewRelationalExpressionBoolAnd[E RelationalExpressionEncoder](expr E) *RelationalExpressionBoolAnd {
+func NewRelationalExpressionBoolAnd[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionBoolAnd {
 	return &RelationalExpressionBoolAnd{
 		Expr: expr.Encode(),
 	}
@@ -4701,13 +4906,15 @@ func (j RelationalExpressionBoolAnd) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.aggregate.bool_or`
 // * During joining: `relational_query.join.expression.aggregate.bool_or`
 // * During aggregation: `relational_query.aggregate.expression.aggregate.bool_or`
-// * During windowing: `relational_query.window.expression.aggregate.bool_or`
+// * During windowing: `relational_query.window.expression.aggregate.bool_or`.
 type RelationalExpressionBoolOr struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
 
 // NewRelationalExpressionBoolOr creates a RelationalExpressionBoolOr instance.
-func NewRelationalExpressionBoolOr[E RelationalExpressionEncoder](expr E) *RelationalExpressionBoolOr {
+func NewRelationalExpressionBoolOr[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionBoolOr {
 	return &RelationalExpressionBoolOr{
 		Expr: expr.Encode(),
 	}
@@ -4733,7 +4940,7 @@ func (j RelationalExpressionBoolOr) Encode() RelationalExpression {
 
 // RelationalExpressionCount represents a RelationalExpression with the count type.
 type RelationalExpressionCount struct {
-	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
+	Expr RelationalExpression `json:"expr"     mapstructure:"expr"     yaml:"expr"`
 	// Only used when in specific contexts where the appropriate capability is supported:
 	// * During projection: `relational_query.project.expression.aggregate.count.distinct`
 	// * During filtering: `relational_query.filter.aggregate.count.distinct`
@@ -4745,7 +4952,10 @@ type RelationalExpressionCount struct {
 }
 
 // NewRelationalExpressionCount creates a RelationalExpressionCount instance.
-func NewRelationalExpressionCount[E RelationalExpressionEncoder](expr E, distinct bool) *RelationalExpressionCount {
+func NewRelationalExpressionCount[E RelationalExpressionEncoder](
+	expr E,
+	distinct bool,
+) *RelationalExpressionCount {
 	return &RelationalExpressionCount{
 		Expr:     expr.Encode(),
 		Distinct: distinct,
@@ -4778,13 +4988,15 @@ func (j RelationalExpressionCount) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.aggregate.first_value`
 // * During joining: `relational_query.join.expression.aggregate.first_value`
 // * During aggregation: `relational_query.aggregate.expression.aggregate.first_value`
-// * During windowing: `relational_query.window.expression.aggregate.first_value`
+// * During windowing: `relational_query.window.expression.aggregate.first_value`.
 type RelationalExpressionFirstValue struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
 
 // NewRelationalExpressionFirstValue creates a RelationalExpressionFirstValue instance.
-func NewRelationalExpressionFirstValue[E RelationalExpressionEncoder](expr E) *RelationalExpressionFirstValue {
+func NewRelationalExpressionFirstValue[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionFirstValue {
 	return &RelationalExpressionFirstValue{
 		Expr: expr.Encode(),
 	}
@@ -4815,13 +5027,15 @@ func (j RelationalExpressionFirstValue) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.aggregate.last_value`
 // * During joining: `relational_query.join.expression.aggregate.last_value`
 // * During aggregation: `relational_query.aggregate.expression.aggregate.last_value`
-// * During windowing: `relational_query.window.expression.aggregate.last_value`
+// * During windowing: `relational_query.window.expression.aggregate.last_value`.
 type RelationalExpressionLastValue struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
 
 // NewRelationalExpressionLastValue creates a RelationalExpressionLastValue instance.
-func NewRelationalExpressionLastValue[E RelationalExpressionEncoder](expr E) *RelationalExpressionLastValue {
+func NewRelationalExpressionLastValue[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionLastValue {
 	return &RelationalExpressionLastValue{
 		Expr: expr.Encode(),
 	}
@@ -4882,13 +5096,15 @@ func (j RelationalExpressionMax) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.aggregate.median`
 // * During joining: `relational_query.join.expression.aggregate.median`
 // * During aggregation: `relational_query.aggregate.expression.aggregate.median`
-// * During windowing: `relational_query.window.expression.aggregate.median`
+// * During windowing: `relational_query.window.expression.aggregate.median`.
 type RelationalExpressionMedian struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
 
 // NewRelationalExpressionMedian creates a RelationalExpressionMedian instance.
-func NewRelationalExpressionMedian[E RelationalExpressionEncoder](expr E) *RelationalExpressionMedian {
+func NewRelationalExpressionMedian[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionMedian {
 	return &RelationalExpressionMedian{
 		Expr: expr.Encode(),
 	}
@@ -4944,15 +5160,15 @@ func (j RelationalExpressionMin) Encode() RelationalExpression {
 
 // RelationalExpressionStringAgg represents a RelationalExpression with the string_agg type.
 type RelationalExpressionStringAgg struct {
-	Expr      RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
-	Separator string               `json:"separator" mapstructure:"separator" yaml:"separator"`
+	Expr      RelationalExpression `json:"expr"               mapstructure:"expr"               yaml:"expr"`
+	Separator string               `json:"separator"          mapstructure:"separator"          yaml:"separator"`
 	// Only used when in specific contexts where the appropriate capability is supported:
 	// * During projection: `relational_query.project.expression.aggregate.string_agg.distinct`
 	// * During filtering: `relational_query.filter.aggregate.string_agg.distinct`
 	// * During sorting:`relational_query.sort.expression.aggregate.string_agg.distinct`
 	// * During joining: `relational_query.join.expression.aggregate.string_agg.distinct`
 	// * During aggregation: `relational_query.aggregate.expression.aggregate.string_agg.distinct` * During windowing: `relational_query.window.expression.aggregate.string_agg.distinct`
-	Distinct bool `json:"distinct" mapstructure:"distinct" yaml:"distinct"`
+	Distinct bool `json:"distinct"           mapstructure:"distinct"           yaml:"distinct"`
 	// Only used when in specific contexts where the appropriate capability is supported:
 	// * During projection: `relational_query.project.expression.aggregate.string_agg.order_by`
 	// * During filtering: `relational_query.filter.aggregate.string_agg.order_by`
@@ -4964,7 +5180,11 @@ type RelationalExpressionStringAgg struct {
 }
 
 // NewRelationalExpressionStringAgg creates a RelationalExpressionStringAgg instance.
-func NewRelationalExpressionStringAgg[E RelationalExpressionEncoder](expr E, separator string, distinct bool) *RelationalExpressionStringAgg {
+func NewRelationalExpressionStringAgg[E RelationalExpressionEncoder](
+	expr E,
+	separator string,
+	distinct bool,
+) *RelationalExpressionStringAgg {
 	return &RelationalExpressionStringAgg{
 		Expr:      expr.Encode(),
 		Separator: separator,
@@ -5042,7 +5262,7 @@ func (j RelationalExpressionSum) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.aggregate.var`
 // * During joining: `relational_query.join.expression.aggregate.var`
 // * During aggregation: `relational_query.aggregate.expression.aggregate.var`
-// * During windowing: `relational_query.window.expression.aggregate.var`
+// * During windowing: `relational_query.window.expression.aggregate.var`.
 type RelationalExpressionVar struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
@@ -5079,13 +5299,15 @@ func (j RelationalExpressionVar) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.aggregate.stddev`
 // * During joining: `relational_query.join.expression.aggregate.stddev`
 // * During aggregation: `relational_query.aggregate.expression.aggregate.stddev`
-// * During windowing: `relational_query.window.expression.aggregate.stddev`
+// * During windowing: `relational_query.window.expression.aggregate.stddev`.
 type RelationalExpressionStddev struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
 
 // NewRelationalExpressionStddev creates a RelationalExpressionStddev instance.
-func NewRelationalExpressionStddev[E RelationalExpressionEncoder](expr E) *RelationalExpressionStddev {
+func NewRelationalExpressionStddev[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionStddev {
 	return &RelationalExpressionStddev{
 		Expr: expr.Encode(),
 	}
@@ -5116,13 +5338,15 @@ func (j RelationalExpressionStddev) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.aggregate.stddev_pop`
 // * During joining: `relational_query.join.expression.aggregate.stddev_pop`
 // * During aggregation: `relational_query.aggregate.expression.aggregate.stddev_pop`
-// * During windowing: `relational_query.window.expression.aggregate.stddev_pop`
+// * During windowing: `relational_query.window.expression.aggregate.stddev_pop`.
 type RelationalExpressionStddevPop struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
 
 // NewRelationalExpressionStddevPop creates a RelationalExpressionStddevPop instance.
-func NewRelationalExpressionStddevPop[E RelationalExpressionEncoder](expr E) *RelationalExpressionStddevPop {
+func NewRelationalExpressionStddevPop[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionStddevPop {
 	return &RelationalExpressionStddevPop{
 		Expr: expr.Encode(),
 	}
@@ -5153,14 +5377,17 @@ func (j RelationalExpressionStddevPop) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.aggregate.approx_percentile_cont`
 // * During joining: `relational_query.join.expression.aggregate.approx_percentile_cont`
 // * During aggregation: `relational_query.aggregate.expression.aggregate.approx_percentile_cont`
-// * During windowing: `relational_query.window.expression.aggregate.approx_percentile_cont`
+// * During windowing: `relational_query.window.expression.aggregate.approx_percentile_cont`.
 type RelationalExpressionApproxPercentileCont struct {
-	Expr       RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
+	Expr       RelationalExpression `json:"expr"       mapstructure:"expr"       yaml:"expr"`
 	Percentile float64              `json:"percentile" mapstructure:"percentile" yaml:"percentile"`
 }
 
 // NewRelationalExpressionApproxPercentileCont creates a RelationalExpressionApproxPercentileCont instance.
-func NewRelationalExpressionApproxPercentileCont[E RelationalExpressionEncoder](expr E, percentile float64) *RelationalExpressionApproxPercentileCont {
+func NewRelationalExpressionApproxPercentileCont[E RelationalExpressionEncoder](
+	expr E,
+	percentile float64,
+) *RelationalExpressionApproxPercentileCont {
 	return &RelationalExpressionApproxPercentileCont{
 		Expr:       expr.Encode(),
 		Percentile: percentile,
@@ -5187,7 +5414,7 @@ func (j RelationalExpressionApproxPercentileCont) Encode() RelationalExpression 
 
 // RelationalExpressionArrayAgg represents a RelationalExpression with the array_agg type.
 type RelationalExpressionArrayAgg struct {
-	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
+	Expr RelationalExpression `json:"expr"               mapstructure:"expr"               yaml:"expr"`
 	// Only used when in specific contexts where the appropriate capability is supported:
 	// * During projection: `relational_query.project.expression.aggregate.array_agg.distinct`
 	// * During filtering: `relational_query.filter.aggregate.array_agg.distinct`
@@ -5195,7 +5422,7 @@ type RelationalExpressionArrayAgg struct {
 	// * During joining: `relational_query.join.expression.aggregate.array_agg.distinct`
 	// * During aggregation: `relational_query.aggregate.expression.aggregate.array_agg.distinct`
 	// * During windowing: `relational_query.window.expression.aggregate.array_agg.distinct`
-	Distinct bool `json:"distinct" mapstructure:"distinct" yaml:"distinct"`
+	Distinct bool `json:"distinct"           mapstructure:"distinct"           yaml:"distinct"`
 	// Only used when in specific contexts where the appropriate capability is supported:
 	// * During projection: `relational_query.project.expression.aggregate.array_agg.order_by`
 	// * During filtering: `relational_query.filter.aggregate.array_agg.order_by`
@@ -5207,7 +5434,10 @@ type RelationalExpressionArrayAgg struct {
 }
 
 // NewRelationalExpressionArrayAgg creates a RelationalExpressionArrayAgg instance.
-func NewRelationalExpressionArrayAgg[E RelationalExpressionEncoder](expr E, distinct bool) *RelationalExpressionArrayAgg {
+func NewRelationalExpressionArrayAgg[E RelationalExpressionEncoder](
+	expr E,
+	distinct bool,
+) *RelationalExpressionArrayAgg {
 	return &RelationalExpressionArrayAgg{
 		Expr:     expr.Encode(),
 		Distinct: distinct,
@@ -5253,13 +5483,15 @@ func (j RelationalExpressionArrayAgg) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.aggregate.approx_distinct`
 // * During joining: `relational_query.join.expression.aggregate.approx_distinct`
 // * During aggregation: `relational_query.aggregate.expression.aggregate.approx_distinct`
-// * During windowing: `relational_query.window.expression.aggregate.approx_distinct`
+// * During windowing: `relational_query.window.expression.aggregate.approx_distinct`.
 type RelationalExpressionApproxDistinct struct {
 	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 }
 
 // NewRelationalExpressionApproxDistinct creates a RelationalExpressionApproxDistinct instance.
-func NewRelationalExpressionApproxDistinct[E RelationalExpressionEncoder](expr E) *RelationalExpressionApproxDistinct {
+func NewRelationalExpressionApproxDistinct[E RelationalExpressionEncoder](
+	expr E,
+) *RelationalExpressionApproxDistinct {
 	return &RelationalExpressionApproxDistinct{
 		Expr: expr.Encode(),
 	}
@@ -5290,14 +5522,17 @@ func (j RelationalExpressionApproxDistinct) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.window.row_number`
 // * During joining: `relational_query.join.expression.window.row_number`
 // * During aggregation: `relational_query.window.row_number`
-// * During windowing: `relational_query.window.expression.window.row_number`
+// * During windowing: `relational_query.window.expression.window.row_number`.
 type RelationalExpressionRowNumber struct {
-	OrderBy     []Sort                 `json:"order_by" mapstructure:"order_by" yaml:"order_by"`
+	OrderBy     []Sort                 `json:"order_by"     mapstructure:"order_by"     yaml:"order_by"`
 	PartitionBy []RelationalExpression `json:"partition_by" mapstructure:"partition_by" yaml:"partition_by"`
 }
 
 // NewRelationalExpressionRowNumber creates a RelationalExpressionRowNumber instance.
-func NewRelationalExpressionRowNumber(orderBy []Sort, partitionBy []RelationalExpressionEncoder) *RelationalExpressionRowNumber {
+func NewRelationalExpressionRowNumber(
+	orderBy []Sort,
+	partitionBy []RelationalExpressionEncoder,
+) *RelationalExpressionRowNumber {
 	rb := []RelationalExpression{}
 
 	for _, r := range partitionBy {
@@ -5338,14 +5573,17 @@ func (j RelationalExpressionRowNumber) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.window.dense_rank`
 // * During joining: `relational_query.join.expression.window.dense_rank`
 // * During aggregation: `relational_query.window.dense_rank`
-// * During windowing: `relational_query.window.expression.window.dense_rank`
+// * During windowing: `relational_query.window.expression.window.dense_rank`.
 type RelationalExpressionDenseRank struct {
-	OrderBy     []Sort                 `json:"order_by" mapstructure:"order_by" yaml:"order_by"`
+	OrderBy     []Sort                 `json:"order_by"     mapstructure:"order_by"     yaml:"order_by"`
 	PartitionBy []RelationalExpression `json:"partition_by" mapstructure:"partition_by" yaml:"partition_by"`
 }
 
 // NewRelationalExpressionDenseRank creates a RelationalExpressionDenseRank instance.
-func NewRelationalExpressionDenseRank(orderBy []Sort, partitionBy []RelationalExpressionEncoder) *RelationalExpressionDenseRank {
+func NewRelationalExpressionDenseRank(
+	orderBy []Sort,
+	partitionBy []RelationalExpressionEncoder,
+) *RelationalExpressionDenseRank {
 	rb := []RelationalExpression{}
 
 	for _, r := range partitionBy {
@@ -5386,15 +5624,19 @@ func (j RelationalExpressionDenseRank) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.window.ntile`
 // * During joining: `relational_query.join.expression.window.ntile`
 // * During aggregation: `relational_query.window.ntile`
-// * During windowing: `relational_query.window.expression.window.ntile`
+// * During windowing: `relational_query.window.expression.window.ntile`.
 type RelationalExpressionNTile struct {
-	OrderBy     []Sort                 `json:"order_by" mapstructure:"order_by" yaml:"order_by"`
+	OrderBy     []Sort                 `json:"order_by"     mapstructure:"order_by"     yaml:"order_by"`
 	PartitionBy []RelationalExpression `json:"partition_by" mapstructure:"partition_by" yaml:"partition_by"`
-	N           int64                  `json:"n" mapstructure:"n" yaml:"n"`
+	N           int64                  `json:"n"            mapstructure:"n"            yaml:"n"`
 }
 
 // NewRelationalExpressionNTile creates a RelationalExpressionNTile instance.
-func NewRelationalExpressionNTile(orderBy []Sort, partitionBy []RelationalExpressionEncoder, n int64) *RelationalExpressionNTile {
+func NewRelationalExpressionNTile(
+	orderBy []Sort,
+	partitionBy []RelationalExpressionEncoder,
+	n int64,
+) *RelationalExpressionNTile {
 	rb := []RelationalExpression{}
 
 	for _, r := range partitionBy {
@@ -5437,14 +5679,17 @@ func (j RelationalExpressionNTile) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.window.rank`
 // * During joining: `relational_query.join.expression.window.rank`
 // * During aggregation: `relational_query.window.rank`
-// * During windowing: `relational_query.window.expression.window.rank`
+// * During windowing: `relational_query.window.expression.window.rank`.
 type RelationalExpressionRank struct {
-	OrderBy     []Sort                 `json:"order_by" mapstructure:"order_by" yaml:"order_by"`
+	OrderBy     []Sort                 `json:"order_by"     mapstructure:"order_by"     yaml:"order_by"`
 	PartitionBy []RelationalExpression `json:"partition_by" mapstructure:"partition_by" yaml:"partition_by"`
 }
 
 // NewRelationalExpressionRank creates a RelationalExpressionRank instance.
-func NewRelationalExpressionRank(orderBy []Sort, partitionBy []RelationalExpressionEncoder) *RelationalExpressionRank {
+func NewRelationalExpressionRank(
+	orderBy []Sort,
+	partitionBy []RelationalExpressionEncoder,
+) *RelationalExpressionRank {
 	rb := []RelationalExpression{}
 
 	for _, r := range partitionBy {
@@ -5485,14 +5730,17 @@ func (j RelationalExpressionRank) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.window.cume_dist`
 // * During joining: `relational_query.join.expression.window.cume_dist`
 // * During aggregation: `relational_query.window.cume_dist`
-// * During windowing: `relational_query.window.expression.window.cume_dist`
+// * During windowing: `relational_query.window.expression.window.cume_dist`.
 type RelationalExpressionCumeDist struct {
-	OrderBy     []Sort                 `json:"order_by" mapstructure:"order_by" yaml:"order_by"`
+	OrderBy     []Sort                 `json:"order_by"     mapstructure:"order_by"     yaml:"order_by"`
 	PartitionBy []RelationalExpression `json:"partition_by" mapstructure:"partition_by" yaml:"partition_by"`
 }
 
 // NewRelationalExpressionCumeDist creates a RelationalExpressionCumeDist instance.
-func NewRelationalExpressionCumeDist(orderBy []Sort, partitionBy []RelationalExpressionEncoder) *RelationalExpressionCumeDist {
+func NewRelationalExpressionCumeDist(
+	orderBy []Sort,
+	partitionBy []RelationalExpressionEncoder,
+) *RelationalExpressionCumeDist {
 	rb := []RelationalExpression{}
 
 	for _, r := range partitionBy {
@@ -5533,14 +5781,17 @@ func (j RelationalExpressionCumeDist) Encode() RelationalExpression {
 // * During sorting:`relational_query.sort.expression.window.percent_rank`
 // * During joining: `relational_query.join.expression.window.percent_rank`
 // * During aggregation: `relational_query.window.percent_rank`
-// * During windowing: `relational_query.window.expression.window.percent_rank`
+// * During windowing: `relational_query.window.expression.window.percent_rank`.
 type RelationalExpressionPercentRank struct {
-	OrderBy     []Sort                 `json:"order_by" mapstructure:"order_by" yaml:"order_by"`
+	OrderBy     []Sort                 `json:"order_by"     mapstructure:"order_by"     yaml:"order_by"`
 	PartitionBy []RelationalExpression `json:"partition_by" mapstructure:"partition_by" yaml:"partition_by"`
 }
 
 // NewRelationalExpressionPercentRank creates a RelationalExpressionPercentRank instance.
-func NewRelationalExpressionPercentRank(orderBy []Sort, partitionBy []RelationalExpressionEncoder) *RelationalExpressionPercentRank {
+func NewRelationalExpressionPercentRank(
+	orderBy []Sort,
+	partitionBy []RelationalExpressionEncoder,
+) *RelationalExpressionPercentRank {
 	rb := []RelationalExpression{}
 
 	for _, r := range partitionBy {
