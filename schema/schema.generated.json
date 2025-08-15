@@ -3441,6 +3441,9 @@
         "string_agg": {
           "$ref": "#/definitions/RelationalOrderedAggregateFunctionCapabilities"
         },
+        "string_agg_with_separator": {
+          "$ref": "#/definitions/RelationalOrderedAggregateFunctionCapabilities"
+        },
         "sum": {
           "$ref": "#/definitions/LeafCapability"
         },

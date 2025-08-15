@@ -93,21 +93,21 @@ func (j *CastTypeEnum) UnmarshalJSON(b []byte) error {
 
 // CastType is provided by reference to a relational expression.
 type CastType struct {
-	inner CastTypeEncoder
+	inner CastTypeInner
 }
 
 // NewRelationalExpression creates a RelationalExpression instance.
-func NewCastType[T CastTypeEncoder](inner T) CastType {
+func NewCastType[T CastTypeInner](inner T) CastType {
 	return CastType{
 		inner: inner,
 	}
 }
 
-// CastTypeEncoder abstracts the interface for CastType.
-type CastTypeEncoder interface {
+// CastTypeInner abstracts the interface for CastType.
+type CastTypeInner interface {
 	Type() CastTypeEnum
 	ToMap() map[string]any
-	Encode() CastType
+	Wrap() CastType
 }
 
 // IsEmpty checks if the inner type is empty.
@@ -124,8 +124,8 @@ func (j CastType) Type() CastTypeEnum {
 	return ""
 }
 
-// Interface tries to convert the instance to AggregateEncoder interface.
-func (j CastType) Interface() CastTypeEncoder {
+// Interface tries to convert the instance to AggregateInner interface.
+func (j CastType) Interface() CastTypeInner {
 	return j.inner
 }
 
@@ -224,7 +224,7 @@ func (j CastTypeBoolean) Type() CastTypeEnum {
 	return CastTypeEnumBoolean
 }
 
-// ToMap converts the instance to raw Field.
+// ToMap converts the instance to raw map.
 func (j CastTypeBoolean) ToMap() map[string]any {
 	return map[string]any{
 		"type": j.Type(),
@@ -232,8 +232,8 @@ func (j CastTypeBoolean) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeBoolean) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeBoolean) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeUTF8 represents a CastType with the utf8 type.
@@ -249,7 +249,7 @@ func (j CastTypeUTF8) Type() CastTypeEnum {
 	return CastTypeEnumUTF8
 }
 
-// ToMap converts the instance to raw Field.
+// ToMap converts the instance to raw map.
 func (j CastTypeUTF8) ToMap() map[string]any {
 	return map[string]any{
 		"type": j.Type(),
@@ -257,8 +257,8 @@ func (j CastTypeUTF8) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeUTF8) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeUTF8) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeInt8 represents a CastType with the int8 type.
@@ -274,7 +274,7 @@ func (j CastTypeInt8) Type() CastTypeEnum {
 	return CastTypeEnumInt8
 }
 
-// ToMap converts the instance to raw Field.
+// ToMap converts the instance to raw map.
 func (j CastTypeInt8) ToMap() map[string]any {
 	return map[string]any{
 		"type": j.Type(),
@@ -282,8 +282,8 @@ func (j CastTypeInt8) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeInt8) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeInt8) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeInt16 represents a CastType with the int16 type.
@@ -299,7 +299,7 @@ func (j CastTypeInt16) Type() CastTypeEnum {
 	return CastTypeEnumInt16
 }
 
-// ToMap converts the instance to raw Field.
+// ToMap converts the instance to raw map.
 func (j CastTypeInt16) ToMap() map[string]any {
 	return map[string]any{
 		"type": j.Type(),
@@ -307,8 +307,8 @@ func (j CastTypeInt16) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeInt16) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeInt16) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeInt32 represents a CastType with the int32 type.
@@ -324,7 +324,7 @@ func (j CastTypeInt32) Type() CastTypeEnum {
 	return CastTypeEnumInt32
 }
 
-// ToMap converts the instance to raw Field.
+// ToMap converts the instance to raw map.
 func (j CastTypeInt32) ToMap() map[string]any {
 	return map[string]any{
 		"type": j.Type(),
@@ -332,8 +332,8 @@ func (j CastTypeInt32) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeInt32) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeInt32) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeInt64 represents a CastType with the int64 type.
@@ -357,8 +357,8 @@ func (j CastTypeInt64) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeInt64) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeInt64) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeUint8 represents a CastType with the uint8 type.
@@ -382,8 +382,8 @@ func (j CastTypeUint8) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeUint8) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeUint8) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeUint16 represents a CastType with the uint16 type.
@@ -407,8 +407,8 @@ func (j CastTypeUint16) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeUint16) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeUint16) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeUint32 represents a CastType with the uint32 type.
@@ -432,8 +432,8 @@ func (j CastTypeUint32) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeUint32) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeUint32) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeUint64 represents a CastType with the uint64 type.
@@ -457,8 +457,8 @@ func (j CastTypeUint64) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeUint64) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeUint64) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeFloat32 represents a CastType with the float32 type.
@@ -482,8 +482,8 @@ func (j CastTypeFloat32) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeFloat32) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeFloat32) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeFloat64 represents a CastType with the float64 type.
@@ -507,8 +507,8 @@ func (j CastTypeFloat64) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeFloat64) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeFloat64) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeDecimal128 represents a CastType with unsigned 128-bit decimal.
@@ -530,7 +530,7 @@ func (j CastTypeDecimal128) Type() CastTypeEnum {
 	return CastTypeEnumDecimal128
 }
 
-// ToMap converts the instance to raw Field.
+// ToMap converts the instance to raw map.
 func (j CastTypeDecimal128) ToMap() map[string]any {
 	return map[string]any{
 		"type":  j.Type(),
@@ -540,8 +540,8 @@ func (j CastTypeDecimal128) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeDecimal128) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeDecimal128) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeDecimal256 represents a CastType with unsigned 256-bit decimal.
@@ -563,7 +563,7 @@ func (j CastTypeDecimal256) Type() CastTypeEnum {
 	return CastTypeEnumDecimal256
 }
 
-// ToMap converts the instance to raw Field.
+// ToMap converts the instance to raw map.
 func (j CastTypeDecimal256) ToMap() map[string]any {
 	return map[string]any{
 		"type":  j.Type(),
@@ -573,8 +573,8 @@ func (j CastTypeDecimal256) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeDecimal256) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeDecimal256) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeDate represents a CastType with the date type.
@@ -598,8 +598,8 @@ func (j CastTypeDate) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeDate) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeDate) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeTime represents a CastType with the time type.
@@ -623,8 +623,8 @@ func (j CastTypeTime) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeTime) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeTime) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeTimestamp represents a CastType with the timestamp type.
@@ -648,8 +648,8 @@ func (j CastTypeTimestamp) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeTimestamp) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeTimestamp) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeDuration represents a CastType with the duration type.
@@ -673,8 +673,8 @@ func (j CastTypeDuration) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeDuration) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeDuration) Wrap() CastType {
+	return NewCastType(&j)
 }
 
 // CastTypeInterval represents a CastType with the interval type.
@@ -698,6 +698,6 @@ func (j CastTypeInterval) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j CastTypeInterval) Encode() CastType {
-	return NewCastType(j)
+func (j CastTypeInterval) Wrap() CastType {
+	return NewCastType(&j)
 }

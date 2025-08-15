@@ -163,7 +163,7 @@ func TestUnmarshalQueryRequest(t *testing.T) {
 										"count": NewAggregateStarCount().Encode(),
 									},
 									Dimensions: []Dimension{
-										NewDimensionColumn("last_name", nil).Encode(),
+										NewDimensionColumn("last_name", nil).Wrap(),
 									},
 								},
 							})).

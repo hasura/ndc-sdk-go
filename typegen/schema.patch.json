@@ -1585,6 +1585,15 @@
 	},
 	{
 		"op": "remove",
+		"path": "/definitions/RelationalAggregateExpressionCapabilities/properties/string_agg_with_separator/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalAggregateExpressionCapabilities/properties/string_agg_with_separator/$ref",
+		"value": "#/definitions/RelationalOrderedAggregateFunctionCapabilities"
+	},
+	{
+		"op": "remove",
 		"path": "/definitions/RelationalDeleteRequest/properties/relation/allOf"
 	},
 	{

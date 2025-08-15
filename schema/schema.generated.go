@@ -1299,6 +1299,10 @@ type RelationalAggregateExpressionCapabilities struct {
 	// StringAgg corresponds to the JSON schema field "string_agg".
 	StringAgg *RelationalOrderedAggregateFunctionCapabilities `json:"string_agg,omitempty" yaml:"string_agg,omitempty" mapstructure:"string_agg,omitempty"`
 
+	// StringAggWithSeparator corresponds to the JSON schema field
+	// "string_agg_with_separator".
+	StringAggWithSeparator *RelationalOrderedAggregateFunctionCapabilities `json:"string_agg_with_separator,omitempty" yaml:"string_agg_with_separator,omitempty" mapstructure:"string_agg_with_separator,omitempty"`
+
 	// Sum corresponds to the JSON schema field "sum".
 	Sum *LeafCapability `json:"sum,omitempty" yaml:"sum,omitempty" mapstructure:"sum,omitempty"`
 

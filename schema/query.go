@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"slices"
 )
 
@@ -417,206 +418,86 @@ func (j *DimensionType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// DimensionEncoder abstracts a generic interface of Dimension.
-type DimensionEncoder interface {
+// DimensionInner abstracts a generic interface of Dimension.
+type DimensionInner interface {
 	Type() DimensionType
-	Encode() Dimension
+	ToMap() map[string]any
+	Wrap() Dimension
 }
 
 // Dimension represents a dimension object.
-type Dimension map[string]any
+type Dimension struct {
+	inner DimensionInner
+}
 
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *Dimension) UnmarshalJSON(b []byte) error {
-	var raw map[string]json.RawMessage
-
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
+// NewDimension creates a new Dimension instance.
+func NewDimension[T DimensionInner](inner T) Dimension {
+	return Dimension{
+		inner: inner,
 	}
+}
 
-	var ty DimensionType
+// Equal checks whether instances are the same.
+func (j Dimension) Equal(value Dimension) bool {
+	return reflect.DeepEqual(j, value)
+}
 
-	rawType, ok := raw["type"]
-	if !ok {
-		return errors.New("field type in DimensionColumn: required")
-	}
-
-	err := json.Unmarshal(rawType, &ty)
-	if err != nil {
-		return fmt.Errorf("field type in DimensionColumn: %w", err)
-	}
-
-	results := map[string]any{
-		"type": ty,
-	}
-
-	switch ty {
-	case DimensionTypeColumn:
-		columnName, err := unmarshalStringFromJsonMap(raw, "column_name", true)
-		if err != nil {
-			return fmt.Errorf("field column_name in DimensionColumn: %w", err)
-		}
-
-		results["column_name"] = columnName
-
-		rawPath, ok := raw["path"]
-		if !ok || isNullJSON(rawPath) {
-			return errors.New("field path in DimensionColumn is required")
-		}
-
-		var pathElem []PathElement
-
-		if err = json.Unmarshal(rawPath, &pathElem); err != nil {
-			return fmt.Errorf("invalid path in DimensionColumn: %w", err)
-		}
-
-		results["path"] = pathElem
-
-		rawFieldPath, ok := raw["field_path"]
-		if ok && !isNullJSON(rawFieldPath) {
-			var fieldPaths []string
-
-			if err := json.Unmarshal(rawFieldPath, &fieldPaths); err != nil {
-				return fmt.Errorf("field field_path in DimensionColumn: %w", err)
-			}
-
-			results["field_path"] = fieldPaths
-		}
-
-		rawArguments, ok := raw["arguments"]
-		if ok && !isNullJSON(rawArguments) {
-			var arguments map[string]Argument
-
-			if err := json.Unmarshal(rawArguments, &arguments); err != nil {
-				return fmt.Errorf("invalid arguments in DimensionColumn: %w", err)
-			}
-
-			results["arguments"] = arguments
-		}
-
-		extraction, err := unmarshalStringFromJsonMap(raw, "extraction", false)
-		if err != nil {
-			return fmt.Errorf("field extraction in DimensionColumn: %w", err)
-		}
-
-		if extraction != "" {
-			results["extraction"] = extraction
-		}
-	default:
-	}
-
-	*j = results
-
-	return nil
+// IsEmpty checks if the inner type is empty.
+func (j Dimension) IsEmpty() bool {
+	return j.inner == nil
 }
 
 // Type gets the type enum of the current type.
-func (j Dimension) Type() (DimensionType, error) {
-	t, ok := j["type"]
-	if !ok {
-		return DimensionType(""), errTypeRequired
+func (j Dimension) Type() DimensionType {
+	if j.inner != nil {
+		return j.inner.Type()
 	}
 
-	switch raw := t.(type) {
-	case string:
-		v, err := ParseDimensionType(raw)
-		if err != nil {
-			return DimensionType(""), err
-		}
-
-		return v, nil
-	case DimensionType:
-		return raw, nil
-	default:
-		return DimensionType(""), fmt.Errorf("invalid Dimension type: %+v", t)
-	}
-}
-
-// AsColumn tries to convert the current type to DimensionColumn.
-func (j Dimension) AsColumn() (*DimensionColumn, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	if t != DimensionTypeColumn {
-		return nil, fmt.Errorf(
-			"invalid Dimension type; expected %s, got %s",
-			DimensionTypeColumn,
-			t,
-		)
-	}
-
-	columnName, err := getStringValueByKey(j, "column_name")
-	if err != nil {
-		return nil, fmt.Errorf("field column_name in DimensionColumn: %w", err)
-	}
-
-	if columnName == "" {
-		return nil, errors.New("field column_name in DimensionColumn is required")
-	}
-
-	rawPath, ok := j["path"]
-	if !ok || rawPath == nil {
-		return nil, errors.New("field path in DimensionColumn is required")
-	}
-
-	pathElem, err := getPathElementByKey(j, "path")
-	if err != nil {
-		return nil, fmt.Errorf("field 'path' in DimensionColumn: %w", err)
-	}
-
-	if pathElem == nil {
-		return nil, errors.New("field 'path' in DimensionColumn is required")
-	}
-
-	fieldPath, err := getStringSliceByKey(j, "field_path")
-	if err != nil {
-		return nil, fmt.Errorf("field field_path in DimensionColumn: %w", err)
-	}
-
-	arguments, err := getArgumentMapByKey(j, "arguments")
-	if err != nil {
-		return nil, fmt.Errorf("invalid arguments in DimensionColumn: %w", err)
-	}
-
-	result := &DimensionColumn{
-		ColumnName: columnName,
-		FieldPath:  fieldPath,
-		Path:       pathElem,
-		Arguments:  arguments,
-	}
-
-	extraction, err := getStringValueByKey(j, "extraction")
-	if err != nil {
-		return nil, fmt.Errorf("field extraction in DimensionColumn: %w", err)
-	}
-
-	result.Extraction = extraction
-
-	return result, nil
+	return ""
 }
 
 // Interface converts the comparison value to its generic interface.
-func (j Dimension) Interface() DimensionEncoder {
-	result, _ := j.InterfaceT()
-
-	return result
+func (j Dimension) Interface() DimensionInner {
+	return j.inner
 }
 
-// InterfaceT converts the comparison value to its generic interface safely with explicit error.
-func (j Dimension) InterfaceT() (DimensionEncoder, error) {
-	ty, err := j.Type()
+// MarshalJSON implements json.Marshaler interface.
+func (j Dimension) MarshalJSON() ([]byte, error) {
+	if j.inner == nil {
+		return json.Marshal(nil)
+	}
+
+	return json.Marshal(j.inner.ToMap())
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *Dimension) UnmarshalJSON(b []byte) error {
+	var rawType rawTypeStruct
+
+	if err := json.Unmarshal(b, &rawType); err != nil {
+		return err
+	}
+
+	ty, err := ParseDimensionType(rawType.Type)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("field type in Dimension: %w", err)
 	}
 
 	switch ty {
 	case DimensionTypeColumn:
-		return j.AsColumn()
+		var result DimensionColumn
+
+		err := json.Unmarshal(b, &result)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal Dimension: %w", err)
+		}
+
+		j.inner = &result
 	default:
-		return nil, fmt.Errorf("invalid Dimension type: %s", ty)
+		return fmt.Errorf("unsupported dimension type: %s", ty)
 	}
+
+	return nil
 }
 
 // DimensionColumn represents a dimension column.
@@ -702,9 +583,9 @@ func (j DimensionColumn) Type() DimensionType {
 	return DimensionTypeColumn
 }
 
-// Encode converts the instance to a raw Dimension.
-func (j DimensionColumn) Encode() Dimension {
-	result := Dimension{
+// Encode converts the instance to a raw map.
+func (j DimensionColumn) ToMap() map[string]any {
+	result := map[string]any{
 		"type":        j.Type(),
 		"path":        j.Path,
 		"column_name": j.ColumnName,
@@ -723,4 +604,9 @@ func (j DimensionColumn) Encode() Dimension {
 	}
 
 	return result
+}
+
+// Encode returns the relation wrapper.
+func (j DimensionColumn) Wrap() Dimension {
+	return NewDimension(&j)
 }

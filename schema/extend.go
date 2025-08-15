@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"slices"
 
 	"github.com/go-viper/mapstructure/v2"
@@ -3998,252 +3999,94 @@ func (j *OrderByTargetType) UnmarshalJSON(b []byte) error {
 // OrderByTarget represents an [order_by field] of the Query object
 //
 // [order_by field]: https://hasura.github.io/ndc-spec/specification/queries/sorting.html
-type OrderByTarget map[string]any
+type OrderByTarget struct {
+	inner OrderByTargetInner
+}
 
-// UnmarshalJSON implements json.Unmarshaler.
-func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
-	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(b, &raw); err != nil {
-		return err
+// OrderByTargetInner abstracts the serialization interface for OrderByTarget.
+type OrderByTargetInner interface {
+	Type() OrderByTargetType
+	ToMap() map[string]any
+	Wrap() OrderByTarget
+}
+
+// NewOrderByTarget creates a new OrderByTarget instance.
+func NewOrderByTarget[T OrderByTargetInner](inner T) OrderByTarget {
+	return OrderByTarget{
+		inner: inner,
 	}
+}
 
-	rawType, ok := raw["type"]
-	if !ok {
-		return errors.New("field type in OrderByTarget: required")
-	}
+// Equal checks whether instances are the same.
+func (j OrderByTarget) Equal(value OrderByTarget) bool {
+	return reflect.DeepEqual(j, value)
+}
 
-	var ty OrderByTargetType
-	if err := json.Unmarshal(rawType, &ty); err != nil {
-		return fmt.Errorf("field type in OrderByTarget: %w", err)
-	}
-
-	result := map[string]any{
-		"type": ty,
-	}
-
-	rawPath, ok := raw["path"]
-	if !ok {
-		return fmt.Errorf("field path in OrderByTarget is required for `%s` type", ty)
-	}
-
-	var pathElem []PathElement
-
-	if err := json.Unmarshal(rawPath, &pathElem); err != nil {
-		return fmt.Errorf("field path in OrderByTarget: %w", err)
-	}
-
-	result["path"] = pathElem
-
-	switch ty {
-	case OrderByTargetTypeColumn:
-		rawName, ok := raw["name"]
-		if !ok {
-			return errors.New("field name in OrderByTarget is required for column type")
-		}
-
-		var name string
-
-		if err := json.Unmarshal(rawName, &name); err != nil {
-			return fmt.Errorf("field name in OrderByTarget: %w", err)
-		}
-
-		result["name"] = name
-
-		rawFieldPath, ok := raw["field_path"]
-		if ok {
-			var fieldPath []string
-
-			if err := json.Unmarshal(rawFieldPath, &fieldPath); err != nil {
-				return fmt.Errorf("field field_path in OrderByTarget: %w", err)
-			}
-
-			result["field_path"] = fieldPath
-		}
-
-		rawArguments, ok := raw["arguments"]
-		if ok {
-			var arguments map[string]Argument
-
-			if err := json.Unmarshal(rawArguments, &arguments); err != nil {
-				return fmt.Errorf("field arguments in OrderByTarget: %w", err)
-			}
-
-			result["arguments"] = arguments
-		}
-	case OrderByTargetTypeAggregate:
-		rawAggregate, ok := raw["aggregate"]
-		if !ok {
-			return errors.New("field aggregate in OrderByTarget is required for the aggregate type")
-		}
-
-		var aggregate Aggregate
-		if err := json.Unmarshal(rawAggregate, &aggregate); err != nil {
-			return fmt.Errorf("field aggregate in OrderByTarget: %w", err)
-		}
-
-		result["aggregate"] = aggregate
-	}
-
-	*j = result
-
-	return nil
+// IsEmpty checks if the inner type is empty.
+func (j OrderByTarget) IsEmpty() bool {
+	return j.inner == nil
 }
 
 // Type gets the type enum of the current type.
-func (j OrderByTarget) Type() (OrderByTargetType, error) {
-	t, ok := j["type"]
-	if !ok {
-		return OrderByTargetType(""), errTypeRequired
+func (j OrderByTarget) Type() OrderByTargetType {
+	if j.inner != nil {
+		return j.inner.Type()
 	}
 
-	switch raw := t.(type) {
-	case string:
-		v, err := ParseOrderByTargetType(raw)
-		if err != nil {
-			return OrderByTargetType(""), err
-		}
-
-		return v, nil
-	case OrderByTargetType:
-		return raw, nil
-	default:
-		return OrderByTargetType(""), fmt.Errorf("invalid OrderByTarget type: %+v", t)
-	}
+	return ""
 }
 
-// AsColumn tries to convert the instance to OrderByColumn type.
-func (j OrderByTarget) AsColumn() (*OrderByColumn, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	if t != OrderByTargetTypeColumn {
-		return nil, fmt.Errorf(
-			"invalid OrderByTarget type; expected: %s, got: %s",
-			OrderByTargetTypeColumn,
-			t,
-		)
-	}
-
-	name, err := getStringValueByKey(j, "name")
-	if err != nil {
-		return nil, fmt.Errorf("field name in OrderByColumn: %w", err)
-	}
-
-	if name == "" {
-		return nil, errors.New("field name in OrderByColumn is required")
-	}
-
-	pathElem, err := getPathElementByKey(j, "path")
-	if err != nil {
-		return nil, fmt.Errorf("field 'path' in OrderByColumn: %w", err)
-	}
-
-	if pathElem == nil {
-		return nil, errors.New("field 'path' in OrderByColumn is required")
-	}
-
-	fieldPath, err := getStringSliceByKey(j, "field_path")
-	if err != nil {
-		return nil, err
-	}
-
-	arguments, err := getArgumentMapByKey(j, "arguments")
-	if err != nil {
-		return nil, err
-	}
-
-	result := &OrderByColumn{
-		Name:      name,
-		Path:      pathElem,
-		FieldPath: fieldPath,
-		Arguments: arguments,
-	}
-
-	return result, nil
+// Interface tries to convert the instance to AggregateInner interface.
+func (j OrderByTarget) Interface() OrderByTargetInner {
+	return j.inner
 }
 
-// AsAggregate tries to convert the instance to OrderByAggregate type.
-func (j OrderByTarget) AsAggregate() (*OrderByAggregate, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
+// MarshalJSON implements json.Marshaler interface.
+func (j OrderByTarget) MarshalJSON() ([]byte, error) {
+	if j.inner == nil {
+		return json.Marshal(nil)
 	}
 
-	if t != OrderByTargetTypeAggregate {
-		return nil, fmt.Errorf(
-			"invalid OrderByTarget type; expected: %s, got: %s",
-			OrderByTargetTypeAggregate,
-			t,
-		)
-	}
-
-	pathElem, err := getPathElementByKey(j, "path")
-	if err != nil {
-		return nil, fmt.Errorf("field 'path' in OrderByTarget: %w", err)
-	}
-
-	if pathElem == nil {
-		return nil, errors.New("field 'path' in OrderByTarget is required")
-	}
-
-	rawAggregate, ok := j["aggregate"]
-	if !ok {
-		return nil, errors.New("invalid OrderByTarget aggregate; aggregate is required")
-	}
-
-	aggregate, ok := rawAggregate.(Aggregate)
-	if !ok {
-		rawAggregateMap, ok := rawAggregate.(map[string]any)
-		if !ok {
-			return nil, fmt.Errorf(
-				"invalid OrderByTarget aggregate; expected map, got %v",
-				rawAggregate,
-			)
-		}
-
-		aggregate = Aggregate{}
-
-		if err := aggregate.FromValue(rawAggregateMap); err != nil {
-			return nil, fmt.Errorf("invalid OrderByTarget aggregate: %w", err)
-		}
-	}
-
-	return &OrderByAggregate{
-		Path:      pathElem,
-		Aggregate: aggregate,
-	}, nil
+	return json.Marshal(j.inner.ToMap())
 }
 
-// Interface tries to convert the instance to OrderByTargetEncoder interface.
-func (j OrderByTarget) Interface() OrderByTargetEncoder {
-	result, _ := j.InterfaceT()
+// UnmarshalJSON implements json.Unmarshaler.
+func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
+	var rawType rawTypeStruct
 
-	return result
-}
-
-// InterfaceT tries to convert the instance to OrderByTargetEncoder interface safely with explicit error.
-func (j OrderByTarget) InterfaceT() (OrderByTargetEncoder, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
+	if err := json.Unmarshal(b, &rawType); err != nil {
+		return err
 	}
 
-	switch t {
+	ty, err := ParseOrderByTargetType(rawType.Type)
+	if err != nil {
+		return fmt.Errorf("field type in OrderByTarget: %w", err)
+	}
+
+	switch ty {
 	case OrderByTargetTypeColumn:
-		return j.AsColumn()
-	case OrderByTargetTypeAggregate:
-		return j.AsAggregate()
-	default:
-		return nil, fmt.Errorf("invalid OrderByTarget type: %s", t)
-	}
-}
+		var result OrderByColumn
 
-// OrderByTargetEncoder abstracts the serialization interface for OrderByTarget.
-type OrderByTargetEncoder interface {
-	Type() OrderByTargetType
-	Encode() OrderByTarget
+		err := json.Unmarshal(b, &result)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal OrderByColumn: %w", err)
+		}
+
+		j.inner = &result
+	case OrderByTargetTypeAggregate:
+		var result OrderByAggregate
+
+		err := json.Unmarshal(b, &result)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal OrderByAggregate: %w", err)
+		}
+
+		j.inner = &result
+	default:
+		return fmt.Errorf("unsupported OrderByTarget type: %s", ty)
+	}
+
+	return nil
 }
 
 // OrderByColumn represents an ordering object which compares the value in the selected column.
@@ -4325,9 +4168,9 @@ func (ob OrderByColumn) Type() OrderByTargetType {
 	return OrderByTargetTypeColumn
 }
 
-// Encode converts the instance to raw OrderByTarget.
-func (ob OrderByColumn) Encode() OrderByTarget {
-	result := OrderByTarget{
+// ToMap converts the instance to raw map.
+func (ob OrderByColumn) ToMap() map[string]any {
+	result := map[string]any{
 		"type": ob.Type(),
 		"name": ob.Name,
 		"path": ob.Path,
@@ -4342,6 +4185,11 @@ func (ob OrderByColumn) Encode() OrderByTarget {
 	}
 
 	return result
+}
+
+// Encode returns the relation wrapper.
+func (ob OrderByColumn) Wrap() OrderByTarget {
+	return NewOrderByTarget(&ob)
 }
 
 // OrderByAggregate The ordering is performed over the result of an aggregation.
@@ -4367,15 +4215,20 @@ func (ob OrderByAggregate) Type() OrderByTargetType {
 	return OrderByTargetTypeAggregate
 }
 
-// Encode converts the instance to raw OrderByTarget.
-func (ob OrderByAggregate) Encode() OrderByTarget {
-	result := OrderByTarget{
+// ToMap converts the instance to raw map.
+func (ob OrderByAggregate) ToMap() map[string]any {
+	result := map[string]any{
 		"type":      ob.Type(),
 		"aggregate": ob.Aggregate,
 		"path":      ob.Path,
 	}
 
 	return result
+}
+
+// Encode returns the relation wrapper.
+func (ob OrderByAggregate) Wrap() OrderByTarget {
+	return NewOrderByTarget(&ob)
 }
 
 // NestedFieldType represents a nested field type enum.

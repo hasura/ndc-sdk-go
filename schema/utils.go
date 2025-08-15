@@ -130,7 +130,7 @@ func getStringSliceByKey(collection map[string]any, key string) ([]string, error
 
 func getPathElementByKey(
 	collection map[string]any,
-	key string, //nolint:unparam
+	key string,
 ) ([]PathElement, error) {
 	if len(collection) == 0 {
 		return nil, nil
@@ -284,7 +284,7 @@ func getRelationshipArgumentMapByKey(
 func unmarshalStringFromJsonMap(
 	collection map[string]json.RawMessage,
 	key string,
-	required bool,
+	required bool, //nolint:unparam
 ) (string, error) {
 	emptyFn := func() (string, error) {
 		if !required {
@@ -313,22 +313,4 @@ func unmarshalStringFromJsonMap(
 	}
 
 	return result, nil
-}
-
-func unmarshalGroupComparisonTargetByKey(
-	raw map[string]json.RawMessage,
-	key string,
-) (GroupComparisonTarget, error) {
-	rawTarget, ok := raw[key]
-	if !ok {
-		return nil, errors.New("required")
-	}
-
-	var target GroupComparisonTarget
-
-	if err := json.Unmarshal(rawTarget, &target); err != nil {
-		return nil, err
-	}
-
-	return target, nil
 }

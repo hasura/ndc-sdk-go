@@ -209,24 +209,24 @@ func TestQueryRequest(t *testing.T) {
 				"collection": "articles",
 				"arguments": {},
 				"query": {
-						"fields": {
-								"title": {
-										"type": "column",
-										"column": "title"
-								}
-						},
-						"order_by": {
-								"elements": [
-										{
-												"target": {
-														"type": "column",
-														"name": "title",
-														"path": []
-												},
-												"order_direction": "desc"
-										}
-								]
+					"fields": {
+						"title": {
+							"type": "column",
+							"column": "title"
 						}
+					},
+					"order_by": {
+						"elements": [
+							{
+								"target": {
+										"type": "column",
+										"name": "title",
+										"path": []
+								},
+								"order_direction": "desc"
+							}
+						]
+					}
 				},
 				"collection_relationships": {}
 		}`),
@@ -241,7 +241,7 @@ func TestQueryRequest(t *testing.T) {
 						Elements: []OrderByElement{
 							{
 								OrderDirection: OrderDirectionDesc,
-								Target:         NewOrderByColumn("title", nil).Encode(),
+								Target:         NewOrderByColumn("title", nil).Wrap(),
 							},
 						},
 					},
@@ -310,7 +310,7 @@ func TestQueryRequest(t *testing.T) {
 									WithArgument("empty", NewArgumentLiteral("test")).
 									WithArgument("empty", nil).
 									WithArguments(nil).
-									Encode(),
+									Wrap(),
 							},
 						},
 					},
@@ -403,7 +403,7 @@ func TestQueryRequest(t *testing.T) {
 										Relationship: "author_articles",
 										Predicate:    NewExpressionAnd().Encode(),
 									},
-								}).Encode(),
+								}).Wrap(),
 							},
 						},
 					},
@@ -505,7 +505,7 @@ func TestQueryRequest(t *testing.T) {
 											Predicate:    NewExpressionAnd().Encode(),
 										},
 									},
-								).Encode(),
+								).Wrap(),
 							},
 						},
 					},

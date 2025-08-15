@@ -271,21 +271,21 @@ func (j *RelationalExpressionType) UnmarshalJSON(b []byte) error {
 
 // RelationalExpression is provided by reference to a relational expression.
 type RelationalExpression struct {
-	inner RelationalExpressionEncoder
+	inner RelationalExpressionInner
 }
 
 // NewRelationalExpression creates a RelationalExpression instance.
-func NewRelationalExpression[T RelationalExpressionEncoder](inner T) RelationalExpression {
+func NewRelationalExpression[T RelationalExpressionInner](inner T) RelationalExpression {
 	return RelationalExpression{
 		inner: inner,
 	}
 }
 
-// RelationalExpressionEncoder abstracts the interface for RelationalExpression.
-type RelationalExpressionEncoder interface {
+// RelationalExpressionInner abstracts the interface for RelationalExpression.
+type RelationalExpressionInner interface {
 	Type() RelationalExpressionType
 	ToMap() map[string]any
-	Encode() RelationalExpression
+	Wrap() RelationalExpression
 }
 
 // IsEmpty checks if the inner type is empty.
@@ -1279,8 +1279,8 @@ func (j *RelationalExpression) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Interface tries to convert the instance to AggregateEncoder interface.
-func (j RelationalExpression) Interface() RelationalExpressionEncoder {
+// Interface tries to convert the instance to AggregateInner interface.
+func (j RelationalExpression) Interface() RelationalExpressionInner {
 	return j.inner
 }
 
@@ -1290,11 +1290,11 @@ type RelationalExpressionLiteral struct {
 }
 
 // NewRelationalExpressionLiteral creates a RelationalExpressionLiteral instance.
-func NewRelationalExpressionLiteral[R RelationalLiteralEncoder](
+func NewRelationalExpressionLiteral[R RelationalLiteralInner](
 	literal R,
 ) *RelationalExpressionLiteral {
 	return &RelationalExpressionLiteral{
-		Literal: literal.Encode(),
+		Literal: literal.Wrap(),
 	}
 }
 
@@ -1312,8 +1312,8 @@ func (j RelationalExpressionLiteral) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionLiteral) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionLiteral) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionColumn represents a RelationalExpression with column type.
@@ -1342,8 +1342,8 @@ func (j RelationalExpressionColumn) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionColumn) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionColumn) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionCase represents a RelationalExpression with CASE type.
@@ -1410,8 +1410,8 @@ func (j RelationalExpressionCase) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionCase) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionCase) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionAnd represents a RelationalExpression with the and type.
@@ -1421,13 +1421,13 @@ type RelationalExpressionAnd struct {
 }
 
 // NewRelationalExpressionAnd creates a RelationalExpressionAnd instance.
-func NewRelationalExpressionAnd[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionAnd[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionAnd {
 	return &RelationalExpressionAnd{
-		Left:  left.Encode(),
-		Right: right.Encode(),
+		Left:  left.Wrap(),
+		Right: right.Wrap(),
 	}
 }
 
@@ -1446,8 +1446,8 @@ func (j RelationalExpressionAnd) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionAnd) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionAnd) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionOr represents a RelationalExpression with the or type.
@@ -1457,13 +1457,13 @@ type RelationalExpressionOr struct {
 }
 
 // NewRelationalExpressionOr creates a RelationalExpressionOr instance.
-func NewRelationalExpressionOr[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionOr[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionOr {
 	return &RelationalExpressionOr{
-		Left:  left.Encode(),
-		Right: right.Encode(),
+		Left:  left.Wrap(),
+		Right: right.Wrap(),
 	}
 }
 
@@ -1482,8 +1482,8 @@ func (j RelationalExpressionOr) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionOr) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionOr) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionNot represents a RelationalExpression with the not type.
@@ -1492,9 +1492,9 @@ type RelationalExpressionNot struct {
 }
 
 // NewRelationalExpressionNot creates a RelationalExpressionNot instance.
-func NewRelationalExpressionNot[E RelationalExpressionEncoder](expr E) *RelationalExpressionNot {
+func NewRelationalExpressionNot[E RelationalExpressionInner](expr E) *RelationalExpressionNot {
 	return &RelationalExpressionNot{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -1512,8 +1512,8 @@ func (j RelationalExpressionNot) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionNot) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionNot) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionEq represents a RelationalExpression with the eq type.
@@ -1523,13 +1523,13 @@ type RelationalExpressionEq struct {
 }
 
 // NewRelationalExpressionEq creates a RelationalExpressionEq instance.
-func NewRelationalExpressionEq[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionEq[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionEq {
 	return &RelationalExpressionEq{
-		Left:  left.Encode(),
-		Right: right.Encode(),
+		Left:  left.Wrap(),
+		Right: right.Wrap(),
 	}
 }
 
@@ -1548,8 +1548,8 @@ func (j RelationalExpressionEq) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionEq) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionEq) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionNotEq represents a RelationalExpression with the not_eq type.
@@ -1559,13 +1559,13 @@ type RelationalExpressionNotEq struct {
 }
 
 // NewRelationalExpressionNotEq creates a RelationalExpressionNotEq instance.
-func NewRelationalExpressionNotEq[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionNotEq[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionNotEq {
 	return &RelationalExpressionNotEq{
-		Left:  left.Encode(),
-		Right: right.Encode(),
+		Left:  left.Wrap(),
+		Right: right.Wrap(),
 	}
 }
 
@@ -1584,8 +1584,8 @@ func (j RelationalExpressionNotEq) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionNotEq) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionNotEq) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionIsDistinctFrom represents a RelationalExpression with the is_distinct_from type.
@@ -1602,13 +1602,13 @@ type RelationalExpressionIsDistinctFrom struct {
 }
 
 // NewRelationalExpressionIsDistinctFrom creates a RelationalExpressionIsDistinctFrom instance.
-func NewRelationalExpressionIsDistinctFrom[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionIsDistinctFrom[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionIsDistinctFrom {
 	return &RelationalExpressionIsDistinctFrom{
-		Left:  left.Encode(),
-		Right: right.Encode(),
+		Left:  left.Wrap(),
+		Right: right.Wrap(),
 	}
 }
 
@@ -1627,8 +1627,8 @@ func (j RelationalExpressionIsDistinctFrom) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionIsDistinctFrom) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionIsDistinctFrom) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionIsNotDistinctFrom represents a RelationalExpression with the is_not_distinct_from type.
@@ -1645,13 +1645,13 @@ type RelationalExpressionIsNotDistinctFrom struct {
 }
 
 // NewRelationalExpressionIsDistinctFrom creates a RelationalExpressionIsDistinctFrom instance.
-func NewRelationalExpressionIsNotDistinctFrom[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionIsNotDistinctFrom[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionIsNotDistinctFrom {
 	return &RelationalExpressionIsNotDistinctFrom{
-		Left:  left.Encode(),
-		Right: right.Encode(),
+		Left:  left.Wrap(),
+		Right: right.Wrap(),
 	}
 }
 
@@ -1670,8 +1670,8 @@ func (j RelationalExpressionIsNotDistinctFrom) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionIsNotDistinctFrom) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionIsNotDistinctFrom) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionLt represents a RelationalExpression with the lt type.
@@ -1681,13 +1681,13 @@ type RelationalExpressionLt struct {
 }
 
 // NewRelationalExpressionLt creates a RelationalExpressionLt instance.
-func NewRelationalExpressionLt[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionLt[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionLt {
 	return &RelationalExpressionLt{
-		Left:  left.Encode(),
-		Right: right.Encode(),
+		Left:  left.Wrap(),
+		Right: right.Wrap(),
 	}
 }
 
@@ -1706,8 +1706,8 @@ func (j RelationalExpressionLt) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionLt) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionLt) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionLtEq represents a RelationalExpression with the lt_eq type.
@@ -1717,13 +1717,13 @@ type RelationalExpressionLtEq struct {
 }
 
 // NewRelationalExpressionLtEq creates a RelationalExpressionLtEq instance.
-func NewRelationalExpressionLtEq[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionLtEq[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionLtEq {
 	return &RelationalExpressionLtEq{
-		Left:  left.Encode(),
-		Right: right.Encode(),
+		Left:  left.Wrap(),
+		Right: right.Wrap(),
 	}
 }
 
@@ -1742,8 +1742,8 @@ func (j RelationalExpressionLtEq) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionLtEq) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionLtEq) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionGt represents a RelationalExpression with the gt type.
@@ -1753,13 +1753,13 @@ type RelationalExpressionGt struct {
 }
 
 // NewRelationalExpressionGt creates a RelationalExpressionGt instance.
-func NewRelationalExpressionGt[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionGt[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionGt {
 	return &RelationalExpressionGt{
-		Left:  left.Encode(),
-		Right: right.Encode(),
+		Left:  left.Wrap(),
+		Right: right.Wrap(),
 	}
 }
 
@@ -1778,8 +1778,8 @@ func (j RelationalExpressionGt) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionGt) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionGt) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionGtEq represents a RelationalExpression with the gt_eq type.
@@ -1789,13 +1789,13 @@ type RelationalExpressionGtEq struct {
 }
 
 // NewRelationalExpressionGtEq creates a RelationalExpressionGtEq instance.
-func NewRelationalExpressionGtEq[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionGtEq[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionGtEq {
 	return &RelationalExpressionGtEq{
-		Left:  left.Encode(),
-		Right: right.Encode(),
+		Left:  left.Wrap(),
+		Right: right.Wrap(),
 	}
 }
 
@@ -1814,8 +1814,8 @@ func (j RelationalExpressionGtEq) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionGtEq) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionGtEq) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionIsNotNull represents a RelationalExpression with the is_not_null type.
@@ -1824,11 +1824,11 @@ type RelationalExpressionIsNotNull struct {
 }
 
 // NewRelationalExpressionIsNotNull creates a RelationalExpressionIsNotNull instance.
-func NewRelationalExpressionIsNotNull[E RelationalExpressionEncoder](
+func NewRelationalExpressionIsNotNull[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionIsNotNull {
 	return &RelationalExpressionIsNotNull{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -1846,8 +1846,8 @@ func (j RelationalExpressionIsNotNull) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionIsNotNull) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionIsNotNull) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionIsNull represents a RelationalExpression with the is_null type.
@@ -1856,11 +1856,11 @@ type RelationalExpressionIsNull struct {
 }
 
 // NewRelationalExpressionIsNull creates a RelationalExpressionIsNull instance.
-func NewRelationalExpressionIsNull[E RelationalExpressionEncoder](
+func NewRelationalExpressionIsNull[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionIsNull {
 	return &RelationalExpressionIsNull{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -1878,8 +1878,8 @@ func (j RelationalExpressionIsNull) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionIsNull) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionIsNull) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionIsTrue represents a RelationalExpression with the is_true type.
@@ -1888,11 +1888,11 @@ type RelationalExpressionIsTrue struct {
 }
 
 // NewRelationalExpressionIsTrue creates a RelationalExpressionIsTrue instance.
-func NewRelationalExpressionIsTrue[E RelationalExpressionEncoder](
+func NewRelationalExpressionIsTrue[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionIsTrue {
 	return &RelationalExpressionIsTrue{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -1910,8 +1910,8 @@ func (j RelationalExpressionIsTrue) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionIsTrue) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionIsTrue) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionIsFalse represents a RelationalExpression with the is_false type.
@@ -1920,11 +1920,11 @@ type RelationalExpressionIsFalse struct {
 }
 
 // NewRelationalExpressionIsFalse creates a RelationalExpressionIsFalse instance.
-func NewRelationalExpressionIsFalse[E RelationalExpressionEncoder](
+func NewRelationalExpressionIsFalse[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionIsFalse {
 	return &RelationalExpressionIsFalse{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -1942,8 +1942,8 @@ func (j RelationalExpressionIsFalse) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionIsFalse) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionIsFalse) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionIsNotTrue represents a RelationalExpression with the is_not_true type.
@@ -1952,11 +1952,11 @@ type RelationalExpressionIsNotTrue struct {
 }
 
 // NewRelationalExpressionIsNotTrue creates a RelationalExpressionIsNotTrue instance.
-func NewRelationalExpressionIsNotTrue[E RelationalExpressionEncoder](
+func NewRelationalExpressionIsNotTrue[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionIsNotTrue {
 	return &RelationalExpressionIsNotTrue{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -1974,8 +1974,8 @@ func (j RelationalExpressionIsNotTrue) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionIsNotTrue) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionIsNotTrue) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionIsNotFalse represents a RelationalExpression with the is_not_false type.
@@ -1984,11 +1984,11 @@ type RelationalExpressionIsNotFalse struct {
 }
 
 // NewRelationalExpressionIsNotFalse creates a RelationalExpressionIsNotFalse instance.
-func NewRelationalExpressionIsNotFalse[E RelationalExpressionEncoder](
+func NewRelationalExpressionIsNotFalse[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionIsNotFalse {
 	return &RelationalExpressionIsNotFalse{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -2006,8 +2006,8 @@ func (j RelationalExpressionIsNotFalse) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionIsNotFalse) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionIsNotFalse) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionIn represents a RelationalExpression with the in type.
@@ -2017,20 +2017,20 @@ type RelationalExpressionIn struct {
 }
 
 // NewRelationalExpressionIn creates a RelationalExpressionIn instance.
-func NewRelationalExpressionIn[E RelationalExpressionEncoder](
+func NewRelationalExpressionIn[E RelationalExpressionInner](
 	expr E,
-	list []RelationalExpressionEncoder,
+	list []RelationalExpressionInner,
 ) *RelationalExpressionIn {
 	ls := []RelationalExpression{}
 
 	for _, item := range list {
 		if item != nil {
-			ls = append(ls, item.Encode())
+			ls = append(ls, item.Wrap())
 		}
 	}
 
 	return &RelationalExpressionIn{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 		List: ls,
 	}
 }
@@ -2050,8 +2050,8 @@ func (j RelationalExpressionIn) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionIn) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionIn) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionNotIn represents a RelationalExpression with the not_in type.
@@ -2061,20 +2061,20 @@ type RelationalExpressionNotIn struct {
 }
 
 // NewRelationalExpressionNotIn creates a RelationalExpressionNotIn instance.
-func NewRelationalExpressionNotIn[E RelationalExpressionEncoder](
+func NewRelationalExpressionNotIn[E RelationalExpressionInner](
 	expr E,
-	list []RelationalExpressionEncoder,
+	list []RelationalExpressionInner,
 ) *RelationalExpressionNotIn {
 	ls := []RelationalExpression{}
 
 	for _, item := range list {
 		if item != nil {
-			ls = append(ls, item.Encode())
+			ls = append(ls, item.Wrap())
 		}
 	}
 
 	return &RelationalExpressionNotIn{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 		List: ls,
 	}
 }
@@ -2094,8 +2094,8 @@ func (j RelationalExpressionNotIn) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionNotIn) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionNotIn) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionLike represents a RelationalExpression with the like type.
@@ -2112,13 +2112,13 @@ type RelationalExpressionLike struct {
 }
 
 // NewRelationalExpressionLike creates a RelationalExpressionLike instance.
-func NewRelationalExpressionLike[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionLike[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionLike {
 	return &RelationalExpressionLike{
-		Expr:    left.Encode(),
-		Pattern: right.Encode(),
+		Expr:    left.Wrap(),
+		Pattern: right.Wrap(),
 	}
 }
 
@@ -2137,8 +2137,8 @@ func (j RelationalExpressionLike) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionLike) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionLike) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionNotLike represents a RelationalExpression with the not_like type.
@@ -2155,13 +2155,13 @@ type RelationalExpressionNotLike struct {
 }
 
 // NewRelationalExpressionNotLike creates a RelationalExpressionNotLike instance.
-func NewRelationalExpressionNotLike[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionNotLike[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionNotLike {
 	return &RelationalExpressionNotLike{
-		Expr:    left.Encode(),
-		Pattern: right.Encode(),
+		Expr:    left.Wrap(),
+		Pattern: right.Wrap(),
 	}
 }
 
@@ -2180,8 +2180,8 @@ func (j RelationalExpressionNotLike) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionNotLike) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionNotLike) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionILike represents a RelationalExpression with the i_like type.
@@ -2198,13 +2198,13 @@ type RelationalExpressionILike struct {
 }
 
 // NewRelationalExpressionILike creates a RelationalExpressionILike instance.
-func NewRelationalExpressionILike[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionILike[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionILike {
 	return &RelationalExpressionILike{
-		Expr:    left.Encode(),
-		Pattern: right.Encode(),
+		Expr:    left.Wrap(),
+		Pattern: right.Wrap(),
 	}
 }
 
@@ -2223,8 +2223,8 @@ func (j RelationalExpressionILike) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionILike) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionILike) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionNotILike represents a RelationalExpression with the not_i_like type.
@@ -2241,13 +2241,13 @@ type RelationalExpressionNotILike struct {
 }
 
 // NewRelationalExpressionNotILike creates a RelationalExpressionNotILike instance.
-func NewRelationalExpressionNotILike[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionNotILike[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionNotILike {
 	return &RelationalExpressionNotILike{
-		Expr:    left.Encode(),
-		Pattern: right.Encode(),
+		Expr:    left.Wrap(),
+		Pattern: right.Wrap(),
 	}
 }
 
@@ -2266,8 +2266,8 @@ func (j RelationalExpressionNotILike) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionNotILike) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionNotILike) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionBetween represents a RelationalExpression with the between type.
@@ -2285,15 +2285,15 @@ type RelationalExpressionBetween struct {
 }
 
 // NewRelationalExpressionBetween creates a RelationalExpressionBetween instance.
-func NewRelationalExpressionBetween[E RelationalExpressionEncoder, L RelationalExpressionEncoder, H RelationalExpressionEncoder](
+func NewRelationalExpressionBetween[E RelationalExpressionInner, L RelationalExpressionInner, H RelationalExpressionInner](
 	expr E,
 	low L,
 	high H,
 ) *RelationalExpressionBetween {
 	return &RelationalExpressionBetween{
-		Expr: expr.Encode(),
-		Low:  low.Encode(),
-		High: high.Encode(),
+		Expr: expr.Wrap(),
+		Low:  low.Wrap(),
+		High: high.Wrap(),
 	}
 }
 
@@ -2313,8 +2313,8 @@ func (j RelationalExpressionBetween) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionBetween) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionBetween) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionNotBetween represents a RelationalExpression with the not_between type.
@@ -2332,15 +2332,15 @@ type RelationalExpressionNotBetween struct {
 }
 
 // NewRelationalExpressionNotBetween creates a RelationalExpressionNotBetween instance.
-func NewRelationalExpressionNotBetween[E RelationalExpressionEncoder, L RelationalExpressionEncoder, H RelationalExpressionEncoder](
+func NewRelationalExpressionNotBetween[E RelationalExpressionInner, L RelationalExpressionInner, H RelationalExpressionInner](
 	expr E,
 	low L,
 	high H,
 ) *RelationalExpressionNotBetween {
 	return &RelationalExpressionNotBetween{
-		Expr: expr.Encode(),
-		Low:  low.Encode(),
-		High: high.Encode(),
+		Expr: expr.Wrap(),
+		Low:  low.Wrap(),
+		High: high.Wrap(),
 	}
 }
 
@@ -2360,8 +2360,8 @@ func (j RelationalExpressionNotBetween) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionNotBetween) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionNotBetween) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionContains represents a RelationalExpression with the contains type.
@@ -2378,13 +2378,13 @@ type RelationalExpressionContains struct {
 }
 
 // NewRelationalExpressionContains creates a RelationalExpressionContains instance.
-func NewRelationalExpressionContains[S RelationalExpressionEncoder, SS RelationalExpressionEncoder](
+func NewRelationalExpressionContains[S RelationalExpressionInner, SS RelationalExpressionInner](
 	str S,
 	searchStr SS,
 ) *RelationalExpressionContains {
 	return &RelationalExpressionContains{
-		Str:       str.Encode(),
-		SearchStr: searchStr.Encode(),
+		Str:       str.Wrap(),
+		SearchStr: searchStr.Wrap(),
 	}
 }
 
@@ -2403,8 +2403,8 @@ func (j RelationalExpressionContains) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionContains) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionContains) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionIsNaN represents a RelationalExpression with the is_na_n type.
@@ -2420,11 +2420,11 @@ type RelationalExpressionIsNaN struct {
 }
 
 // NewRelationalExpressionIsNaN creates a RelationalExpressionIsNaN instance.
-func NewRelationalExpressionIsNaN[E RelationalExpressionEncoder](
+func NewRelationalExpressionIsNaN[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionIsNaN {
 	return &RelationalExpressionIsNaN{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -2442,8 +2442,8 @@ func (j RelationalExpressionIsNaN) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionIsNaN) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionIsNaN) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionIsZero represents a RelationalExpression with the is_zero type.
@@ -2459,11 +2459,11 @@ type RelationalExpressionIsZero struct {
 }
 
 // NewRelationalExpressionIsZero creates a RelationalExpressionIsZero instance.
-func NewRelationalExpressionIsZero[E RelationalExpressionEncoder](
+func NewRelationalExpressionIsZero[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionIsZero {
 	return &RelationalExpressionIsZero{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -2481,8 +2481,8 @@ func (j RelationalExpressionIsZero) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionIsZero) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionIsZero) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionPlus represents a RelationalExpression with the plus type.
@@ -2492,13 +2492,13 @@ type RelationalExpressionPlus struct {
 }
 
 // NewRelationalExpressionPlus creates a RelationalExpressionPlus instance.
-func NewRelationalExpressionPlus[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionPlus[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionPlus {
 	return &RelationalExpressionPlus{
-		Left:  left.Encode(),
-		Right: right.Encode(),
+		Left:  left.Wrap(),
+		Right: right.Wrap(),
 	}
 }
 
@@ -2517,8 +2517,8 @@ func (j RelationalExpressionPlus) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionPlus) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionPlus) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionMinus represents a RelationalExpression with the minus type.
@@ -2528,13 +2528,13 @@ type RelationalExpressionMinus struct {
 }
 
 // NewRelationalExpressionMinus creates a RelationalExpressionMinus instance.
-func NewRelationalExpressionMinus[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionMinus[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionMinus {
 	return &RelationalExpressionMinus{
-		Left:  left.Encode(),
-		Right: right.Encode(),
+		Left:  left.Wrap(),
+		Right: right.Wrap(),
 	}
 }
 
@@ -2553,8 +2553,8 @@ func (j RelationalExpressionMinus) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionMinus) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionMinus) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionMultiply represents a RelationalExpression with the multiply type.
@@ -2564,13 +2564,13 @@ type RelationalExpressionMultiply struct {
 }
 
 // NewRelationalExpressionMultiply creates a RelationalExpressionMultiply instance.
-func NewRelationalExpressionMultiply[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionMultiply[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionMultiply {
 	return &RelationalExpressionMultiply{
-		Left:  left.Encode(),
-		Right: right.Encode(),
+		Left:  left.Wrap(),
+		Right: right.Wrap(),
 	}
 }
 
@@ -2589,8 +2589,8 @@ func (j RelationalExpressionMultiply) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionMultiply) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionMultiply) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionDivide represents a RelationalExpression with the divide type.
@@ -2600,13 +2600,13 @@ type RelationalExpressionDivide struct {
 }
 
 // NewRelationalExpressionDivide creates a RelationalExpressionDivide instance.
-func NewRelationalExpressionDivide[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionDivide[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionDivide {
 	return &RelationalExpressionDivide{
-		Left:  left.Encode(),
-		Right: right.Encode(),
+		Left:  left.Wrap(),
+		Right: right.Wrap(),
 	}
 }
 
@@ -2625,8 +2625,8 @@ func (j RelationalExpressionDivide) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionDivide) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionDivide) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionModulo represents a RelationalExpression with the modulo type.
@@ -2636,13 +2636,13 @@ type RelationalExpressionModulo struct {
 }
 
 // NewRelationalExpressionModulo creates a RelationalExpressionModulo instance.
-func NewRelationalExpressionModulo[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionModulo[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionModulo {
 	return &RelationalExpressionModulo{
-		Left:  left.Encode(),
-		Right: right.Encode(),
+		Left:  left.Wrap(),
+		Right: right.Wrap(),
 	}
 }
 
@@ -2661,8 +2661,8 @@ func (j RelationalExpressionModulo) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionModulo) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionModulo) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionNegate represents a RelationalExpression with the negate type.
@@ -2671,11 +2671,11 @@ type RelationalExpressionNegate struct {
 }
 
 // NewRelationalExpressionNegate creates a RelationalExpressionNegate instance.
-func NewRelationalExpressionNegate[E RelationalExpressionEncoder](
+func NewRelationalExpressionNegate[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionNegate {
 	return &RelationalExpressionNegate{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -2693,8 +2693,8 @@ func (j RelationalExpressionNegate) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionNegate) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionNegate) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionCast represents a RelationalExpression with the cast type.
@@ -2706,22 +2706,22 @@ type RelationalExpressionCast struct {
 }
 
 // NewRelationalExpressionCast creates a RelationalExpressionCast instance.
-func NewRelationalExpressionCast[E RelationalExpressionEncoder, C CastTypeEncoder](
+func NewRelationalExpressionCast[E RelationalExpressionInner, C CastTypeInner](
 	expr E,
 	asType C,
 ) *RelationalExpressionCast {
 	return &RelationalExpressionCast{
-		Expr:   expr.Encode(),
-		AsType: asType.Encode(),
+		Expr:   expr.Wrap(),
+		AsType: asType.Wrap(),
 	}
 }
 
 // WithFromType return the instance with from_type set.
-func (j RelationalExpressionCast) WithFromType(fromType CastTypeEncoder) *RelationalExpressionCast {
+func (j RelationalExpressionCast) WithFromType(fromType CastTypeInner) *RelationalExpressionCast {
 	if fromType == nil {
 		j.FromType = nil
 	} else {
-		ft := fromType.Encode()
+		ft := fromType.Wrap()
 		j.FromType = &ft
 	}
 
@@ -2749,8 +2749,8 @@ func (j RelationalExpressionCast) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionCast) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionCast) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionTryCast represents a RelationalExpression with the try_cast type.
@@ -2762,24 +2762,24 @@ type RelationalExpressionTryCast struct {
 }
 
 // NewRelationalExpressionTryCast creates a RelationalExpressionTryCast instance.
-func NewRelationalExpressionTryCast[E RelationalExpressionEncoder, C CastTypeEncoder](
+func NewRelationalExpressionTryCast[E RelationalExpressionInner, C CastTypeInner](
 	expr E,
 	asType C,
 ) *RelationalExpressionTryCast {
 	return &RelationalExpressionTryCast{
-		Expr:   expr.Encode(),
-		AsType: asType.Encode(),
+		Expr:   expr.Wrap(),
+		AsType: asType.Wrap(),
 	}
 }
 
 // WithFromType return the instance with from_type set.
 func (j RelationalExpressionTryCast) WithFromType(
-	fromType CastTypeEncoder,
+	fromType CastTypeInner,
 ) *RelationalExpressionTryCast {
 	if fromType == nil {
 		j.FromType = nil
 	} else {
-		ft := fromType.Encode()
+		ft := fromType.Wrap()
 		j.FromType = &ft
 	}
 
@@ -2807,8 +2807,8 @@ func (j RelationalExpressionTryCast) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionTryCast) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionTryCast) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionAbs represents a RelationalExpression with the abs type.
@@ -2824,9 +2824,9 @@ type RelationalExpressionAbs struct {
 }
 
 // NewRelationalExpressionAbs creates a RelationalExpressionAbs instance.
-func NewRelationalExpressionAbs[E RelationalExpressionEncoder](expr E) *RelationalExpressionAbs {
+func NewRelationalExpressionAbs[E RelationalExpressionInner](expr E) *RelationalExpressionAbs {
 	return &RelationalExpressionAbs{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -2844,8 +2844,8 @@ func (j RelationalExpressionAbs) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionAbs) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionAbs) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionArrayElement represents a RelationalExpression with the array_element type.
@@ -2862,12 +2862,12 @@ type RelationalExpressionArrayElement struct {
 }
 
 // NewRelationalExpressionArrayElement creates a RelationalExpressionArrayElement instance.
-func NewRelationalExpressionArrayElement[E RelationalExpressionEncoder](
+func NewRelationalExpressionArrayElement[E RelationalExpressionInner](
 	column E,
 	index uint,
 ) *RelationalExpressionArrayElement {
 	return &RelationalExpressionArrayElement{
-		Column: column.Encode(),
+		Column: column.Wrap(),
 		Index:  index,
 	}
 }
@@ -2887,8 +2887,8 @@ func (j RelationalExpressionArrayElement) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionArrayElement) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionArrayElement) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionBTrim represents a RelationalExpression with the b_trim type.
@@ -2905,20 +2905,20 @@ type RelationalExpressionBTrim struct {
 }
 
 // NewRelationalExpressionBTrim creates a RelationalExpressionBTrim instance.
-func NewRelationalExpressionBTrim[E RelationalExpressionEncoder](str E) *RelationalExpressionBTrim {
+func NewRelationalExpressionBTrim[E RelationalExpressionInner](str E) *RelationalExpressionBTrim {
 	return &RelationalExpressionBTrim{
-		Str: str.Encode(),
+		Str: str.Wrap(),
 	}
 }
 
 // WithTrimStr return the instance with new trim_str.
 func (j RelationalExpressionBTrim) WithTrimStr(
-	trimStr RelationalExpressionEncoder,
+	trimStr RelationalExpressionInner,
 ) *RelationalExpressionBTrim {
 	if trimStr == nil {
 		j.TrimStr = nil
 	} else {
-		ts := trimStr.Encode()
+		ts := trimStr.Wrap()
 		j.TrimStr = &ts
 	}
 
@@ -2945,8 +2945,8 @@ func (j RelationalExpressionBTrim) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionBTrim) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionBTrim) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionCeil represents a RelationalExpression with the ceil type.
@@ -2962,9 +2962,9 @@ type RelationalExpressionCeil struct {
 }
 
 // NewRelationalExpressionCeil creates a RelationalExpressionCeil instance.
-func NewRelationalExpressionCeil[E RelationalExpressionEncoder](expr E) *RelationalExpressionCeil {
+func NewRelationalExpressionCeil[E RelationalExpressionInner](expr E) *RelationalExpressionCeil {
 	return &RelationalExpressionCeil{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -2982,8 +2982,8 @@ func (j RelationalExpressionCeil) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionCeil) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionCeil) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionCharacterLength represents a RelationalExpression with the character_length type.
@@ -2999,11 +2999,11 @@ type RelationalExpressionCharacterLength struct {
 }
 
 // NewRelationalExpressionCharacterLength creates a RelationalExpressionCharacterLength instance.
-func NewRelationalExpressionCharacterLength[E RelationalExpressionEncoder](
+func NewRelationalExpressionCharacterLength[E RelationalExpressionInner](
 	str E,
 ) *RelationalExpressionCharacterLength {
 	return &RelationalExpressionCharacterLength{
-		Str: str.Encode(),
+		Str: str.Wrap(),
 	}
 }
 
@@ -3021,8 +3021,8 @@ func (j RelationalExpressionCharacterLength) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionCharacterLength) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionCharacterLength) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionCoalesce represents a RelationalExpression with the coalesce type.
@@ -3032,13 +3032,13 @@ type RelationalExpressionCoalesce struct {
 
 // NewRelationalExpressionCoalesce creates a RelationalExpressionCoalesce instance.
 func NewRelationalExpressionCoalesce(
-	expressions []RelationalExpressionEncoder,
+	expressions []RelationalExpressionInner,
 ) *RelationalExpressionCoalesce {
 	exprs := []RelationalExpression{}
 
 	for _, expr := range expressions {
 		if expr != nil {
-			exprs = append(exprs, expr.Encode())
+			exprs = append(exprs, expr.Wrap())
 		}
 	}
 
@@ -3061,8 +3061,8 @@ func (j RelationalExpressionCoalesce) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionCoalesce) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionCoalesce) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionConcat represents a RelationalExpression with the concat type.
@@ -3079,13 +3079,13 @@ type RelationalExpressionConcat struct {
 
 // NewRelationalExpressionConcat creates a RelationalExpressionConcat instance.
 func NewRelationalExpressionConcat(
-	expressions []RelationalExpressionEncoder,
+	expressions []RelationalExpressionInner,
 ) *RelationalExpressionConcat {
 	exprs := []RelationalExpression{}
 
 	for _, expr := range expressions {
 		if expr != nil {
-			exprs = append(exprs, expr.Encode())
+			exprs = append(exprs, expr.Wrap())
 		}
 	}
 
@@ -3108,8 +3108,8 @@ func (j RelationalExpressionConcat) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionConcat) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionConcat) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionCos represents a RelationalExpression with the cos type.
@@ -3125,9 +3125,9 @@ type RelationalExpressionCos struct {
 }
 
 // NewRelationalExpressionCos creates a RelationalExpressionCos instance.
-func NewRelationalExpressionCos[E RelationalExpressionEncoder](expr E) *RelationalExpressionCos {
+func NewRelationalExpressionCos[E RelationalExpressionInner](expr E) *RelationalExpressionCos {
 	return &RelationalExpressionCos{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -3145,8 +3145,8 @@ func (j RelationalExpressionCos) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionCos) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionCos) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionCurrentDate represents a RelationalExpression with the current_date type.
@@ -3177,8 +3177,8 @@ func (j RelationalExpressionCurrentDate) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionCurrentDate) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionCurrentDate) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionCurrentTime represents a RelationalExpression with the current_time type.
@@ -3209,8 +3209,8 @@ func (j RelationalExpressionCurrentTime) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionCurrentTime) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionCurrentTime) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionCurrentTimestamp represents a RelationalExpression with the current_timestamp type.
@@ -3241,8 +3241,8 @@ func (j RelationalExpressionCurrentTimestamp) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionCurrentTimestamp) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionCurrentTimestamp) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionDatePart represents a RelationalExpression with the date_part type.
@@ -3259,12 +3259,12 @@ type RelationalExpressionDatePart struct {
 }
 
 // NewRelationalExpressionDatePart creates a RelationalExpressionDatePart instance.
-func NewRelationalExpressionDatePart[E RelationalExpressionEncoder](
+func NewRelationalExpressionDatePart[E RelationalExpressionInner](
 	expr E,
 	part DatePartUnit,
 ) *RelationalExpressionDatePart {
 	return &RelationalExpressionDatePart{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 		Part: part,
 	}
 }
@@ -3284,8 +3284,8 @@ func (j RelationalExpressionDatePart) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionDatePart) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionDatePart) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionDateTrunc represents a RelationalExpression with the date_trunc type.
@@ -3302,13 +3302,13 @@ type RelationalExpressionDateTrunc struct {
 }
 
 // NewRelationalExpressionDateTrunc creates a RelationalExpressionDateTrunc instance.
-func NewRelationalExpressionDateTrunc[E RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionDateTrunc[E RelationalExpressionInner, R RelationalExpressionInner](
 	expr E,
 	part R,
 ) *RelationalExpressionDateTrunc {
 	return &RelationalExpressionDateTrunc{
-		Expr: expr.Encode(),
-		Part: part.Encode(),
+		Expr: expr.Wrap(),
+		Part: part.Wrap(),
 	}
 }
 
@@ -3327,8 +3327,8 @@ func (j RelationalExpressionDateTrunc) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionDateTrunc) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionDateTrunc) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionExp represents a RelationalExpression with the exp type.
@@ -3344,9 +3344,9 @@ type RelationalExpressionExp struct {
 }
 
 // NewRelationalExpressionExp creates a RelationalExpressionExp instance.
-func NewRelationalExpressionExp[E RelationalExpressionEncoder](expr E) *RelationalExpressionExp {
+func NewRelationalExpressionExp[E RelationalExpressionInner](expr E) *RelationalExpressionExp {
 	return &RelationalExpressionExp{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -3364,8 +3364,8 @@ func (j RelationalExpressionExp) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionExp) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionExp) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionFloor represents a RelationalExpression with the floor type.
@@ -3381,11 +3381,11 @@ type RelationalExpressionFloor struct {
 }
 
 // NewRelationalExpressionFloor creates a RelationalExpressionFloor instance.
-func NewRelationalExpressionFloor[E RelationalExpressionEncoder](
+func NewRelationalExpressionFloor[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionFloor {
 	return &RelationalExpressionFloor{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -3403,8 +3403,8 @@ func (j RelationalExpressionFloor) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionFloor) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionFloor) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionGetField represents a RelationalExpression with the get_field type.
@@ -3421,12 +3421,12 @@ type RelationalExpressionGetField struct {
 }
 
 // NewRelationalExpressionGetField creates a RelationalExpressionGetField instance.
-func NewRelationalExpressionGetField[E RelationalExpressionEncoder](
+func NewRelationalExpressionGetField[E RelationalExpressionInner](
 	column E,
 	field string,
 ) *RelationalExpressionGetField {
 	return &RelationalExpressionGetField{
-		Column: column.Encode(),
+		Column: column.Wrap(),
 		Field:  field,
 	}
 }
@@ -3446,8 +3446,8 @@ func (j RelationalExpressionGetField) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionGetField) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionGetField) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionGreatest represents a RelationalExpression with the greatest type.
@@ -3464,13 +3464,13 @@ type RelationalExpressionGreatest struct {
 
 // NewRelationalExpressionGreatest creates a RelationalExpressionGreatest instance.
 func NewRelationalExpressionGreatest(
-	expressions []RelationalExpressionEncoder,
+	expressions []RelationalExpressionInner,
 ) *RelationalExpressionGreatest {
 	exprs := []RelationalExpression{}
 
 	for _, expr := range expressions {
 		if expr != nil {
-			exprs = append(exprs, expr.Encode())
+			exprs = append(exprs, expr.Wrap())
 		}
 	}
 
@@ -3493,8 +3493,8 @@ func (j RelationalExpressionGreatest) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionGreatest) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionGreatest) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionLeast represents a RelationalExpression with the least type.
@@ -3511,13 +3511,13 @@ type RelationalExpressionLeast struct {
 
 // NewRelationalExpressionLeast creates a RelationalExpressionLeast instance.
 func NewRelationalExpressionLeast(
-	expressions []RelationalExpressionEncoder,
+	expressions []RelationalExpressionInner,
 ) *RelationalExpressionLeast {
 	exprs := []RelationalExpression{}
 
 	for _, expr := range expressions {
 		if expr != nil {
-			exprs = append(exprs, expr.Encode())
+			exprs = append(exprs, expr.Wrap())
 		}
 	}
 
@@ -3540,8 +3540,8 @@ func (j RelationalExpressionLeast) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionLeast) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionLeast) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionLeft represents a RelationalExpression with the left type.
@@ -3558,13 +3558,13 @@ type RelationalExpressionLeft struct {
 }
 
 // NewRelationalExpressionLeft creates a RelationalExpressionLeft instance.
-func NewRelationalExpressionLeft[E RelationalExpressionEncoder, N RelationalExpressionEncoder](
+func NewRelationalExpressionLeft[E RelationalExpressionInner, N RelationalExpressionInner](
 	str E,
 	n N,
 ) *RelationalExpressionLeft {
 	return &RelationalExpressionLeft{
-		Str: str.Encode(),
-		N:   n.Encode(),
+		Str: str.Wrap(),
+		N:   n.Wrap(),
 	}
 }
 
@@ -3583,8 +3583,8 @@ func (j RelationalExpressionLeft) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionLeft) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionLeft) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionLn represents a RelationalExpression with the ln type.
@@ -3600,9 +3600,9 @@ type RelationalExpressionLn struct {
 }
 
 // NewRelationalExpressionLn creates a RelationalExpressionLn instance.
-func NewRelationalExpressionLn[E RelationalExpressionEncoder](expr E) *RelationalExpressionLn {
+func NewRelationalExpressionLn[E RelationalExpressionInner](expr E) *RelationalExpressionLn {
 	return &RelationalExpressionLn{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -3620,8 +3620,8 @@ func (j RelationalExpressionLn) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionLn) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionLn) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionLog represents a RelationalExpression with the log type.
@@ -3638,20 +3638,20 @@ type RelationalExpressionLog struct {
 }
 
 // NewRelationalExpressionLog creates a RelationalExpressionLog instance.
-func NewRelationalExpressionLog[E RelationalExpressionEncoder](expr E) *RelationalExpressionLog {
+func NewRelationalExpressionLog[E RelationalExpressionInner](expr E) *RelationalExpressionLog {
 	return &RelationalExpressionLog{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
 // WithBase return the instance with a new base set.
 func (j RelationalExpressionLog) WithBase(
-	base RelationalExpressionEncoder,
+	base RelationalExpressionInner,
 ) *RelationalExpressionLog {
 	if base == nil {
 		j.Base = nil
 	} else {
-		b := base.Encode()
+		b := base.Wrap()
 		j.Base = &b
 	}
 
@@ -3678,8 +3678,8 @@ func (j RelationalExpressionLog) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionLog) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionLog) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionLog10 represents a RelationalExpression with the log10 type.
@@ -3695,11 +3695,11 @@ type RelationalExpressionLog10 struct {
 }
 
 // NewRelationalExpressionLog10 creates a RelationalExpressionLog10 instance.
-func NewRelationalExpressionLog10[E RelationalExpressionEncoder](
+func NewRelationalExpressionLog10[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionLog10 {
 	return &RelationalExpressionLog10{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -3717,8 +3717,8 @@ func (j RelationalExpressionLog10) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionLog10) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionLog10) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionLog2 represents a RelationalExpression with the log2 type.
@@ -3734,9 +3734,9 @@ type RelationalExpressionLog2 struct {
 }
 
 // NewRelationalExpressionLog2 creates a RelationalExpressionLog2 instance.
-func NewRelationalExpressionLog2[E RelationalExpressionEncoder](expr E) *RelationalExpressionLog2 {
+func NewRelationalExpressionLog2[E RelationalExpressionInner](expr E) *RelationalExpressionLog2 {
 	return &RelationalExpressionLog2{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -3754,8 +3754,8 @@ func (j RelationalExpressionLog2) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionLog2) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionLog2) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionLPad represents a RelationalExpression with the l_pad type.
@@ -3773,24 +3773,24 @@ type RelationalExpressionLPad struct {
 }
 
 // NewRelationalExpressionLPad creates a RelationalExpressionLPad instance.
-func NewRelationalExpressionLPad[E RelationalExpressionEncoder, N RelationalExpressionEncoder](
+func NewRelationalExpressionLPad[E RelationalExpressionInner, N RelationalExpressionInner](
 	str E,
 	n N,
 ) *RelationalExpressionLPad {
 	return &RelationalExpressionLPad{
-		Str: str.Encode(),
-		N:   n.Encode(),
+		Str: str.Wrap(),
+		N:   n.Wrap(),
 	}
 }
 
 // WithPaddingStr returns the new instance with padding str set.
 func (j RelationalExpressionLPad) WithPaddingStr(
-	paddingStr RelationalExpressionEncoder,
+	paddingStr RelationalExpressionInner,
 ) *RelationalExpressionLPad {
 	if paddingStr == nil {
 		j.PaddingStr = nil
 	} else {
-		ps := paddingStr.Encode()
+		ps := paddingStr.Wrap()
 		j.PaddingStr = &ps
 	}
 
@@ -3818,8 +3818,8 @@ func (j RelationalExpressionLPad) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionLPad) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionLPad) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionLTrim represents a RelationalExpression with the l_trim type.
@@ -3836,20 +3836,20 @@ type RelationalExpressionLTrim struct {
 }
 
 // NewRelationalExpressionLTrim creates a RelationalExpressionLTrim instance.
-func NewRelationalExpressionLTrim[E RelationalExpressionEncoder](str E) *RelationalExpressionLTrim {
+func NewRelationalExpressionLTrim[E RelationalExpressionInner](str E) *RelationalExpressionLTrim {
 	return &RelationalExpressionLTrim{
-		Str: str.Encode(),
+		Str: str.Wrap(),
 	}
 }
 
 // WithTrimStr returns the new instance with trim str set.
 func (j RelationalExpressionLTrim) WithTrimStr(
-	trimStr RelationalExpressionEncoder,
+	trimStr RelationalExpressionInner,
 ) *RelationalExpressionLTrim {
 	if trimStr == nil {
 		j.TrimStr = nil
 	} else {
-		ts := trimStr.Encode()
+		ts := trimStr.Wrap()
 		j.TrimStr = &ts
 	}
 
@@ -3876,8 +3876,8 @@ func (j RelationalExpressionLTrim) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionLTrim) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionLTrim) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionNullIf represents a relational null_if expression type.
@@ -3887,13 +3887,13 @@ type RelationalExpressionNullIf struct {
 }
 
 // NewRelationalExpressionNullIf creates a RelationalExpressionNullIf instance.
-func NewRelationalExpressionNullIf[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionNullIf[L RelationalExpressionInner, R RelationalExpressionInner](
 	expr1 L,
 	expr2 R,
 ) *RelationalExpressionNullIf {
 	return &RelationalExpressionNullIf{
-		Expr1: expr1.Encode(),
-		Expr2: expr2.Encode(),
+		Expr1: expr1.Wrap(),
+		Expr2: expr2.Wrap(),
 	}
 }
 
@@ -3912,8 +3912,8 @@ func (j RelationalExpressionNullIf) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionNullIf) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionNullIf) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionNvl represents a relational nvl expression type.
@@ -3930,13 +3930,13 @@ type RelationalExpressionNvl struct {
 }
 
 // NewRelationalExpressionNvl creates a RelationalExpressionNvl instance.
-func NewRelationalExpressionNvl[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionNvl[L RelationalExpressionInner, R RelationalExpressionInner](
 	expr1 L,
 	expr2 R,
 ) *RelationalExpressionNvl {
 	return &RelationalExpressionNvl{
-		Expr1: expr1.Encode(),
-		Expr2: expr2.Encode(),
+		Expr1: expr1.Wrap(),
+		Expr2: expr2.Wrap(),
 	}
 }
 
@@ -3955,8 +3955,8 @@ func (j RelationalExpressionNvl) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionNvl) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionNvl) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionPower represents a relational power expression type.
@@ -3973,13 +3973,13 @@ type RelationalExpressionPower struct {
 }
 
 // NewRelationalExpressionPower creates a RelationalExpressionPower instance.
-func NewRelationalExpressionPower[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionPower[L RelationalExpressionInner, R RelationalExpressionInner](
 	base L,
 	exp R,
 ) *RelationalExpressionPower {
 	return &RelationalExpressionPower{
-		Base: base.Encode(),
-		Exp:  exp.Encode(),
+		Base: base.Wrap(),
+		Exp:  exp.Wrap(),
 	}
 }
 
@@ -3998,8 +3998,8 @@ func (j RelationalExpressionPower) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionPower) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionPower) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionRandom represents a relational current_date expression type.
@@ -4030,8 +4030,8 @@ func (j RelationalExpressionRandom) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionRandom) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionRandom) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionReplace represents a relational replace expression type.
@@ -4049,15 +4049,15 @@ type RelationalExpressionReplace struct {
 }
 
 // NewRelationalExpressionReplace creates a RelationalExpressionReplace instance.
-func NewRelationalExpressionReplace[S RelationalExpressionEncoder, SS RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionReplace[S RelationalExpressionInner, SS RelationalExpressionInner, R RelationalExpressionInner](
 	str S,
 	substr SS,
 	replacement R,
 ) *RelationalExpressionReplace {
 	return &RelationalExpressionReplace{
-		Str:         str.Encode(),
-		Substr:      substr.Encode(),
-		Replacement: replacement.Encode(),
+		Str:         str.Wrap(),
+		Substr:      substr.Wrap(),
+		Replacement: replacement.Wrap(),
 	}
 }
 
@@ -4077,8 +4077,8 @@ func (j RelationalExpressionReplace) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionReplace) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionReplace) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionReverse represents a relational reverse expression type.
@@ -4094,11 +4094,11 @@ type RelationalExpressionReverse struct {
 }
 
 // NewRelationalExpressionReverse creates a RelationalExpressionReverse instance.
-func NewRelationalExpressionReverse[S RelationalExpressionEncoder](
+func NewRelationalExpressionReverse[S RelationalExpressionInner](
 	str S,
 ) *RelationalExpressionReverse {
 	return &RelationalExpressionReverse{
-		Str: str.Encode(),
+		Str: str.Wrap(),
 	}
 }
 
@@ -4116,8 +4116,8 @@ func (j RelationalExpressionReverse) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionReverse) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionReverse) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionRight represents a RelationalExpression with the right type.
@@ -4134,13 +4134,13 @@ type RelationalExpressionRight struct {
 }
 
 // NewRelationalExpressionRight creates a RelationalExpressionRight instance.
-func NewRelationalExpressionRight[E RelationalExpressionEncoder, N RelationalExpressionEncoder](
+func NewRelationalExpressionRight[E RelationalExpressionInner, N RelationalExpressionInner](
 	str E,
 	n N,
 ) *RelationalExpressionRight {
 	return &RelationalExpressionRight{
-		Str: str.Encode(),
-		N:   n.Encode(),
+		Str: str.Wrap(),
+		N:   n.Wrap(),
 	}
 }
 
@@ -4159,8 +4159,8 @@ func (j RelationalExpressionRight) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionRight) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionRight) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionRound represents a RelationalExpression with the round type.
@@ -4177,20 +4177,20 @@ type RelationalExpressionRound struct {
 }
 
 // NewRelationalExpressionRound creates a RelationalExpressionRound instance.
-func NewRelationalExpressionRound[E RelationalExpressionEncoder](str E) *RelationalExpressionRound {
+func NewRelationalExpressionRound[E RelationalExpressionInner](str E) *RelationalExpressionRound {
 	return &RelationalExpressionRound{
-		Expr: str.Encode(),
+		Expr: str.Wrap(),
 	}
 }
 
 // WithPrec returns the new instance with prec set.
 func (j RelationalExpressionRound) WithPrec(
-	prec RelationalExpressionEncoder,
+	prec RelationalExpressionInner,
 ) *RelationalExpressionRound {
 	if prec == nil {
 		j.Prec = nil
 	} else {
-		ts := prec.Encode()
+		ts := prec.Wrap()
 		j.Prec = &ts
 	}
 
@@ -4217,8 +4217,8 @@ func (j RelationalExpressionRound) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionRound) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionRound) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionRPad represents a RelationalExpression with the r_pad type.
@@ -4236,24 +4236,24 @@ type RelationalExpressionRPad struct {
 }
 
 // NewRelationalExpressionRPad creates a RelationalExpressionRPad instance.
-func NewRelationalExpressionRPad[E RelationalExpressionEncoder, N RelationalExpressionEncoder](
+func NewRelationalExpressionRPad[E RelationalExpressionInner, N RelationalExpressionInner](
 	str E,
 	n N,
 ) *RelationalExpressionRPad {
 	return &RelationalExpressionRPad{
-		Str: str.Encode(),
-		N:   n.Encode(),
+		Str: str.Wrap(),
+		N:   n.Wrap(),
 	}
 }
 
 // WithPaddingStr returns the new instance with padding str set.
 func (j RelationalExpressionRPad) WithPaddingStr(
-	paddingStr RelationalExpressionEncoder,
+	paddingStr RelationalExpressionInner,
 ) *RelationalExpressionRPad {
 	if paddingStr == nil {
 		j.PaddingStr = nil
 	} else {
-		ps := paddingStr.Encode()
+		ps := paddingStr.Wrap()
 		j.PaddingStr = &ps
 	}
 
@@ -4281,8 +4281,8 @@ func (j RelationalExpressionRPad) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionRPad) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionRPad) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionRTrim represents a RelationalExpression with the r_trim type.
@@ -4299,20 +4299,20 @@ type RelationalExpressionRTrim struct {
 }
 
 // NewRelationalExpressionRTrim creates a RelationalExpressionRTrim instance.
-func NewRelationalExpressionRTrim[E RelationalExpressionEncoder](str E) *RelationalExpressionRTrim {
+func NewRelationalExpressionRTrim[E RelationalExpressionInner](str E) *RelationalExpressionRTrim {
 	return &RelationalExpressionRTrim{
-		Str: str.Encode(),
+		Str: str.Wrap(),
 	}
 }
 
 // WithTrimStr returns the new instance with trim str set.
 func (j RelationalExpressionRTrim) WithTrimStr(
-	trimStr RelationalExpressionEncoder,
+	trimStr RelationalExpressionInner,
 ) *RelationalExpressionRTrim {
 	if trimStr == nil {
 		j.TrimStr = nil
 	} else {
-		ts := trimStr.Encode()
+		ts := trimStr.Wrap()
 		j.TrimStr = &ts
 	}
 
@@ -4339,8 +4339,8 @@ func (j RelationalExpressionRTrim) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionRTrim) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionRTrim) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionSqrt represents a RelationalExpression with the sqrt type.
@@ -4356,9 +4356,9 @@ type RelationalExpressionSqrt struct {
 }
 
 // NewRelationalExpressionSqrt creates a RelationalExpressionSqrt instance.
-func NewRelationalExpressionSqrt[E RelationalExpressionEncoder](expr E) *RelationalExpressionSqrt {
+func NewRelationalExpressionSqrt[E RelationalExpressionInner](expr E) *RelationalExpressionSqrt {
 	return &RelationalExpressionSqrt{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -4376,8 +4376,8 @@ func (j RelationalExpressionSqrt) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionSqrt) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionSqrt) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionStrPos represents a relational str_pos expression type.
@@ -4394,13 +4394,13 @@ type RelationalExpressionStrPos struct {
 }
 
 // NewRelationalExpressionStrPos creates a RelationalExpressionStrPos instance.
-func NewRelationalExpressionStrPos[S RelationalExpressionEncoder, SS RelationalExpressionEncoder](
+func NewRelationalExpressionStrPos[S RelationalExpressionInner, SS RelationalExpressionInner](
 	str S,
 	substr SS,
 ) *RelationalExpressionStrPos {
 	return &RelationalExpressionStrPos{
-		Str:    str.Encode(),
-		Substr: substr.Encode(),
+		Str:    str.Wrap(),
+		Substr: substr.Wrap(),
 	}
 }
 
@@ -4419,8 +4419,8 @@ func (j RelationalExpressionStrPos) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionStrPos) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionStrPos) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionSubstr represents a relational substr expression type.
@@ -4438,24 +4438,24 @@ type RelationalExpressionSubstr struct {
 }
 
 // NewRelationalExpressionSubstr creates a RelationalExpressionSubstr instance.
-func NewRelationalExpressionSubstr[S RelationalExpressionEncoder, SP RelationalExpressionEncoder](
+func NewRelationalExpressionSubstr[S RelationalExpressionInner, SP RelationalExpressionInner](
 	str S,
 	startPos SP,
 ) *RelationalExpressionSubstr {
 	return &RelationalExpressionSubstr{
-		Str:      str.Encode(),
-		StartPos: startPos.Encode(),
+		Str:      str.Wrap(),
+		StartPos: startPos.Wrap(),
 	}
 }
 
 // WithLen returns the new instance with len set.
 func (j RelationalExpressionSubstr) WithLen(
-	length RelationalExpressionEncoder,
+	length RelationalExpressionInner,
 ) *RelationalExpressionSubstr {
 	if length == nil {
 		j.Len = nil
 	} else {
-		l := length.Encode()
+		l := length.Wrap()
 		j.Len = &l
 	}
 
@@ -4483,8 +4483,8 @@ func (j RelationalExpressionSubstr) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionSubstr) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionSubstr) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionSubstrIndex represents a relational substr_index expression type.
@@ -4502,15 +4502,15 @@ type RelationalExpressionSubstrIndex struct {
 }
 
 // NewRelationalExpressionSubstrIndex creates a RelationalExpressionSubstrIndex instance.
-func NewRelationalExpressionSubstrIndex[S RelationalExpressionEncoder, D RelationalExpressionEncoder, C RelationalExpressionEncoder](
+func NewRelationalExpressionSubstrIndex[S RelationalExpressionInner, D RelationalExpressionInner, C RelationalExpressionInner](
 	str S,
 	delim D,
 	count C,
 ) *RelationalExpressionSubstrIndex {
 	return &RelationalExpressionSubstrIndex{
-		Str:   str.Encode(),
-		Delim: delim.Encode(),
-		Count: count.Encode(),
+		Str:   str.Wrap(),
+		Delim: delim.Wrap(),
+		Count: count.Wrap(),
 	}
 }
 
@@ -4530,8 +4530,8 @@ func (j RelationalExpressionSubstrIndex) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionSubstrIndex) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionSubstrIndex) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionTan represents a RelationalExpression with the tan type.
@@ -4547,9 +4547,9 @@ type RelationalExpressionTan struct {
 }
 
 // NewRelationalExpressionTan creates a RelationalExpressionTan instance.
-func NewRelationalExpressionTan[E RelationalExpressionEncoder](expr E) *RelationalExpressionTan {
+func NewRelationalExpressionTan[E RelationalExpressionInner](expr E) *RelationalExpressionTan {
 	return &RelationalExpressionTan{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -4567,8 +4567,8 @@ func (j RelationalExpressionTan) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionTan) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionTan) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionToDate represents a RelationalExpression with the to_date type.
@@ -4584,11 +4584,11 @@ type RelationalExpressionToDate struct {
 }
 
 // NewRelationalExpressionToDate creates a RelationalExpressionToDate instance.
-func NewRelationalExpressionToDate[E RelationalExpressionEncoder](
+func NewRelationalExpressionToDate[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionToDate {
 	return &RelationalExpressionToDate{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -4606,8 +4606,8 @@ func (j RelationalExpressionToDate) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionToDate) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionToDate) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionToTimestamp represents a RelationalExpression with the to_timestamp type.
@@ -4623,11 +4623,11 @@ type RelationalExpressionToTimestamp struct {
 }
 
 // NewRelationalExpressionToTimestamp creates a RelationalExpressionToTimestamp instance.
-func NewRelationalExpressionToTimestamp[E RelationalExpressionEncoder](
+func NewRelationalExpressionToTimestamp[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionToTimestamp {
 	return &RelationalExpressionToTimestamp{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -4645,8 +4645,8 @@ func (j RelationalExpressionToTimestamp) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionToTimestamp) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionToTimestamp) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionTrunc represents a RelationalExpression with the trunc type.
@@ -4663,20 +4663,20 @@ type RelationalExpressionTrunc struct {
 }
 
 // NewRelationalExpressionTrunc creates a RelationalExpressionTrunc instance.
-func NewRelationalExpressionTrunc[E RelationalExpressionEncoder](str E) *RelationalExpressionTrunc {
+func NewRelationalExpressionTrunc[E RelationalExpressionInner](str E) *RelationalExpressionTrunc {
 	return &RelationalExpressionTrunc{
-		Expr: str.Encode(),
+		Expr: str.Wrap(),
 	}
 }
 
 // WithPrec returns the new instance with prec set.
 func (j RelationalExpressionTrunc) WithPrec(
-	prec RelationalExpressionEncoder,
+	prec RelationalExpressionInner,
 ) *RelationalExpressionTrunc {
 	if prec == nil {
 		j.Prec = nil
 	} else {
-		ts := prec.Encode()
+		ts := prec.Wrap()
 		j.Prec = &ts
 	}
 
@@ -4703,8 +4703,8 @@ func (j RelationalExpressionTrunc) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionTrunc) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionTrunc) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionToLower represents a RelationalExpression with the to_lower type.
@@ -4720,11 +4720,11 @@ type RelationalExpressionToLower struct {
 }
 
 // NewRelationalExpressionToLower creates a RelationalExpressionToLower instance.
-func NewRelationalExpressionToLower[E RelationalExpressionEncoder](
+func NewRelationalExpressionToLower[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionToLower {
 	return &RelationalExpressionToLower{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -4742,8 +4742,8 @@ func (j RelationalExpressionToLower) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionToLower) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionToLower) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionToUpper represents a RelationalExpression with the to_upper type.
@@ -4759,11 +4759,11 @@ type RelationalExpressionToUpper struct {
 }
 
 // NewRelationalExpressionToUpper creates a RelationalExpressionToUpper instance.
-func NewRelationalExpressionToUpper[E RelationalExpressionEncoder](
+func NewRelationalExpressionToUpper[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionToUpper {
 	return &RelationalExpressionToUpper{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -4781,8 +4781,8 @@ func (j RelationalExpressionToUpper) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionToUpper) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionToUpper) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionBinaryConcat represents a RelationalExpression with the binary_concat type.
@@ -4799,13 +4799,13 @@ type RelationalExpressionBinaryConcat struct {
 }
 
 // NewRelationalExpressionBinaryConcat creates a RelationalExpressionBinaryConcat instance.
-func NewRelationalExpressionBinaryConcat[L RelationalExpressionEncoder, R RelationalExpressionEncoder](
+func NewRelationalExpressionBinaryConcat[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
 ) *RelationalExpressionBinaryConcat {
 	return &RelationalExpressionBinaryConcat{
-		Left:  left.Encode(),
-		Right: right.Encode(),
+		Left:  left.Wrap(),
+		Right: right.Wrap(),
 	}
 }
 
@@ -4824,8 +4824,8 @@ func (j RelationalExpressionBinaryConcat) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionBinaryConcat) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionBinaryConcat) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionAverage represents a RelationalExpression with the average type.
@@ -4834,11 +4834,11 @@ type RelationalExpressionAverage struct {
 }
 
 // NewRelationalExpressionAverage creates a RelationalExpressionAverage instance.
-func NewRelationalExpressionAverage[E RelationalExpressionEncoder](
+func NewRelationalExpressionAverage[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionAverage {
 	return &RelationalExpressionAverage{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -4856,8 +4856,8 @@ func (j RelationalExpressionAverage) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionAverage) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionAverage) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionBoolAnd represents a RelationalExpression with the bool_and type.
@@ -4873,11 +4873,11 @@ type RelationalExpressionBoolAnd struct {
 }
 
 // NewRelationalExpressionBoolAnd creates a RelationalExpressionBoolAnd instance.
-func NewRelationalExpressionBoolAnd[E RelationalExpressionEncoder](
+func NewRelationalExpressionBoolAnd[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionBoolAnd {
 	return &RelationalExpressionBoolAnd{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -4895,8 +4895,8 @@ func (j RelationalExpressionBoolAnd) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionBoolAnd) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionBoolAnd) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionBoolOr represents a RelationalExpression with the bool_or type.
@@ -4912,11 +4912,11 @@ type RelationalExpressionBoolOr struct {
 }
 
 // NewRelationalExpressionBoolOr creates a RelationalExpressionBoolOr instance.
-func NewRelationalExpressionBoolOr[E RelationalExpressionEncoder](
+func NewRelationalExpressionBoolOr[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionBoolOr {
 	return &RelationalExpressionBoolOr{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -4934,8 +4934,8 @@ func (j RelationalExpressionBoolOr) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionBoolOr) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionBoolOr) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionCount represents a RelationalExpression with the count type.
@@ -4952,12 +4952,12 @@ type RelationalExpressionCount struct {
 }
 
 // NewRelationalExpressionCount creates a RelationalExpressionCount instance.
-func NewRelationalExpressionCount[E RelationalExpressionEncoder](
+func NewRelationalExpressionCount[E RelationalExpressionInner](
 	expr E,
 	distinct bool,
 ) *RelationalExpressionCount {
 	return &RelationalExpressionCount{
-		Expr:     expr.Encode(),
+		Expr:     expr.Wrap(),
 		Distinct: distinct,
 	}
 }
@@ -4977,8 +4977,8 @@ func (j RelationalExpressionCount) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionCount) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionCount) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionFirstValue represents a RelationalExpression with the first_value type.
@@ -4994,11 +4994,11 @@ type RelationalExpressionFirstValue struct {
 }
 
 // NewRelationalExpressionFirstValue creates a RelationalExpressionFirstValue instance.
-func NewRelationalExpressionFirstValue[E RelationalExpressionEncoder](
+func NewRelationalExpressionFirstValue[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionFirstValue {
 	return &RelationalExpressionFirstValue{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -5016,8 +5016,8 @@ func (j RelationalExpressionFirstValue) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionFirstValue) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionFirstValue) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionLastValue represents a RelationalExpression with the last_value type.
@@ -5033,11 +5033,11 @@ type RelationalExpressionLastValue struct {
 }
 
 // NewRelationalExpressionLastValue creates a RelationalExpressionLastValue instance.
-func NewRelationalExpressionLastValue[E RelationalExpressionEncoder](
+func NewRelationalExpressionLastValue[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionLastValue {
 	return &RelationalExpressionLastValue{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -5055,8 +5055,8 @@ func (j RelationalExpressionLastValue) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionLastValue) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionLastValue) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionMax represents a RelationalExpression with the max type.
@@ -5065,9 +5065,9 @@ type RelationalExpressionMax struct {
 }
 
 // NewRelationalExpressionMax creates a RelationalExpressionMax instance.
-func NewRelationalExpressionMax[E RelationalExpressionEncoder](expr E) *RelationalExpressionMax {
+func NewRelationalExpressionMax[E RelationalExpressionInner](expr E) *RelationalExpressionMax {
 	return &RelationalExpressionMax{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -5085,8 +5085,8 @@ func (j RelationalExpressionMax) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionMax) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionMax) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionMedian represents a RelationalExpression with the median type.
@@ -5102,11 +5102,11 @@ type RelationalExpressionMedian struct {
 }
 
 // NewRelationalExpressionMedian creates a RelationalExpressionMedian instance.
-func NewRelationalExpressionMedian[E RelationalExpressionEncoder](
+func NewRelationalExpressionMedian[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionMedian {
 	return &RelationalExpressionMedian{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -5124,8 +5124,8 @@ func (j RelationalExpressionMedian) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionMedian) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionMedian) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionMin represents a RelationalExpression with the min type.
@@ -5134,9 +5134,9 @@ type RelationalExpressionMin struct {
 }
 
 // NewRelationalExpressionMin creates a RelationalExpressionMin instance.
-func NewRelationalExpressionMin[E RelationalExpressionEncoder](expr E) *RelationalExpressionMin {
+func NewRelationalExpressionMin[E RelationalExpressionInner](expr E) *RelationalExpressionMin {
 	return &RelationalExpressionMin{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -5154,8 +5154,8 @@ func (j RelationalExpressionMin) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionMin) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionMin) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionStringAgg represents a RelationalExpression with the string_agg type.
@@ -5180,13 +5180,13 @@ type RelationalExpressionStringAgg struct {
 }
 
 // NewRelationalExpressionStringAgg creates a RelationalExpressionStringAgg instance.
-func NewRelationalExpressionStringAgg[E RelationalExpressionEncoder](
+func NewRelationalExpressionStringAgg[E RelationalExpressionInner](
 	expr E,
 	separator string,
 	distinct bool,
 ) *RelationalExpressionStringAgg {
 	return &RelationalExpressionStringAgg{
-		Expr:      expr.Encode(),
+		Expr:      expr.Wrap(),
 		Separator: separator,
 		Distinct:  distinct,
 	}
@@ -5221,8 +5221,8 @@ func (j RelationalExpressionStringAgg) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionStringAgg) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionStringAgg) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionSum represents a RelationalExpression with the sum type.
@@ -5231,9 +5231,9 @@ type RelationalExpressionSum struct {
 }
 
 // NewRelationalExpressionSum creates a RelationalExpressionSum instance.
-func NewRelationalExpressionSum[E RelationalExpressionEncoder](expr E) *RelationalExpressionSum {
+func NewRelationalExpressionSum[E RelationalExpressionInner](expr E) *RelationalExpressionSum {
 	return &RelationalExpressionSum{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -5251,8 +5251,8 @@ func (j RelationalExpressionSum) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionSum) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionSum) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionVar represents a RelationalExpression with the var type.
@@ -5268,9 +5268,9 @@ type RelationalExpressionVar struct {
 }
 
 // NewRelationalExpressionVar creates a RelationalExpressionVar instance.
-func NewRelationalExpressionVar[E RelationalExpressionEncoder](expr E) *RelationalExpressionVar {
+func NewRelationalExpressionVar[E RelationalExpressionInner](expr E) *RelationalExpressionVar {
 	return &RelationalExpressionVar{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -5288,8 +5288,8 @@ func (j RelationalExpressionVar) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionVar) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionVar) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionStddev represents a RelationalExpression with the stddev type.
@@ -5305,11 +5305,11 @@ type RelationalExpressionStddev struct {
 }
 
 // NewRelationalExpressionStddev creates a RelationalExpressionStddev instance.
-func NewRelationalExpressionStddev[E RelationalExpressionEncoder](
+func NewRelationalExpressionStddev[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionStddev {
 	return &RelationalExpressionStddev{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -5327,8 +5327,8 @@ func (j RelationalExpressionStddev) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionStddev) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionStddev) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionStddevPop represents a RelationalExpression with the stddev_pop type.
@@ -5344,11 +5344,11 @@ type RelationalExpressionStddevPop struct {
 }
 
 // NewRelationalExpressionStddevPop creates a RelationalExpressionStddevPop instance.
-func NewRelationalExpressionStddevPop[E RelationalExpressionEncoder](
+func NewRelationalExpressionStddevPop[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionStddevPop {
 	return &RelationalExpressionStddevPop{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -5366,8 +5366,8 @@ func (j RelationalExpressionStddevPop) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionStddevPop) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionStddevPop) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionApproxPercentileCont represents a RelationalExpression with the approx_percentile_cont type.
@@ -5384,12 +5384,12 @@ type RelationalExpressionApproxPercentileCont struct {
 }
 
 // NewRelationalExpressionApproxPercentileCont creates a RelationalExpressionApproxPercentileCont instance.
-func NewRelationalExpressionApproxPercentileCont[E RelationalExpressionEncoder](
+func NewRelationalExpressionApproxPercentileCont[E RelationalExpressionInner](
 	expr E,
 	percentile float64,
 ) *RelationalExpressionApproxPercentileCont {
 	return &RelationalExpressionApproxPercentileCont{
-		Expr:       expr.Encode(),
+		Expr:       expr.Wrap(),
 		Percentile: percentile,
 	}
 }
@@ -5408,8 +5408,8 @@ func (j RelationalExpressionApproxPercentileCont) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionApproxPercentileCont) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionApproxPercentileCont) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionArrayAgg represents a RelationalExpression with the array_agg type.
@@ -5434,12 +5434,12 @@ type RelationalExpressionArrayAgg struct {
 }
 
 // NewRelationalExpressionArrayAgg creates a RelationalExpressionArrayAgg instance.
-func NewRelationalExpressionArrayAgg[E RelationalExpressionEncoder](
+func NewRelationalExpressionArrayAgg[E RelationalExpressionInner](
 	expr E,
 	distinct bool,
 ) *RelationalExpressionArrayAgg {
 	return &RelationalExpressionArrayAgg{
-		Expr:     expr.Encode(),
+		Expr:     expr.Wrap(),
 		Distinct: distinct,
 	}
 }
@@ -5472,8 +5472,8 @@ func (j RelationalExpressionArrayAgg) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionArrayAgg) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionArrayAgg) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionApproxDistinct represents a RelationalExpression with the approx_distinct type.
@@ -5489,11 +5489,11 @@ type RelationalExpressionApproxDistinct struct {
 }
 
 // NewRelationalExpressionApproxDistinct creates a RelationalExpressionApproxDistinct instance.
-func NewRelationalExpressionApproxDistinct[E RelationalExpressionEncoder](
+func NewRelationalExpressionApproxDistinct[E RelationalExpressionInner](
 	expr E,
 ) *RelationalExpressionApproxDistinct {
 	return &RelationalExpressionApproxDistinct{
-		Expr: expr.Encode(),
+		Expr: expr.Wrap(),
 	}
 }
 
@@ -5511,8 +5511,8 @@ func (j RelationalExpressionApproxDistinct) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionApproxDistinct) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionApproxDistinct) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionRowNumber represents a RelationalExpression with the row_number type.
@@ -5531,13 +5531,13 @@ type RelationalExpressionRowNumber struct {
 // NewRelationalExpressionRowNumber creates a RelationalExpressionRowNumber instance.
 func NewRelationalExpressionRowNumber(
 	orderBy []Sort,
-	partitionBy []RelationalExpressionEncoder,
+	partitionBy []RelationalExpressionInner,
 ) *RelationalExpressionRowNumber {
 	rb := []RelationalExpression{}
 
 	for _, r := range partitionBy {
 		if r != nil {
-			rb = append(rb, r.Encode())
+			rb = append(rb, r.Wrap())
 		}
 	}
 
@@ -5562,8 +5562,8 @@ func (j RelationalExpressionRowNumber) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionRowNumber) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionRowNumber) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionDenseRank represents a RelationalExpression with the dense_rank type.
@@ -5582,13 +5582,13 @@ type RelationalExpressionDenseRank struct {
 // NewRelationalExpressionDenseRank creates a RelationalExpressionDenseRank instance.
 func NewRelationalExpressionDenseRank(
 	orderBy []Sort,
-	partitionBy []RelationalExpressionEncoder,
+	partitionBy []RelationalExpressionInner,
 ) *RelationalExpressionDenseRank {
 	rb := []RelationalExpression{}
 
 	for _, r := range partitionBy {
 		if r != nil {
-			rb = append(rb, r.Encode())
+			rb = append(rb, r.Wrap())
 		}
 	}
 
@@ -5613,8 +5613,8 @@ func (j RelationalExpressionDenseRank) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionDenseRank) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionDenseRank) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionNTile represents a RelationalExpression with the ntile type.
@@ -5634,14 +5634,14 @@ type RelationalExpressionNTile struct {
 // NewRelationalExpressionNTile creates a RelationalExpressionNTile instance.
 func NewRelationalExpressionNTile(
 	orderBy []Sort,
-	partitionBy []RelationalExpressionEncoder,
+	partitionBy []RelationalExpressionInner,
 	n int64,
 ) *RelationalExpressionNTile {
 	rb := []RelationalExpression{}
 
 	for _, r := range partitionBy {
 		if r != nil {
-			rb = append(rb, r.Encode())
+			rb = append(rb, r.Wrap())
 		}
 	}
 
@@ -5668,8 +5668,8 @@ func (j RelationalExpressionNTile) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionNTile) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionNTile) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionRank represents a RelationalExpression with the rank type.
@@ -5688,13 +5688,13 @@ type RelationalExpressionRank struct {
 // NewRelationalExpressionRank creates a RelationalExpressionRank instance.
 func NewRelationalExpressionRank(
 	orderBy []Sort,
-	partitionBy []RelationalExpressionEncoder,
+	partitionBy []RelationalExpressionInner,
 ) *RelationalExpressionRank {
 	rb := []RelationalExpression{}
 
 	for _, r := range partitionBy {
 		if r != nil {
-			rb = append(rb, r.Encode())
+			rb = append(rb, r.Wrap())
 		}
 	}
 
@@ -5719,8 +5719,8 @@ func (j RelationalExpressionRank) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionRank) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionRank) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionCumeDist represents a RelationalExpression with the cume_dist type.
@@ -5739,13 +5739,13 @@ type RelationalExpressionCumeDist struct {
 // NewRelationalExpressionCumeDist creates a RelationalExpressionCumeDist instance.
 func NewRelationalExpressionCumeDist(
 	orderBy []Sort,
-	partitionBy []RelationalExpressionEncoder,
+	partitionBy []RelationalExpressionInner,
 ) *RelationalExpressionCumeDist {
 	rb := []RelationalExpression{}
 
 	for _, r := range partitionBy {
 		if r != nil {
-			rb = append(rb, r.Encode())
+			rb = append(rb, r.Wrap())
 		}
 	}
 
@@ -5770,8 +5770,8 @@ func (j RelationalExpressionCumeDist) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionCumeDist) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionCumeDist) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }
 
 // RelationalExpressionPercentRank represents a RelationalExpression with the percent_rank type.
@@ -5790,13 +5790,13 @@ type RelationalExpressionPercentRank struct {
 // NewRelationalExpressionPercentRank creates a RelationalExpressionPercentRank instance.
 func NewRelationalExpressionPercentRank(
 	orderBy []Sort,
-	partitionBy []RelationalExpressionEncoder,
+	partitionBy []RelationalExpressionInner,
 ) *RelationalExpressionPercentRank {
 	rb := []RelationalExpression{}
 
 	for _, r := range partitionBy {
 		if r != nil {
-			rb = append(rb, r.Encode())
+			rb = append(rb, r.Wrap())
 		}
 	}
 
@@ -5821,6 +5821,6 @@ func (j RelationalExpressionPercentRank) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalExpressionPercentRank) Encode() RelationalExpression {
-	return NewRelationalExpression(j)
+func (j RelationalExpressionPercentRank) Wrap() RelationalExpression {
+	return NewRelationalExpression(&j)
 }

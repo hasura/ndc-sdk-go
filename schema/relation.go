@@ -145,21 +145,21 @@ func (j *RelationType) UnmarshalJSON(b []byte) error {
 
 // Relation is provided by reference to a relation.
 type Relation struct {
-	inner RelationEncoder
+	inner RelationInner
 }
 
 // NewRelation creates the relation instance.
-func NewRelation[R RelationEncoder](inner R) Relation {
+func NewRelation[R RelationInner](inner R) Relation {
 	return Relation{
 		inner: inner,
 	}
 }
 
-// RelationEncoder abstracts the interface for Relation.
-type RelationEncoder interface {
+// RelationInner abstracts the interface for Relation.
+type RelationInner interface {
 	Type() RelationType
 	ToMap() map[string]any
-	Encode() Relation
+	Wrap() Relation
 }
 
 // IsEmpty checks if the inner type is empty.
@@ -287,8 +287,8 @@ func (j Relation) Type() RelationType {
 	return ""
 }
 
-// Interface tries to convert the instance to AggregateEncoder interface.
-func (j Relation) Interface() RelationEncoder {
+// Interface tries to convert the instance to RelationInner interface.
+func (j Relation) Interface() RelationInner {
 	return j.inner
 }
 
@@ -308,7 +308,7 @@ func NewRelationFrom(collection string, columns []string) *RelationFrom {
 }
 
 // WithArguments return a new column field with arguments set.
-func (f RelationFrom) WithArguments(arguments map[string]RelationalLiteralEncoder) *RelationFrom {
+func (f RelationFrom) WithArguments(arguments map[string]RelationalLiteralInner) *RelationFrom {
 	if arguments == nil {
 		f.Arguments = nil
 
@@ -322,7 +322,7 @@ func (f RelationFrom) WithArguments(arguments map[string]RelationalLiteralEncode
 			continue
 		}
 
-		args[key] = arg.Encode()
+		args[key] = arg.Wrap()
 	}
 
 	f.Arguments = args
@@ -331,7 +331,7 @@ func (f RelationFrom) WithArguments(arguments map[string]RelationalLiteralEncode
 }
 
 // WithArgument return a new column field with an arguments set.
-func (f RelationFrom) WithArgument(key string, argument RelationalLiteralEncoder) *RelationFrom {
+func (f RelationFrom) WithArgument(key string, argument RelationalLiteralInner) *RelationFrom {
 	if argument == nil {
 		delete(f.Arguments, key)
 	} else {
@@ -339,7 +339,7 @@ func (f RelationFrom) WithArgument(key string, argument RelationalLiteralEncoder
 			f.Arguments = make(map[string]RelationalLiteral)
 		}
 
-		f.Arguments[key] = argument.Encode()
+		f.Arguments[key] = argument.Wrap()
 	}
 
 	return &f
@@ -351,8 +351,8 @@ func (j RelationFrom) Type() RelationType {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationFrom) Encode() Relation {
-	return NewRelation(j)
+func (j RelationFrom) Wrap() Relation {
+	return NewRelation(&j)
 }
 
 // ToMap converts the instance to raw Relation.
@@ -378,7 +378,7 @@ type RelationPaginate struct {
 }
 
 // NewRelationPaginate creates a RelationPaginate instance.
-func NewRelationPaginate[R RelationEncoder](input R, fetch *uint64, skip uint64) *RelationPaginate {
+func NewRelationPaginate[R RelationInner](input R, fetch *uint64, skip uint64) *RelationPaginate {
 	return &RelationPaginate{
 		Input: NewRelation(input),
 		Fetch: fetch,
@@ -402,8 +402,8 @@ func (j RelationPaginate) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationPaginate) Encode() Relation {
-	return NewRelation(j)
+func (j RelationPaginate) Wrap() Relation {
+	return NewRelation(&j)
 }
 
 // RelationProject represents a project relation.
@@ -413,9 +413,9 @@ type RelationProject struct {
 }
 
 // NewRelationProject creates a RelationProject instance.
-func NewRelationProject[R RelationEncoder](
+func NewRelationProject[R RelationInner](
 	input R,
-	expressions []RelationalExpressionEncoder,
+	expressions []RelationalExpressionInner,
 ) *RelationProject {
 	exprs := []RelationalExpression{}
 
@@ -424,7 +424,7 @@ func NewRelationProject[R RelationEncoder](
 			continue
 		}
 
-		exprs = append(exprs, expr.Encode())
+		exprs = append(exprs, expr.Wrap())
 	}
 
 	return &RelationProject{
@@ -448,8 +448,8 @@ func (j RelationProject) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationProject) Encode() Relation {
-	return NewRelation(j)
+func (j RelationProject) Wrap() Relation {
+	return NewRelation(&j)
 }
 
 // RelationFilter represents a filter relation.
@@ -459,13 +459,13 @@ type RelationFilter struct {
 }
 
 // NewRelationFilter creates a RelationFilter instance.
-func NewRelationFilter[R RelationEncoder, P RelationalExpressionEncoder](
+func NewRelationFilter[R RelationInner, P RelationalExpressionInner](
 	input R,
 	predicate P,
 ) *RelationFilter {
 	return &RelationFilter{
 		Input:     NewRelation(input),
-		Predicate: predicate.Encode(),
+		Predicate: predicate.Wrap(),
 	}
 }
 
@@ -484,8 +484,8 @@ func (j RelationFilter) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationFilter) Encode() Relation {
-	return NewRelation(j)
+func (j RelationFilter) Wrap() Relation {
+	return NewRelation(&j)
 }
 
 // RelationSort represents a sort relation.
@@ -495,7 +495,7 @@ type RelationSort struct {
 }
 
 // NewRelationSort creates a RelationSort instance.
-func NewRelationSort[R RelationEncoder](input R, exprs []Sort) *RelationSort {
+func NewRelationSort[R RelationInner](input R, exprs []Sort) *RelationSort {
 	return &RelationSort{
 		Input: NewRelation(input),
 		Exprs: exprs,
@@ -517,8 +517,8 @@ func (j RelationSort) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationSort) Encode() Relation {
-	return NewRelation(j)
+func (j RelationSort) Wrap() Relation {
+	return NewRelation(&j)
 }
 
 // RelationJoin represents a join relation.
@@ -530,7 +530,7 @@ type RelationJoin struct {
 }
 
 // NewRelationJoin creates a RelationJoin instance.
-func NewRelationJoin[L RelationEncoder, R RelationEncoder](
+func NewRelationJoin[L RelationInner, R RelationInner](
 	left L,
 	right R,
 	on []JoinOn,
@@ -561,8 +561,8 @@ func (j RelationJoin) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationJoin) Encode() Relation {
-	return NewRelation(j)
+func (j RelationJoin) Wrap() Relation {
+	return NewRelation(&j)
 }
 
 // RelationAggregate represents an aggregate relation.
@@ -574,23 +574,23 @@ type RelationAggregate struct {
 }
 
 // NewRelationAggregate creates a RelationAggregate instance.
-func NewRelationAggregate[R RelationEncoder](
+func NewRelationAggregate[R RelationInner](
 	input R,
-	groupBy []RelationalExpressionEncoder,
-	aggregates []RelationalExpressionEncoder,
+	groupBy []RelationalExpressionInner,
+	aggregates []RelationalExpressionInner,
 ) *RelationAggregate {
 	groups := []RelationalExpression{}
 	aggs := []RelationalExpression{}
 
 	for _, g := range groupBy {
 		if g != nil {
-			groups = append(groups, g.Encode())
+			groups = append(groups, g.Wrap())
 		}
 	}
 
 	for _, agg := range aggregates {
 		if agg != nil {
-			aggs = append(aggs, agg.Encode())
+			aggs = append(aggs, agg.Wrap())
 		}
 	}
 
@@ -617,8 +617,8 @@ func (j RelationAggregate) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationAggregate) Encode() Relation {
-	return NewRelation(j)
+func (j RelationAggregate) Wrap() Relation {
+	return NewRelation(&j)
 }
 
 // RelationWindow represents a window relation.
@@ -628,15 +628,15 @@ type RelationWindow struct {
 }
 
 // NewRelationWindow creates a RelationWindow instance.
-func NewRelationWindow[R RelationEncoder](
+func NewRelationWindow[R RelationInner](
 	input R,
-	expressions []RelationalExpressionEncoder,
+	expressions []RelationalExpressionInner,
 ) *RelationWindow {
 	exprs := []RelationalExpression{}
 
 	for _, expr := range expressions {
 		if expr != nil {
-			exprs = append(exprs, expr.Encode())
+			exprs = append(exprs, expr.Wrap())
 		}
 	}
 
@@ -661,8 +661,8 @@ func (j RelationWindow) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationWindow) Encode() Relation {
-	return NewRelation(j)
+func (j RelationWindow) Wrap() Relation {
+	return NewRelation(&j)
 }
 
 // RelationUnion represents a union relation.
@@ -671,7 +671,7 @@ type RelationUnion struct {
 }
 
 // NewRelationUnion creates a RelationUnion instance.
-func NewRelationUnion(relations []RelationEncoder) *RelationUnion {
+func NewRelationUnion(relations []RelationInner) *RelationUnion {
 	rels := []Relation{}
 
 	for _, rel := range relations {
@@ -701,8 +701,8 @@ func (j RelationUnion) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationUnion) Encode() Relation {
-	return NewRelation(j)
+func (j RelationUnion) Wrap() Relation {
+	return NewRelation(&j)
 }
 
 // RelationalLiteralType represents a relation literal type enum.
@@ -814,21 +814,21 @@ func (j *RelationalLiteralType) UnmarshalJSON(b []byte) error {
 
 // RelationalLiteral is provided by reference to a relation literal.
 type RelationalLiteral struct {
-	inner RelationalLiteralEncoder
+	inner RelationalLiteralInner
 }
 
 // NewRelationalLiteral creates a RelationalLiteral instance.
-func NewRelationalLiteral[T RelationalLiteralEncoder](inner T) RelationalLiteral {
+func NewRelationalLiteral[T RelationalLiteralInner](inner T) RelationalLiteral {
 	return RelationalLiteral{
 		inner: inner,
 	}
 }
 
-// RelationalLiteralEncoder abstracts the interface for Relation.
-type RelationalLiteralEncoder interface {
+// RelationalLiteralInner abstracts the interface for Relation.
+type RelationalLiteralInner interface {
 	Type() RelationalLiteralType
 	ToMap() map[string]any
-	Encode() RelationalLiteral
+	Wrap() RelationalLiteral
 }
 
 // IsEmpty checks if the inner type is empty.
@@ -845,8 +845,8 @@ func (j RelationalLiteral) Type() RelationalLiteralType {
 	return ""
 }
 
-// Interface tries to convert the instance to AggregateEncoder interface.
-func (j RelationalLiteral) Interface() RelationalLiteralEncoder {
+// Interface tries to convert the instance to AggregateInner interface.
+func (j RelationalLiteral) Interface() RelationalLiteralInner {
 	return j.inner
 }
 
@@ -1164,8 +1164,8 @@ func (j RelationalLiteralNull) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralNull) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralNull) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralBoolean represents a RelationalLiteral boolean.
@@ -1194,8 +1194,8 @@ func (j RelationalLiteralBoolean) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralBoolean) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralBoolean) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralString represents a RelationalLiteral with utf-8 encoded string.
@@ -1224,8 +1224,8 @@ func (j RelationalLiteralString) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralString) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralString) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralInt8 represents a RelationalLiteral with signed 8-bit int.
@@ -1254,8 +1254,8 @@ func (j RelationalLiteralInt8) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralInt8) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralInt8) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralInt16 represents a RelationalLiteral with signed 16-bit int.
@@ -1284,8 +1284,8 @@ func (j RelationalLiteralInt16) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralInt16) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralInt16) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralInt32 represents a RelationalLiteral with signed 32-bit int.
@@ -1314,8 +1314,8 @@ func (j RelationalLiteralInt32) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralInt32) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralInt32) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralInt64 represents a RelationalLiteral with signed 64-bit int.
@@ -1344,8 +1344,8 @@ func (j RelationalLiteralInt64) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralInt64) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralInt64) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralUint8 represents a RelationalLiteral with unsigned 8-bit int.
@@ -1374,8 +1374,8 @@ func (j RelationalLiteralUint8) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralUint8) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralUint8) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralUint16 represents a RelationalLiteral with unsigned 16-bit int.
@@ -1404,8 +1404,8 @@ func (j RelationalLiteralUint16) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralUint16) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralUint16) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralUint32 represents a RelationalLiteral with unsigned 32-bit int.
@@ -1434,8 +1434,8 @@ func (j RelationalLiteralUint32) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralUint32) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralUint32) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralUint64 represents a RelationalLiteral with unsigned 64-bit int.
@@ -1464,8 +1464,8 @@ func (j RelationalLiteralUint64) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralUint64) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralUint64) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralFloat32 represents a RelationalLiteral with unsigned 32-bit float.
@@ -1494,8 +1494,8 @@ func (j RelationalLiteralFloat32) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralFloat32) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralFloat32) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralFloat64 represents a RelationalLiteral with unsigned 64-bit float.
@@ -1524,8 +1524,8 @@ func (j RelationalLiteralFloat64) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralFloat64) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralFloat64) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralDecimal128 represents a RelationalLiteral with unsigned 128-bit decimal.
@@ -1564,8 +1564,8 @@ func (j RelationalLiteralDecimal128) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralDecimal128) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralDecimal128) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralDecimal256 represents a RelationalLiteral with unsigned 256-bit decimal.
@@ -1604,8 +1604,8 @@ func (j RelationalLiteralDecimal256) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralDecimal256) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralDecimal256) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralDate32 represents a RelationalLiteral
@@ -1635,8 +1635,8 @@ func (j RelationalLiteralDate32) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralDate32) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralDate32) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralDate64 represents a RelationalLiteral
@@ -1666,8 +1666,8 @@ func (j RelationalLiteralDate64) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralDate64) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralDate64) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralTime32Second represents a RelationalLiteral
@@ -1697,8 +1697,8 @@ func (j RelationalLiteralTime32Second) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralTime32Second) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralTime32Second) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralTime32Millisecond represents a RelationalLiteral
@@ -1728,8 +1728,8 @@ func (j RelationalLiteralTime32Millisecond) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralTime32Millisecond) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralTime32Millisecond) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralTime64Microsecond represents a RelationalLiteral
@@ -1759,8 +1759,8 @@ func (j RelationalLiteralTime64Microsecond) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralTime64Microsecond) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralTime64Microsecond) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralTime64Nanosecond represents a RelationalLiteral
@@ -1790,8 +1790,8 @@ func (j RelationalLiteralTime64Nanosecond) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralTime64Nanosecond) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralTime64Nanosecond) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralTimestampSecond represents a RelationalLiteral
@@ -1821,8 +1821,8 @@ func (j RelationalLiteralTimestampSecond) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralTimestampSecond) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralTimestampSecond) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralTimestampMillisecond represents a RelationalLiteral
@@ -1852,8 +1852,8 @@ func (j RelationalLiteralTimestampMillisecond) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralTimestampMillisecond) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralTimestampMillisecond) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralTimestampMicrosecond represents a RelationalLiteral
@@ -1883,8 +1883,8 @@ func (j RelationalLiteralTimestampMicrosecond) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralTimestampMicrosecond) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralTimestampMicrosecond) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralTimestampNanosecond represents a RelationalLiteral
@@ -1914,8 +1914,8 @@ func (j RelationalLiteralTimestampNanosecond) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralTimestampNanosecond) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralTimestampNanosecond) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralDurationSecond represents a RelationalLiteral
@@ -1945,8 +1945,8 @@ func (j RelationalLiteralDurationSecond) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralDurationSecond) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralDurationSecond) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralDurationMillisecond represents a RelationalLiteral
@@ -1976,8 +1976,8 @@ func (j RelationalLiteralDurationMillisecond) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralDurationMillisecond) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralDurationMillisecond) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralDurationMicrosecond represents a RelationalLiteral
@@ -2007,8 +2007,8 @@ func (j RelationalLiteralDurationMicrosecond) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralDurationMicrosecond) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralDurationMicrosecond) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralDurationNanosecond represents a RelationalLiteral
@@ -2038,8 +2038,8 @@ func (j RelationalLiteralDurationNanosecond) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralDurationNanosecond) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralDurationNanosecond) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
 
 // RelationalLiteralInterval represents a RelationalLiteral
@@ -2079,6 +2079,6 @@ func (j RelationalLiteralInterval) ToMap() map[string]any {
 }
 
 // Encode returns the relation wrapper.
-func (j RelationalLiteralInterval) Encode() RelationalLiteral {
-	return NewRelationalLiteral(j)
+func (j RelationalLiteralInterval) Wrap() RelationalLiteral {
+	return NewRelationalLiteral(&j)
 }
