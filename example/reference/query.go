@@ -1114,18 +1114,22 @@ func (qh *QueryHandler) evalAggregate(
 }
 
 func (qh *QueryHandler) evalGroupExpression(
-	expression schema.GroupExpression,
+	expression *schema.GroupExpression,
 	rows []map[string]any,
 ) (bool, error) {
+	if expression == nil {
+		return true, nil
+	}
+
 	rawExpr := expression.Interface()
 	if rawExpr == nil {
-		return false, errors.New("nil group expression")
+		return true, nil
 	}
 
 	switch expr := rawExpr.(type) {
 	case *schema.GroupExpressionAnd:
 		for _, e := range expr.Expressions {
-			ok, err := qh.evalGroupExpression(e, rows)
+			ok, err := qh.evalGroupExpression(&e, rows)
 			if err != nil {
 				return false, err
 			}
@@ -1138,7 +1142,7 @@ func (qh *QueryHandler) evalGroupExpression(
 		return true, nil
 	case *schema.GroupExpressionOr:
 		for _, e := range expr.Expressions {
-			ok, err := qh.evalGroupExpression(e, rows)
+			ok, err := qh.evalGroupExpression(&e, rows)
 			if err != nil {
 				return false, err
 			}
@@ -1150,7 +1154,7 @@ func (qh *QueryHandler) evalGroupExpression(
 
 		return false, nil
 	case *schema.GroupExpressionNot:
-		ok, err := qh.evalGroupExpression(expr.Expression, rows)
+		ok, err := qh.evalGroupExpression(&expr.Expression, rows)
 		if err != nil {
 			return false, err
 		}

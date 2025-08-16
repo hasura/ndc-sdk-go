@@ -92,7 +92,7 @@ $SED_CMD 's/type GroupComparisonValue interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type Expression interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type GroupExpression interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type GroupingPredicate interface{}//g' $GENERATED_SCHEMA_GO
-$SED_CMD 's/Predicate GroupingPredicate/Predicate GroupExpression/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/Predicate GroupingPredicate/Predicate *GroupExpression/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type QueryPredicate interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/Predicate QueryPredicate/Predicate Expression/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type PathElementPredicate interface{}//g' $GENERATED_SCHEMA_GO

@@ -60,18 +60,18 @@ func (j *GroupOrderByTargetType) UnmarshalJSON(b []byte) error {
 
 // GroupOrderByTarget groups order by target.
 type GroupOrderByTarget struct {
-	inner GroupOrderByTargetEncoder
+	inner GroupOrderByTargetInner
 }
 
-// GroupOrderByTargetEncoder abstracts a generic interface of GroupOrderByTarget.
-type GroupOrderByTargetEncoder interface {
+// GroupOrderByTargetInner abstracts a generic interface of GroupOrderByTarget.
+type GroupOrderByTargetInner interface {
 	Type() GroupOrderByTargetType
 	ToMap() map[string]any
 	Wrap() GroupOrderByTarget
 }
 
 // NewGroupOrderByTarget creates a new GroupOrderByTarget instance.
-func NewGroupOrderByTarget[T GroupOrderByTargetEncoder](inner T) GroupOrderByTarget {
+func NewGroupOrderByTarget[T GroupOrderByTargetInner](inner T) GroupOrderByTarget {
 	return GroupOrderByTarget{
 		inner: inner,
 	}
@@ -92,7 +92,7 @@ func (j GroupOrderByTarget) Type() GroupOrderByTargetType {
 }
 
 // Interface returns the inner interface.
-func (j GroupOrderByTarget) Interface() GroupOrderByTargetEncoder {
+func (j GroupOrderByTarget) Interface() GroupOrderByTargetInner {
 	return j.inner
 }
 
@@ -255,8 +255,8 @@ func (j *GroupComparisonTargetType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// GroupComparisonTargetEncoder abstracts a generic interface of GroupComparisonTarget.
-type GroupComparisonTargetEncoder interface {
+// GroupComparisonTargetInner abstracts a generic interface of GroupComparisonTarget.
+type GroupComparisonTargetInner interface {
 	Type() GroupComparisonTargetType
 	ToMap() map[string]any
 	Wrap() GroupComparisonTarget
@@ -264,11 +264,11 @@ type GroupComparisonTargetEncoder interface {
 
 // GroupComparisonTarget represents an aggregate comparison target.
 type GroupComparisonTarget struct {
-	inner GroupComparisonTargetEncoder
+	inner GroupComparisonTargetInner
 }
 
 // NewGroupComparisonTarget creates a new GroupComparisonTarget instance.
-func NewGroupComparisonTarget[T GroupComparisonTargetEncoder](inner T) GroupComparisonTarget {
+func NewGroupComparisonTarget[T GroupComparisonTargetInner](inner T) GroupComparisonTarget {
 	return GroupComparisonTarget{
 		inner: inner,
 	}
@@ -327,7 +327,7 @@ func (j *GroupComparisonTarget) UnmarshalJSON(b []byte) error {
 }
 
 // Interface converts the comparison value to its generic interface.
-func (j GroupComparisonTarget) Interface() GroupComparisonTargetEncoder {
+func (j GroupComparisonTarget) Interface() GroupComparisonTargetInner {
 	return j.inner
 }
 
@@ -413,8 +413,8 @@ func (j *GroupComparisonValueType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// GroupComparisonValueEncoder represents a group comparison value encoder interface.
-type GroupComparisonValueEncoder interface {
+// GroupComparisonValueInner represents a group comparison value Inner interface.
+type GroupComparisonValueInner interface {
 	Type() GroupComparisonValueType
 	ToMap() map[string]any
 	Wrap() GroupComparisonValue
@@ -422,11 +422,11 @@ type GroupComparisonValueEncoder interface {
 
 // GroupComparisonValue represents a group comparison value.
 type GroupComparisonValue struct {
-	inner GroupComparisonValueEncoder
+	inner GroupComparisonValueInner
 }
 
 // NewGroupComparisonValue creates a new GroupComparisonValue instance.
-func NewGroupComparisonValue[T GroupComparisonValueEncoder](inner T) GroupComparisonValue {
+func NewGroupComparisonValue[T GroupComparisonValueInner](inner T) GroupComparisonValue {
 	return GroupComparisonValue{
 		inner: inner,
 	}
@@ -496,7 +496,7 @@ func (j *GroupComparisonValue) UnmarshalJSON(b []byte) error {
 }
 
 // Interface converts the comparison value to its generic interface.
-func (cv GroupComparisonValue) Interface() GroupComparisonValueEncoder {
+func (cv GroupComparisonValue) Interface() GroupComparisonValueInner {
 	return cv.inner
 }
 
@@ -617,8 +617,8 @@ func (j *GroupExpressionType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// GroupExpressionEncoder abstracts the expression encoder interface.
-type GroupExpressionEncoder interface {
+// GroupExpressionInner abstracts the expression Inner interface.
+type GroupExpressionInner interface {
 	Type() GroupExpressionType
 	ToMap() map[string]any
 	Wrap() GroupExpression
@@ -626,11 +626,11 @@ type GroupExpressionEncoder interface {
 
 // GroupExpression represents a group expression.
 type GroupExpression struct {
-	inner GroupExpressionEncoder
+	inner GroupExpressionInner
 }
 
 // NewGroupExpression creates a new GroupExpression instance.
-func NewGroupExpression[T GroupExpressionEncoder](inner T) GroupExpression {
+func NewGroupExpression[T GroupExpressionInner](inner T) GroupExpression {
 	return GroupExpression{
 		inner: inner,
 	}
@@ -733,8 +733,8 @@ func (j GroupExpression) Equal(value GroupExpression) bool {
 	return reflect.DeepEqual(j, value)
 }
 
-// Interface tries to convert the instance to the GroupExpressionEncoder interface.
-func (j GroupExpression) Interface() GroupExpressionEncoder {
+// Interface tries to convert the instance to the GroupExpressionInner interface.
+func (j GroupExpression) Interface() GroupExpressionInner {
 	return j.inner
 }
 
@@ -746,7 +746,7 @@ type GroupExpressionAnd struct {
 }
 
 // NewGroupExpressionAnd creates a GroupExpressionAnd instance.
-func NewGroupExpressionAnd(expressions ...GroupExpressionEncoder) *GroupExpressionAnd {
+func NewGroupExpressionAnd(expressions ...GroupExpressionInner) *GroupExpressionAnd {
 	exprs := make([]GroupExpression, len(expressions))
 
 	for i, expr := range expressions {
@@ -788,7 +788,7 @@ type GroupExpressionOr struct {
 }
 
 // NewGroupExpressionOr creates a GroupExpressionOr instance.
-func NewGroupExpressionOr(expressions ...GroupExpressionEncoder) *GroupExpressionOr {
+func NewGroupExpressionOr(expressions ...GroupExpressionInner) *GroupExpressionOr {
 	exprs := make([]GroupExpression, len(expressions))
 
 	for i, expr := range expressions {
@@ -830,7 +830,7 @@ type GroupExpressionNot struct {
 }
 
 // NewGroupExpressionNot creates a GroupExpressionNot instance.
-func NewGroupExpressionNot[E GroupExpressionEncoder](expression E) *GroupExpressionNot {
+func NewGroupExpressionNot[E GroupExpressionInner](expression E) *GroupExpressionNot {
 	result := &GroupExpressionNot{
 		Expression: expression.Wrap(),
 	}
@@ -865,7 +865,7 @@ type GroupExpressionUnaryComparisonOperator struct {
 }
 
 // NewGroupExpressionUnaryComparisonOperator creates a GroupExpressionUnaryComparisonOperator instance.
-func NewGroupExpressionUnaryComparisonOperator[T GroupComparisonTargetEncoder](
+func NewGroupExpressionUnaryComparisonOperator[T GroupComparisonTargetInner](
 	target T,
 	operator UnaryComparisonOperator,
 ) *GroupExpressionUnaryComparisonOperator {
@@ -904,7 +904,7 @@ type GroupExpressionBinaryComparisonOperator struct {
 }
 
 // NewGroupExpressionBinaryComparisonOperator creates a GroupExpressionBinaryComparisonOperator instance.
-func NewGroupExpressionBinaryComparisonOperator[T GroupComparisonTargetEncoder, V GroupComparisonValueEncoder](
+func NewGroupExpressionBinaryComparisonOperator[T GroupComparisonTargetInner, V GroupComparisonValueInner](
 	target T,
 	operator string,
 	value V,

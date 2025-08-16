@@ -607,7 +607,7 @@ type Grouping struct {
 
 	// Optionally specify a predicate to apply after grouping rows. Only used if the
 	// 'query.aggregates.group_by.filter' capability is supported.
-	Predicate GroupExpression `json:"predicate,omitempty" yaml:"predicate,omitempty" mapstructure:"predicate,omitempty"`
+	Predicate *GroupExpression `json:"predicate,omitempty" yaml:"predicate,omitempty" mapstructure:"predicate,omitempty"`
 }
 
 // Aggregates to compute in each group
