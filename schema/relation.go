@@ -781,8 +781,8 @@ func ParseRelationalLiteralType(input string) (RelationalLiteralType, error) {
 		return RelationalLiteralType(
 				"",
 			), fmt.Errorf(
-				"failed to parse RelationType, expect one of %v, got %s",
-				enumValues_RelationType,
+				"failed to parse RelationalLiteralType, expect one of %v, got %s",
+				enumValues_RelationalLiteralType,
 				input,
 			)
 	}
@@ -876,11 +876,11 @@ func (j *RelationalLiteral) UnmarshalJSON(b []byte) error {
 	case RelationalLiteralTypeNull:
 		j.inner = &RelationalLiteralNull{}
 	case RelationalLiteralTypeBoolean:
-		var inner RelationalLiteralNull
+		var inner RelationalLiteralBoolean
 
 		err := json.Unmarshal(b, &inner)
 		if err != nil {
-			return fmt.Errorf("failed to decode RelationalLiteralNull: %w", err)
+			return fmt.Errorf("failed to decode RelationalLiteralBoolean: %w", err)
 		}
 
 		j.inner = &inner

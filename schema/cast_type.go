@@ -96,7 +96,7 @@ type CastType struct {
 	inner CastTypeInner
 }
 
-// NewRelationalExpression creates a RelationalExpression instance.
+// NewCastType creates a CastType instance.
 func NewCastType[T CastTypeInner](inner T) CastType {
 	return CastType{
 		inner: inner,
