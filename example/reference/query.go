@@ -848,9 +848,9 @@ func (qh *QueryHandler) evalDimension(
 	row map[string]any,
 	dimension schema.Dimension,
 ) (any, error) {
-	dim, err := dimension.InterfaceT()
-	if err != nil {
-		return nil, err
+	dim := dimension.Interface()
+	if dim == nil {
+		return nil, errors.New(" nil query handler")
 	}
 
 	switch d := dim.(type) {
@@ -931,15 +931,13 @@ L:
 	groups := []schema.Group{}
 
 	for _, chunk := range sorted {
-		if len(grouping.Predicate) > 0 {
-			isValid, err := qh.evalGroupExpression(grouping.Predicate, chunk.Rows)
-			if err != nil {
-				return nil, err
-			}
+		isValid, err := qh.evalGroupExpression(grouping.Predicate, chunk.Rows)
+		if err != nil {
+			return nil, err
+		}
 
-			if !isValid {
-				continue
-			}
+		if !isValid {
+			continue
 		}
 
 		group := schema.Group{
@@ -1038,9 +1036,9 @@ func (qh *QueryHandler) evalGroupOrderByElement(
 	element schema.GroupOrderByElement,
 	group Chunk,
 ) (any, error) {
-	rawTarget, err := element.Target.InterfaceT()
-	if err != nil {
-		return nil, err
+	rawTarget := element.Target.Interface()
+	if rawTarget == nil {
+		return nil, errors.New("nil target")
 	}
 
 	switch target := rawTarget.(type) {
@@ -1116,18 +1114,22 @@ func (qh *QueryHandler) evalAggregate(
 }
 
 func (qh *QueryHandler) evalGroupExpression(
-	expression schema.GroupExpression,
+	expression *schema.GroupExpression,
 	rows []map[string]any,
 ) (bool, error) {
-	rawExpr, err := expression.InterfaceT()
-	if err != nil {
-		return false, err
+	if expression == nil {
+		return true, nil
+	}
+
+	rawExpr := expression.Interface()
+	if rawExpr == nil {
+		return true, nil
 	}
 
 	switch expr := rawExpr.(type) {
 	case *schema.GroupExpressionAnd:
 		for _, e := range expr.Expressions {
-			ok, err := qh.evalGroupExpression(e, rows)
+			ok, err := qh.evalGroupExpression(&e, rows)
 			if err != nil {
 				return false, err
 			}
@@ -1140,7 +1142,7 @@ func (qh *QueryHandler) evalGroupExpression(
 		return true, nil
 	case *schema.GroupExpressionOr:
 		for _, e := range expr.Expressions {
-			ok, err := qh.evalGroupExpression(e, rows)
+			ok, err := qh.evalGroupExpression(&e, rows)
 			if err != nil {
 				return false, err
 			}
@@ -1152,7 +1154,7 @@ func (qh *QueryHandler) evalGroupExpression(
 
 		return false, nil
 	case *schema.GroupExpressionNot:
-		ok, err := qh.evalGroupExpression(expr.Expression, rows)
+		ok, err := qh.evalGroupExpression(&expr.Expression, rows)
 		if err != nil {
 			return false, err
 		}
@@ -1191,9 +1193,9 @@ func (qh *QueryHandler) evalGroupExpression(
 func (qh *QueryHandler) evalGroupComparisonValue(
 	comparisonValue schema.GroupComparisonValue,
 ) (any, error) {
-	cmpValueT, err := comparisonValue.InterfaceT()
-	if err != nil {
-		return nil, err
+	cmpValueT := comparisonValue.Interface()
+	if cmpValueT == nil {
+		return nil, errors.New("nil group comparison value")
 	}
 
 	switch cmpValue := cmpValueT.(type) {
@@ -1215,9 +1217,9 @@ func (qh *QueryHandler) evalGroupComparisonTarget(
 	target schema.GroupComparisonTarget,
 	rows []map[string]any,
 ) (any, error) {
-	targetT, err := target.InterfaceT()
-	if err != nil {
-		return nil, err
+	targetT := target.Interface()
+	if targetT == nil {
+		return nil, errors.New("nil group comparison target")
 	}
 
 	switch t := targetT.(type) {

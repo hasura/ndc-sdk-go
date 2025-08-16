@@ -2,8 +2,8 @@ package schema
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	"reflect"
 	"slices"
 )
 
@@ -58,184 +58,90 @@ func (j *GroupOrderByTargetType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// GroupOrderByTargetEncoder abstracts a generic interface of GroupOrderByTarget.
-type GroupOrderByTargetEncoder interface {
-	Type() GroupOrderByTargetType
-	Encode() GroupOrderByTarget
+// GroupOrderByTarget groups order by target.
+type GroupOrderByTarget struct {
+	inner GroupOrderByTargetInner
 }
 
-// GroupOrderByTarget groups order by target.
-type GroupOrderByTarget map[string]any
+// GroupOrderByTargetInner abstracts a generic interface of GroupOrderByTarget.
+type GroupOrderByTargetInner interface {
+	Type() GroupOrderByTargetType
+	ToMap() map[string]any
+	Wrap() GroupOrderByTarget
+}
+
+// NewGroupOrderByTarget creates a new GroupOrderByTarget instance.
+func NewGroupOrderByTarget[T GroupOrderByTargetInner](inner T) GroupOrderByTarget {
+	return GroupOrderByTarget{
+		inner: inner,
+	}
+}
+
+// IsEmpty checks if the inner type is empty.
+func (j GroupOrderByTarget) IsEmpty() bool {
+	return j.inner == nil
+}
+
+// Type gets the type enum of the current type.
+func (j GroupOrderByTarget) Type() GroupOrderByTargetType {
+	if j.inner != nil {
+		return j.inner.Type()
+	}
+
+	return ""
+}
+
+// Interface returns the inner interface.
+func (j GroupOrderByTarget) Interface() GroupOrderByTargetInner {
+	return j.inner
+}
+
+// MarshalJSON implements json.Marshaler interface.
+func (j GroupOrderByTarget) MarshalJSON() ([]byte, error) {
+	if j.inner == nil {
+		return json.Marshal(nil)
+	}
+
+	return json.Marshal(j.inner.ToMap())
+}
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *GroupOrderByTarget) UnmarshalJSON(b []byte) error {
-	var raw map[string]json.RawMessage
+	var rawType rawTypeStruct
 
-	if err := json.Unmarshal(b, &raw); err != nil {
+	if err := json.Unmarshal(b, &rawType); err != nil {
 		return err
 	}
 
-	var ty GroupOrderByTargetType
-
-	rawType, ok := raw["type"]
-	if !ok {
-		return errors.New("field type in GroupOrderByTarget: required")
-	}
-
-	err := json.Unmarshal(rawType, &ty)
+	ty, err := ParseGroupOrderByTargetType(rawType.Type)
 	if err != nil {
 		return fmt.Errorf("field type in GroupOrderByTarget: %w", err)
 	}
 
-	results := map[string]any{
-		"type": ty,
-	}
-
 	switch ty {
 	case GroupOrderByTargetTypeDimension:
-		rawIndex, ok := raw["index"]
-		if !ok {
-			return errors.New("field index in GroupOrderByTarget: required")
+		var result GroupOrderByTargetDimension
+
+		err := json.Unmarshal(b, &result)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal GroupOrderByTargetDimension: %w", err)
 		}
 
-		var index uint
-
-		if err := json.Unmarshal(rawIndex, &index); err != nil {
-			return fmt.Errorf("field index in GroupOrderByTarget: %w", err)
-		}
-
-		results["index"] = index
+		j.inner = &result
 	case GroupOrderByTargetTypeAggregate:
-		rawAggregate, ok := raw["aggregate"]
-		if !ok {
-			return errors.New("field aggregate in GroupOrderByTarget: required")
+		var result GroupOrderByTargetAggregate
+
+		err := json.Unmarshal(b, &result)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal GroupOrderByTargetAggregate: %w", err)
 		}
 
-		var aggregate Aggregate
-		if err := aggregate.UnmarshalJSON(rawAggregate); err != nil {
-			return fmt.Errorf("field aggregate in GroupOrderByTarget: %w", err)
-		}
-
-		results["aggregate"] = aggregate
+		j.inner = &result
 	default:
+		return fmt.Errorf("unsupported GroupOrderByTarget type: %s", ty)
 	}
-
-	*j = results
 
 	return nil
-}
-
-// Type gets the type enum of the current type.
-func (j GroupOrderByTarget) Type() (GroupOrderByTargetType, error) {
-	t, ok := j["type"]
-	if !ok {
-		return GroupOrderByTargetType(""), errTypeRequired
-	}
-
-	switch raw := t.(type) {
-	case string:
-		v, err := ParseGroupOrderByTargetType(raw)
-		if err != nil {
-			return GroupOrderByTargetType(""), err
-		}
-
-		return v, nil
-	case GroupOrderByTargetType:
-		return raw, nil
-	default:
-		return GroupOrderByTargetType(""), fmt.Errorf("invalid GroupOrderByTargetType type: %+v", t)
-	}
-}
-
-// AsDimension tries to convert the current type to GroupOrderByTargetDimension.
-func (j GroupOrderByTarget) AsDimension() (*GroupOrderByTargetDimension, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	if t != GroupOrderByTargetTypeDimension {
-		return nil, fmt.Errorf(
-			"invalid GroupOrderByTarget type; expected %s, got %s",
-			GroupOrderByTargetTypeDimension,
-			t,
-		)
-	}
-
-	rawIndex, ok := j["index"]
-	if !ok {
-		return nil, errors.New("GroupOrderByTarget.index is required")
-	}
-
-	index, ok := rawIndex.(uint)
-	if !ok {
-		return nil, fmt.Errorf("invalid GroupOrderByTarget.index, expected uint, got %v", rawIndex)
-	}
-
-	result := &GroupOrderByTargetDimension{
-		Index: index,
-	}
-
-	return result, nil
-}
-
-// AsAggregate tries to convert the current type to GroupOrderByTargetAggregate.
-func (j GroupOrderByTarget) AsAggregate() (*GroupOrderByTargetAggregate, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	if t != GroupOrderByTargetTypeAggregate {
-		return nil, fmt.Errorf(
-			"invalid GroupOrderByTarget type; expected %s, got %s",
-			GroupOrderByTargetTypeAggregate,
-			t,
-		)
-	}
-
-	rawAggregate, ok := j["aggregate"]
-	if !ok {
-		return nil, errors.New("GroupOrderByTargetAggregate.aggregate is required")
-	}
-
-	aggregate, ok := rawAggregate.(Aggregate)
-	if !ok {
-		return nil, fmt.Errorf(
-			"invalid GroupOrderByTargetAggregate.index, expected Aggregate, got %v",
-			rawAggregate,
-		)
-	}
-
-	result := &GroupOrderByTargetAggregate{
-		Aggregate: aggregate,
-	}
-
-	return result, nil
-}
-
-// Interface converts the comparison value to its generic interface.
-func (j GroupOrderByTarget) Interface() GroupOrderByTargetEncoder {
-	result, _ := j.InterfaceT()
-
-	return result
-}
-
-// InterfaceT converts the comparison value to its generic interface safely with explicit error.
-func (j GroupOrderByTarget) InterfaceT() (GroupOrderByTargetEncoder, error) {
-	ty, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	switch ty {
-	case GroupOrderByTargetTypeDimension:
-		return j.AsDimension()
-	case GroupOrderByTargetTypeAggregate:
-		return j.AsAggregate()
-	default:
-		return nil, fmt.Errorf("invalid GroupOrderByTarget type: %s", ty)
-	}
 }
 
 // GroupOrderByTargetDimension represents a dimension object of GroupOrderByTarget.
@@ -256,14 +162,17 @@ func (ob GroupOrderByTargetDimension) Type() GroupOrderByTargetType {
 	return GroupOrderByTargetTypeDimension
 }
 
-// Encode converts the instance to raw OrderByTarget.
-func (ob GroupOrderByTargetDimension) Encode() GroupOrderByTarget {
-	result := GroupOrderByTarget{
+// ToMap converts the instance to raw map.
+func (ob GroupOrderByTargetDimension) ToMap() map[string]any {
+	return map[string]any{
 		"type":  ob.Type(),
 		"index": ob.Index,
 	}
+}
 
-	return result
+// Encode converts the instance to raw OrderByTarget.
+func (ob GroupOrderByTargetDimension) Wrap() GroupOrderByTarget {
+	return NewGroupOrderByTarget(&ob)
 }
 
 // GroupOrderByTargetAggregate represents an aggregate object of GroupOrderByTarget.
@@ -284,14 +193,17 @@ func (ob GroupOrderByTargetAggregate) Type() GroupOrderByTargetType {
 	return GroupOrderByTargetTypeAggregate
 }
 
-// Encode converts the instance to raw GroupOrderByTarget.
-func (ob GroupOrderByTargetAggregate) Encode() GroupOrderByTarget {
-	result := GroupOrderByTarget{
-		"type":      GroupOrderByTargetTypeAggregate,
+// ToMap converts the instance to raw map.
+func (ob GroupOrderByTargetAggregate) ToMap() map[string]any {
+	return map[string]any{
+		"type":      ob.Type(),
 		"aggregate": ob.Aggregate,
 	}
+}
 
-	return result
+// Encode converts the instance to raw GroupOrderByTarget.
+func (ob GroupOrderByTargetAggregate) Wrap() GroupOrderByTarget {
+	return NewGroupOrderByTarget(&ob)
 }
 
 // GroupComparisonTargetType represents a type of GroupComparisonTarget.
@@ -343,137 +255,80 @@ func (j *GroupComparisonTargetType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// GroupComparisonTargetEncoder abstracts a generic interface of GroupComparisonTarget.
-type GroupComparisonTargetEncoder interface {
+// GroupComparisonTargetInner abstracts a generic interface of GroupComparisonTarget.
+type GroupComparisonTargetInner interface {
 	Type() GroupComparisonTargetType
-	Encode() GroupComparisonTarget
+	ToMap() map[string]any
+	Wrap() GroupComparisonTarget
 }
 
 // GroupComparisonTarget represents an aggregate comparison target.
-type GroupComparisonTarget map[string]any
+type GroupComparisonTarget struct {
+	inner GroupComparisonTargetInner
+}
+
+// NewGroupComparisonTarget creates a new GroupComparisonTarget instance.
+func NewGroupComparisonTarget[T GroupComparisonTargetInner](inner T) GroupComparisonTarget {
+	return GroupComparisonTarget{
+		inner: inner,
+	}
+}
+
+// IsEmpty checks if the inner type is empty.
+func (j GroupComparisonTarget) IsEmpty() bool {
+	return j.inner == nil
+}
+
+// Type gets the type enum of the current type.
+func (j GroupComparisonTarget) Type() GroupComparisonTargetType {
+	if j.inner != nil {
+		return j.inner.Type()
+	}
+
+	return ""
+}
+
+// MarshalJSON implements json.Marshaler interface.
+func (j GroupComparisonTarget) MarshalJSON() ([]byte, error) {
+	if j.inner == nil {
+		return json.Marshal(nil)
+	}
+
+	return json.Marshal(j.inner.ToMap())
+}
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *GroupComparisonTarget) UnmarshalJSON(b []byte) error {
-	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(b, &raw); err != nil {
+	var rawType rawTypeStruct
+
+	if err := json.Unmarshal(b, &rawType); err != nil {
 		return err
 	}
 
-	var ty GroupComparisonTargetType
-
-	rawType, ok := raw["type"]
-	if !ok {
-		return errors.New("field type in GroupComparisonTarget: required")
-	}
-
-	err := json.Unmarshal(rawType, &ty)
+	ty, err := ParseGroupComparisonTargetType(rawType.Type)
 	if err != nil {
 		return fmt.Errorf("field type in GroupComparisonTarget: %w", err)
 	}
 
-	results := map[string]any{
-		"type": ty,
-	}
-
 	switch ty {
 	case GroupComparisonTargetTypeAggregate:
-		rawAggregate, ok := raw["aggregate"]
-		if !ok {
-			return errors.New("field aggregate in GroupComparisonTarget: required")
+		var result GroupComparisonTargetAggregate
+
+		if err := json.Unmarshal(b, &result); err != nil {
+			return fmt.Errorf("failed to unmarshal GroupComparisonTargetAggregate: %w", err)
 		}
 
-		var aggregate Aggregate
-
-		if err := aggregate.UnmarshalJSON(rawAggregate); err != nil {
-			return fmt.Errorf("field aggregate in GroupComparisonTarget: %w", err)
-		}
-
-		results["aggregate"] = aggregate
+		j.inner = &result
 	default:
+		return fmt.Errorf("unsupported GroupComparisonTarget type: %s", ty)
 	}
-
-	*j = results
 
 	return nil
 }
 
-// Type gets the type enum of the current type.
-func (j GroupComparisonTarget) Type() (GroupComparisonTargetType, error) {
-	t, ok := j["type"]
-	if !ok {
-		return GroupComparisonTargetType(""), errTypeRequired
-	}
-
-	switch raw := t.(type) {
-	case string:
-		v, err := ParseGroupComparisonTargetType(raw)
-		if err != nil {
-			return GroupComparisonTargetType(""), err
-		}
-
-		return v, nil
-	case GroupComparisonTargetType:
-		return raw, nil
-	default:
-		return GroupComparisonTargetType(""), fmt.Errorf("invalid GroupComparisonTarget type: %+v", t)
-	}
-}
-
-// AsAggregate tries to convert the current type to GroupComparisonTargetAggregate.
-func (j GroupComparisonTarget) AsAggregate() (*GroupComparisonTargetAggregate, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	if t != GroupComparisonTargetTypeAggregate {
-		return nil, fmt.Errorf(
-			"invalid GroupComparisonTarget type; expected %s, got %s",
-			GroupOrderByTargetTypeDimension,
-			t,
-		)
-	}
-
-	rawAggregate, ok := j["aggregate"]
-	if !ok {
-		return nil, errors.New("GroupComparisonTargetAggregate.aggregate is required")
-	}
-
-	aggregate, ok := rawAggregate.(Aggregate)
-	if !ok {
-		return nil, fmt.Errorf(
-			"invalid GroupComparisonTargetAggregate.index, expected Aggregate, got %v",
-			rawAggregate,
-		)
-	}
-
-	result := &GroupComparisonTargetAggregate{
-		Aggregate: aggregate,
-	}
-
-	return result, nil
-}
-
 // Interface converts the comparison value to its generic interface.
-func (j GroupComparisonTarget) Interface() GroupComparisonTargetEncoder {
-	result, _ := j.InterfaceT()
-
-	return result
-}
-
-// InterfaceT converts the comparison value to its generic interface safely with explicit error.
-func (j GroupComparisonTarget) InterfaceT() (GroupComparisonTargetEncoder, error) {
-	ty, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	switch ty {
-	case GroupComparisonTargetTypeAggregate:
-		return j.AsAggregate()
-	default:
-		return nil, fmt.Errorf("invalid GroupComparisonTarget type: %s", ty)
-	}
+func (j GroupComparisonTarget) Interface() GroupComparisonTargetInner {
+	return j.inner
 }
 
 // GroupComparisonTargetAggregate represents an aggregate object of GroupComparisonTarget.
@@ -494,14 +349,17 @@ func (ob GroupComparisonTargetAggregate) Type() GroupComparisonTargetType {
 	return GroupComparisonTargetTypeAggregate
 }
 
-// Encode converts the instance to a raw GroupComparisonTarget.
-func (ob GroupComparisonTargetAggregate) Encode() GroupComparisonTarget {
-	result := GroupComparisonTarget{
+// ToMap converts the instance to raw map.
+func (ob GroupComparisonTargetAggregate) ToMap() map[string]any {
+	return map[string]any{
 		"type":      ob.Type(),
 		"aggregate": ob.Aggregate,
 	}
+}
 
-	return result
+// Encode converts the instance to a raw GroupComparisonTarget.
+func (ob GroupComparisonTargetAggregate) Wrap() GroupComparisonTarget {
+	return NewGroupComparisonTarget(&ob)
 }
 
 // GroupComparisonValueType represents a group comparison value type enum.
@@ -555,168 +413,91 @@ func (j *GroupComparisonValueType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// GroupComparisonValueEncoder represents a group comparison value encoder interface.
-type GroupComparisonValueEncoder interface {
+// GroupComparisonValueInner represents a group comparison value Inner interface.
+type GroupComparisonValueInner interface {
 	Type() GroupComparisonValueType
-	Encode() GroupComparisonValue
+	ToMap() map[string]any
+	Wrap() GroupComparisonValue
 }
 
 // GroupComparisonValue represents a group comparison value.
-type GroupComparisonValue map[string]any
+type GroupComparisonValue struct {
+	inner GroupComparisonValueInner
+}
+
+// NewGroupComparisonValue creates a new GroupComparisonValue instance.
+func NewGroupComparisonValue[T GroupComparisonValueInner](inner T) GroupComparisonValue {
+	return GroupComparisonValue{
+		inner: inner,
+	}
+}
+
+// IsEmpty checks if the inner type is empty.
+func (j GroupComparisonValue) IsEmpty() bool {
+	return j.inner == nil
+}
+
+// Type gets the type enum of the current type.
+func (j GroupComparisonValue) Type() GroupComparisonValueType {
+	if j.inner != nil {
+		return j.inner.Type()
+	}
+
+	return ""
+}
+
+// MarshalJSON implements json.Marshaler interface.
+func (j GroupComparisonValue) MarshalJSON() ([]byte, error) {
+	if j.inner == nil {
+		return json.Marshal(nil)
+	}
+
+	return json.Marshal(j.inner.ToMap())
+}
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *GroupComparisonValue) UnmarshalJSON(b []byte) error {
-	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(b, &raw); err != nil {
+	var rawType rawTypeStruct
+
+	err := json.Unmarshal(b, &rawType)
+	if err != nil {
 		return err
 	}
 
-	rawType, ok := raw["type"]
-	if !ok {
-		return errors.New("field type in GroupComparisonValue: required")
-	}
-
-	var ty GroupComparisonValueType
-
-	if err := json.Unmarshal(rawType, &ty); err != nil {
+	ty, err := ParseGroupComparisonValueType(rawType.Type)
+	if err != nil {
 		return fmt.Errorf("field type in GroupComparisonValue: %w", err)
-	}
-
-	result := map[string]any{
-		"type": ty,
 	}
 
 	switch ty {
 	case GroupComparisonValueTypeVariable:
-		rawName, ok := raw["name"]
-		if !ok {
-			return errors.New("field name in GroupComparisonValue is required for variable type")
+		var result GroupComparisonValueVariable
+
+		err := json.Unmarshal(b, &result)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal GroupComparisonValueVariable: %w", err)
 		}
 
-		var name string
-		if err := json.Unmarshal(rawName, &name); err != nil {
-			return fmt.Errorf("field name in GroupComparisonValue: %w", err)
-		}
-
-		result["name"] = name
+		j.inner = &result
 	case GroupComparisonValueTypeScalar:
-		rawValue, ok := raw["value"]
-		if !ok {
-			return errors.New("field value in GroupComparisonValue is required for scalar type")
+		var result GroupComparisonValueScalar
+
+		err := json.Unmarshal(b, &result)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal GroupComparisonValueScalar: %w", err)
 		}
 
-		var value any
-		if err := json.Unmarshal(rawValue, &value); err != nil {
-			return fmt.Errorf("field value in GroupComparisonValue: %w", err)
-		}
-
-		result["value"] = value
+		j.inner = &result
 	default:
+		return fmt.Errorf("unsupported GroupComparisonValue type: %s", ty)
 	}
-
-	*j = result
 
 	return nil
 }
 
-// GetType gets the type of comparison value.
-func (cv GroupComparisonValue) Type() (GroupComparisonValueType, error) {
-	t, ok := cv["type"]
-	if !ok {
-		return "", errTypeRequired
-	}
-
-	switch raw := t.(type) {
-	case string:
-		v, err := ParseGroupComparisonValueType(raw)
-		if err != nil {
-			return "", err
-		}
-
-		return v, nil
-	case GroupComparisonValueType:
-		return raw, nil
-	default:
-		return "", fmt.Errorf("invalid GroupComparisonValue type: %+v", t)
-	}
-}
-
-// AsScalar tries to convert the comparison value to scalar.
-func (cv GroupComparisonValue) AsScalar() (*GroupComparisonValueScalar, error) {
-	ty, err := cv.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	if ty != GroupComparisonValueTypeScalar {
-		return nil, fmt.Errorf(
-			"invalid GroupComparisonValue type; expected %s, got %s",
-			GroupComparisonValueTypeScalar,
-			ty,
-		)
-	}
-
-	value, ok := cv["value"]
-	if !ok {
-		return nil, errors.New("field value in GroupComparisonValueScalar is required")
-	}
-
-	return &GroupComparisonValueScalar{
-		Value: value,
-	}, nil
-}
-
-// AsVariable tries to convert the comparison value to variable.
-func (cv GroupComparisonValue) AsVariable() (*GroupComparisonValueVariable, error) {
-	ty, err := cv.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	if ty != GroupComparisonValueTypeVariable {
-		return nil, fmt.Errorf(
-			"invalid GroupComparisonValue type; expected %s, got %s",
-			GroupComparisonValueTypeVariable,
-			ty,
-		)
-	}
-
-	name, err := getStringValueByKey(cv, "name")
-	if err != nil {
-		return nil, fmt.Errorf("field name in GroupComparisonValueVariable: %w", err)
-	}
-
-	if name == "" {
-		return nil, errors.New("field name in GroupComparisonValueVariable is required")
-	}
-
-	return &GroupComparisonValueVariable{
-		Name: name,
-	}, nil
-}
-
 // Interface converts the comparison value to its generic interface.
-func (cv GroupComparisonValue) Interface() GroupComparisonValueEncoder {
-	result, _ := cv.InterfaceT()
-
-	return result
-}
-
-// InterfaceT converts the comparison value to its generic interface safely with explicit error.
-func (cv GroupComparisonValue) InterfaceT() (GroupComparisonValueEncoder, error) {
-	ty, err := cv.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	switch ty {
-	case GroupComparisonValueTypeVariable:
-		return cv.AsVariable()
-	case GroupComparisonValueTypeScalar:
-		return cv.AsScalar()
-	default:
-		return nil, fmt.Errorf("invalid GroupComparisonValue type: %s", ty)
-	}
+func (cv GroupComparisonValue) Interface() GroupComparisonValueInner {
+	return cv.inner
 }
 
 // GroupComparisonValueScalar represents a group comparison value with scalar type.
@@ -736,12 +517,17 @@ func (cv GroupComparisonValueScalar) Type() GroupComparisonValueType {
 	return GroupComparisonValueTypeScalar
 }
 
-// Encode converts to the raw comparison value.
-func (cv GroupComparisonValueScalar) Encode() GroupComparisonValue {
+// ToMap converts the instance to raw map.
+func (cv GroupComparisonValueScalar) ToMap() map[string]any {
 	return map[string]any{
 		"type":  cv.Type(),
 		"value": cv.Value,
 	}
+}
+
+// Encode converts to the raw comparison value.
+func (cv GroupComparisonValueScalar) Wrap() GroupComparisonValue {
+	return NewGroupComparisonValue(&cv)
 }
 
 // GroupComparisonValueVariable represents a group comparison value with variable type.
@@ -761,12 +547,17 @@ func (cv GroupComparisonValueVariable) Type() GroupComparisonValueType {
 	return GroupComparisonValueTypeVariable
 }
 
-// Encode converts to the raw comparison value.
-func (cv GroupComparisonValueVariable) Encode() GroupComparisonValue {
+// ToMap converts the instance to raw map.
+func (cv GroupComparisonValueVariable) ToMap() map[string]any {
 	return map[string]any{
 		"type": cv.Type(),
 		"name": cv.Name,
 	}
+}
+
+// Encode converts to the raw comparison value.
+func (cv GroupComparisonValueVariable) Wrap() GroupComparisonValue {
+	return NewGroupComparisonValue(&cv)
 }
 
 // GroupExpressionType represents the group expression filter enums.
@@ -826,383 +617,125 @@ func (j *GroupExpressionType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// GroupExpressionEncoder abstracts the expression encoder interface.
-type GroupExpressionEncoder interface {
+// GroupExpressionInner abstracts the expression Inner interface.
+type GroupExpressionInner interface {
 	Type() GroupExpressionType
-	Encode() GroupExpression
+	ToMap() map[string]any
+	Wrap() GroupExpression
 }
 
 // GroupExpression represents a group expression.
-type GroupExpression map[string]any
+type GroupExpression struct {
+	inner GroupExpressionInner
+}
+
+// NewGroupExpression creates a new GroupExpression instance.
+func NewGroupExpression[T GroupExpressionInner](inner T) GroupExpression {
+	return GroupExpression{
+		inner: inner,
+	}
+}
+
+// IsEmpty checks if the inner type is empty.
+func (j GroupExpression) IsEmpty() bool {
+	return j.inner == nil
+}
+
+// Type gets the type enum of the current type.
+func (j GroupExpression) Type() GroupExpressionType {
+	if j.inner != nil {
+		return j.inner.Type()
+	}
+
+	return ""
+}
+
+// MarshalJSON implements json.Marshaler interface.
+func (j GroupExpression) MarshalJSON() ([]byte, error) {
+	if j.inner == nil {
+		return json.Marshal(nil)
+	}
+
+	return json.Marshal(j.inner.ToMap())
+}
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *GroupExpression) UnmarshalJSON(b []byte) error {
-	var raw map[string]json.RawMessage
+	var rawType rawTypeStruct
 
-	if err := json.Unmarshal(b, &raw); err != nil {
+	if err := json.Unmarshal(b, &rawType); err != nil {
 		return err
 	}
 
-	rawType, ok := raw["type"]
-	if !ok {
-		return errors.New("field type in GroupExpression: required")
-	}
-
-	var ty GroupExpressionType
-
-	if err := json.Unmarshal(rawType, &ty); err != nil {
+	ty, err := ParseGroupExpressionType(rawType.Type)
+	if err != nil {
 		return fmt.Errorf("field type in GroupExpression: %w", err)
 	}
 
-	result := map[string]any{
-		"type": ty,
-	}
-
 	switch ty {
-	case GroupExpressionTypeAnd, GroupExpressionTypeOr:
-		rawExpressions, ok := raw["expressions"]
-		if !ok {
-			return fmt.Errorf("field expressions in GroupExpression is required for '%s' type", ty)
+	case GroupExpressionTypeAnd:
+		var result GroupExpressionAnd
+
+		err := json.Unmarshal(b, &result)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal GroupExpressionAnd: %w", err)
 		}
 
-		var expressions []GroupExpression
+		j.inner = &result
+	case GroupExpressionTypeOr:
+		var result GroupExpressionOr
 
-		if err := json.Unmarshal(rawExpressions, &expressions); err != nil {
-			return fmt.Errorf("field expressions in GroupExpression: %w", err)
+		err := json.Unmarshal(b, &result)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal GroupExpressionOr: %w", err)
 		}
 
-		result["expressions"] = expressions
+		j.inner = &result
 	case GroupExpressionTypeNot:
-		rawExpression, ok := raw["expression"]
-		if !ok {
-			return fmt.Errorf("field expressions in GroupExpression is required for '%s' type", ty)
+		var result GroupExpressionNot
+
+		err := json.Unmarshal(b, &result)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal GroupExpressionNot: %w", err)
 		}
 
-		var expression GroupExpression
-
-		if err := json.Unmarshal(rawExpression, &expression); err != nil {
-			return fmt.Errorf("field expression in GroupExpression: %w", err)
-		}
-
-		result["expression"] = expression
+		j.inner = &result
 	case GroupExpressionTypeUnaryComparisonOperator:
-		rawOperator, ok := raw["operator"]
-		if !ok {
-			return fmt.Errorf("field operator in GroupExpression is required for '%s' type", ty)
-		}
+		var result GroupExpressionUnaryComparisonOperator
 
-		var operator UnaryComparisonOperator
-
-		if err := json.Unmarshal(rawOperator, &operator); err != nil {
-			return fmt.Errorf("field operator in GroupExpression: %w", err)
-		}
-
-		result["operator"] = operator
-
-		target, err := unmarshalGroupComparisonTargetByKey(raw, "target")
+		err := json.Unmarshal(b, &result)
 		if err != nil {
-			return fmt.Errorf("field target in GroupExpression: %w", err)
+			return fmt.Errorf("failed to unmarshal GroupExpressionUnaryComparisonOperator: %w", err)
 		}
 
-		result["target"] = target
+		j.inner = &result
 	case GroupExpressionTypeBinaryComparisonOperator:
-		rawOperator, ok := raw["operator"]
-		if !ok {
-			return fmt.Errorf("field operator in GroupExpression is required for '%s' type", ty)
-		}
+		var result GroupExpressionBinaryComparisonOperator
 
-		var operator string
-
-		if err := json.Unmarshal(rawOperator, &operator); err != nil {
-			return fmt.Errorf("field operator in GroupExpression: %w", err)
-		}
-
-		if operator == "" {
-			return fmt.Errorf("field operator in GroupExpression is required for '%s' type", ty)
-		}
-
-		result["operator"] = operator
-
-		target, err := unmarshalGroupComparisonTargetByKey(raw, "target")
+		err := json.Unmarshal(b, &result)
 		if err != nil {
-			return fmt.Errorf("field target in GroupExpression: %w", err)
+			return fmt.Errorf(
+				"failed to unmarshal GroupExpressionBinaryComparisonOperator: %w",
+				err,
+			)
 		}
 
-		result["target"] = target
-
-		rawValue, ok := raw["value"]
-		if !ok {
-			return fmt.Errorf("field value in GroupExpression is required for '%s' type", ty)
-		}
-
-		var value GroupComparisonValue
-
-		if err := json.Unmarshal(rawValue, &value); err != nil {
-			return fmt.Errorf("field value in GroupExpression: %w", err)
-		}
-
-		result["value"] = value
+		j.inner = &result
+	default:
+		return fmt.Errorf("unsupported GroupExpression type: %s", ty)
 	}
-
-	*j = result
 
 	return nil
 }
 
-// Type gets the type enum of the current type.
-func (j GroupExpression) Type() (GroupExpressionType, error) {
-	t, ok := j["type"]
-	if !ok {
-		return "", errTypeRequired
-	}
-
-	switch raw := t.(type) {
-	case string:
-		v, err := ParseGroupExpressionType(raw)
-		if err != nil {
-			return "", err
-		}
-
-		return v, nil
-	case GroupExpressionType:
-		return raw, nil
-	default:
-		return "", fmt.Errorf("invalid GroupExpression type: %+v", t)
-	}
+// Equal checks whether instances are the same.
+func (j GroupExpression) Equal(value GroupExpression) bool {
+	return reflect.DeepEqual(j, value)
 }
 
-// AsAnd tries to convert the instance to and type.
-func (j GroupExpression) AsAnd() (*GroupExpressionAnd, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	if t != GroupExpressionTypeAnd {
-		return nil, fmt.Errorf(
-			"invalid GroupExpression type; expected: %s, got: %s",
-			GroupExpressionTypeAnd,
-			t,
-		)
-	}
-
-	rawExpressions, ok := j["expressions"]
-	if !ok {
-		return nil, errors.New("ExpressionAnd.expressions is required")
-	}
-
-	expressions, ok := rawExpressions.([]GroupExpression)
-	if !ok {
-		return nil, fmt.Errorf(
-			"invalid ExpressionAnd.expressions type; expected: []GroupExpression, got: %+v",
-			rawExpressions,
-		)
-	}
-
-	return &GroupExpressionAnd{
-		Expressions: expressions,
-	}, nil
-}
-
-// AsOr tries to convert the instance to ExpressionOr instance.
-func (j GroupExpression) AsOr() (*GroupExpressionOr, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	if t != GroupExpressionTypeOr {
-		return nil, fmt.Errorf(
-			"invalid GroupExpression type; expected: %s, got: %s",
-			GroupExpressionTypeOr,
-			t,
-		)
-	}
-
-	rawExpressions, ok := j["expressions"]
-	if !ok {
-		return nil, errors.New("GroupExpressionOr.expression is required")
-	}
-
-	expressions, ok := rawExpressions.([]GroupExpression)
-	if !ok {
-		return nil, fmt.Errorf(
-			"invalid GroupExpressionOr.expression type; expected: []GroupExpression, got: %+v",
-			rawExpressions,
-		)
-	}
-
-	return &GroupExpressionOr{
-		Expressions: expressions,
-	}, nil
-}
-
-// AsNot tries to convert the instance to ExpressionNot instance.
-func (j GroupExpression) AsNot() (*GroupExpressionNot, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	if t != GroupExpressionTypeNot {
-		return nil, fmt.Errorf(
-			"invalid GroupExpression type; expected: %s, got: %s",
-			GroupExpressionTypeNot,
-			t,
-		)
-	}
-
-	rawExpression, ok := j["expression"]
-	if !ok {
-		return nil, errors.New("ExpressionNot.expression is required")
-	}
-
-	expression, ok := rawExpression.(GroupExpression)
-	if !ok {
-		return nil, fmt.Errorf(
-			"invalid GroupExpressionNot.expression type; expected: GroupExpression, got: %+v",
-			rawExpression,
-		)
-	}
-
-	return &GroupExpressionNot{
-		Expression: expression,
-	}, nil
-}
-
-// AsUnaryComparisonOperator tries to convert the instance to ExpressionUnaryComparisonOperator instance.
-func (j GroupExpression) AsUnaryComparisonOperator() (*GroupExpressionUnaryComparisonOperator, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	if t != GroupExpressionTypeUnaryComparisonOperator {
-		return nil, fmt.Errorf(
-			"invalid GroupExpression type; expected: %s, got: %s",
-			GroupExpressionTypeUnaryComparisonOperator,
-			t,
-		)
-	}
-
-	rawOperator, ok := j["operator"]
-	if !ok {
-		return nil, errors.New("GroupExpressionUnaryComparisonOperator.operator is required")
-	}
-
-	operator, ok := rawOperator.(UnaryComparisonOperator)
-	if !ok {
-		operatorStr, ok := rawOperator.(string)
-		if !ok {
-			return nil, fmt.Errorf(
-				"invalid GroupExpressionUnaryComparisonOperator.operator type; expected: UnaryComparisonOperator, got: %v",
-				rawOperator,
-			)
-		}
-
-		operator = UnaryComparisonOperator(operatorStr)
-	}
-
-	rawTarget, ok := j["target"]
-	if !ok {
-		return nil, errors.New("GroupExpressionUnaryComparisonOperator.target is required")
-	}
-
-	target, ok := rawTarget.(GroupComparisonTarget)
-	if !ok {
-		return nil, fmt.Errorf(
-			"invalid GroupExpressionUnaryComparisonOperator.target type; expected: GroupComparisonTarget, got: %v",
-			rawTarget,
-		)
-	}
-
-	return &GroupExpressionUnaryComparisonOperator{
-		Operator: operator,
-		Target:   target,
-	}, nil
-}
-
-// AsBinaryComparisonOperator tries to convert the instance to ExpressionBinaryComparisonOperator instance.
-func (j GroupExpression) AsBinaryComparisonOperator() (*GroupExpressionBinaryComparisonOperator, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	if t != GroupExpressionTypeBinaryComparisonOperator {
-		return nil, fmt.Errorf(
-			"invalid GroupExpression type; expected: %s, got: %s",
-			GroupExpressionTypeBinaryComparisonOperator,
-			t,
-		)
-	}
-
-	rawTarget, ok := j["target"]
-	if !ok {
-		return nil, errors.New("GroupExpressionBinaryComparisonOperator.target is required")
-	}
-
-	target, ok := rawTarget.(GroupComparisonTarget)
-	if !ok {
-		return nil, fmt.Errorf(
-			"invalid GroupExpressionBinaryComparisonOperator.target type; expected: GroupComparisonTarget, got: %+v",
-			rawTarget,
-		)
-	}
-
-	rawValue, ok := j["value"]
-	if !ok {
-		return nil, errors.New("GroupExpressionBinaryComparisonOperator.value is required")
-	}
-
-	value, ok := rawValue.(GroupComparisonValue)
-	if !ok {
-		return nil, fmt.Errorf(
-			"invalid GroupExpressionBinaryComparisonOperator.value type; expected: GroupComparisonValue, got: %+v",
-			rawValue,
-		)
-	}
-
-	operator, err := getStringValueByKey(j, "operator")
-	if err != nil {
-		return nil, fmt.Errorf("GroupExpressionBinaryComparisonOperator.operator: %w", err)
-	}
-
-	return &GroupExpressionBinaryComparisonOperator{
-		Operator: operator,
-		Target:   target,
-		Value:    value,
-	}, nil
-}
-
-// Interface tries to convert the instance to the GroupExpressionEncoder interface.
-func (j GroupExpression) Interface() GroupExpressionEncoder {
-	result, _ := j.InterfaceT()
-
-	return result
-}
-
-// InterfaceT tries to convert the instance to the GroupExpressionEncoder interface safely with explicit error.
-func (j GroupExpression) InterfaceT() (GroupExpressionEncoder, error) {
-	t, err := j.Type()
-	if err != nil {
-		return nil, err
-	}
-
-	switch t {
-	case GroupExpressionTypeAnd:
-		return j.AsAnd()
-	case GroupExpressionTypeOr:
-		return j.AsOr()
-	case GroupExpressionTypeNot:
-		return j.AsNot()
-	case GroupExpressionTypeUnaryComparisonOperator:
-		return j.AsUnaryComparisonOperator()
-	case GroupExpressionTypeBinaryComparisonOperator:
-		return j.AsBinaryComparisonOperator()
-	default:
-		return nil, fmt.Errorf("invalid GroupExpression type: %s", t)
-	}
+// Interface tries to convert the instance to the GroupExpressionInner interface.
+func (j GroupExpression) Interface() GroupExpressionInner {
+	return j.inner
 }
 
 // GroupExpressionAnd is an object which represents the [conjunction of expressions]
@@ -1213,7 +746,7 @@ type GroupExpressionAnd struct {
 }
 
 // NewGroupExpressionAnd creates a GroupExpressionAnd instance.
-func NewGroupExpressionAnd(expressions ...GroupExpressionEncoder) *GroupExpressionAnd {
+func NewGroupExpressionAnd(expressions ...GroupExpressionInner) *GroupExpressionAnd {
 	exprs := make([]GroupExpression, len(expressions))
 
 	for i, expr := range expressions {
@@ -1221,7 +754,7 @@ func NewGroupExpressionAnd(expressions ...GroupExpressionEncoder) *GroupExpressi
 			continue
 		}
 
-		exprs[i] = expr.Encode()
+		exprs[i] = expr.Wrap()
 	}
 
 	return &GroupExpressionAnd{
@@ -1234,12 +767,17 @@ func (exp GroupExpressionAnd) Type() GroupExpressionType {
 	return GroupExpressionTypeAnd
 }
 
-// Encode converts the instance to a raw GroupExpression.
-func (exp GroupExpressionAnd) Encode() GroupExpression {
-	return GroupExpression{
+// ToMap converts the instance to raw map.
+func (exp GroupExpressionAnd) ToMap() map[string]any {
+	return map[string]any{
 		"type":        exp.Type(),
 		"expressions": exp.Expressions,
 	}
+}
+
+// Encode converts the instance to a raw GroupExpression.
+func (exp GroupExpressionAnd) Wrap() GroupExpression {
+	return NewGroupExpression(&exp)
 }
 
 // GroupExpressionOr is an object which represents the [disjunction of expressions]
@@ -1250,7 +788,7 @@ type GroupExpressionOr struct {
 }
 
 // NewGroupExpressionOr creates a GroupExpressionOr instance.
-func NewGroupExpressionOr(expressions ...GroupExpressionEncoder) *GroupExpressionOr {
+func NewGroupExpressionOr(expressions ...GroupExpressionInner) *GroupExpressionOr {
 	exprs := make([]GroupExpression, len(expressions))
 
 	for i, expr := range expressions {
@@ -1258,7 +796,7 @@ func NewGroupExpressionOr(expressions ...GroupExpressionEncoder) *GroupExpressio
 			continue
 		}
 
-		exprs[i] = expr.Encode()
+		exprs[i] = expr.Wrap()
 	}
 
 	return &GroupExpressionOr{
@@ -1271,12 +809,17 @@ func (exp GroupExpressionOr) Type() GroupExpressionType {
 	return GroupExpressionTypeOr
 }
 
-// Encode converts the instance to a raw Expression.
-func (exp GroupExpressionOr) Encode() GroupExpression {
-	return GroupExpression{
+// ToMap converts the instance to raw map.
+func (exp GroupExpressionOr) ToMap() map[string]any {
+	return map[string]any{
 		"type":        exp.Type(),
 		"expressions": exp.Expressions,
 	}
+}
+
+// Encode converts the instance to a raw Expression.
+func (exp GroupExpressionOr) Wrap() GroupExpression {
+	return NewGroupExpression(&exp)
 }
 
 // GroupExpressionNot is an object which represents the [negation of an expression]
@@ -1287,9 +830,9 @@ type GroupExpressionNot struct {
 }
 
 // NewGroupExpressionNot creates a GroupExpressionNot instance.
-func NewGroupExpressionNot[E GroupExpressionEncoder](expression E) *GroupExpressionNot {
+func NewGroupExpressionNot[E GroupExpressionInner](expression E) *GroupExpressionNot {
 	result := &GroupExpressionNot{
-		Expression: expression.Encode(),
+		Expression: expression.Wrap(),
 	}
 
 	return result
@@ -1300,12 +843,17 @@ func (exp GroupExpressionNot) Type() GroupExpressionType {
 	return GroupExpressionTypeNot
 }
 
-// Encode converts the instance to a raw Expression.
-func (exp GroupExpressionNot) Encode() GroupExpression {
-	return GroupExpression{
+// ToMap converts the instance to raw map.
+func (exp GroupExpressionNot) ToMap() map[string]any {
+	return map[string]any{
 		"type":       exp.Type(),
 		"expression": exp.Expression,
 	}
+}
+
+// Encode converts the instance to a raw Expression.
+func (exp GroupExpressionNot) Wrap() GroupExpression {
+	return NewGroupExpression(&exp)
 }
 
 // GroupExpressionUnaryComparisonOperator is an object which represents a [unary operator expression]
@@ -1317,12 +865,12 @@ type GroupExpressionUnaryComparisonOperator struct {
 }
 
 // NewGroupExpressionUnaryComparisonOperator creates a GroupExpressionUnaryComparisonOperator instance.
-func NewGroupExpressionUnaryComparisonOperator[T GroupComparisonTargetEncoder](
+func NewGroupExpressionUnaryComparisonOperator[T GroupComparisonTargetInner](
 	target T,
 	operator UnaryComparisonOperator,
 ) *GroupExpressionUnaryComparisonOperator {
 	return &GroupExpressionUnaryComparisonOperator{
-		Target:   target.Encode(),
+		Target:   target.Wrap(),
 		Operator: operator,
 	}
 }
@@ -1332,13 +880,18 @@ func (exp GroupExpressionUnaryComparisonOperator) Type() GroupExpressionType {
 	return GroupExpressionTypeUnaryComparisonOperator
 }
 
-// Encode converts the instance to a raw Expression.
-func (exp GroupExpressionUnaryComparisonOperator) Encode() GroupExpression {
-	return GroupExpression{
+// ToMap converts the instance to raw map.
+func (exp GroupExpressionUnaryComparisonOperator) ToMap() map[string]any {
+	return map[string]any{
 		"type":     exp.Type(),
 		"operator": exp.Operator,
 		"target":   exp.Target,
 	}
+}
+
+// Encode converts the instance to a raw Expression.
+func (exp GroupExpressionUnaryComparisonOperator) Wrap() GroupExpression {
+	return NewGroupExpression(&exp)
 }
 
 // GroupExpressionBinaryComparisonOperator is an object which represents an [binary operator expression]
@@ -1351,15 +904,15 @@ type GroupExpressionBinaryComparisonOperator struct {
 }
 
 // NewGroupExpressionBinaryComparisonOperator creates a GroupExpressionBinaryComparisonOperator instance.
-func NewGroupExpressionBinaryComparisonOperator[T GroupComparisonTargetEncoder, V GroupComparisonValueEncoder](
+func NewGroupExpressionBinaryComparisonOperator[T GroupComparisonTargetInner, V GroupComparisonValueInner](
 	target T,
 	operator string,
 	value V,
 ) *GroupExpressionBinaryComparisonOperator {
 	result := &GroupExpressionBinaryComparisonOperator{
-		Target:   target.Encode(),
+		Target:   target.Wrap(),
 		Operator: operator,
-		Value:    value.Encode(),
+		Value:    value.Wrap(),
 	}
 
 	return result
@@ -1370,12 +923,17 @@ func (exp GroupExpressionBinaryComparisonOperator) Type() GroupExpressionType {
 	return GroupExpressionTypeBinaryComparisonOperator
 }
 
-// Encode converts the instance to a raw GroupExpression.
-func (exp GroupExpressionBinaryComparisonOperator) Encode() GroupExpression {
-	return GroupExpression{
+// ToMap converts the instance to raw map.
+func (exp GroupExpressionBinaryComparisonOperator) ToMap() map[string]any {
+	return map[string]any{
 		"type":     exp.Type(),
 		"operator": exp.Operator,
 		"target":   exp.Target,
 		"value":    exp.Value,
 	}
+}
+
+// Encode converts the instance to a raw GroupExpression.
+func (exp GroupExpressionBinaryComparisonOperator) Wrap() GroupExpression {
+	return NewGroupExpression(&exp)
 }

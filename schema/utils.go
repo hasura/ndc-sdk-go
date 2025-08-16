@@ -7,6 +7,38 @@ import (
 	"reflect"
 )
 
+// GetUnderlyingNamedType gets the underlying named type of the input type recursively if exists.
+func GetUnderlyingNamedType(input Type) *NamedType {
+	if len(input) == 0 {
+		return nil
+	}
+
+	switch ty := input.Interface().(type) {
+	case *NullableType:
+		return GetUnderlyingNamedType(ty.UnderlyingType)
+	case *ArrayType:
+		return GetUnderlyingNamedType(ty.ElementType)
+	case *NamedType:
+		return ty
+	default:
+		return nil
+	}
+}
+
+// UnwrapNullableType unwraps nullable types from the input type recursively.
+func UnwrapNullableType(input Type) Type {
+	if input == nil || input.IsZero() {
+		return nil
+	}
+
+	switch ty := input.Interface().(type) {
+	case *NullableType:
+		return UnwrapNullableType(ty.UnderlyingType)
+	default:
+		return input
+	}
+}
+
 // isNil a safe function to check null value.
 func isNil(value any) bool {
 	if value == nil {
@@ -98,7 +130,7 @@ func getStringSliceByKey(collection map[string]any, key string) ([]string, error
 
 func getPathElementByKey(
 	collection map[string]any,
-	key string, //nolint:unparam
+	key string,
 ) ([]PathElement, error) {
 	if len(collection) == 0 {
 		return nil, nil
@@ -252,7 +284,7 @@ func getRelationshipArgumentMapByKey(
 func unmarshalStringFromJsonMap(
 	collection map[string]json.RawMessage,
 	key string,
-	required bool,
+	required bool, //nolint:unparam
 ) (string, error) {
 	emptyFn := func() (string, error) {
 		if !required {
@@ -281,22 +313,4 @@ func unmarshalStringFromJsonMap(
 	}
 
 	return result, nil
-}
-
-func unmarshalGroupComparisonTargetByKey(
-	raw map[string]json.RawMessage,
-	key string,
-) (GroupComparisonTarget, error) {
-	rawTarget, ok := raw[key]
-	if !ok {
-		return nil, errors.New("required")
-	}
-
-	var target GroupComparisonTarget
-
-	if err := json.Unmarshal(rawTarget, &target); err != nil {
-		return nil, err
-	}
-
-	return target, nil
 }

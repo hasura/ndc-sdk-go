@@ -3,6 +3,7 @@ package command
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"embed"
 	"errors"
 	"io/fs"
@@ -145,7 +146,7 @@ func generateNewProjectFiles(args *NewArguments, srcPath string) error {
 }
 
 func execGetLatestSDK(basePath string) error {
-	return execCommand(basePath, "go", "get", "github.com/hasura/ndc-sdk-go@574740e")
+	return execCommand(basePath, "go", "get", "github.com/hasura/ndc-sdk-go@v2")
 }
 
 func execGoModTidy(basePath string) error {
@@ -157,7 +158,7 @@ func execGoFormat(basePath string) error {
 }
 
 func execCommand(basePath string, commandName string, args ...string) error {
-	cmd := exec.Command(commandName, args...)
+	cmd := exec.CommandContext(context.Background(), commandName, args...)
 	if basePath != "" {
 		cmd.Dir = basePath
 	}
