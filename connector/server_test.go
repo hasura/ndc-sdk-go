@@ -14,6 +14,7 @@ import (
 
 	"github.com/hasura/ndc-sdk-go/schema"
 	"github.com/hasura/ndc-sdk-go/utils"
+	"github.com/hasura/ndc-sdk-go/utils/compression"
 	"gotest.tools/v3/assert"
 )
 
@@ -226,11 +227,11 @@ func (mc *mockConnector) Query(
 	}, nil
 }
 
-func httpPostJSON(url string, body any) (*http.Response, error) {
-	return httpPostJSONWithNDCVersion(url, schema.NDCVersion, body)
+func httpPostJSON(url string, headers map[string]string, body any) (*http.Response, error) {
+	return httpPostJSONWithNDCVersion(url, schema.NDCVersion, headers, body)
 }
 
-func httpPostJSONWithNDCVersion(url string, ndcVersion string, body any) (*http.Response, error) {
+func httpPostJSONWithNDCVersion(url string, ndcVersion string, headers map[string]string, body any) (*http.Response, error) {
 	bodyBytes, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
@@ -244,6 +245,10 @@ func httpPostJSONWithNDCVersion(url string, ndcVersion string, body any) (*http.
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set(schema.XHasuraNDCVersion, ndcVersion)
 
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
 	return http.DefaultClient.Do(req)
 }
 
@@ -252,9 +257,21 @@ func assertHTTPResponse[B any](t *testing.T, res *http.Response, statusCode int,
 
 	defer res.Body.Close()
 
-	bodyBytes, err := io.ReadAll(res.Body)
+	var bodyBytes []byte
+	var err error
+	contentEnc := res.Header.Get(contentEncodingHeader)
+
+	if contentEnc != "" {
+		db, err := compression.DefaultCompressor.Decompress(res.Body, contentEnc)
+		assert.NilError(t, err)
+
+		bodyBytes, err = io.ReadAll(db)
+	} else {
+		bodyBytes, err = io.ReadAll(res.Body)
+	}
+
 	if err != nil {
-		t.Error("failed to read response body")
+		t.Errorf("failed to read response body: %s", err)
 		t.FailNow()
 	}
 
@@ -422,7 +439,7 @@ func TestServerConnector(t *testing.T) {
 	})
 
 	t.Run("POST /query", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/query", httpServer.URL), schema.QueryRequest{
+		res, err := httpPostJSON(fmt.Sprintf("%s/query", httpServer.URL), nil, schema.QueryRequest{
 			Collection:              "articles",
 			Arguments:               schema.QueryRequestArguments{},
 			CollectionRelationships: schema.QueryRequestCollectionRelationships{},
@@ -448,7 +465,7 @@ func TestServerConnector(t *testing.T) {
 	})
 
 	t.Run("POST /query - json decode failure", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/query", httpServer.URL), "")
+		res, err := httpPostJSON(fmt.Sprintf("%s/query", httpServer.URL), nil, "")
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
@@ -463,7 +480,7 @@ func TestServerConnector(t *testing.T) {
 	})
 
 	t.Run("POST /query - collection not found", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/query", httpServer.URL), schema.QueryRequest{
+		res, err := httpPostJSON(fmt.Sprintf("%s/query", httpServer.URL), nil, schema.QueryRequest{
 			Collection:              "test",
 			Arguments:               schema.QueryRequestArguments{},
 			CollectionRelationships: schema.QueryRequestCollectionRelationships{},
@@ -485,6 +502,7 @@ func TestServerConnector(t *testing.T) {
 		res, err := httpPostJSONWithNDCVersion(
 			fmt.Sprintf("%s/query", httpServer.URL),
 			"unknown",
+			nil,
 			schema.QueryRequest{
 				Collection:              "test",
 				Arguments:               schema.QueryRequestArguments{},
@@ -506,7 +524,7 @@ func TestServerConnector(t *testing.T) {
 	t.Run("POST_query_max_body_size", func(t *testing.T) {
 		collectionName := strings.Repeat("xxxxxxxxxxxxxxxx", 1024*1024/16)
 
-		res, err := httpPostJSON(fmt.Sprintf("%s/query", httpServer.URL), schema.QueryRequest{
+		res, err := httpPostJSON(fmt.Sprintf("%s/query", httpServer.URL), nil, schema.QueryRequest{
 			Collection:              collectionName,
 			Arguments:               schema.QueryRequestArguments{},
 			CollectionRelationships: schema.QueryRequestCollectionRelationships{},
@@ -525,7 +543,7 @@ func TestServerConnector(t *testing.T) {
 	})
 
 	t.Run("POST /mutation", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), schema.MutationRequest{
+		res, err := httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), nil, schema.MutationRequest{
 			Operations: []schema.MutationOperation{
 				{
 					Type: "procedure",
@@ -547,7 +565,7 @@ func TestServerConnector(t *testing.T) {
 	})
 
 	t.Run("POST /mutation - json decode failure", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), "")
+		res, err := httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), nil, "")
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
@@ -562,7 +580,7 @@ func TestServerConnector(t *testing.T) {
 	})
 
 	t.Run("POST /mutation - operation not found", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), schema.MutationRequest{
+		res, err := httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), nil, schema.MutationRequest{
 			Operations: []schema.MutationOperation{
 				{
 					Type: "procedure",
@@ -586,6 +604,7 @@ func TestServerConnector(t *testing.T) {
 		res, err := httpPostJSONWithNDCVersion(
 			fmt.Sprintf("%s/mutation", httpServer.URL),
 			"v0.1.6",
+			nil,
 			schema.MutationRequest{
 				Operations: []schema.MutationOperation{
 					{
@@ -613,7 +632,7 @@ func TestServerConnector(t *testing.T) {
 
 	t.Run("POST_mutation_max_body_size", func(t *testing.T) {
 		collectionName := strings.Repeat("xxxxxxxxxxxxxxxx", 1024*1024/16)
-		res, err := httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), schema.MutationRequest{
+		res, err := httpPostJSON(fmt.Sprintf("%s/mutation", httpServer.URL), nil, schema.MutationRequest{
 			Operations: []schema.MutationOperation{
 				{
 					Type: "procedure",
@@ -637,6 +656,7 @@ func TestServerConnector(t *testing.T) {
 	t.Run("POST /query/explain", func(t *testing.T) {
 		res, err := httpPostJSON(
 			fmt.Sprintf("%s/query/explain", httpServer.URL),
+			nil,
 			schema.QueryRequest{
 				Collection:              "articles",
 				Arguments:               schema.QueryRequestArguments{},
@@ -655,8 +675,34 @@ func TestServerConnector(t *testing.T) {
 		})
 	})
 
+	t.Run("POST /query/explain with gzip", func(t *testing.T) {
+		res, err := httpPostJSON(
+			fmt.Sprintf("%s/query/explain", httpServer.URL),
+			map[string]string{
+				acceptEncodingHeader: "gzip",
+			},
+			schema.QueryRequest{
+				Collection:              "articles",
+				Arguments:               schema.QueryRequestArguments{},
+				CollectionRelationships: schema.QueryRequestCollectionRelationships{},
+				Query:                   schema.Query{},
+				Variables:               []schema.QueryRequestVariablesElem{},
+			},
+		)
+		if err != nil {
+			t.Errorf("expected no error, got %s", err)
+			t.FailNow()
+		}
+
+		assert.Equal(t, "gzip", res.Header.Get(contentEncodingHeader))
+
+		assertHTTPResponse(t, res, http.StatusOK, schema.ExplainResponse{
+			Details: schema.ExplainResponseDetails{},
+		})
+	})
+
 	t.Run("POST /query/explain - json decode failure", func(t *testing.T) {
-		res, err := httpPostJSON(fmt.Sprintf("%s/query/explain", httpServer.URL), map[string]any{})
+		res, err := httpPostJSON(fmt.Sprintf("%s/query/explain", httpServer.URL), nil, map[string]any{})
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
@@ -674,6 +720,7 @@ func TestServerConnector(t *testing.T) {
 		res, err := httpPostJSONWithNDCVersion(
 			fmt.Sprintf("%s/query/explain", httpServer.URL),
 			"unknown",
+			nil,
 			map[string]any{},
 		)
 		if err != nil {
@@ -690,6 +737,7 @@ func TestServerConnector(t *testing.T) {
 	t.Run("POST /mutation/explain", func(t *testing.T) {
 		res, err := httpPostJSON(
 			fmt.Sprintf("%s/mutation/explain", httpServer.URL),
+			nil,
 			schema.MutationRequest{
 				Operations:              []schema.MutationOperation{},
 				CollectionRelationships: make(schema.MutationRequestCollectionRelationships),
@@ -708,6 +756,7 @@ func TestServerConnector(t *testing.T) {
 	t.Run("POST /mutation/explain - json decode failure", func(t *testing.T) {
 		res, err := httpPostJSON(
 			fmt.Sprintf("%s/mutation/explain", httpServer.URL),
+			nil,
 			map[string]any{},
 		)
 		if err != nil {
@@ -727,6 +776,7 @@ func TestServerConnector(t *testing.T) {
 		res, err := httpPostJSONWithNDCVersion(
 			fmt.Sprintf("%s/mutation/explain", httpServer.URL),
 			"unknown",
+			nil,
 			map[string]any{},
 		)
 		if err != nil {
