@@ -9,7 +9,7 @@ import (
 	"go/types"
 	"io"
 	"os"
-	"path"
+	"path/filepath"
 	"runtime/trace"
 	"slices"
 	"strings"
@@ -138,7 +138,7 @@ func ParseAndGenerateConnector(args ConnectorGenerationArguments, moduleName str
 }
 
 func (cg *connectorGenerator) loadConnectorPackage() (string, error) {
-	connectorPath := path.Join(cg.basePath, cg.connectorDir)
+	connectorPath := filepath.Join(cg.basePath, cg.connectorDir)
 	fset := token.NewFileSet()
 	cfg := &packages.Config{
 		Dir:  connectorPath,
@@ -181,7 +181,7 @@ func (cg *connectorGenerator) generateConnector(name string) error {
 		}
 	}
 
-	schemaPath := path.Join(cg.basePath, cg.connectorDir, schemaOutputFile)
+	schemaPath := filepath.Join(cg.basePath, cg.connectorDir, schemaOutputFile)
 	if err := os.WriteFile(schemaPath, schemaBytes, 0o644); err != nil {
 		return err
 	}
@@ -191,7 +191,7 @@ func (cg *connectorGenerator) generateConnector(name string) error {
 	}
 
 	if !cg.typeOnly {
-		targetPath := path.Join(cg.basePath, cg.connectorDir, connectorOutputFile)
+		targetPath := filepath.Join(cg.basePath, cg.connectorDir, connectorOutputFile)
 
 		f, err := os.Create(targetPath)
 		if err != nil {
@@ -292,7 +292,7 @@ func (cg *connectorGenerator) genTypeMethods() error {
 		}
 
 		relativePath := strings.TrimPrefix(packagePath, cg.moduleName)
-		schemaPath := path.Join(cg.basePath, relativePath, typeMethodsOutputFile)
+		schemaPath := filepath.Join(cg.basePath, relativePath, typeMethodsOutputFile)
 		log.Debug().
 			Str("package_name", builder.packageName).
 			Str("package_path", packagePath).

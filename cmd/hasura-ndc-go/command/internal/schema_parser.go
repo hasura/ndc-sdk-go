@@ -84,7 +84,7 @@ func parseRawConnectorSchemaFromGoCode(
 	directories := make(map[string]bool)
 
 	for _, dir := range tempDirs {
-		for _, globPath := range []string{path.Join(filePath, dir, "*.go"), path.Join(filePath, dir, "**", "*.go")} {
+		for _, globPath := range []string{path.Join(filePath, dir, "*.go"), filepath.Join(filePath, dir, "**", "*.go")} {
 			goFiles, err := filepath.Glob(globPath)
 			if err != nil {
 				return nil, fmt.Errorf(
@@ -121,7 +121,7 @@ func parseRawConnectorSchemaFromGoCode(
 
 		for folder := range directories {
 			_, parseCodeTask := trace.NewTask(ctx, fmt.Sprintf("parse_%s_code", folder))
-			folderPath := path.Join(filePath, folder)
+			folderPath := filepath.Join(filePath, folder)
 			cfg := &packages.Config{
 				Mode: packages.NeedSyntax | packages.NeedTypes,
 				Dir:  folderPath,
