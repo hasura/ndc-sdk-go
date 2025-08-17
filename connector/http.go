@@ -52,28 +52,6 @@ var allowedTraceEndpoints = map[string]string{
 
 var debugApiPaths = []string{apiPathMetrics, apiPathHealth}
 
-// define a custom response write to capture response information for logging.
-type customResponseWriter struct {
-	http.ResponseWriter
-
-	statusCode int
-	bodyLength int
-	body       []byte
-}
-
-func (cw *customResponseWriter) WriteHeader(statusCode int) {
-	cw.statusCode = statusCode
-	cw.ResponseWriter.WriteHeader(statusCode)
-}
-
-func (cw *customResponseWriter) Write(body []byte) (int, error) {
-	cw.body = body
-	bodyLength, err := cw.ResponseWriter.Write(body)
-	cw.bodyLength = bodyLength
-
-	return bodyLength, err
-}
-
 // implements a simple router to reuse for both configuration and connector servers.
 type router struct {
 	routes          map[string]map[string][]http.HandlerFunc
@@ -258,7 +236,7 @@ func (rt *router) createHandleFunc( //nolint:gocognit
 
 		logger := rt.logger.With(slog.String("request_id", requestID))
 		req := r.WithContext(context.WithValue(ctx, logContextKey, logger))
-		writer := &customResponseWriter{ResponseWriter: w}
+		writer := newCustomResponseWriter(r, w)
 
 		for _, h := range handlers {
 			h(writer, req)
