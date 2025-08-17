@@ -83,7 +83,7 @@ func TestConnectorGeneration(t *testing.T) {
 			)
 			assert.NilError(t, err)
 
-			srcDir := path.Join(tc.BasePath, "source")
+			srcDir := filepath.Join(tc.BasePath, "source")
 			t.Chdir(srcDir)
 
 			err = ParseAndGenerateConnector(ConnectorGenerationArguments{
@@ -173,7 +173,7 @@ func TestConnectorGeneration(t *testing.T) {
 				assert.NilError(t, err)
 			}
 
-			srcDir := path.Join(tc.BasePath, "source")
+			srcDir := filepath.Join(tc.BasePath, "source")
 			t.Chdir(srcDir)
 			err = ParseAndGenerateConnector(ConnectorGenerationArguments{
 				ConnectorDir: tc.ConnectorDir,

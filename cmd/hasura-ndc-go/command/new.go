@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -27,10 +28,10 @@ const (
 
 // NewArguments input arguments for the new command.
 type NewArguments struct {
-	Name    string `help:"Name of the connector."                            required:"" short:"n"`
-	Module  string `help:"Module name of the connector"                      required:"" short:"m"`
-	Version string `help:"The version of ndc-sdk-go."`
-	Output  string `help:"The location where source codes will be generated"             short:"o" default:""`
+	Name    string `help:"Name of the connector." required:"" short:"n"`
+	Module  string `help:"Module name of the connector" required:"" short:"m"`
+	Version string `help:"The version of ndc-sdk-go"`
+	Output  string `help:"The location where source codes will be generated" short:"o" default:""`
 }
 
 // GenerateNewProject generates a new project boilerplate.
@@ -42,7 +43,7 @@ func GenerateNewProject(args *NewArguments, silent bool) error {
 			return err
 		}
 
-		srcPath = path.Join(p, args.Name)
+		srcPath = filepath.Join(p, args.Name)
 	}
 
 	if err := os.MkdirAll(srcPath, 0o755); err != nil {
@@ -108,7 +109,7 @@ func generateNewProjectFiles(args *NewArguments, srcPath string) error {
 				return nil
 			}
 
-			targetPath := path.Join(srcPath, strings.TrimPrefix(filePath, templateNewPath+"/"))
+			targetPath := filepath.Join(srcPath, strings.TrimPrefix(filePath, templateNewPath+"/"))
 			if d.IsDir() {
 				return os.Mkdir(targetPath, 0o755)
 			}

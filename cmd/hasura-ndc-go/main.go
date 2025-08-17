@@ -14,9 +14,10 @@ import (
 )
 
 var cli struct {
-	LogLevel string                  `default:"info" enum:"debug,info,warn,error,DEBUG,INFO,WARN,ERROR"                                                                    env:"HASURA_PLUGIN_LOG_LEVEL" help:"Log level."`
-	New      command.NewArguments    `cmd:""         help:"Initialize an NDC connector boilerplate. For example:\n hasura-ndc-go new -n example -m github.com/foo/example"`
-	Update   command.UpdateArguments `cmd:""         help:"Generate schema and implementation for the connector from functions."`
+	LogLevel string                   `default:"info" enum:"debug,info,warn,error,DEBUG,INFO,WARN,ERROR" env:"HASURA_PLUGIN_LOG_LEVEL" help:"Log level."`
+	New      command.NewArguments     `cmd:"" help:"Initialize an NDC connector boilerplate. For example:\n hasura-ndc-go new -n example -m github.com/foo/example"`
+	Update   command.UpdateArguments  `cmd:"" help:"Generate schema and implementation for the connector from functions."`
+	Upgrade  command.UpgradeArguments `cmd:"" help:"Patch source codes to upgrade the connector"`
 	Generate struct {
 		Snapshots command.GenTestSnapshotArguments `cmd:"" help:"Generate test snapshots."`
 	} `cmd:"" help:"Generator helpers."`
@@ -51,6 +52,12 @@ func main() {
 			Msg("generated successfully")
 	case "update":
 		command.UpdateConnectorSchema(cli.Update, start)
+	case "upgrade":
+		err := command.UpgradeConnector(cli.Upgrade)
+		if err != nil {
+			log.Error().Err(err).
+				Msg("failed to upgrade the connector. Check out the migration guide at https://github.com/hasura/ndc-sdk-go/blob/main/docs/migrate-v1-to-v2.md and update manually")
+		}
 	case "generate snapshots":
 		log.Info().
 			Str("endpoint", cli.Generate.Snapshots.Endpoint).
