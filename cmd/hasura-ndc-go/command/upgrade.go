@@ -28,7 +28,7 @@ func UpgradeConnector(args UpgradeArguments) error {
 
 	srcPath := filepath.Join(args.Path, args.ConnectorDir)
 
-	if srcPath != "" && srcPath[0] != '/' && srcPath[0] != '\\' {
+	if srcPath == "" || !filepath.IsAbs(srcPath) {
 		p, err := os.Getwd()
 		if err != nil {
 			return err
@@ -67,7 +67,7 @@ func (ucc upgradeConnectorCommand) patchConnectorFile() error {
 func (ucc upgradeConnectorCommand) patchConnectorContent(originalContent []byte) (string, bool) {
 	var isChanged bool
 	contentStr := string(originalContent)
-	versionRegexp := regexp.MustCompile(`Version:[\s\t]+"0\.1\.[0-6]"`)
+	versionRegexp := regexp.MustCompile(`Version:[\s\t]+"0\.1\.\d"`)
 	varCapsRegexp := regexp.MustCompile(`Variables:[\s\t]+schema.LeafCapability\{\}`)
 
 	if versionRegexp.MatchString(contentStr) {
