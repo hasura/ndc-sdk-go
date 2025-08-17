@@ -15,7 +15,7 @@ const (
 // ZstdCompressor implements the compression handler for zstandard encoding.
 type ZstdCompressor struct{}
 
-// Compress the reader content with gzip encoding.
+// Compress the reader content with zstd encoding.
 func (zc ZstdCompressor) Compress(w io.Writer, src io.Reader) (int64, error) {
 	zw, err := zstd.NewWriter(w)
 	if err != nil {
@@ -28,7 +28,7 @@ func (zc ZstdCompressor) Compress(w io.Writer, src io.Reader) (int64, error) {
 	return size, err
 }
 
-// Decompress the reader content with gzip encoding.
+// Decompress the reader content with zstd encoding.
 func (zc ZstdCompressor) Decompress(reader io.ReadCloser) (io.ReadCloser, error) {
 	compressionReader, err := zstd.NewReader(reader)
 	if err != nil {
