@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	EncodingZstd = "zstd"
+	// EncodingZstd represents the Zstandard compression format.
+	EncodingZstd CompressionFormat = "zstd"
 )
 
 // ZstdCompressor implements the compression handler for zstandard encoding.

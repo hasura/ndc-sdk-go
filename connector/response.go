@@ -27,6 +27,7 @@ var _ http.ResponseWriter = (*customResponseWriter)(nil)
 
 func newCustomResponseWriter(r *http.Request, w http.ResponseWriter) *customResponseWriter {
 	var contentEncoding string
+
 	acceptEncoding := r.Header.Get(acceptEncodingHeader)
 
 	if acceptEncoding != "" {

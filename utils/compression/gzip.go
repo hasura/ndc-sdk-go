@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	EncodingGzip = "gzip"
+	// EncodingGzip represents the gzip compression format.
+	EncodingGzip CompressionFormat = "gzip"
 )
 
 // GzipCompressor implements the compression handler for gzip encoding.

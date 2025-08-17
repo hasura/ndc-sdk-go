@@ -675,31 +675,37 @@ func TestServerConnector(t *testing.T) {
 		})
 	})
 
-	t.Run("POST /query/explain with gzip", func(t *testing.T) {
-		res, err := httpPostJSON(
-			fmt.Sprintf("%s/query/explain", httpServer.URL),
-			map[string]string{
-				acceptEncodingHeader: "gzip",
-			},
-			schema.QueryRequest{
-				Collection:              "articles",
-				Arguments:               schema.QueryRequestArguments{},
-				CollectionRelationships: schema.QueryRequestCollectionRelationships{},
-				Query:                   schema.Query{},
-				Variables:               []schema.QueryRequestVariablesElem{},
-			},
-		)
-		if err != nil {
-			t.Errorf("expected no error, got %s", err)
-			t.FailNow()
-		}
+	for _, encoding := range []compression.CompressionFormat{
+		compression.EncodingDeflate,
+		compression.EncodingGzip,
+		compression.EncodingZstd,
+	} {
+		t.Run("POST_query_explain_"+string(encoding), func(t *testing.T) {
+			res, err := httpPostJSON(
+				fmt.Sprintf("%s/query/explain", httpServer.URL),
+				map[string]string{
+					acceptEncodingHeader: string(encoding),
+				},
+				schema.QueryRequest{
+					Collection:              "articles",
+					Arguments:               schema.QueryRequestArguments{},
+					CollectionRelationships: schema.QueryRequestCollectionRelationships{},
+					Query:                   schema.Query{},
+					Variables:               []schema.QueryRequestVariablesElem{},
+				},
+			)
+			if err != nil {
+				t.Errorf("expected no error, got %s", err)
+				t.FailNow()
+			}
 
-		assert.Equal(t, "gzip", res.Header.Get(contentEncodingHeader))
+			assert.Equal(t, string(encoding), res.Header.Get(contentEncodingHeader))
 
-		assertHTTPResponse(t, res, http.StatusOK, schema.ExplainResponse{
-			Details: schema.ExplainResponseDetails{},
+			assertHTTPResponse(t, res, http.StatusOK, schema.ExplainResponse{
+				Details: schema.ExplainResponseDetails{},
+			})
 		})
-	})
+	}
 
 	t.Run("POST /query/explain - json decode failure", func(t *testing.T) {
 		res, err := httpPostJSON(fmt.Sprintf("%s/query/explain", httpServer.URL), nil, map[string]any{})

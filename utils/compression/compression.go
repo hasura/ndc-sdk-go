@@ -3,12 +3,13 @@ package compression
 import (
 	"io"
 	"strings"
-
-	"github.com/hasura/ndc-sdk-go/utils"
 )
 
 // DefaultCompressor the default compressors.
 var DefaultCompressor = NewCompressors()
+
+// CompressionFormat represents a compression format enumeration.
+type CompressionFormat string
 
 // Compressor abstracts the interface for a compression handler.
 type Compressor interface {
@@ -19,20 +20,24 @@ type Compressor interface {
 // Compressors is a general helper for web compression.
 type Compressors struct {
 	acceptEncoding string
-	compressors    map[string]Compressor
+	compressors    map[CompressionFormat]Compressor
 }
 
 // NewCompressors create a Compressors instance.
 func NewCompressors() *Compressors {
-	compressors := map[string]Compressor{
+	compressors := map[CompressionFormat]Compressor{
 		EncodingGzip:    GzipCompressor{},
 		EncodingDeflate: DeflateCompressor{},
 		EncodingZstd:    ZstdCompressor{},
 	}
 
 	return &Compressors{
-		acceptEncoding: strings.Join(utils.GetSortedKeys(compressors), ", "),
-		compressors:    compressors,
+		acceptEncoding: strings.Join([]string{
+			string(EncodingZstd),
+			string(EncodingGzip),
+			string(EncodingDeflate),
+		}, ", "),
+		compressors: compressors,
 	}
 }
 
@@ -43,29 +48,54 @@ func (c Compressors) AcceptEncoding() string {
 
 // IsEncodingSupported checks if the input encoding is supported.
 func (c Compressors) IsEncodingSupported(encoding string) bool {
-	_, ok := c.compressors[encoding]
+	return c.FindSupportedEncoding(encoding) != ""
+}
 
-	return ok
+// FindSupportedEncoding returns the supported encoding from the input string.
+func (c Compressors) FindSupportedEncoding(encoding string) CompressionFormat {
+	_, ok := c.compressors[CompressionFormat(encoding)]
+	if ok {
+		return CompressionFormat(encoding)
+	}
+
+	for enc := range strings.SplitSeq(encoding, ",") {
+		enc = strings.ToLower(strings.TrimSpace(enc))
+
+		_, ok := c.compressors[CompressionFormat(enc)]
+		if ok {
+			return CompressionFormat(enc)
+		}
+	}
+
+	return ""
 }
 
 // Compress writes compressed data.
 func (c Compressors) Compress(w io.Writer, encoding string, data io.Reader) (int64, error) {
-	compressor, ok := c.compressors[strings.ToLower(strings.TrimSpace(encoding))]
-	if !ok {
-		return io.Copy(w, data)
+	format := c.FindSupportedEncoding(encoding)
+
+	if format != "" {
+		compressor, ok := c.compressors[format]
+		if ok {
+			return compressor.Compress(w, data)
+		}
 	}
 
-	return compressor.Compress(w, data)
+	return io.Copy(w, data)
 }
 
 // Decompress reads and decompresses the reader with equivalent the content encoding.
 func (c Compressors) Decompress(reader io.ReadCloser, encoding string) (io.ReadCloser, error) {
-	compressor, ok := c.compressors[strings.ToLower(strings.TrimSpace(encoding))]
-	if !ok {
-		return reader, nil
+	format := c.FindSupportedEncoding(encoding)
+
+	if format != "" {
+		compressor, ok := c.compressors[format]
+		if ok {
+			return compressor.Decompress(reader)
+		}
 	}
 
-	return compressor.Decompress(reader)
+	return reader, nil
 }
 
 type readCloserWrapper struct {

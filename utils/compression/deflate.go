@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	EncodingDeflate = "deflate"
+	// EncodingDeflate represents the deflate compression format.
+	EncodingDeflate CompressionFormat = "deflate"
 )
 
 // DeflateCompressor implements the compression handler for deflate encoding.
