@@ -1,4 +1,4 @@
-module github.com/hasura/ndc-sdk-go
+module github.com/hasura/ndc-sdk-go/v2
 
 go 1.24
 

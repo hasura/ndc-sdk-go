@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/hasura/ndc-sdk-go/connector"
+	"github.com/hasura/ndc-sdk-go/v2/connector"
 )
 
 type Configuration struct{}

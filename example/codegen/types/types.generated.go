@@ -4,8 +4,9 @@ package types
 import (
 	"encoding/json"
 	"errors"
-	"github.com/hasura/ndc-sdk-go/utils"
 	"slices"
+
+	"github.com/hasura/ndc-sdk-go/v2/utils"
 )
 
 // FromValue decodes values from map

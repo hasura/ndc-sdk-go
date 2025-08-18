@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/hasura/ndc-sdk-go/utils/compression"
+	"github.com/hasura/ndc-sdk-go/v2/utils/compression"
 )
 
 const (

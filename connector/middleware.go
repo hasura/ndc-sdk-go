@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/v2/schema"
 	"go.opentelemetry.io/otel/metric"
 )
 

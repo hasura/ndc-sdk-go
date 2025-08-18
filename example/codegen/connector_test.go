@@ -18,11 +18,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-codegen-example/types"
 	"github.com/hasura/ndc-codegen-example/types/arguments"
-	"github.com/hasura/ndc-sdk-go/connector"
-	"github.com/hasura/ndc-sdk-go/ndctest"
-	"github.com/hasura/ndc-sdk-go/scalar"
-	"github.com/hasura/ndc-sdk-go/schema"
-	"github.com/hasura/ndc-sdk-go/utils"
+	"github.com/hasura/ndc-sdk-go/v2/connector"
+	"github.com/hasura/ndc-sdk-go/v2/ndctest"
+	"github.com/hasura/ndc-sdk-go/v2/scalar"
+	"github.com/hasura/ndc-sdk-go/v2/schema"
+	"github.com/hasura/ndc-sdk-go/v2/utils"
 	"gotest.tools/v3/assert"
 )
 

@@ -6,7 +6,7 @@ import (
 	"go/types"
 	"strings"
 
-	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/v2/schema"
 )
 
 type TypeParser struct {
@@ -356,7 +356,7 @@ func (tp *TypeParser) parseNamedType( //nolint:cyclop,funlen
 
 			return NewNullableType(NewPredicateType(tp.tagInfo.PredicateObjectName)), nil
 		}
-	case "github.com/hasura/ndc-sdk-go/scalar":
+	case "github.com/hasura/ndc-sdk-go/v2/scalar":
 		scalarName := ScalarName(innerType.Name())
 		switch scalarName {
 		case ScalarDate,

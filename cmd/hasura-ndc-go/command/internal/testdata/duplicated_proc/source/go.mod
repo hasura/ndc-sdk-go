@@ -2,7 +2,7 @@ module github.com/hasura/ndc-codegen-duplicated-proc
 
 go 1.24
 
-require github.com/hasura/ndc-sdk-go v1.10.0
+require github.com/hasura/ndc-sdk-go/v2 v2.0.0
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
@@ -49,4 +49,4 @@ require (
 	google.golang.org/protobuf v1.36.7 // indirect
 )
 
-replace github.com/hasura/ndc-sdk-go => ../../../../../../../
+replace github.com/hasura/ndc-sdk-go/v2 => ../../../../../../../

@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-codegen-test/types"
-	"github.com/hasura/ndc-sdk-go/utils"
+	"github.com/hasura/ndc-sdk-go/v2/utils"
 )
 
 // CommentText

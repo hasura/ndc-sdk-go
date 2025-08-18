@@ -36,3 +36,22 @@ func TestPatchConnectorContent(t *testing.T) {
 	assert.Assert(t, changed)
 	assert.Equal(t, expected, result)
 }
+
+func TestPatchImportSdkV2Content(t *testing.T) {
+	fixture := `
+	import (
+		"github.com/hasura/ndc-sdk-go/schema"
+		"github.com/hasura/ndc-sdk-go/utils"
+	)`
+
+	expected := `
+	import (
+		"github.com/hasura/ndc-sdk-go/v2/schema"
+		"github.com/hasura/ndc-sdk-go/v2/utils"
+	)`
+
+	ucc := upgradeConnectorCommand{}
+	result, changed := ucc.patchImportSdkV2Content([]byte(fixture))
+	assert.Assert(t, changed)
+	assert.Equal(t, expected, result)
+}

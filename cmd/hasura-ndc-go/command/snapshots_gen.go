@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/command/internal"
-	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/v2/cmd/hasura-ndc-go/command/internal"
+	"github.com/hasura/ndc-sdk-go/v2/schema"
 )
 
 // GenTestSnapshotArguments represents arguments for test snapshot generation.

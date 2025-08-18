@@ -4,7 +4,7 @@ import (
 	"errors"
 	"regexp"
 
-	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/v2/schema"
 )
 
 type ScalarName string
@@ -162,12 +162,12 @@ var (
 
 var (
 	errUnsupportedTypeDuration = errors.New(
-		"unsupported time.Duration. Use github.com/hasura/ndc-sdk-go/scalar.Duration instead",
+		"unsupported time.Duration. Use github.com/hasura/ndc-sdk-go/v2/scalar.Duration instead",
 	)
 	errMustUseEnumTag = errors.New("use @enum tag with values instead")
 )
 
 const (
-	packageSDKUtils  = "github.com/hasura/ndc-sdk-go/utils"
-	packageSDKSchema = "github.com/hasura/ndc-sdk-go/schema"
+	packageSDKUtils  = "github.com/hasura/ndc-sdk-go/v2/utils"
+	packageSDKSchema = "github.com/hasura/ndc-sdk-go/v2/schema"
 )

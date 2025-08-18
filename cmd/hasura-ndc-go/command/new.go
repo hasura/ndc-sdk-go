@@ -14,7 +14,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/command/internal"
+	"github.com/hasura/ndc-sdk-go/v2/cmd/hasura-ndc-go/command/internal"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/mod/modfile"
 )
@@ -28,10 +28,10 @@ const (
 
 // NewArguments input arguments for the new command.
 type NewArguments struct {
-	Name    string `help:"Name of the connector." required:"" short:"n"`
-	Module  string `help:"Module name of the connector" required:"" short:"m"`
+	Name    string `help:"Name of the connector."                            required:"" short:"n"`
+	Module  string `help:"Module name of the connector"                      required:"" short:"m"`
 	Version string `help:"The version of ndc-sdk-go"`
-	Output  string `help:"The location where source codes will be generated" short:"o" default:""`
+	Output  string `help:"The location where source codes will be generated"             short:"o" default:""`
 }
 
 // GenerateNewProject generates a new project boilerplate.
@@ -147,7 +147,7 @@ func generateNewProjectFiles(args *NewArguments, srcPath string) error {
 }
 
 func execGetLatestSDK(basePath string) error {
-	return execCommand(basePath, "go", "get", "github.com/hasura/ndc-sdk-go@v2")
+	return execCommand(basePath, "go", "get", "github.com/hasura/ndc-sdk-go/v2@latest")
 }
 
 func execGoModTidy(basePath string) error {
