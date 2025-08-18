@@ -122,11 +122,7 @@ func (ucc upgradeConnectorCommand) patchConnectorFile() error {
 		return nil
 	}
 
-	if err := os.WriteFile(connectorFilePath, []byte(contentStr), 0o664); err != nil {
-		return err
-	}
-
-	return ucc.patchImportSdkV2Files()
+	return os.WriteFile(connectorFilePath, []byte(contentStr), 0o664)
 }
 
 func (ucc upgradeConnectorCommand) patchConnectorContent(originalContent []byte) (string, bool) {
