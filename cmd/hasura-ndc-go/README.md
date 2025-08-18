@@ -15,7 +15,7 @@ Get a release [here](https://github.com/hasura/ndc-sdk-go/releases).
 To install with Go 1.24+:
 
 ```bash
-go install github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go@latest
+go install github.com/hasura/ndc-sdk-go/v2/cmd/hasura-ndc-go@latest
 ```
 
 ## How to Use

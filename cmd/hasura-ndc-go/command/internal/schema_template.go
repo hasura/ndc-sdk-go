@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hasura/ndc-sdk-go/schema"
-	"github.com/hasura/ndc-sdk-go/utils"
+	"github.com/hasura/ndc-sdk-go/v2/schema"
+	"github.com/hasura/ndc-sdk-go/v2/utils"
 )
 
 // WriteGoSchema writes the schema as Go codes.
@@ -15,7 +15,7 @@ func (rcs RawConnectorSchema) WriteGoSchema(packageName string) (string, error) 
 	writeFileHeader(&builder, packageName)
 	builder.WriteString(`
 import (
-  "github.com/hasura/ndc-sdk-go/schema"
+  "github.com/hasura/ndc-sdk-go/v2/schema"
 )
 
 func toPtr[V any](value V) *V {

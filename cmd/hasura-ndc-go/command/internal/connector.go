@@ -15,8 +15,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/hasura/ndc-sdk-go/schema"
-	"github.com/hasura/ndc-sdk-go/utils"
+	"github.com/hasura/ndc-sdk-go/v2/schema"
+	"github.com/hasura/ndc-sdk-go/v2/utils"
 	"github.com/huandu/xstrings"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/tools/go/packages"

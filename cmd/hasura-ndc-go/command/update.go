@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/command/internal"
+	"github.com/hasura/ndc-sdk-go/v2/cmd/hasura-ndc-go/command/internal"
 	"github.com/rs/zerolog/log"
 )
 

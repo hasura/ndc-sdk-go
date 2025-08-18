@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/command"
-	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/command/internal"
+	"github.com/hasura/ndc-sdk-go/v2/cmd/hasura-ndc-go/command"
+	"github.com/hasura/ndc-sdk-go/v2/cmd/hasura-ndc-go/command/internal"
 	"gotest.tools/v3/assert"
 )
 

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/alecthomas/kong"
-	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/command"
-	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/version"
+	"github.com/hasura/ndc-sdk-go/v2/cmd/hasura-ndc-go/command"
+	"github.com/hasura/ndc-sdk-go/v2/cmd/hasura-ndc-go/version"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )

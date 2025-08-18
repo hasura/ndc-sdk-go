@@ -14,7 +14,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/command/internal"
+	"github.com/hasura/ndc-sdk-go/v2/cmd/hasura-ndc-go/command/internal"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/mod/modfile"
 )
@@ -147,7 +147,7 @@ func generateNewProjectFiles(args *NewArguments, srcPath string) error {
 }
 
 func execGetLatestSDK(basePath string) error {
-	return execCommand(basePath, "go", "get", "github.com/hasura/ndc-sdk-go@v2")
+	return execCommand(basePath, "go", "get", "github.com/hasura/ndc-sdk-go/v2@v2")
 }
 
 func execGoModTidy(basePath string) error {

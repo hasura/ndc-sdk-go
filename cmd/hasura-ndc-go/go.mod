@@ -1,4 +1,4 @@
-module github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go
+module github.com/hasura/ndc-sdk-go/v2/cmd/hasura-ndc-go
 
 go 1.24
 
@@ -6,7 +6,6 @@ require (
 	github.com/alecthomas/kong v1.12.1
 	github.com/fatih/structtag v1.2.0
 	github.com/google/uuid v1.6.0
-	github.com/hasura/ndc-sdk-go v1.9.2-0.20250816071929-c09d8a4750cd
 	github.com/huandu/xstrings v1.5.0
 	github.com/rs/zerolog v1.34.0
 	golang.org/x/mod v0.27.0
@@ -17,6 +16,7 @@ require (
 require (
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
+	github.com/hasura/ndc-sdk-go/v2 v2.0.1-0.20250818041822-765973c6022e // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect

@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-codegen-test/types"
-	"github.com/hasura/ndc-sdk-go/scalar"
-	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/v2/scalar"
+	"github.com/hasura/ndc-sdk-go/v2/schema"
 )
 
 type Text string

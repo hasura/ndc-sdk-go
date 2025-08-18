@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hasura/ndc-sdk-go/utils"
+	"github.com/hasura/ndc-sdk-go/v2/utils"
 )
 
 const (
@@ -28,7 +28,7 @@ func (chb connectorHandlerBuilder) Render() {
 	bs.imports["context"] = ""
 	bs.imports["log/slog"] = ""
 	bs.imports["slices"] = ""
-	bs.imports["github.com/hasura/ndc-sdk-go/connector"] = ""
+	bs.imports["github.com/hasura/ndc-sdk-go/v2/connector"] = ""
 	bs.imports[packageSDKSchema] = ""
 	bs.imports["go.opentelemetry.io/otel/trace"] = ""
 	bs.imports[packageSDKUtils] = ""
