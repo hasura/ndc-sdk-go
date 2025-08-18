@@ -2,11 +2,20 @@ package command
 
 import (
 	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/rs/zerolog/log"
+)
+
+var packageV2UpgradeRegex = regexp.MustCompile(`github.com/hasura/ndc-sdk-go/[^v2]`)
+
+const (
+	sdkPackageV1 = "github.com/hasura/ndc-sdk-go"
+	sdkPackageV2 = "github.com/hasura/ndc-sdk-go/v2"
 )
 
 // UpgradeArguments represent input arguments of the upgrade command.
@@ -41,7 +50,33 @@ func UpgradeConnector(args UpgradeArguments) error {
 		BasePath: srcPath,
 	}
 
+	// if the github.com/hasura/ndc-sdk-go/v2 package exists in go.mod,
+	// skip the migration.
+	isChanged, err := ucc.patchGoMod()
+	if !isChanged || err != nil {
+		return err
+	}
+
 	return ucc.patchConnectorFile()
+}
+
+func (ucc upgradeConnectorCommand) patchGoMod() (bool, error) {
+	goModFilePath := filepath.Join(ucc.BasePath, "go.mod")
+
+	goModContent, err := os.ReadFile(goModFilePath)
+	if err != nil {
+		return false, err
+	}
+
+	contentStr := string(goModContent)
+
+	if strings.Contains(contentStr, sdkPackageV2) {
+		return false, nil
+	}
+
+	contentStr = strings.ReplaceAll(contentStr, sdkPackageV1, sdkPackageV2)
+
+	return true, os.WriteFile(goModFilePath, []byte(contentStr), 0o664)
 }
 
 func (ucc upgradeConnectorCommand) patchConnectorFile() error {
@@ -61,7 +96,11 @@ func (ucc upgradeConnectorCommand) patchConnectorFile() error {
 		return nil
 	}
 
-	return os.WriteFile(connectorFilePath, []byte(contentStr), 0o664)
+	if err := os.WriteFile(connectorFilePath, []byte(contentStr), 0o664); err != nil {
+		return err
+	}
+
+	return ucc.patchImportSdkV2Files()
 }
 
 func (ucc upgradeConnectorCommand) patchConnectorContent(originalContent []byte) (string, bool) {
@@ -85,4 +124,45 @@ func (ucc upgradeConnectorCommand) patchConnectorContent(originalContent []byte)
 	}
 
 	return contentStr, isChanged
+}
+
+func (ucc upgradeConnectorCommand) patchImportSdkV2Content(originalContent []byte) (string, bool) {
+	var isChanged bool
+
+	contentStr := string(originalContent)
+
+	if packageV2UpgradeRegex.MatchString(contentStr) {
+		isChanged = true
+		contentStr = strings.ReplaceAll(contentStr, sdkPackageV1, sdkPackageV2)
+	}
+
+	return contentStr, isChanged
+}
+
+func (ucc upgradeConnectorCommand) patchImportSdkV2Files() error {
+	return filepath.WalkDir(ucc.BasePath, func(fileName string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		log.Debug().Msg(fileName)
+
+		if !strings.HasSuffix(fileName, ".go") {
+			return nil
+		}
+
+		filePath := filepath.Join(ucc.BasePath, fileName)
+
+		fileContent, err := os.ReadFile(filePath)
+		if err != nil {
+			return err
+		}
+
+		newContent, isChanged := ucc.patchImportSdkV2Content(fileContent)
+		if !isChanged {
+			return nil
+		}
+
+		return os.WriteFile(filePath, []byte(newContent), 0o664)
+	})
 }
