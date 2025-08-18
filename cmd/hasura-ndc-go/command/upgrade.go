@@ -7,15 +7,19 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/rs/zerolog/log"
 )
 
-var packageV2UpgradeRegex = regexp.MustCompile(`github.com/hasura/ndc-sdk-go/[^v2]`)
-
 const (
 	sdkPackageV1 = "github.com/hasura/ndc-sdk-go"
 	sdkPackageV2 = "github.com/hasura/ndc-sdk-go/v2"
+)
+
+var (
+	goModV1Regex          = regexp.MustCompile(`github.com/hasura/ndc-sdk-go\s+v\d\.\d+\.\d`)
+	packageV2UpgradeRegex = regexp.MustCompile(`github.com/hasura/ndc-sdk-go/[^v2]`)
 )
 
 // UpgradeArguments represent input arguments of the upgrade command.
@@ -53,11 +57,33 @@ func UpgradeConnector(args UpgradeArguments) error {
 	// if the github.com/hasura/ndc-sdk-go/v2 package exists in go.mod,
 	// skip the migration.
 	isChanged, err := ucc.patchGoMod()
-	if !isChanged || err != nil {
+	if err != nil {
 		return err
 	}
 
-	return ucc.patchConnectorFile()
+	if !isChanged {
+		log.Debug().
+			Msg("go.mod is already upgraded to github.com/hasura/ndc-sdk-go/v2. Skip the migration")
+
+		return nil
+	}
+
+	err = ucc.patchConnectorFile()
+	if err != nil {
+		return err
+	}
+
+	err = ucc.patchImportSdkV2Files()
+	if err != nil {
+		return err
+	}
+
+	UpdateConnectorSchema(UpdateArguments{
+		ConnectorDir: ".",
+		Path:         srcPath,
+	}, time.Now())
+
+	return nil
 }
 
 func (ucc upgradeConnectorCommand) patchGoMod() (bool, error) {
@@ -74,7 +100,7 @@ func (ucc upgradeConnectorCommand) patchGoMod() (bool, error) {
 		return false, nil
 	}
 
-	contentStr = strings.ReplaceAll(contentStr, sdkPackageV1, sdkPackageV2)
+	contentStr = goModV1Regex.ReplaceAllString(contentStr, sdkPackageV2+" v2.0.0")
 
 	return true, os.WriteFile(goModFilePath, []byte(contentStr), 0o664)
 }
@@ -140,18 +166,16 @@ func (ucc upgradeConnectorCommand) patchImportSdkV2Content(originalContent []byt
 }
 
 func (ucc upgradeConnectorCommand) patchImportSdkV2Files() error {
-	return filepath.WalkDir(ucc.BasePath, func(fileName string, d fs.DirEntry, err error) error {
+	return filepath.WalkDir(ucc.BasePath, func(filePath string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
-		log.Debug().Msg(fileName)
-
-		if !strings.HasSuffix(fileName, ".go") {
+		if d.IsDir() || !strings.HasSuffix(filePath, ".go") {
 			return nil
 		}
 
-		filePath := filepath.Join(ucc.BasePath, fileName)
+		log.Debug().Msg(filePath)
 
 		fileContent, err := os.ReadFile(filePath)
 		if err != nil {
