@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hasura/ndc-sdk-go/connector"
-	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/v2/connector"
+	"github.com/hasura/ndc-sdk-go/v2/schema"
 	"gotest.tools/v3/assert"
 )
 

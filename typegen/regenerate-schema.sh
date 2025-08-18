@@ -36,7 +36,7 @@ if [ "$(uname)" == "Darwin" ]; then
 fi
 
 go-jsonschema \
-  --package=github.com/hasura/ndc-sdk-go/schema \
+  --package=github.com/hasura/ndc-sdk-go/v2/schema \
   --output=$GENERATED_SCHEMA_GO \
   schema.patched.json
 

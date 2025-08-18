@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/hasura/ndc-codegen-example/types"
-	"github.com/hasura/ndc-sdk-go/connector"
+	"github.com/hasura/ndc-sdk-go/v2/connector"
 )
 
 // Start the connector server at http://localhost:8080

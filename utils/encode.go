@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/v2/schema"
 )
 
 // MapEncoder abstracts a type with the ToMap method to encode type to map.

@@ -4,14 +4,15 @@ package functions
 import (
 	"context"
 	"encoding/json"
-	"github.com/hasura/ndc-codegen-example/types"
-	"github.com/hasura/ndc-codegen-example/types/arguments"
-	"github.com/hasura/ndc-sdk-go/connector"
-	"github.com/hasura/ndc-sdk-go/schema"
-	"github.com/hasura/ndc-sdk-go/utils"
-	"go.opentelemetry.io/otel/trace"
 	"log/slog"
 	"slices"
+
+	"github.com/hasura/ndc-codegen-example/types"
+	"github.com/hasura/ndc-codegen-example/types/arguments"
+	"github.com/hasura/ndc-sdk-go/v2/connector"
+	"github.com/hasura/ndc-sdk-go/v2/schema"
+	"github.com/hasura/ndc-sdk-go/v2/utils"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // FromValue decodes values from map

@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/hasura/ndc-codegen-example/types"
-	"github.com/hasura/ndc-sdk-go/connector"
-	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/v2/connector"
+	"github.com/hasura/ndc-sdk-go/v2/schema"
 )
 
 var connectorCapabilities = schema.CapabilitiesResponse{

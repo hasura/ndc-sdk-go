@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hasura/ndc-sdk-go/schema"
-	"github.com/hasura/ndc-sdk-go/utils"
-	"github.com/hasura/ndc-sdk-go/utils/compression"
+	"github.com/hasura/ndc-sdk-go/v2/schema"
+	"github.com/hasura/ndc-sdk-go/v2/utils"
+	"github.com/hasura/ndc-sdk-go/v2/utils/compression"
 	"gotest.tools/v3/assert"
 )
 

@@ -5,7 +5,7 @@ go 1.24
 require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
-	github.com/hasura/ndc-sdk-go v1.9.2-0.20250405185024-ca5d8c250588
+	github.com/hasura/ndc-sdk-go/v2 v2.0.0
 	go.opentelemetry.io/otel v1.37.0
 	go.opentelemetry.io/otel/trace v1.37.0
 	golang.org/x/sync v0.16.0
@@ -54,4 +54,4 @@ require (
 	google.golang.org/protobuf v1.36.7 // indirect
 )
 
-replace github.com/hasura/ndc-sdk-go => ../../
+replace github.com/hasura/ndc-sdk-go/v2 => ../../

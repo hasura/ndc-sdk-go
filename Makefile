@@ -80,7 +80,7 @@ ci-build-codegen: export CGO_ENABLED=0
 ci-build-codegen: clean
 	cd ./cmd/hasura-ndc-go && \
 	go get github.com/mitchellh/gox && \
-	go run github.com/mitchellh/gox -ldflags '-X github.com/hasura/ndc-sdk-go/cmd/hasura-ndc-go/version.BuildVersion=$(VERSION) -s -w -extldflags "-static"' \
+	go run github.com/mitchellh/gox -ldflags '-X github.com/hasura/ndc-sdk-go/v2/cmd/hasura-ndc-go/version.BuildVersion=$(VERSION) -s -w -extldflags "-static"' \
 		-osarch="linux/amd64 linux/arm64 darwin/amd64 windows/amd64 darwin/arm64" \
 		-output="../../$(OUTPUT_DIR)/hasura-ndc-go-{{.OS}}-{{.Arch}}" \
 		.

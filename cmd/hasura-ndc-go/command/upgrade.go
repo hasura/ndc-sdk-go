@@ -12,7 +12,7 @@ import (
 // UpgradeArguments represent input arguments of the upgrade command.
 type UpgradeArguments struct {
 	Path         string `default:"." env:"HASURA_PLUGIN_CONNECTOR_CONTEXT_PATH" help:"The path of the root directory where the go.mod file is present" short:"p"`
-	ConnectorDir string `default:"." help:"The directory where the connector.go file is placed"`
+	ConnectorDir string `default:"."                                            help:"The directory where the connector.go file is placed"`
 }
 
 type upgradeConnectorCommand struct {
@@ -66,6 +66,7 @@ func (ucc upgradeConnectorCommand) patchConnectorFile() error {
 
 func (ucc upgradeConnectorCommand) patchConnectorContent(originalContent []byte) (string, bool) {
 	var isChanged bool
+
 	contentStr := string(originalContent)
 	versionRegexp := regexp.MustCompile(`Version:[\s\t]+"0\.1\.\d"`)
 	varCapsRegexp := regexp.MustCompile(`Variables:[\s\t]+schema.LeafCapability\{\}`)
@@ -77,7 +78,10 @@ func (ucc upgradeConnectorCommand) patchConnectorContent(originalContent []byte)
 
 	if varCapsRegexp.MatchString(contentStr) {
 		isChanged = true
-		contentStr = varCapsRegexp.ReplaceAllString(contentStr, "Variables:    &schema.LeafCapability{}")
+		contentStr = varCapsRegexp.ReplaceAllString(
+			contentStr,
+			"Variables:    &schema.LeafCapability{}",
+		)
 	}
 
 	return contentStr, isChanged

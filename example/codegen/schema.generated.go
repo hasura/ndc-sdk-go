@@ -2,7 +2,7 @@
 package main
 
 import (
-	"github.com/hasura/ndc-sdk-go/schema"
+	"github.com/hasura/ndc-sdk-go/v2/schema"
 )
 
 func toPtr[V any](value V) *V {

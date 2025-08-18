@@ -6,7 +6,7 @@ All functions of the Connector interface are analogous to their Rust counterpart
 
 ## Features
 
-The SDK fully supports [NDC Specification v0.1.6](https://hasura.github.io/ndc-spec/specification/changelog.html#016) and [Connector Deployment spec](https://github.com/hasura/ndc-hub/blob/main/rfcs/0000-deployment.md) with following features:
+The SDK fully supports [NDC Specification v0.2.10](https://hasura.github.io/ndc-spec/specification/changelog.html#0210) and [Connector Deployment spec](https://github.com/hasura/ndc-hub/blob/main/rfcs/0000-deployment.md) with following features:
 
 - Connector HTTP server
 - Authentication
@@ -32,7 +32,7 @@ This function should be your starting point.
 A connector can thus start likes so:
 
 ```go
-import "github.com/hasura/ndc-sdk-go/connector"
+import "github.com/hasura/ndc-sdk-go/v2/connector"
 
 type Configuration struct { ... }
 type State struct { ... }

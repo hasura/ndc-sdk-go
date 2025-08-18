@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hasura/ndc-codegen-example/types"
-	"github.com/hasura/ndc-sdk-go/scalar"
+	"github.com/hasura/ndc-sdk-go/v2/scalar"
 )
 
 type GetTypesArguments struct {

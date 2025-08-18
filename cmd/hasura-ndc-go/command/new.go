@@ -28,10 +28,10 @@ const (
 
 // NewArguments input arguments for the new command.
 type NewArguments struct {
-	Name    string `help:"Name of the connector." required:"" short:"n"`
-	Module  string `help:"Module name of the connector" required:"" short:"m"`
+	Name    string `help:"Name of the connector."                            required:"" short:"n"`
+	Module  string `help:"Module name of the connector"                      required:"" short:"m"`
 	Version string `help:"The version of ndc-sdk-go"`
-	Output  string `help:"The location where source codes will be generated" short:"o" default:""`
+	Output  string `help:"The location where source codes will be generated"             short:"o" default:""`
 }
 
 // GenerateNewProject generates a new project boilerplate.
