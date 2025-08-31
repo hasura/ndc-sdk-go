@@ -38,7 +38,6 @@ import (
 )
 
 const (
-	otlpDefaultGRPCPort = 4317
 	otlpDefaultHTTPPort = 4318
 	otlpCompressionNone = "none"
 	otlpCompressionGzip = "gzip"
