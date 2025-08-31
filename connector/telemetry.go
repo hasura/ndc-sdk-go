@@ -33,12 +33,11 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.32.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 	traceapi "go.opentelemetry.io/otel/trace"
 )
 
 const (
-	otlpDefaultGRPCPort = 4317
 	otlpDefaultHTTPPort = 4318
 	otlpCompressionNone = "none"
 	otlpCompressionGzip = "gzip"
