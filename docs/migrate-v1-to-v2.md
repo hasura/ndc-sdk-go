@@ -26,7 +26,7 @@ var connectorCapabilities = schema.CapabilitiesResponse{
 
 ### Add Close method
 
-The `Connector` interface adds a new `Close` method to handle the graceful shutdown of the connector. You need to add this method to satisfy the interface.
+The `Connector` interface adds a new [Close](https://github.com/hasura/ndc-sdk-go/blob/83a469863391fa412e1abe0e8efb5952662752ce/connector/types.go#L106) method to handle the graceful shutdown of the connector. You need to add this method to satisfy the interface.
 
 ```go
 // Close handles the graceful shutdown that cleans up the connector's state.
