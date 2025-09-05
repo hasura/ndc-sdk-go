@@ -88,3 +88,8 @@ func (c *Connector) MutationExplain(
 ) (*schema.ExplainResponse, error) {
 	return nil, schema.NotSupportedError("mutation explain has not been supported yet", nil)
 }
+
+// Close handles the graceful shutdown that cleans up the connector's state.
+func (c *Connector) Close(state *types.State) error {
+	return nil
+}

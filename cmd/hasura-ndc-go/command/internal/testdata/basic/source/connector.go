@@ -64,3 +64,8 @@ func (c *Connector) QueryExplain(ctx context.Context, configuration *types.Confi
 func (c *Connector) MutationExplain(ctx context.Context, configuration *types.Configuration, state *types.State, request *schema.MutationRequest) (*schema.ExplainResponse, error) {
 	return nil, schema.NotSupportedError("mutation explain has not been supported yet", nil)
 }
+
+// Close handles the graceful shutdown that cleans up the connector's state.
+func (c *Connector) Close(state *types.State) error {
+	return nil
+}

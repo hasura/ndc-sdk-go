@@ -531,9 +531,19 @@ func (s *Server[Configuration, State]) BuildTestServer() *httptest.Server {
 // ListenAndServe serves the configuration server with the standard http server.
 // You can also replace this method with any router or web framework that is compatible with net/http.
 func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
-	defer s.stop()
 	defer func() {
-		if err := s.telemetry.Shutdown(context.Background()); err != nil {
+		s.stop()
+
+		err := s.connector.Close(s.state)
+		if err != nil {
+			s.logger.Error(
+				"failed to shutdown the connector",
+				slog.Any("error", err),
+			)
+		}
+
+		err = s.telemetry.Shutdown(context.Background())
+		if err != nil {
 			s.logger.Error(
 				"failed to shutdown OpenTelemetry",
 				slog.Any("error", err),
@@ -604,8 +614,6 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 	case <-s.context.Done():
 		// Wait for first CTRL+C.
 		s.logger.Info("received the quit signal, exiting...")
-		// Stop receiving signal notifications as soon as possible.
-		s.stop()
 		// When Shutdown is called, ListenAndServe immediately returns ErrServerClosed.
 		return server.Shutdown(context.Background())
 	}

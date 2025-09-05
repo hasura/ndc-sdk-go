@@ -54,6 +54,11 @@ func UpgradeConnector(args UpgradeArguments) error {
 		BasePath: srcPath,
 	}
 
+	err := ucc.patchConnectorFile()
+	if err != nil {
+		return err
+	}
+
 	// if the github.com/hasura/ndc-sdk-go/v2 package exists in go.mod,
 	// skip the migration.
 	isChanged, err := ucc.patchGoMod()
@@ -63,14 +68,9 @@ func UpgradeConnector(args UpgradeArguments) error {
 
 	if !isChanged {
 		log.Debug().
-			Msg("go.mod is already upgraded to github.com/hasura/ndc-sdk-go/v2. Skip the migration")
+			Msg("go.mod is already upgraded to github.com/hasura/ndc-sdk-go/v2")
 
 		return nil
-	}
-
-	err = ucc.patchConnectorFile()
-	if err != nil {
-		return err
 	}
 
 	err = ucc.patchImportSdkV2Files()
@@ -131,6 +131,7 @@ func (ucc upgradeConnectorCommand) patchConnectorContent(originalContent []byte)
 	contentStr := string(originalContent)
 	versionRegexp := regexp.MustCompile(`Version:[\s\t]+"0\.1\.\d"`)
 	varCapsRegexp := regexp.MustCompile(`Variables:[\s\t]+schema.LeafCapability\{\}`)
+	connectorCloseRegexp := regexp.MustCompile(`Close\(state \*types.State\) error`)
 
 	if versionRegexp.MatchString(contentStr) {
 		isChanged = true
@@ -143,6 +144,16 @@ func (ucc upgradeConnectorCommand) patchConnectorContent(originalContent []byte)
 			contentStr,
 			"Variables:    &schema.LeafCapability{}",
 		)
+	}
+
+	if !connectorCloseRegexp.MatchString(contentStr) {
+		isChanged = true
+		contentStr += `
+
+// Close handles the graceful shutdown that cleans up the connector's state.
+func (c *Connector) Close(state *types.State) error {
+	return nil
+}`
 	}
 
 	return contentStr, isChanged

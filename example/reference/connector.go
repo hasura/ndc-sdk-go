@@ -62,6 +62,10 @@ func (mc *Connector) TryInitState(
 	}, nil
 }
 
+func (mc *Connector) Close(state *State) error {
+	return nil
+}
+
 func (mc *Connector) HealthCheck(
 	ctx context.Context,
 	configuration *Configuration,
