@@ -227,6 +227,11 @@ func (mc *mockConnector) Query(
 	}, nil
 }
 
+// Close handles the graceful shutdown that cleans up the connector's state.
+func (mc *mockConnector) Close(state *mockState) error {
+	return nil
+}
+
 func httpPostJSON(url string, headers map[string]string, body any) (*http.Response, error) {
 	return httpPostJSONWithNDCVersion(url, schema.NDCVersion, headers, body)
 }

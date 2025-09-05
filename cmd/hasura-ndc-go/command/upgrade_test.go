@@ -29,7 +29,12 @@ func TestPatchConnectorContent(t *testing.T) {
 			},
 			Mutation: schema.MutationCapabilities{},
 		},
-	}`
+	}
+
+// Close handles the graceful shutdown that cleans up the connector's state.
+func (c *Connector) Close(state *types.State) error {
+	return nil
+}`
 
 	ucc := upgradeConnectorCommand{}
 	result, changed := ucc.patchConnectorContent([]byte(fixture))

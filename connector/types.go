@@ -101,6 +101,9 @@ type Connector[Configuration any, State any] interface {
 		state *State,
 		request *schema.QueryRequest,
 	) (schema.QueryResponse, error)
+
+	// Close handles the graceful shutdown that cleans up the connector's state.
+	Close(state *State) error
 }
 
 // the common serve options for the server.
