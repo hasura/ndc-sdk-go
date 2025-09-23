@@ -136,6 +136,11 @@ $SED_CMD 's/RelationalQueryRootRelation/Relation/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type RelationalInsertRequestArguments map\[string\]interface{}/type RelationalInsertRequestArguments map[string]Argument/g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type JoinType interface{}//g' $GENERATED_SCHEMA_GO
 $SED_CMD 's/type CastType interface{}//g' $GENERATED_SCHEMA_GO
+# patch request_arguments to raw json
+$SED_CMD 's/RequestArguments QueryRequestRequestArguments/RequestArguments json.RawMessage/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/RequestArguments MutationRequestRequestArguments/RequestArguments json.RawMessage/g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type MutationRequestRequestArguments map\[string\]interface{}//g' $GENERATED_SCHEMA_GO
+$SED_CMD 's/type QueryRequestRequestArguments map\[string\]interface{}//g' $GENERATED_SCHEMA_GO
 
 $SED_CMD 's/^.*DeleteThis .*$//g' $GENERATED_SCHEMA_GO
 
