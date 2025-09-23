@@ -23,7 +23,7 @@ func (bi BigInt) ScalarName() string {
 	return "BigInt"
 }
 
-// Stringer implements fmt.Stringer interface.
+// String implements fmt.Stringer interface.
 func (bi BigInt) String() string {
 	return strconv.FormatInt(int64(bi), 10)
 }

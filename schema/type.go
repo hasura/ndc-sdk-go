@@ -75,7 +75,7 @@ func (j *TypeEnum) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Types track the valid representations of values as JSON.
+// Type track the valid representations of values as JSON.
 type Type map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.

@@ -28,43 +28,43 @@ func NewScalarType() *ScalarType {
 type TypeRepresentationType string
 
 const (
-	// JSON booleans.
+	// TypeRepresentationTypeBoolean JSON booleans.
 	TypeRepresentationTypeBoolean TypeRepresentationType = "boolean"
-	// JSON booleans.
+	// TypeRepresentationTypeString string.
 	TypeRepresentationTypeString TypeRepresentationType = "string"
-	// One of the specified string values.
+	// TypeRepresentationTypeEnum One of the specified string values.
 	TypeRepresentationTypeEnum TypeRepresentationType = "enum"
-	// A 8-bit signed integer with a minimum value of -2^7 and a maximum value of 2^7 - 1.
+	// TypeRepresentationTypeInt8 A 8-bit signed integer with a minimum value of -2^7 and a maximum value of 2^7 - 1.
 	TypeRepresentationTypeInt8 TypeRepresentationType = "int8"
-	// A 16-bit signed integer with a minimum value of -2^15 and a maximum value of 2^15 - 1.
+	// TypeRepresentationTypeInt16 A 16-bit signed integer with a minimum value of -2^15 and a maximum value of 2^15 - 1.
 	TypeRepresentationTypeInt16 TypeRepresentationType = "int16"
-	// A 32-bit signed integer with a minimum value of -2^31 and a maximum value of 2^31 - 1.
+	// TypeRepresentationTypeInt32 A 32-bit signed integer with a minimum value of -2^31 and a maximum value of 2^31 - 1.
 	TypeRepresentationTypeInt32 TypeRepresentationType = "int32"
-	// A 64-bit signed integer with a minimum value of -2^63 and a maximum value of 2^63 - 1.
+	// TypeRepresentationTypeInt64 A 64-bit signed integer with a minimum value of -2^63 and a maximum value of 2^63 - 1.
 	TypeRepresentationTypeInt64 TypeRepresentationType = "int64"
-	// An IEEE-754 single-precision floating-point number.
+	// TypeRepresentationTypeFloat32 An IEEE-754 single-precision floating-point number.
 	TypeRepresentationTypeFloat32 TypeRepresentationType = "float32"
-	// An IEEE-754 double-precision floating-point number.
+	// TypeRepresentationTypeFloat64 An IEEE-754 double-precision floating-point number.
 	TypeRepresentationTypeFloat64 TypeRepresentationType = "float64"
-	// Arbitrary-precision integer string.
+	// TypeRepresentationTypeBigInteger Arbitrary-precision integer string.
 	TypeRepresentationTypeBigInteger TypeRepresentationType = "biginteger"
-	// Arbitrary-precision decimal string.
+	// TypeRepresentationTypeBigDecimal Arbitrary-precision decimal string.
 	TypeRepresentationTypeBigDecimal TypeRepresentationType = "bigdecimal"
-	// UUID string (8-4-4-4-12).
+	// TypeRepresentationTypeUUID UUID string (8-4-4-4-12).
 	TypeRepresentationTypeUUID TypeRepresentationType = "uuid"
-	// ISO 8601 date.
+	// TypeRepresentationTypeDate ISO 8601 date.
 	TypeRepresentationTypeDate TypeRepresentationType = "date"
-	// ISO 8601 timestamp.
+	// TypeRepresentationTypeTimestamp ISO 8601 timestamp.
 	TypeRepresentationTypeTimestamp TypeRepresentationType = "timestamp"
-	// ISO 8601 timestamp-with-timezone.
+	// TypeRepresentationTypeTimestampTZ ISO 8601 timestamp-with-timezone.
 	TypeRepresentationTypeTimestampTZ TypeRepresentationType = "timestamptz"
-	// GeoJSON, per RFC 7946.
+	// TypeRepresentationTypeGeography GeoJSON, per RFC 7946.
 	TypeRepresentationTypeGeography TypeRepresentationType = "geography"
-	// GeoJSON Geometry object, per RFC 7946.
+	// TypeRepresentationTypeGeometry GeoJSON Geometry object, per RFC 7946.
 	TypeRepresentationTypeGeometry TypeRepresentationType = "geometry"
-	// Base64-encoded bytes.
+	// TypeRepresentationTypeBytes Base64-encoded bytes.
 	TypeRepresentationTypeBytes TypeRepresentationType = "bytes"
-	// Arbitrary JSON.
+	// TypeRepresentationTypeJSON Arbitrary JSON.
 	TypeRepresentationTypeJSON TypeRepresentationType = "json"
 )
 
@@ -128,7 +128,7 @@ func (j *TypeRepresentationType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Representations of scalar types.
+// TypeRepresentation Representations of scalar types.
 type TypeRepresentation map[string]any
 
 // UnmarshalJSON implements json.Unmarshaler.

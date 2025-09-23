@@ -9,6 +9,8 @@ import (
 	"github.com/prometheus/common/model"
 )
 
+// Duration represents the elapsed time between two instants as an int64 nanosecond count.
+// The representation limits the largest representable duration to approximately 290 years.
 // @scalar Duration.
 type Duration struct {
 	time.Duration
@@ -26,7 +28,7 @@ func (d Duration) ScalarName() string {
 	return "Duration"
 }
 
-// Stringer implements fmt.Stringer interface.
+// String implements fmt.Stringer interface.
 func (d Duration) String() string {
 	return d.Duration.String()
 }
@@ -77,7 +79,7 @@ func (d DurationString) ScalarName() string {
 	return "DurationString"
 }
 
-// Stringer implements fmt.Stringer interface.
+// String implements fmt.Stringer interface.
 func (d DurationString) String() string {
 	return d.Duration.String()
 }
@@ -135,7 +137,7 @@ func (d DurationInt64) ScalarName() string {
 	return "DurationInt64"
 }
 
-// Stringer implements fmt.Stringer interface.
+// String implements fmt.Stringer interface.
 func (d DurationInt64) String() string {
 	return d.Duration.String()
 }

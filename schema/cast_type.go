@@ -231,7 +231,7 @@ func (j CastTypeBoolean) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeBoolean) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -256,7 +256,7 @@ func (j CastTypeUTF8) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeUTF8) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -281,7 +281,7 @@ func (j CastTypeInt8) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeInt8) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -306,7 +306,7 @@ func (j CastTypeInt16) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeInt16) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -331,7 +331,7 @@ func (j CastTypeInt32) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeInt32) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -356,7 +356,7 @@ func (j CastTypeInt64) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeInt64) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -381,7 +381,7 @@ func (j CastTypeUint8) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeUint8) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -406,7 +406,7 @@ func (j CastTypeUint16) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeUint16) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -431,7 +431,7 @@ func (j CastTypeUint32) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeUint32) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -456,7 +456,7 @@ func (j CastTypeUint64) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeUint64) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -481,7 +481,7 @@ func (j CastTypeFloat32) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeFloat32) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -506,7 +506,7 @@ func (j CastTypeFloat64) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeFloat64) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -539,7 +539,7 @@ func (j CastTypeDecimal128) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeDecimal128) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -572,7 +572,7 @@ func (j CastTypeDecimal256) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeDecimal256) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -597,7 +597,7 @@ func (j CastTypeDate) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeDate) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -622,7 +622,7 @@ func (j CastTypeTime) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeTime) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -647,7 +647,7 @@ func (j CastTypeTimestamp) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeTimestamp) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -672,7 +672,7 @@ func (j CastTypeDuration) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeDuration) Wrap() CastType {
 	return NewCastType(&j)
 }
@@ -697,7 +697,7 @@ func (j CastTypeInterval) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j CastTypeInterval) Wrap() CastType {
 	return NewCastType(&j)
 }

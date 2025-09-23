@@ -913,7 +913,7 @@ func DecodeBoolean(value any) (bool, error) {
 	return *result, nil
 }
 
-// DecodeBooleanReflection decodes a nullable boolean value from reflection.
+// DecodeNullableBooleanReflection decodes a nullable boolean value from reflection.
 func DecodeNullableBooleanReflection(value reflect.Value) (*bool, error) {
 	inferredValue, ok := UnwrapPointerFromReflectValue(value)
 	if !ok {
@@ -980,7 +980,7 @@ func (d decodeTimeOptions) ConvertDuration(value int64) time.Duration {
 	return baseUnix * time.Duration(value)
 }
 
-// ConvertDuration convert a floating point value to time.Time with the base unix timestamp.
+// ConvertFloatDuration convert a floating point value to time.Time with the base unix timestamp.
 func (d decodeTimeOptions) ConvertFloatDuration(value float64) time.Duration {
 	baseUnix := d.BaseUnix
 	if baseUnix <= 0 {
@@ -1465,7 +1465,7 @@ func GetArbitraryJSON(object map[string]any, key string) (any, error) {
 	return value, nil
 }
 
-// Return nil if the value does not exist.
+// GetArbitraryJSONDefault returns nil if the value does not exist.
 func GetArbitraryJSONDefault(object map[string]any, key string) (any, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -1678,7 +1678,7 @@ func GetString(object map[string]any, key string) (string, error) {
 	return result, nil
 }
 
-// Returns an empty string if the value is null.
+// GetStringDefault returns an empty string if the value is null.
 func GetStringDefault(object map[string]any, key string) (string, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -1727,7 +1727,7 @@ func GetBoolean(object map[string]any, key string) (bool, error) {
 	return result, nil
 }
 
-// Returns false if the value is null.
+// GetBooleanDefault returns false if the value is null.
 func GetBooleanDefault(object map[string]any, key string) (bool, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -1956,7 +1956,7 @@ func GetNullableUUID(object map[string]any, key string) (*uuid.UUID, error) {
 	return result, nil
 }
 
-// Returns uuid.Nil if the value is null.
+// GetUUIDDefault returns uuid.Nil if the value is null.
 func GetUUIDDefault(object map[string]any, key string) (uuid.UUID, error) {
 	value, ok := GetAny(object, key)
 	if !ok {
@@ -2031,7 +2031,7 @@ func GetNullableRawJSON(object map[string]any, key string) (*json.RawMessage, er
 	return DecodeNullableRawJSON(value)
 }
 
-// Returns nil if the value is empty.
+// GetRawJSONDefault returns nil if the value is empty.
 func GetRawJSONDefault(object map[string]any, key string) (json.RawMessage, error) {
 	value, ok := GetAny(object, key)
 	if !ok {

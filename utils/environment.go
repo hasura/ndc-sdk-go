@@ -87,7 +87,7 @@ func (ev EnvString) Get() (string, error) {
 	return "", getEnvVariableValueRequiredError(ev.Variable)
 }
 
-// Returns the default value if the environment value is empty.
+// GetOrDefault returns the default value if the environment value is empty.
 func (ev EnvString) GetOrDefault(defaultValue string) (string, error) {
 	result, err := ev.Get()
 	if err != nil {
@@ -169,7 +169,7 @@ func (ev EnvInt) Get() (int64, error) {
 	return 0, getEnvVariableValueRequiredError(ev.Variable)
 }
 
-// Returns the default value if the environment value is empty.
+// GetOrDefault returns the default value if the environment value is empty.
 func (ev EnvInt) GetOrDefault(defaultValue int64) (int64, error) {
 	result, err := ev.Get()
 	if err != nil {
@@ -249,7 +249,7 @@ func (ev EnvBool) Get() (bool, error) {
 	return false, getEnvVariableValueRequiredError(ev.Variable)
 }
 
-// Returns the default value if the environment value is empty.
+// GetOrDefault returns the default value if the environment value is empty.
 func (ev EnvBool) GetOrDefault(defaultValue bool) (bool, error) {
 	result, err := ev.Get()
 	if err != nil {
@@ -329,7 +329,7 @@ func (ev EnvFloat) Get() (float64, error) {
 	return 0, getEnvVariableValueRequiredError(ev.Variable)
 }
 
-// Returns the default value if the environment value is empty.
+// GetOrDefault returns the default value if the environment value is empty.
 func (ev EnvFloat) GetOrDefault(defaultValue float64) (float64, error) {
 	result, err := ev.Get()
 	if err != nil {

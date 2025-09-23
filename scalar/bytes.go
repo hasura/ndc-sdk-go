@@ -39,7 +39,7 @@ func (bs Bytes) Bytes() []byte {
 	return bs.data
 }
 
-// Bytes get the inner bytes length.
+// Len gets the inner bytes length.
 func (bs Bytes) Len() int {
 	return len(bs.data)
 }

@@ -223,7 +223,7 @@ func (ti *TypeInfo) String() string {
 	return ti.GetArgumentName(ti.PackagePath)
 }
 
-// String implements the fmt.Stringer interface.
+// GetPackagePaths gets package paths of the current path.
 func (ti *TypeInfo) GetPackagePaths(currentPackagePath string) []string {
 	results := make([]string, 0)
 
@@ -292,7 +292,7 @@ func (oi ObjectInfo) Schema() *schema.ObjectType {
 	return result
 }
 
-// FunctionInfo represents a readable Go function info
+// OperationInfo represents a readable Go operation info
 // which can convert to a NDC function or procedure schema.
 type OperationInfo struct {
 	Kind          OperationKind

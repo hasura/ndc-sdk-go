@@ -40,7 +40,7 @@ func (d Date) ScalarName() string {
 	return "Date"
 }
 
-// Stringer implements fmt.Stringer interface.
+// String implements fmt.Stringer interface.
 func (d Date) String() string {
 	return d.Format(dateFormat)
 }

@@ -31,7 +31,7 @@ func (j URL) ScalarName() string {
 	return "URL"
 }
 
-// Stringer implements fmt.Stringer interface.
+// String implements fmt.Stringer interface.
 func (u URL) String() string {
 	if u.URL == nil {
 		return ""

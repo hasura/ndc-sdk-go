@@ -101,9 +101,9 @@ func (pe *PathElement) FromValue(raw map[string]any) error {
 type ArrayComparisonType string
 
 const (
-	// Check if the array contains the specified value. Only used if the 'query.nested_fields.filter_by.nested_arrays.contains' capability is supported.
+	// ArrayComparisonTypeContains check if the array contains the specified value. Only used if the 'query.nested_fields.filter_by.nested_arrays.contains' capability is supported.
 	ArrayComparisonTypeContains ArrayComparisonType = "contains"
-	// Check is the array is empty. Only used if the 'query.nested_fields.filter_by.nested_arrays.is_empty' capability is supported.
+	// ArrayComparisonTypeIsEmpty check is the array is empty. Only used if the 'query.nested_fields.filter_by.nested_arrays.is_empty' capability is supported.
 	ArrayComparisonTypeIsEmpty ArrayComparisonType = "is_empty"
 )
 
@@ -583,7 +583,7 @@ func (j DimensionColumn) Type() DimensionType {
 	return DimensionTypeColumn
 }
 
-// Encode converts the instance to a raw map.
+// ToMap converts the instance to a raw map.
 func (j DimensionColumn) ToMap() map[string]any {
 	result := map[string]any{
 		"type":        j.Type(),
@@ -606,7 +606,7 @@ func (j DimensionColumn) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the DimensionColumn wrapper.
 func (j DimensionColumn) Wrap() Dimension {
 	return NewDimension(&j)
 }

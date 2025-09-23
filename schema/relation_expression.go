@@ -1311,7 +1311,7 @@ func (j RelationalExpressionLiteral) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionLiteral) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1341,7 +1341,7 @@ func (j RelationalExpressionColumn) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionColumn) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1409,7 +1409,7 @@ func (j RelationalExpressionCase) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionCase) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1445,7 +1445,7 @@ func (j RelationalExpressionAnd) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionAnd) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1481,7 +1481,7 @@ func (j RelationalExpressionOr) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionOr) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1511,7 +1511,7 @@ func (j RelationalExpressionNot) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionNot) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1547,7 +1547,7 @@ func (j RelationalExpressionEq) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionEq) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1583,7 +1583,7 @@ func (j RelationalExpressionNotEq) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionNotEq) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1626,7 +1626,7 @@ func (j RelationalExpressionIsDistinctFrom) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionIsDistinctFrom) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1644,7 +1644,7 @@ type RelationalExpressionIsNotDistinctFrom struct {
 	Right RelationalExpression `json:"right" mapstructure:"right" yaml:"right"`
 }
 
-// NewRelationalExpressionIsDistinctFrom creates a RelationalExpressionIsDistinctFrom instance.
+// NewRelationalExpressionIsNotDistinctFrom creates a RelationalExpressionIsDistinctFrom instance.
 func NewRelationalExpressionIsNotDistinctFrom[L RelationalExpressionInner, R RelationalExpressionInner](
 	left L,
 	right R,
@@ -1669,7 +1669,7 @@ func (j RelationalExpressionIsNotDistinctFrom) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionIsNotDistinctFrom) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1705,7 +1705,7 @@ func (j RelationalExpressionLt) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionLt) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1741,7 +1741,7 @@ func (j RelationalExpressionLtEq) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionLtEq) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1777,7 +1777,7 @@ func (j RelationalExpressionGt) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionGt) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1813,7 +1813,7 @@ func (j RelationalExpressionGtEq) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionGtEq) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1845,7 +1845,7 @@ func (j RelationalExpressionIsNotNull) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionIsNotNull) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1877,7 +1877,7 @@ func (j RelationalExpressionIsNull) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionIsNull) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1909,7 +1909,7 @@ func (j RelationalExpressionIsTrue) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionIsTrue) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1941,7 +1941,7 @@ func (j RelationalExpressionIsFalse) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionIsFalse) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -1973,7 +1973,7 @@ func (j RelationalExpressionIsNotTrue) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionIsNotTrue) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2005,7 +2005,7 @@ func (j RelationalExpressionIsNotFalse) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionIsNotFalse) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2049,7 +2049,7 @@ func (j RelationalExpressionIn) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionIn) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2093,7 +2093,7 @@ func (j RelationalExpressionNotIn) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionNotIn) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2136,7 +2136,7 @@ func (j RelationalExpressionLike) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionLike) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2179,7 +2179,7 @@ func (j RelationalExpressionNotLike) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionNotLike) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2222,7 +2222,7 @@ func (j RelationalExpressionILike) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionILike) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2265,7 +2265,7 @@ func (j RelationalExpressionNotILike) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionNotILike) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2312,7 +2312,7 @@ func (j RelationalExpressionBetween) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionBetween) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2359,7 +2359,7 @@ func (j RelationalExpressionNotBetween) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionNotBetween) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2402,7 +2402,7 @@ func (j RelationalExpressionContains) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionContains) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2441,7 +2441,7 @@ func (j RelationalExpressionIsNaN) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionIsNaN) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2480,7 +2480,7 @@ func (j RelationalExpressionIsZero) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionIsZero) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2516,7 +2516,7 @@ func (j RelationalExpressionPlus) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionPlus) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2552,7 +2552,7 @@ func (j RelationalExpressionMinus) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionMinus) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2588,7 +2588,7 @@ func (j RelationalExpressionMultiply) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionMultiply) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2624,7 +2624,7 @@ func (j RelationalExpressionDivide) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionDivide) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2660,7 +2660,7 @@ func (j RelationalExpressionModulo) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionModulo) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2692,7 +2692,7 @@ func (j RelationalExpressionNegate) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionNegate) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2748,7 +2748,7 @@ func (j RelationalExpressionCast) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionCast) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2806,7 +2806,7 @@ func (j RelationalExpressionTryCast) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionTryCast) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2843,7 +2843,7 @@ func (j RelationalExpressionAbs) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionAbs) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2886,7 +2886,7 @@ func (j RelationalExpressionArrayElement) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionArrayElement) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2944,7 +2944,7 @@ func (j RelationalExpressionBTrim) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionBTrim) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -2981,7 +2981,7 @@ func (j RelationalExpressionCeil) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionCeil) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3020,7 +3020,7 @@ func (j RelationalExpressionCharacterLength) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionCharacterLength) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3060,7 +3060,7 @@ func (j RelationalExpressionCoalesce) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionCoalesce) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3107,7 +3107,7 @@ func (j RelationalExpressionConcat) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionConcat) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3144,7 +3144,7 @@ func (j RelationalExpressionCos) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionCos) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3176,7 +3176,7 @@ func (j RelationalExpressionCurrentDate) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionCurrentDate) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3208,7 +3208,7 @@ func (j RelationalExpressionCurrentTime) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionCurrentTime) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3240,7 +3240,7 @@ func (j RelationalExpressionCurrentTimestamp) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionCurrentTimestamp) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3283,7 +3283,7 @@ func (j RelationalExpressionDatePart) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionDatePart) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3326,7 +3326,7 @@ func (j RelationalExpressionDateTrunc) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionDateTrunc) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3363,7 +3363,7 @@ func (j RelationalExpressionExp) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionExp) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3402,7 +3402,7 @@ func (j RelationalExpressionFloor) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionFloor) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3445,7 +3445,7 @@ func (j RelationalExpressionGetField) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionGetField) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3492,7 +3492,7 @@ func (j RelationalExpressionGreatest) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionGreatest) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3539,7 +3539,7 @@ func (j RelationalExpressionLeast) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionLeast) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3582,7 +3582,7 @@ func (j RelationalExpressionLeft) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionLeft) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3619,7 +3619,7 @@ func (j RelationalExpressionLn) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionLn) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3677,7 +3677,7 @@ func (j RelationalExpressionLog) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionLog) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3716,7 +3716,7 @@ func (j RelationalExpressionLog10) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionLog10) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3753,7 +3753,7 @@ func (j RelationalExpressionLog2) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionLog2) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3817,7 +3817,7 @@ func (j RelationalExpressionLPad) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionLPad) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3875,7 +3875,7 @@ func (j RelationalExpressionLTrim) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionLTrim) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3911,7 +3911,7 @@ func (j RelationalExpressionNullIf) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionNullIf) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3954,7 +3954,7 @@ func (j RelationalExpressionNvl) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionNvl) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -3997,7 +3997,7 @@ func (j RelationalExpressionPower) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionPower) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4029,7 +4029,7 @@ func (j RelationalExpressionRandom) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionRandom) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4076,7 +4076,7 @@ func (j RelationalExpressionReplace) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionReplace) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4115,7 +4115,7 @@ func (j RelationalExpressionReverse) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionReverse) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4158,7 +4158,7 @@ func (j RelationalExpressionRight) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionRight) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4216,7 +4216,7 @@ func (j RelationalExpressionRound) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionRound) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4280,7 +4280,7 @@ func (j RelationalExpressionRPad) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionRPad) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4338,7 +4338,7 @@ func (j RelationalExpressionRTrim) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionRTrim) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4375,7 +4375,7 @@ func (j RelationalExpressionSqrt) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionSqrt) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4418,7 +4418,7 @@ func (j RelationalExpressionStrPos) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionStrPos) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4482,7 +4482,7 @@ func (j RelationalExpressionSubstr) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionSubstr) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4529,7 +4529,7 @@ func (j RelationalExpressionSubstrIndex) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionSubstrIndex) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4566,7 +4566,7 @@ func (j RelationalExpressionTan) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionTan) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4605,7 +4605,7 @@ func (j RelationalExpressionToDate) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionToDate) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4644,7 +4644,7 @@ func (j RelationalExpressionToTimestamp) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionToTimestamp) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4702,7 +4702,7 @@ func (j RelationalExpressionTrunc) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionTrunc) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4741,7 +4741,7 @@ func (j RelationalExpressionToLower) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionToLower) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4780,7 +4780,7 @@ func (j RelationalExpressionToUpper) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionToUpper) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4823,7 +4823,7 @@ func (j RelationalExpressionBinaryConcat) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionBinaryConcat) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4855,7 +4855,7 @@ func (j RelationalExpressionAverage) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionAverage) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4894,7 +4894,7 @@ func (j RelationalExpressionBoolAnd) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionBoolAnd) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4933,7 +4933,7 @@ func (j RelationalExpressionBoolOr) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionBoolOr) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -4976,7 +4976,7 @@ func (j RelationalExpressionCount) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionCount) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5015,7 +5015,7 @@ func (j RelationalExpressionFirstValue) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionFirstValue) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5054,7 +5054,7 @@ func (j RelationalExpressionLastValue) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionLastValue) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5084,7 +5084,7 @@ func (j RelationalExpressionMax) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionMax) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5123,7 +5123,7 @@ func (j RelationalExpressionMedian) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionMedian) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5153,7 +5153,7 @@ func (j RelationalExpressionMin) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionMin) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5220,7 +5220,7 @@ func (j RelationalExpressionStringAgg) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionStringAgg) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5250,7 +5250,7 @@ func (j RelationalExpressionSum) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionSum) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5287,7 +5287,7 @@ func (j RelationalExpressionVar) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionVar) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5326,7 +5326,7 @@ func (j RelationalExpressionStddev) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionStddev) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5365,7 +5365,7 @@ func (j RelationalExpressionStddevPop) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionStddevPop) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5407,7 +5407,7 @@ func (j RelationalExpressionApproxPercentileCont) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionApproxPercentileCont) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5471,7 +5471,7 @@ func (j RelationalExpressionArrayAgg) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionArrayAgg) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5510,7 +5510,7 @@ func (j RelationalExpressionApproxDistinct) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionApproxDistinct) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5561,7 +5561,7 @@ func (j RelationalExpressionRowNumber) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionRowNumber) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5612,7 +5612,7 @@ func (j RelationalExpressionDenseRank) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionDenseRank) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5667,7 +5667,7 @@ func (j RelationalExpressionNTile) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionNTile) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5718,7 +5718,7 @@ func (j RelationalExpressionRank) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionRank) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5769,7 +5769,7 @@ func (j RelationalExpressionCumeDist) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionCumeDist) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }
@@ -5820,7 +5820,7 @@ func (j RelationalExpressionPercentRank) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalExpressionPercentRank) Wrap() RelationalExpression {
 	return NewRelationalExpression(&j)
 }

@@ -98,7 +98,7 @@ func DecodeIntPtrSlice[T int | int8 | int16 | int32 | int64](value any) ([]*T, e
 	return *results, nil
 }
 
-// DecodeUintSlice decodes an unsigned integer pointer slice from an unknown value.
+// DecodeUintPtrSlice decodes an unsigned integer pointer slice from an unknown value.
 func DecodeUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](value any) ([]*T, error) {
 	results, err := decodeNullableNumberPtrSlice(value, DecodeNullableUint[T])
 	if err != nil {
@@ -112,7 +112,7 @@ func DecodeUintPtrSlice[T uint | uint8 | uint16 | uint32 | uint64](value any) ([
 	return *results, nil
 }
 
-// DecodeFloatSlice decodes a float pointer slice from an unknown value.
+// DecodeFloatPtrSlice decodes a float pointer slice from an unknown value.
 func DecodeFloatPtrSlice[T float32 | float64](value any) ([]*T, error) {
 	results, err := decodeNullableNumberPtrSlice(value, DecodeNullableFloat[T])
 	if err != nil {
@@ -584,7 +584,7 @@ func DecodeStringSlice(value any) ([]string, error) {
 	return *results, nil
 }
 
-// DecodeNullableStringSlice decodes a nullable string slice from an unknown value.
+// DecodeNullableStringPtrSlice decodes a nullable string slice from an unknown value.
 func DecodeNullableStringPtrSlice(value any) (*[]*string, error) {
 	if value == nil {
 		return nil, nil
