@@ -42,7 +42,7 @@ type ConnectorCLI interface {
 	Execute(ctx context.Context, command string) error
 }
 
-// Starts the connector.
+// Start the connector.
 // Will read command line arguments or environment variables to determine runtime configuration.
 //
 // This should be the entrypoint of your connector.
@@ -55,7 +55,7 @@ func Start[Configuration any, State any](
 	return StartCustom(&cli, connector, options...)
 }
 
-// Starts the connector with custom CLI.
+// StartCustom starts the connector with a custom CLI.
 // Will read command line arguments or environment variables to determine runtime configuration.
 //
 // This should be the entrypoint of your connector.

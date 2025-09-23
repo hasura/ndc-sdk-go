@@ -7,7 +7,7 @@ import (
 	"slices"
 )
 
-// Decide the strategy to do when the written file exists.
+// WriteFileStrategy decides the strategy to do when the written file exists.
 type WriteFileStrategy string
 
 const (

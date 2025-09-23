@@ -11,21 +11,21 @@ import (
 type JoinType string
 
 const (
-	// Left join. Only used when the capability `relational_query.join.join_types.left` is supported.
+	// LeftJoin left join. Only used when the capability `relational_query.join.join_types.left` is supported.
 	LeftJoin JoinType = "left"
-	// Right join. Only used when the capability `relational_query.join.join_types.right` is supported.
+	// RightJoin right join. Only used when the capability `relational_query.join.join_types.right` is supported.
 	RightJoin JoinType = "right"
-	// Inner join. Only used when the capability `relational_query.join.join_types.inner` is supported.
+	// InnerJoin inner join. Only used when the capability `relational_query.join.join_types.inner` is supported.
 	InnerJoin JoinType = "inner"
-	// Full join. Only used when the capability `relational_query.join.join_types.full` is supported.
+	// FullJoin full join. Only used when the capability `relational_query.join.join_types.full` is supported.
 	FullJoin JoinType = "full"
-	// Left anti join. Only used when the capability `relational_query.join.join_types.left_anti` is supported.
+	// LeftAntiJoin left anti join. Only used when the capability `relational_query.join.join_types.left_anti` is supported.
 	LeftAntiJoin JoinType = "left_anti"
-	// Left semi join. Only used when the capability `relational_query.join.join_types.left_semi` is supported.
+	// LeftSemiJoin left semi join. Only used when the capability `relational_query.join.join_types.left_semi` is supported.
 	LeftSemiJoin JoinType = "left_semi"
-	// Right anti join. Only used when the capability `relational_query.join.join_types.right_anti` is supported.
+	// RightAntiJoin right anti join. Only used when the capability `relational_query.join.join_types.right_anti` is supported.
 	RightAntiJoin JoinType = "right_anti"
-	// Right semi join. Only used when the capability `relational_query.join.join_types.right_semi` is supported.
+	// RightSemiJoin right semi join. Only used when the capability `relational_query.join.join_types.right_semi` is supported.
 	RightSemiJoin JoinType = "right_semi"
 )
 
@@ -350,7 +350,7 @@ func (j RelationFrom) Type() RelationType {
 	return RelationTypeFrom
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationFrom) Wrap() Relation {
 	return NewRelation(&j)
 }
@@ -401,7 +401,7 @@ func (j RelationPaginate) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationPaginate) Wrap() Relation {
 	return NewRelation(&j)
 }
@@ -447,7 +447,7 @@ func (j RelationProject) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationProject) Wrap() Relation {
 	return NewRelation(&j)
 }
@@ -483,7 +483,7 @@ func (j RelationFilter) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationFilter) Wrap() Relation {
 	return NewRelation(&j)
 }
@@ -516,7 +516,7 @@ func (j RelationSort) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationSort) Wrap() Relation {
 	return NewRelation(&j)
 }
@@ -560,7 +560,7 @@ func (j RelationJoin) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationJoin) Wrap() Relation {
 	return NewRelation(&j)
 }
@@ -616,7 +616,7 @@ func (j RelationAggregate) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationAggregate) Wrap() Relation {
 	return NewRelation(&j)
 }
@@ -660,7 +660,7 @@ func (j RelationWindow) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationWindow) Wrap() Relation {
 	return NewRelation(&j)
 }
@@ -700,7 +700,7 @@ func (j RelationUnion) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationUnion) Wrap() Relation {
 	return NewRelation(&j)
 }
@@ -774,7 +774,7 @@ var enumValues_RelationalLiteralType = []RelationalLiteralType{
 	RelationalLiteralTypeInterval,
 }
 
-// ParseRelationType parses a relation type from string.
+// ParseRelationalLiteralType parses a relation type from string.
 func ParseRelationalLiteralType(input string) (RelationalLiteralType, error) {
 	result := RelationalLiteralType(input)
 	if !result.IsValid() {
@@ -1163,7 +1163,7 @@ func (j RelationalLiteralNull) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralNull) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1193,7 +1193,7 @@ func (j RelationalLiteralBoolean) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralBoolean) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1223,7 +1223,7 @@ func (j RelationalLiteralString) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralString) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1253,7 +1253,7 @@ func (j RelationalLiteralInt8) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralInt8) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1283,7 +1283,7 @@ func (j RelationalLiteralInt16) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralInt16) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1313,7 +1313,7 @@ func (j RelationalLiteralInt32) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralInt32) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1343,7 +1343,7 @@ func (j RelationalLiteralInt64) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralInt64) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1373,7 +1373,7 @@ func (j RelationalLiteralUint8) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralUint8) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1403,7 +1403,7 @@ func (j RelationalLiteralUint16) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralUint16) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1433,7 +1433,7 @@ func (j RelationalLiteralUint32) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralUint32) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1463,7 +1463,7 @@ func (j RelationalLiteralUint64) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralUint64) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1493,7 +1493,7 @@ func (j RelationalLiteralFloat32) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralFloat32) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1523,7 +1523,7 @@ func (j RelationalLiteralFloat64) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralFloat64) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1563,7 +1563,7 @@ func (j RelationalLiteralDecimal128) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralDecimal128) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1603,7 +1603,7 @@ func (j RelationalLiteralDecimal256) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralDecimal256) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1634,7 +1634,7 @@ func (j RelationalLiteralDate32) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralDate32) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1665,7 +1665,7 @@ func (j RelationalLiteralDate64) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralDate64) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1696,7 +1696,7 @@ func (j RelationalLiteralTime32Second) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralTime32Second) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1727,7 +1727,7 @@ func (j RelationalLiteralTime32Millisecond) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralTime32Millisecond) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1758,7 +1758,7 @@ func (j RelationalLiteralTime64Microsecond) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralTime64Microsecond) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1789,7 +1789,7 @@ func (j RelationalLiteralTime64Nanosecond) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralTime64Nanosecond) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1820,7 +1820,7 @@ func (j RelationalLiteralTimestampSecond) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralTimestampSecond) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1851,7 +1851,7 @@ func (j RelationalLiteralTimestampMillisecond) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralTimestampMillisecond) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1882,7 +1882,7 @@ func (j RelationalLiteralTimestampMicrosecond) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralTimestampMicrosecond) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1913,7 +1913,7 @@ func (j RelationalLiteralTimestampNanosecond) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralTimestampNanosecond) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1944,7 +1944,7 @@ func (j RelationalLiteralDurationSecond) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralDurationSecond) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -1975,7 +1975,7 @@ func (j RelationalLiteralDurationMillisecond) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralDurationMillisecond) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -2006,7 +2006,7 @@ func (j RelationalLiteralDurationMicrosecond) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralDurationMicrosecond) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -2037,7 +2037,7 @@ func (j RelationalLiteralDurationNanosecond) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralDurationNanosecond) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }
@@ -2078,7 +2078,7 @@ func (j RelationalLiteralInterval) ToMap() map[string]any {
 	}
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the relation wrapper.
 func (j RelationalLiteralInterval) Wrap() RelationalLiteral {
 	return NewRelationalLiteral(&j)
 }

@@ -1570,7 +1570,7 @@ func (cv *ComparisonValue) FromValue(input map[string]any) error {
 	return nil
 }
 
-// GetType gets the type of comparison value.
+// Type gets the type of comparison value.
 func (cv ComparisonValue) Type() (ComparisonValueType, error) {
 	t, ok := cv["type"]
 	if !ok {
@@ -1753,7 +1753,7 @@ type ComparisonValueEncoder interface {
 	Encode() ComparisonValue
 }
 
-// The value to compare against should be drawn from another column.
+// ComparisonValueColumn represents the value to compare against should be drawn from another column.
 type ComparisonValueColumn struct {
 	// The name of the column
 	Name string `json:"name"                 mapstructure:"name"       yaml:"name"`
@@ -2116,7 +2116,7 @@ func (j ExistsInCollection) asRelated() (*ExistsInCollectionRelated, error) {
 	return result, nil
 }
 
-// AsRelated tries to convert the instance to unrelated type.
+// AsUnrelated tries to convert the instance to unrelated type.
 func (j ExistsInCollection) AsUnrelated() (*ExistsInCollectionUnrelated, error) {
 	t, err := j.Type()
 	if err != nil {
@@ -4187,7 +4187,7 @@ func (ob OrderByColumn) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the OrderByTarget wrapper.
 func (ob OrderByColumn) Wrap() OrderByTarget {
 	return NewOrderByTarget(&ob)
 }
@@ -4226,7 +4226,7 @@ func (ob OrderByAggregate) ToMap() map[string]any {
 	return result
 }
 
-// Encode returns the relation wrapper.
+// Wrap returns the OrderByTarget wrapper.
 func (ob OrderByAggregate) Wrap() OrderByTarget {
 	return NewOrderByTarget(&ob)
 }
@@ -4497,7 +4497,7 @@ func (j NestedField) Interface() NestedFieldEncoder {
 	return result
 }
 
-// Interface tries to convert the instance to NestedFieldEncoder interface safely with explicit error.
+// InterfaceT tries to convert the instance to NestedFieldEncoder interface safely with explicit error.
 func (j NestedField) InterfaceT() (NestedFieldEncoder, error) {
 	t, err := j.Type()
 	if err != nil {

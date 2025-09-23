@@ -170,7 +170,7 @@ func (ob GroupOrderByTargetDimension) ToMap() map[string]any {
 	}
 }
 
-// Encode converts the instance to raw OrderByTarget.
+// Wrap converts the instance to raw GroupOrderByTarget.
 func (ob GroupOrderByTargetDimension) Wrap() GroupOrderByTarget {
 	return NewGroupOrderByTarget(&ob)
 }
@@ -201,7 +201,7 @@ func (ob GroupOrderByTargetAggregate) ToMap() map[string]any {
 	}
 }
 
-// Encode converts the instance to raw GroupOrderByTarget.
+// Wrap converts the instance to raw GroupOrderByTarget.
 func (ob GroupOrderByTargetAggregate) Wrap() GroupOrderByTarget {
 	return NewGroupOrderByTarget(&ob)
 }
@@ -357,7 +357,7 @@ func (ob GroupComparisonTargetAggregate) ToMap() map[string]any {
 	}
 }
 
-// Encode converts the instance to a raw GroupComparisonTarget.
+// Wrap converts the instance to a raw GroupComparisonTarget.
 func (ob GroupComparisonTargetAggregate) Wrap() GroupComparisonTarget {
 	return NewGroupComparisonTarget(&ob)
 }
@@ -525,7 +525,7 @@ func (cv GroupComparisonValueScalar) ToMap() map[string]any {
 	}
 }
 
-// Encode converts to the raw comparison value.
+// Wrap converts to the raw comparison value.
 func (cv GroupComparisonValueScalar) Wrap() GroupComparisonValue {
 	return NewGroupComparisonValue(&cv)
 }
@@ -555,7 +555,7 @@ func (cv GroupComparisonValueVariable) ToMap() map[string]any {
 	}
 }
 
-// Encode converts to the raw comparison value.
+// Wrap converts to the raw comparison value.
 func (cv GroupComparisonValueVariable) Wrap() GroupComparisonValue {
 	return NewGroupComparisonValue(&cv)
 }
@@ -775,7 +775,7 @@ func (exp GroupExpressionAnd) ToMap() map[string]any {
 	}
 }
 
-// Encode converts the instance to a raw GroupExpression.
+// Wrap converts the instance to a raw GroupExpression.
 func (exp GroupExpressionAnd) Wrap() GroupExpression {
 	return NewGroupExpression(&exp)
 }
@@ -817,7 +817,7 @@ func (exp GroupExpressionOr) ToMap() map[string]any {
 	}
 }
 
-// Encode converts the instance to a raw Expression.
+// Wrap converts the instance to a raw Expression.
 func (exp GroupExpressionOr) Wrap() GroupExpression {
 	return NewGroupExpression(&exp)
 }
@@ -851,7 +851,7 @@ func (exp GroupExpressionNot) ToMap() map[string]any {
 	}
 }
 
-// Encode converts the instance to a raw Expression.
+// Wrap converts the instance to a raw Expression.
 func (exp GroupExpressionNot) Wrap() GroupExpression {
 	return NewGroupExpression(&exp)
 }
@@ -889,7 +889,7 @@ func (exp GroupExpressionUnaryComparisonOperator) ToMap() map[string]any {
 	}
 }
 
-// Encode converts the instance to a raw Expression.
+// Wrap converts the instance to a raw Expression.
 func (exp GroupExpressionUnaryComparisonOperator) Wrap() GroupExpression {
 	return NewGroupExpression(&exp)
 }
@@ -933,7 +933,7 @@ func (exp GroupExpressionBinaryComparisonOperator) ToMap() map[string]any {
 	}
 }
 
-// Encode converts the instance to a raw GroupExpression.
+// Wrap converts the instance to a raw GroupExpression.
 func (exp GroupExpressionBinaryComparisonOperator) Wrap() GroupExpression {
 	return NewGroupExpression(&exp)
 }

@@ -694,7 +694,7 @@ type MutationRequest struct {
 	Operations []MutationOperation `json:"operations" yaml:"operations" mapstructure:"operations"`
 
 	// Values to be provided to request-level arguments.
-	RequestArguments MutationRequestRequestArguments `json:"request_arguments,omitempty" yaml:"request_arguments,omitempty" mapstructure:"request_arguments,omitempty"`
+	RequestArguments json.RawMessage `json:"request_arguments,omitempty" yaml:"request_arguments,omitempty" mapstructure:"request_arguments,omitempty"`
 }
 
 // The relationships between collections involved in the entire mutation request.
@@ -702,7 +702,6 @@ type MutationRequest struct {
 type MutationRequestCollectionRelationships map[string]Relationship
 
 // Values to be provided to request-level arguments.
-type MutationRequestRequestArguments map[string]interface{}
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (j *MutationRequest) UnmarshalJSON(b []byte) error {
@@ -1158,7 +1157,7 @@ type QueryRequest struct {
 	Query Query `json:"query" yaml:"query" mapstructure:"query"`
 
 	// Values to be provided to request-level arguments.
-	RequestArguments QueryRequestRequestArguments `json:"request_arguments,omitempty" yaml:"request_arguments,omitempty" mapstructure:"request_arguments,omitempty"`
+	RequestArguments json.RawMessage `json:"request_arguments,omitempty" yaml:"request_arguments,omitempty" mapstructure:"request_arguments,omitempty"`
 
 	// One set of named variables for each rowset to fetch. Each variable set should
 	// be subtituted in turn, and a fresh set of rows returned. Only used if the
@@ -1174,7 +1173,6 @@ type QueryRequestArguments map[string]Argument
 type QueryRequestCollectionRelationships map[string]Relationship
 
 // Values to be provided to request-level arguments.
-type QueryRequestRequestArguments map[string]interface{}
 
 type QueryRequestVariablesElem map[string]interface{}
 

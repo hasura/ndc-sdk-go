@@ -32,7 +32,7 @@ func NewRawSchemaResponse(data []byte) (*RawSchemaResponse, error) {
 	return NewRawSchemaResponseUnsafe(data), nil
 }
 
-// NewRawSchemaResponse creates a RawSchemaResponse instance from raw bytes without validation.
+// NewRawSchemaResponseUnsafe creates a RawSchemaResponse instance from raw bytes without validation.
 func NewRawSchemaResponseUnsafe(data []byte) *RawSchemaResponse {
 	return &RawSchemaResponse{
 		data: data,
