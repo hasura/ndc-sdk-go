@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
+	"strings"
 
 	"github.com/hasura/ndc-sdk-go/v2/utils"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
@@ -12,6 +14,10 @@ import (
 	"go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/resource"
 )
+
+type loggerContext struct{}
+
+var loggerContextKey = loggerContext{}
 
 // LogHandler wraps slog logger with the OpenTelemetry logs exporter handler.
 type LogHandler struct {
@@ -140,7 +146,7 @@ func newLoggerProvider(
 
 // GetLogger gets the logger instance from context.
 func GetLogger(ctx context.Context) *slog.Logger {
-	value := ctx.Value(logContextKey)
+	value := ctx.Value(loggerContextKey)
 	if value != nil {
 		if logger, ok := value.(*slog.Logger); ok {
 			return logger
@@ -148,4 +154,25 @@ func GetLogger(ctx context.Context) *slog.Logger {
 	}
 
 	return slog.New(createLogHandler("hasura-ndc-go", slog.Default(), nil))
+}
+
+// NewContextLogger creates a new context with a logger set.
+func NewContextLogger(parentContext context.Context, logger *slog.Logger) context.Context {
+	return context.WithValue(parentContext, loggerContextKey, logger)
+}
+
+// NewJSONLogger creates a JSON logger from a log level string.
+func NewJSONLogger(logLevel string) (*slog.Logger, slog.Level, error) {
+	level := slog.LevelInfo
+
+	err := level.UnmarshalText([]byte(strings.ToUpper(logLevel)))
+	if err != nil {
+		return nil, level, err
+	}
+
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+		Level: level,
+	}))
+
+	return logger, level, nil
 }

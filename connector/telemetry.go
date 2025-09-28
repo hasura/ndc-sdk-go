@@ -376,8 +376,8 @@ func setupOTelMetricsProvider(
 
 func newResource(serviceName, serviceVersion string) *resource.Resource {
 	hostname, _ := os.Hostname()
-
-	return resource.NewWithAttributes(semconv.SchemaURL,
+	attrs := append(
+		resource.Environment().Attributes(),
 		semconv.ServiceName(serviceName),
 		semconv.ServiceVersion(serviceVersion),
 		semconv.HostNameKey.String(hostname),
@@ -386,6 +386,8 @@ func newResource(serviceName, serviceVersion string) *resource.Resource {
 		semconv.ProcessPIDKey.Int64(int64(os.Getpid())),
 		attribute.String("ndc.spec.version", schema.NDCVersion),
 	)
+
+	return resource.NewWithAttributes(semconv.SchemaURL, attrs...)
 }
 
 func newPropagator() propagation.TextMapPropagator {

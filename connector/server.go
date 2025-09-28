@@ -127,7 +127,7 @@ func NewServer[Configuration any, State any](
 		return nil, err
 	}
 
-	ctx = context.WithValue(ctx, logContextKey, telemetry.Logger)
+	ctx = NewContextLogger(ctx, telemetry.Logger)
 
 	configuration, err := connector.ParseConfiguration(ctx, options.Configuration)
 	if err != nil {

@@ -2,7 +2,6 @@ package connector
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,12 +23,9 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type serverContextKey string
-
 const (
-	logContextKey     serverContextKey = "hasura-log"
-	headerContentType string           = "Content-Type"
-	contentTypeJson   string           = "application/json"
+	headerContentType string = "Content-Type"
+	contentTypeJson   string = "application/json"
 )
 
 const (
@@ -94,7 +90,6 @@ func (rt *router) createHandleFunc( //nolint:gocognit
 	return func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now()
 		isDebug := rt.logger.Enabled(r.Context(), slog.LevelDebug)
-		requestID := getRequestID(r)
 		requestLogData := map[string]any{
 			"url":            r.URL.String(),
 			"method":         r.Method,
@@ -116,6 +111,8 @@ func (rt *router) createHandleFunc( //nolint:gocognit
 		}
 
 		defer span.End()
+
+		requestID := getRequestID(r, span)
 
 		// Add HTTP semantic attributes to the server span
 		// See: https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-server-semantic-conventions
@@ -235,7 +232,7 @@ func (rt *router) createHandleFunc( //nolint:gocognit
 		}
 
 		logger := rt.logger.With(slog.String("request_id", requestID))
-		req := r.WithContext(context.WithValue(ctx, logContextKey, logger))
+		req := r.WithContext(NewContextLogger(ctx, logger))
 		writer := newCustomResponseWriter(r, w)
 
 		for _, h := range handlers {
@@ -324,13 +321,17 @@ func (rt *router) debugRequestBody(
 	return bodyStr, nil
 }
 
-func getRequestID(r *http.Request) string {
+func getRequestID(r *http.Request, span trace.Span) string {
 	requestID := r.Header.Get("x-request-id")
-	if requestID == "" {
-		requestID = uuid.NewString()
+	if requestID != "" {
+		return requestID
 	}
 
-	return requestID
+	if span.SpanContext().HasTraceID() {
+		return span.SpanContext().TraceID().String()
+	}
+
+	return uuid.NewString()
 }
 
 // writeJsonFunc writes raw bytes data with a json encoding callback.
