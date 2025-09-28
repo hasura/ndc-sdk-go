@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"os"
-	"strings"
 
 	"github.com/alecthomas/kong"
 )
@@ -68,10 +66,12 @@ func StartCustom[Configuration any, State any](
 	serveCLI := cli.GetServeCLI()
 	command := cmd.Command()
 
-	logger, logLevel, err := initLogger(serveCLI.LogLevel)
+	logger, logLevel, err := NewJSONLogger(serveCLI.LogLevel)
 	if err != nil {
 		return err
 	}
+
+	slog.SetDefault(logger)
 
 	switch command {
 	case "serve":
@@ -89,24 +89,8 @@ func StartCustom[Configuration any, State any](
 
 		return server.ListenAndServe(serveCLI.Serve.Port)
 	default:
-		ctx := context.WithValue(context.Background(), logContextKey, logger)
+		ctx := NewContextLogger(context.Background(), logger)
 
 		return cli.Execute(ctx, command)
 	}
-}
-
-func initLogger(logLevel string) (*slog.Logger, slog.Level, error) {
-	var level slog.Level
-
-	err := level.UnmarshalText([]byte(strings.ToUpper(logLevel)))
-	if err != nil {
-		return nil, level, err
-	}
-
-	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
-		Level: level,
-	}))
-	slog.SetDefault(logger)
-
-	return logger, level, nil
 }
