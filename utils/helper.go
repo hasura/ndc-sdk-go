@@ -235,6 +235,8 @@ func ParseIntegerMapFromString[T int | int8 | int16 | int32 | int64 | uint | uin
 // ParseFloatMapFromString parses a float map from a string with format:
 //
 //	<key1>=<value1>;<key2>=<value2>
+//
+// Deprecated: this function was moved to github.com/hasura/goenvconf
 func ParseFloatMapFromString[T float32 | float64](input string) (map[string]T, error) {
 	rawValues, err := ParseStringMapFromString(input)
 	if err != nil {
@@ -258,6 +260,8 @@ func ParseFloatMapFromString[T float32 | float64](input string) (map[string]T, e
 // ParseBoolMapFromString parses a bool map from a string with format:
 //
 //	<key1>=<value1>;<key2>=<value2>
+//
+// Deprecated: this function was moved to github.com/hasura/goenvconf
 func ParseBoolMapFromString(input string) (map[string]bool, error) {
 	rawValues, err := ParseStringMapFromString(input)
 	if err != nil {
