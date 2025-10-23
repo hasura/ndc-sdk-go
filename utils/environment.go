@@ -16,7 +16,7 @@ var (
 
 // EnvString represents either a literal string or an environment reference.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 type EnvString struct {
 	Value    *string `json:"value,omitempty" jsonschema:"anyof_required=value" mapstructure:"value" yaml:"value,omitempty"`
 	Variable *string `json:"env,omitempty"   jsonschema:"anyof_required=env"   mapstructure:"env"   yaml:"env,omitempty"`
@@ -24,7 +24,7 @@ type EnvString struct {
 
 // NewEnvString creates an EnvString instance.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvString(env string, value string) EnvString {
 	return EnvString{
 		Variable: &env,
@@ -34,7 +34,7 @@ func NewEnvString(env string, value string) EnvString {
 
 // NewEnvStringValue creates an EnvString with a literal value.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvStringValue(value string) EnvString {
 	return EnvString{
 		Value: &value,
@@ -43,7 +43,7 @@ func NewEnvStringValue(value string) EnvString {
 
 // NewEnvStringVariable creates an EnvString with a variable name.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvStringVariable(name string) EnvString {
 	return EnvString{
 		Variable: &name,
@@ -70,7 +70,7 @@ func (ev *EnvString) UnmarshalJSON(b []byte) error {
 
 // Get gets literal value or from system environment.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func (ev EnvString) Get() (string, error) {
 	if err := validateEnvironmentValue(ev.Value, ev.Variable); err != nil {
 		return "", err
@@ -99,7 +99,7 @@ func (ev EnvString) Get() (string, error) {
 
 // GetOrDefault returns the default value if the environment value is empty.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func (ev EnvString) GetOrDefault(defaultValue string) (string, error) {
 	result, err := ev.Get()
 	if err != nil {
@@ -117,7 +117,7 @@ func (ev EnvString) GetOrDefault(defaultValue string) (string, error) {
 
 // EnvInt represents either a literal integer or an environment reference.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 type EnvInt struct {
 	Value    *int64  `json:"value,omitempty" jsonschema:"anyof_required=value" mapstructure:"value" yaml:"value,omitempty"`
 	Variable *string `json:"env,omitempty"   jsonschema:"anyof_required=env"   mapstructure:"env"   yaml:"env,omitempty"`
@@ -125,7 +125,7 @@ type EnvInt struct {
 
 // NewEnvInt creates an EnvInt instance.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvInt(env string, value int64) EnvInt {
 	return EnvInt{
 		Variable: &env,
@@ -135,7 +135,7 @@ func NewEnvInt(env string, value int64) EnvInt {
 
 // NewEnvIntValue creates an EnvInt with a literal value.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvIntValue(value int64) EnvInt {
 	return EnvInt{
 		Value: &value,
@@ -144,7 +144,7 @@ func NewEnvIntValue(value int64) EnvInt {
 
 // NewEnvIntVariable creates an EnvInt with a variable name.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvIntVariable(name string) EnvInt {
 	return EnvInt{
 		Variable: &name,
@@ -171,7 +171,7 @@ func (ev *EnvInt) UnmarshalJSON(b []byte) error {
 
 // Get gets literal value or from system environment.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func (ev EnvInt) Get() (int64, error) {
 	if err := validateEnvironmentValue(ev.Value, ev.Variable); err != nil {
 		return 0, err
@@ -193,7 +193,7 @@ func (ev EnvInt) Get() (int64, error) {
 
 // GetOrDefault returns the default value if the environment value is empty.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func (ev EnvInt) GetOrDefault(defaultValue int64) (int64, error) {
 	result, err := ev.Get()
 	if err != nil {
@@ -209,7 +209,7 @@ func (ev EnvInt) GetOrDefault(defaultValue int64) (int64, error) {
 
 // EnvBool represents either a literal boolean or an environment reference.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 type EnvBool struct {
 	Value    *bool   `json:"value,omitempty" jsonschema:"anyof_required=value" mapstructure:"value" yaml:"value,omitempty"`
 	Variable *string `json:"env,omitempty"   jsonschema:"anyof_required=env"   mapstructure:"env"   yaml:"env,omitempty"`
@@ -217,7 +217,7 @@ type EnvBool struct {
 
 // NewEnvBool creates an EnvBool instance.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvBool(env string, value bool) EnvBool {
 	return EnvBool{
 		Variable: &env,
@@ -227,7 +227,7 @@ func NewEnvBool(env string, value bool) EnvBool {
 
 // NewEnvBoolValue creates an EnvBool with a literal value.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvBoolValue(value bool) EnvBool {
 	return EnvBool{
 		Value: &value,
@@ -236,7 +236,7 @@ func NewEnvBoolValue(value bool) EnvBool {
 
 // NewEnvBoolVariable creates an EnvBool with a variable name.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvBoolVariable(name string) EnvBool {
 	return EnvBool{
 		Variable: &name,
@@ -263,7 +263,7 @@ func (ev *EnvBool) UnmarshalJSON(b []byte) error {
 
 // Get gets literal value or from system environment.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func (ev EnvBool) Get() (bool, error) {
 	if err := validateEnvironmentValue(ev.Value, ev.Variable); err != nil {
 		return false, err
@@ -285,7 +285,7 @@ func (ev EnvBool) Get() (bool, error) {
 
 // GetOrDefault returns the default value if the environment value is empty.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func (ev EnvBool) GetOrDefault(defaultValue bool) (bool, error) {
 	result, err := ev.Get()
 	if err != nil {
@@ -301,7 +301,7 @@ func (ev EnvBool) GetOrDefault(defaultValue bool) (bool, error) {
 
 // EnvFloat represents either a literal floating point number or an environment reference.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 type EnvFloat struct {
 	Value    *float64 `json:"value,omitempty" jsonschema:"anyof_required=value" mapstructure:"value" yaml:"value,omitempty"`
 	Variable *string  `json:"env,omitempty"   jsonschema:"anyof_required=env"   mapstructure:"env"   yaml:"env,omitempty"`
@@ -309,7 +309,7 @@ type EnvFloat struct {
 
 // NewEnvFloat creates an EnvFloat instance.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvFloat(env string, value float64) EnvFloat {
 	return EnvFloat{
 		Variable: &env,
@@ -319,7 +319,7 @@ func NewEnvFloat(env string, value float64) EnvFloat {
 
 // NewEnvFloatValue creates an EnvFloat with a literal value.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvFloatValue(value float64) EnvFloat {
 	return EnvFloat{
 		Value: &value,
@@ -328,7 +328,7 @@ func NewEnvFloatValue(value float64) EnvFloat {
 
 // NewEnvFloatVariable creates an EnvFloat with a variable name.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvFloatVariable(name string) EnvFloat {
 	return EnvFloat{
 		Variable: &name,
@@ -355,7 +355,7 @@ func (ev *EnvFloat) UnmarshalJSON(b []byte) error {
 
 // Get gets literal value or from system environment.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func (ev EnvFloat) Get() (float64, error) {
 	if err := validateEnvironmentValue(ev.Value, ev.Variable); err != nil {
 		return 0, err
@@ -377,7 +377,7 @@ func (ev EnvFloat) Get() (float64, error) {
 
 // GetOrDefault returns the default value if the environment value is empty.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func (ev EnvFloat) GetOrDefault(defaultValue float64) (float64, error) {
 	result, err := ev.Get()
 	if err != nil {
@@ -413,7 +413,7 @@ func validateEnvironmentMapValue(variable *string) error {
 
 // EnvMapString represents either a literal string map or an environment reference.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 type EnvMapString struct {
 	Value    map[string]string `json:"value,omitempty" jsonschema:"anyof_required=value" mapstructure:"value" yaml:"value,omitempty"`
 	Variable *string           `json:"env,omitempty"   jsonschema:"anyof_required=env"   mapstructure:"env"   yaml:"env,omitempty"`
@@ -421,7 +421,7 @@ type EnvMapString struct {
 
 // NewEnvMapString creates an EnvMapString instance.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvMapString(env string, value map[string]string) EnvMapString {
 	return EnvMapString{
 		Variable: &env,
@@ -431,7 +431,7 @@ func NewEnvMapString(env string, value map[string]string) EnvMapString {
 
 // NewEnvMapStringValue creates an EnvMapString with a literal value.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvMapStringValue(value map[string]string) EnvMapString {
 	return EnvMapString{
 		Value: value,
@@ -440,7 +440,7 @@ func NewEnvMapStringValue(value map[string]string) EnvMapString {
 
 // NewEnvMapStringVariable creates an EnvMapString with a variable name.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvMapStringVariable(name string) EnvMapString {
 	return EnvMapString{
 		Variable: &name,
@@ -467,7 +467,7 @@ func (ev *EnvMapString) UnmarshalJSON(b []byte) error {
 
 // Get gets literal value or from system environment.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func (ev EnvMapString) Get() (map[string]string, error) {
 	if err := validateEnvironmentMapValue(ev.Variable); err != nil {
 		return nil, err
@@ -485,7 +485,7 @@ func (ev EnvMapString) Get() (map[string]string, error) {
 
 // EnvMapInt represents either a literal int map or an environment reference.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 type EnvMapInt struct {
 	Value    map[string]int64 `json:"value,omitempty" jsonschema:"anyof_required=value" mapstructure:"value" yaml:"value,omitempty"`
 	Variable *string          `json:"env,omitempty"   jsonschema:"anyof_required=env"   mapstructure:"env"   yaml:"env,omitempty"`
@@ -493,7 +493,7 @@ type EnvMapInt struct {
 
 // NewEnvMapInt creates an EnvMapInt instance.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvMapInt(env string, value map[string]int64) EnvMapInt {
 	return EnvMapInt{
 		Variable: &env,
@@ -503,7 +503,7 @@ func NewEnvMapInt(env string, value map[string]int64) EnvMapInt {
 
 // NewEnvMapIntValue creates an EnvMapInt with a literal value.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvMapIntValue(value map[string]int64) EnvMapInt {
 	return EnvMapInt{
 		Value: value,
@@ -512,7 +512,7 @@ func NewEnvMapIntValue(value map[string]int64) EnvMapInt {
 
 // NewEnvMapIntVariable creates an EnvMapInt with a variable name.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvMapIntVariable(name string) EnvMapInt {
 	return EnvMapInt{
 		Variable: &name,
@@ -539,7 +539,7 @@ func (ev *EnvMapInt) UnmarshalJSON(b []byte) error {
 
 // Get gets literal value or from system environment.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func (ev EnvMapInt) Get() (map[string]int64, error) {
 	if err := validateEnvironmentMapValue(ev.Variable); err != nil {
 		return nil, err
@@ -557,7 +557,7 @@ func (ev EnvMapInt) Get() (map[string]int64, error) {
 
 // EnvMapFloat represents either a literal float map or an environment reference.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 type EnvMapFloat struct {
 	Value    map[string]float64 `json:"value,omitempty" jsonschema:"anyof_required=value" mapstructure:"value" yaml:"value,omitempty"`
 	Variable *string            `json:"env,omitempty"   jsonschema:"anyof_required=env"   mapstructure:"env"   yaml:"env,omitempty"`
@@ -565,7 +565,7 @@ type EnvMapFloat struct {
 
 // NewEnvMapFloat creates an EnvMapFloat instance.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvMapFloat(env string, value map[string]float64) EnvMapFloat {
 	return EnvMapFloat{
 		Variable: &env,
@@ -575,7 +575,7 @@ func NewEnvMapFloat(env string, value map[string]float64) EnvMapFloat {
 
 // NewEnvMapFloatValue creates an EnvMapFloat with a literal value.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvMapFloatValue(value map[string]float64) EnvMapFloat {
 	return EnvMapFloat{
 		Value: value,
@@ -584,7 +584,7 @@ func NewEnvMapFloatValue(value map[string]float64) EnvMapFloat {
 
 // NewEnvMapFloatVariable creates an EnvMapFloat with a variable name.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvMapFloatVariable(name string) EnvMapFloat {
 	return EnvMapFloat{
 		Variable: &name,
@@ -611,7 +611,7 @@ func (ev *EnvMapFloat) UnmarshalJSON(b []byte) error {
 
 // Get gets literal value or from system environment.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func (ev EnvMapFloat) Get() (map[string]float64, error) {
 	if err := validateEnvironmentMapValue(ev.Variable); err != nil {
 		return nil, err
@@ -629,7 +629,7 @@ func (ev EnvMapFloat) Get() (map[string]float64, error) {
 
 // EnvMapBool represents either a literal bool map or an environment reference.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 type EnvMapBool struct {
 	Value    map[string]bool `json:"value,omitempty" jsonschema:"anyof_required=value" mapstructure:"value" yaml:"value,omitempty"`
 	Variable *string         `json:"env,omitempty"   jsonschema:"anyof_required=env"   mapstructure:"env"   yaml:"env,omitempty"`
@@ -637,7 +637,7 @@ type EnvMapBool struct {
 
 // NewEnvMapBool creates an EnvMapBool instance.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvMapBool(env string, value map[string]bool) EnvMapBool {
 	return EnvMapBool{
 		Variable: &env,
@@ -647,7 +647,7 @@ func NewEnvMapBool(env string, value map[string]bool) EnvMapBool {
 
 // NewEnvMapBoolValue creates an EnvMapBool with a literal value.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvMapBoolValue(value map[string]bool) EnvMapBool {
 	return EnvMapBool{
 		Value: value,
@@ -656,7 +656,7 @@ func NewEnvMapBoolValue(value map[string]bool) EnvMapBool {
 
 // NewEnvMapBoolVariable creates an EnvMapBool with a variable name.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func NewEnvMapBoolVariable(name string) EnvMapBool {
 	return EnvMapBool{
 		Variable: &name,
@@ -683,7 +683,7 @@ func (ev *EnvMapBool) UnmarshalJSON(b []byte) error {
 
 // Get gets literal value or from system environment.
 //
-// Deprecated: this module was moved to github.com/hasura/goenvconf
+// Deprecated: this module was moved to github.com/hasura/goenvconf.
 func (ev EnvMapBool) Get() (map[string]bool, error) {
 	if err := validateEnvironmentMapValue(ev.Variable); err != nil {
 		return nil, err
