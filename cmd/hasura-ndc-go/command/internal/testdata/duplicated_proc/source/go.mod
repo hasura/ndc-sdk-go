@@ -1,6 +1,6 @@
 module github.com/hasura/ndc-codegen-duplicated-proc
 
-go 1.24.0
+go 1.24.12
 
 require github.com/hasura/ndc-sdk-go/v2 v2.0.0
 
