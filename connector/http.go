@@ -347,7 +347,11 @@ func writeJsonFunc(
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		if _, err := fmt.Fprintf(w, `{"message": "%s"}`, http.StatusText(http.StatusInternalServerError)); err != nil {
+		if _, err := fmt.Fprintf(
+			w,
+			`{"message": "%s"}`,
+			http.StatusText(http.StatusInternalServerError),
+		); err != nil {
 			logger.Error("failed to write response", slog.Any("error", err))
 		}
 

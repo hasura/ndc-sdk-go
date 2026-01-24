@@ -316,7 +316,14 @@ func (qh *QueryHandler) evalOrderByElement(
 ) (any, error) {
 	switch target := element.Target.Interface().(type) {
 	case *schema.OrderByColumn:
-		return qh.evalColumnAtPath(collectionRelationships, item, target.Path, target.Name, target.Arguments, target.FieldPath)
+		return qh.evalColumnAtPath(
+			collectionRelationships,
+			item,
+			target.Path,
+			target.Name,
+			target.Arguments,
+			target.FieldPath,
+		)
 	case *schema.OrderByAggregate:
 		rows, err := qh.evalPath(collectionRelationships, target.Path, []map[string]any{item})
 		if err != nil {
@@ -493,7 +500,12 @@ func (qh *QueryHandler) evalComparisonValue(
 		var results []any
 
 		for _, item := range items {
-			result, err := qh.evalColumnFieldPath(item, compValue.Name, compValue.FieldPath, compValue.Arguments)
+			result, err := qh.evalColumnFieldPath(
+				item,
+				compValue.Name,
+				compValue.FieldPath,
+				compValue.Arguments,
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -506,12 +518,18 @@ func (qh *QueryHandler) evalComparisonValue(
 		return []any{compValue.Value}, nil
 	case *schema.ComparisonValueVariable:
 		if len(qh.variables) == 0 {
-			return nil, schema.UnprocessableContentError("invalid variable name: "+compValue.Name, nil)
+			return nil, schema.UnprocessableContentError(
+				"invalid variable name: "+compValue.Name,
+				nil,
+			)
 		}
 
 		val, ok := qh.variables[compValue.Name]
 		if !ok {
-			return nil, schema.UnprocessableContentError("invalid variable name: "+compValue.Name, nil)
+			return nil, schema.UnprocessableContentError(
+				"invalid variable name: "+compValue.Name,
+				nil,
+			)
 		}
 
 		return []any{val}, nil
@@ -573,7 +591,10 @@ func (qh *QueryHandler) evalExpression(
 
 			return utils.IsNil(value), nil
 		default:
-			return false, schema.UnprocessableContentError(fmt.Sprintf("invalid unary comparison operator: %s", expression.Operator), nil)
+			return false, schema.UnprocessableContentError(
+				fmt.Sprintf("invalid unary comparison operator: %s", expression.Operator),
+				nil,
+			)
 		}
 	case *schema.ExpressionBinaryComparisonOperator:
 		leftValues, err := qh.evalComparisonTarget(collectionRelationships, expression.Column, item)
@@ -581,7 +602,12 @@ func (qh *QueryHandler) evalExpression(
 			return false, err
 		}
 
-		rightValueSets, err := qh.evalComparisonValue(collectionRelationships, expression.Value, scopes, item)
+		rightValueSets, err := qh.evalComparisonValue(
+			collectionRelationships,
+			expression.Value,
+			scopes,
+			item,
+		)
 		if err != nil {
 			return false, err
 		}
@@ -593,13 +619,23 @@ func (qh *QueryHandler) evalExpression(
 			return false, err
 		}
 
-		return qh.evalArrayComparison(collectionRelationships, leftVal, expression.Comparison, scopes, item)
+		return qh.evalArrayComparison(
+			collectionRelationships,
+			leftVal,
+			expression.Comparison,
+			scopes,
+			item,
+		)
 	case *schema.ExpressionExists:
 		query := &schema.Query{
 			Predicate: expression.Predicate,
 		}
 
-		collection, err := qh.evalInCollection(collectionRelationships, item, expression.InCollection)
+		collection, err := qh.evalInCollection(
+			collectionRelationships,
+			item,
+			expression.InCollection,
+		)
 		if err != nil {
 			return false, err
 		}
@@ -653,12 +689,22 @@ func (qh *QueryHandler) evalInCollection(
 	case *schema.ExistsInCollectionRelated:
 		relationship, ok := collectionRelationships[inCol.Relationship]
 		if !ok {
-			return nil, schema.UnprocessableContentError("invalid in collection relationship: "+inCol.Relationship, nil)
+			return nil, schema.UnprocessableContentError(
+				"invalid in collection relationship: "+inCol.Relationship,
+				nil,
+			)
 		}
 
 		source := []map[string]any{item}
 
-		return qh.evalPathElement(collectionRelationships, &relationship, inCol.Arguments, source, inCol.FieldPath, nil)
+		return qh.evalPathElement(
+			collectionRelationships,
+			&relationship,
+			inCol.Arguments,
+			source,
+			inCol.FieldPath,
+			nil,
+		)
 	case *schema.ExistsInCollectionUnrelated:
 		arguments := make(map[string]any)
 
@@ -673,7 +719,12 @@ func (qh *QueryHandler) evalInCollection(
 
 		return qh.getCollectionByName(inCol.Collection, arguments)
 	case *schema.ExistsInCollectionNestedCollection:
-		value, err := qh.evalColumnFieldPath(item, inCol.ColumnName, inCol.FieldPath, inCol.Arguments)
+		value, err := qh.evalColumnFieldPath(
+			item,
+			inCol.ColumnName,
+			inCol.FieldPath,
+			inCol.Arguments,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -685,7 +736,12 @@ func (qh *QueryHandler) evalInCollection(
 
 		return result, nil
 	case *schema.ExistsInCollectionNestedScalarCollection:
-		value, err := qh.evalColumnFieldPath(item, inCol.ColumnName, inCol.FieldPath, inCol.Arguments)
+		value, err := qh.evalColumnFieldPath(
+			item,
+			inCol.ColumnName,
+			inCol.FieldPath,
+			inCol.Arguments,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -747,7 +803,10 @@ func (qh *QueryHandler) evalNestedField(
 	case *schema.NestedObject:
 		fullRow, err := utils.EncodeObject(value)
 		if err != nil {
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("expected object, got %s", reflect.ValueOf(value).Kind()), nil)
+			return nil, schema.UnprocessableContentError(
+				fmt.Sprintf("expected object, got %s", reflect.ValueOf(value).Kind()),
+				nil,
+			)
 		}
 
 		return qh.evalRow(nf.Fields, collectionRelationships, fullRow)
@@ -808,10 +867,20 @@ func (qh *QueryHandler) evalField(
 	case *schema.RelationshipField:
 		relationship, ok := collectionRelationships[f.Relationship]
 		if !ok {
-			return nil, schema.UnprocessableContentError("invalid relationship name "+f.Relationship, nil)
+			return nil, schema.UnprocessableContentError(
+				"invalid relationship name "+f.Relationship,
+				nil,
+			)
 		}
 
-		collection, err := qh.evalPathElement(collectionRelationships, &relationship, f.Arguments, []map[string]any{row}, nil, nil)
+		collection, err := qh.evalPathElement(
+			collectionRelationships,
+			&relationship,
+			f.Arguments,
+			[]map[string]any{row},
+			nil,
+			nil,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -855,7 +924,14 @@ func (qh *QueryHandler) evalDimension(
 
 	switch d := dim.(type) {
 	case *schema.DimensionColumn:
-		value, err := qh.evalColumnAtPath(collectionRelationships, row, d.Path, d.ColumnName, d.Arguments, d.FieldPath)
+		value, err := qh.evalColumnAtPath(
+			collectionRelationships,
+			row,
+			d.Path,
+			d.ColumnName,
+			d.Arguments,
+			d.FieldPath,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -1068,7 +1144,10 @@ func (qh *QueryHandler) evalAggregate(
 		for _, value := range paginated {
 			v, ok := value[agg.Column]
 			if !ok {
-				return nil, schema.UnprocessableContentError("invalid column name: "+agg.Column, nil)
+				return nil, schema.UnprocessableContentError(
+					"invalid column name: "+agg.Column,
+					nil,
+				)
 			}
 
 			if v == nil {
@@ -1095,7 +1174,10 @@ func (qh *QueryHandler) evalAggregate(
 		for _, value := range paginated {
 			v, ok := value[agg.Column]
 			if !ok {
-				return nil, schema.UnprocessableContentError("invalid column name: "+agg.Column, nil)
+				return nil, schema.UnprocessableContentError(
+					"invalid column name: "+agg.Column,
+					nil,
+				)
 			}
 
 			if v == nil {
@@ -1204,7 +1286,10 @@ func (qh *QueryHandler) evalGroupComparisonValue(
 	case *schema.GroupComparisonValueVariable:
 		v, ok := qh.variables[cmpValue.Name]
 		if !ok {
-			return nil, fmt.Errorf("invalid comparison value, variable name '%s' does not exist", cmpValue.Name)
+			return nil, fmt.Errorf(
+				"invalid comparison value, variable name '%s' does not exist",
+				cmpValue.Name,
+			)
 		}
 
 		return v, nil
@@ -1351,7 +1436,10 @@ func (qh *QueryHandler) evalComparisonTarget(
 
 		return qh.evalAggregate(t.Aggregate, rows)
 	default:
-		return nil, schema.UnprocessableContentError(fmt.Sprintf("invalid comparison target type: %s", t.Type()), nil)
+		return nil, schema.UnprocessableContentError(
+			fmt.Sprintf("invalid comparison target type: %s", t.Type()),
+			nil,
+		)
 	}
 }
 

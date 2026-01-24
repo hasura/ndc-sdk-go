@@ -567,7 +567,7 @@ func (j RelationJoin) Wrap() Relation {
 
 // RelationAggregate represents an aggregate relation.
 type RelationAggregate struct {
-	Input Relation `json:"input"      mapstructure:"input"      yaml:"input"`
+	Input Relation `json:"input" mapstructure:"input" yaml:"input"`
 	// Only non-empty if the 'relational_query.aggregate.group_by' capability is supported.
 	GroupBy    []RelationalExpression `json:"group_by"   mapstructure:"group_by"   yaml:"group_by"`
 	Aggregates []RelationalExpression `json:"aggregates" mapstructure:"aggregates" yaml:"aggregates"`

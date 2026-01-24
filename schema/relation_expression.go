@@ -2699,8 +2699,8 @@ func (j RelationalExpressionNegate) Wrap() RelationalExpression {
 
 // RelationalExpressionCast represents a RelationalExpression with the cast type.
 type RelationalExpressionCast struct {
-	Expr   RelationalExpression `json:"expr"                mapstructure:"expr"                yaml:"expr"`
-	AsType CastType             `json:"as_type"             mapstructure:"as_type"             yaml:"as_type"`
+	Expr   RelationalExpression `json:"expr"    mapstructure:"expr"    yaml:"expr"`
+	AsType CastType             `json:"as_type" mapstructure:"as_type" yaml:"as_type"`
 	// Optional for now, but will be required in the future
 	FromType *CastType `json:"from_type,omitempty" mapstructure:"from_type,omitempty" yaml:"from_type,omitempty"`
 }
@@ -2755,8 +2755,8 @@ func (j RelationalExpressionCast) Wrap() RelationalExpression {
 
 // RelationalExpressionTryCast represents a RelationalExpression with the try_cast type.
 type RelationalExpressionTryCast struct {
-	Expr   RelationalExpression `json:"expr"                mapstructure:"expr"                yaml:"expr"`
-	AsType CastType             `json:"as_type"             mapstructure:"as_type"             yaml:"as_type"`
+	Expr   RelationalExpression `json:"expr"    mapstructure:"expr"    yaml:"expr"`
+	AsType CastType             `json:"as_type" mapstructure:"as_type" yaml:"as_type"`
 	// Optional for now, but will be required in the future
 	FromType *CastType `json:"from_type,omitempty" mapstructure:"from_type,omitempty" yaml:"from_type,omitempty"`
 }
@@ -4940,7 +4940,7 @@ func (j RelationalExpressionBoolOr) Wrap() RelationalExpression {
 
 // RelationalExpressionCount represents a RelationalExpression with the count type.
 type RelationalExpressionCount struct {
-	Expr RelationalExpression `json:"expr"     mapstructure:"expr"     yaml:"expr"`
+	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 	// Only used when in specific contexts where the appropriate capability is supported:
 	// * During projection: `relational_query.project.expression.aggregate.count.distinct`
 	// * During filtering: `relational_query.filter.aggregate.count.distinct`
@@ -5160,15 +5160,15 @@ func (j RelationalExpressionMin) Wrap() RelationalExpression {
 
 // RelationalExpressionStringAgg represents a RelationalExpression with the string_agg type.
 type RelationalExpressionStringAgg struct {
-	Expr      RelationalExpression `json:"expr"               mapstructure:"expr"               yaml:"expr"`
-	Separator string               `json:"separator"          mapstructure:"separator"          yaml:"separator"`
+	Expr      RelationalExpression `json:"expr"      mapstructure:"expr"      yaml:"expr"`
+	Separator string               `json:"separator" mapstructure:"separator" yaml:"separator"`
 	// Only used when in specific contexts where the appropriate capability is supported:
 	// * During projection: `relational_query.project.expression.aggregate.string_agg.distinct`
 	// * During filtering: `relational_query.filter.aggregate.string_agg.distinct`
 	// * During sorting:`relational_query.sort.expression.aggregate.string_agg.distinct`
 	// * During joining: `relational_query.join.expression.aggregate.string_agg.distinct`
 	// * During aggregation: `relational_query.aggregate.expression.aggregate.string_agg.distinct` * During windowing: `relational_query.window.expression.aggregate.string_agg.distinct`
-	Distinct bool `json:"distinct"           mapstructure:"distinct"           yaml:"distinct"`
+	Distinct bool `json:"distinct" mapstructure:"distinct" yaml:"distinct"`
 	// Only used when in specific contexts where the appropriate capability is supported:
 	// * During projection: `relational_query.project.expression.aggregate.string_agg.order_by`
 	// * During filtering: `relational_query.filter.aggregate.string_agg.order_by`
@@ -5414,7 +5414,7 @@ func (j RelationalExpressionApproxPercentileCont) Wrap() RelationalExpression {
 
 // RelationalExpressionArrayAgg represents a RelationalExpression with the array_agg type.
 type RelationalExpressionArrayAgg struct {
-	Expr RelationalExpression `json:"expr"               mapstructure:"expr"               yaml:"expr"`
+	Expr RelationalExpression `json:"expr" mapstructure:"expr" yaml:"expr"`
 	// Only used when in specific contexts where the appropriate capability is supported:
 	// * During projection: `relational_query.project.expression.aggregate.array_agg.distinct`
 	// * During filtering: `relational_query.filter.aggregate.array_agg.distinct`
@@ -5422,7 +5422,7 @@ type RelationalExpressionArrayAgg struct {
 	// * During joining: `relational_query.join.expression.aggregate.array_agg.distinct`
 	// * During aggregation: `relational_query.aggregate.expression.aggregate.array_agg.distinct`
 	// * During windowing: `relational_query.window.expression.aggregate.array_agg.distinct`
-	Distinct bool `json:"distinct"           mapstructure:"distinct"           yaml:"distinct"`
+	Distinct bool `json:"distinct" mapstructure:"distinct" yaml:"distinct"`
 	// Only used when in specific contexts where the appropriate capability is supported:
 	// * During projection: `relational_query.project.expression.aggregate.array_agg.order_by`
 	// * During filtering: `relational_query.filter.aggregate.array_agg.order_by`

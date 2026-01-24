@@ -928,7 +928,7 @@ func (j Field) InterfaceT() (FieldEncoder, error) {
 // ColumnField represents a column field.
 type ColumnField struct {
 	// Column name
-	Column string `json:"column"           mapstructure:"column" yaml:"column"`
+	Column string `json:"column" mapstructure:"column" yaml:"column"`
 	// When the type of the column is a (possibly-nullable) array or object,
 	// the caller can request a subset of the complete column data, by specifying fields to fetch here.
 	// If omitted, the column data will be fetched in full.
@@ -1017,11 +1017,11 @@ func (f ColumnField) Encode() Field {
 // RelationshipField represents a relationship field.
 type RelationshipField struct {
 	// The relationship query
-	Query Query `json:"query"        mapstructure:"query"        yaml:"query"`
+	Query Query `json:"query" mapstructure:"query" yaml:"query"`
 	// The name of the relationship to follow for the subquery
 	Relationship string `json:"relationship" mapstructure:"relationship" yaml:"relationship"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]RelationshipArgument `json:"arguments"    mapstructure:"arguments"    yaml:"arguments"`
+	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments" yaml:"arguments"`
 }
 
 // NewRelationshipField creates a new RelationshipField instance.
@@ -1331,9 +1331,9 @@ func (j ComparisonTarget) InterfaceT() (ComparisonTargetEncoder, error) {
 // ComparisonTargetColumn represents a comparison targets a column.
 type ComparisonTargetColumn struct {
 	// The name of the column
-	Name string `json:"name"                 mapstructure:"name"       yaml:"name"`
+	Name string `json:"name" mapstructure:"name" yaml:"name"`
 	// Arguments to satisfy the column specified by 'name'
-	Arguments map[string]Argument `json:"arguments,omitempty"  mapstructure:"arguments"  yaml:"arguments,omitempty"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
 	// Path to a nested field within an object column. Only non-empty if the 'query.nested_fields.filter_by' capability is supported.
 	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 }
@@ -1424,7 +1424,7 @@ type ComparisonTargetAggregate struct {
 	// The aggregation method to use
 	Aggregate Aggregate `json:"aggregate" mapstructure:"aggregate" yaml:"aggregate"`
 	// Non-empty collection of relationships to traverse
-	Path []PathElement `json:"path"      mapstructure:"path"      yaml:"path"`
+	Path []PathElement `json:"path" mapstructure:"path" yaml:"path"`
 }
 
 // NewComparisonTargetAggregate creates a ComparisonTargetAggregate instance.
@@ -1756,19 +1756,19 @@ type ComparisonValueEncoder interface {
 // ComparisonValueColumn represents the value to compare against should be drawn from another column.
 type ComparisonValueColumn struct {
 	// The name of the column
-	Name string `json:"name"                 mapstructure:"name"       yaml:"name"`
+	Name string `json:"name" mapstructure:"name" yaml:"name"`
 	// Any relationships to traverse to reach this column.
 	// Only non-empty if the 'relationships.relation_comparisons' is supported.
-	Path []PathElement `json:"path"                 mapstructure:"path"       yaml:"path"`
+	Path []PathElement `json:"path" mapstructure:"path" yaml:"path"`
 	// Arguments to satisfy the column specified by 'name'
-	Arguments map[string]Argument `json:"arguments,omitempty"  mapstructure:"arguments"  yaml:"arguments,omitempty"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
 	// Path to a nested field within an object column. Only non-empty if the 'query.nested_fields.filter_by' capability is supported.
 	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 	// The scope in which this column exists, identified by an top-down index into the stack of scopes.
 	// The stack grows inside each `Expression::Exists`, so scope 0 (the default) refers to the current collection,
 	// and each subsequent index refers to the collection outside its predecessor's immediately enclosing `Expression::Exists` expression.
 	// Only used if the 'query.exists.named_scopes' capability is supported.
-	Scope *uint `json:"scope,omitempty"      mapstructure:"scope"      yaml:"scope,omitempty"`
+	Scope *uint `json:"scope,omitempty" mapstructure:"scope" yaml:"scope,omitempty"`
 }
 
 // NewComparisonValueColumn creates a new ComparisonValueColumn instance.
@@ -2304,12 +2304,12 @@ type ExistsInCollectionEncoder interface {
 //
 // [Related collections]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=exists#related-collections
 type ExistsInCollectionRelated struct {
-	Relationship string `json:"relationship"         mapstructure:"relationship" yaml:"relationship"`
+	Relationship string `json:"relationship" mapstructure:"relationship" yaml:"relationship"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]RelationshipArgument `json:"arguments"            mapstructure:"arguments"    yaml:"arguments"`
+	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments" yaml:"arguments"`
 	// Path to a nested field within an object column that must be navigated before the relationship is navigated.
 	// Only non-empty if the 'relationships.nested.filtering' capability is supported.
-	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path"   yaml:"field_path,omitempty"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 }
 
 // NewExistsInCollectionRelated creates an ExistsInCollectionRelated instance.
@@ -2350,7 +2350,7 @@ type ExistsInCollectionUnrelated struct {
 	// The name of a collection
 	Collection string `json:"collection" mapstructure:"collection" yaml:"collection"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]RelationshipArgument `json:"arguments"  mapstructure:"arguments"  yaml:"arguments"`
+	Arguments map[string]RelationshipArgument `json:"arguments" mapstructure:"arguments" yaml:"arguments"`
 }
 
 // NewExistsInCollectionUnrelated creates an ExistsInCollectionUnrelated instance.
@@ -2383,11 +2383,11 @@ func (ei ExistsInCollectionUnrelated) Encode() ExistsInCollection {
 // [nested collections]: https://hasura.github.io/ndc-spec/specification/queries/filtering.html?highlight=exists#nested-collections
 type ExistsInCollectionNestedCollection struct {
 	// The name of column
-	ColumnName string `json:"column_name"          mapstructure:"column_name" yaml:"column_name"`
+	ColumnName string `json:"column_name" mapstructure:"column_name" yaml:"column_name"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]Argument `json:"arguments,omitempty"  mapstructure:"arguments"   yaml:"arguments,omitempty"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
 	// Path to a nested collection via object columns
-	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path"  yaml:"field_path,omitempty"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 }
 
 // NewExistsInCollectionNestedCollection creates an ExistsInCollectionNestedCollection instance.
@@ -2478,11 +2478,11 @@ func (ei ExistsInCollectionNestedCollection) Encode() ExistsInCollection {
 //	Only used if the 'query.exists.nested_scalar_collections' capability is supported.
 type ExistsInCollectionNestedScalarCollection struct {
 	// The name of column
-	ColumnName string `json:"column_name"          mapstructure:"column_name" yaml:"column_name"`
+	ColumnName string `json:"column_name" mapstructure:"column_name" yaml:"column_name"`
 	// Values to be provided to any collection arguments
-	Arguments map[string]Argument `json:"arguments,omitempty"  mapstructure:"arguments"   yaml:"arguments,omitempty"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
 	// Path to a nested collection via object columns
-	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path"  yaml:"field_path,omitempty"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 }
 
 // NewExistsInCollectionNestedScalarCollection creates an ExistsInCollectionNestedScalarCollection instance.
@@ -3759,13 +3759,13 @@ func (ag AggregateStarCount) Encode() Aggregate {
 // AggregateSingleColumn represents an aggregate object which applies an aggregation function (as defined by the column's scalar type in the schema response) to a column.
 type AggregateSingleColumn struct {
 	// The column to apply the aggregation function to
-	Column string `json:"column"               mapstructure:"column"     yaml:"column"`
+	Column string `json:"column" mapstructure:"column" yaml:"column"`
 	// Single column aggregate function name.
-	Function string `json:"function"             mapstructure:"function"   yaml:"function"`
+	Function string `json:"function" mapstructure:"function" yaml:"function"`
 	// Path to a nested field within an object column.
 	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 	// Arguments to satisfy the column specified by 'column'
-	Arguments map[string]Argument `json:"arguments,omitempty"  mapstructure:"arguments"  yaml:"arguments,omitempty"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
 }
 
 // NewAggregateSingleColumn creates a new AggregateSingleColumn instance.
@@ -3854,13 +3854,13 @@ func (ag AggregateSingleColumn) Encode() Aggregate {
 // If the distinct flag is set, then the count should only count unique non-null values of those columns.
 type AggregateColumnCount struct {
 	// The column to apply the aggregation function to
-	Column string `json:"column"               mapstructure:"column"     yaml:"column"`
+	Column string `json:"column" mapstructure:"column" yaml:"column"`
 	// Whether or not only distinct items should be counted.
-	Distinct bool `json:"distinct"             mapstructure:"distinct"   yaml:"distinct"`
+	Distinct bool `json:"distinct" mapstructure:"distinct" yaml:"distinct"`
 	// Path to a nested field within an object column.
 	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 	// Arguments to satisfy the column specified by 'column'
-	Arguments map[string]Argument `json:"arguments,omitempty"  mapstructure:"arguments"  yaml:"arguments,omitempty"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
 }
 
 // NewAggregateColumnCount creates a new AggregateColumnCount instance.
@@ -4092,13 +4092,13 @@ func (j *OrderByTarget) UnmarshalJSON(b []byte) error {
 // OrderByColumn represents an ordering object which compares the value in the selected column.
 type OrderByColumn struct {
 	// The name of the column
-	Name string `json:"name"                 mapstructure:"name"       yaml:"name"`
+	Name string `json:"name" mapstructure:"name" yaml:"name"`
 	// Any relationships to traverse to reach this column
-	Path []PathElement `json:"path"                 mapstructure:"path"       yaml:"path"`
+	Path []PathElement `json:"path" mapstructure:"path" yaml:"path"`
 	// Any field path to a nested field within the column
 	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 	// Arguments to satisfy the column specified by 'name'
-	Arguments map[string]Argument `json:"arguments,omitempty"  mapstructure:"arguments"  yaml:"arguments,omitempty"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
 }
 
 // NewOrderByColumn creates an OrderByColumn instance.
@@ -4199,7 +4199,7 @@ type OrderByAggregate struct {
 	Aggregate Aggregate `json:"aggregate" mapstructure:"aggregate" yaml:"aggregate"`
 	// Non-empty collection of relationships to traverse. Only non-empty if the 'relationships' capability is supported.
 	// 'PathElement.field_path' will only be non-empty if the 'relationships.nested.ordering' capability is supported.
-	Path []PathElement `json:"path"      mapstructure:"path"      yaml:"path"`
+	Path []PathElement `json:"path" mapstructure:"path" yaml:"path"`
 }
 
 // NewOrderByAggregate creates an OrderByAggregate instance.

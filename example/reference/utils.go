@@ -135,7 +135,10 @@ func compare(v1 any, v2 any) (int, error) {
 			return 0, errInvalidType
 		}
 
-		return 0, schema.InternalServerError(fmt.Sprintf("cannot compare values with type: %s, value: %s", kindV1, string(rawV1)), nil)
+		return 0, schema.InternalServerError(
+			fmt.Sprintf("cannot compare values with type: %s, value: %s", kindV1, string(rawV1)),
+			nil,
+		)
 	}
 }
 
@@ -383,7 +386,14 @@ func evalAggregateFunction(function string, values []any) (any, error) {
 		case string:
 			stringValues = append(stringValues, v)
 		default:
-			return nil, schema.UnprocessableContentError(fmt.Sprintf("%s: column is not an integer, got %+v", function, reflect.ValueOf(v).Kind()), nil)
+			return nil, schema.UnprocessableContentError(
+				fmt.Sprintf(
+					"%s: column is not an integer, got %+v",
+					function,
+					reflect.ValueOf(v).Kind(),
+				),
+				nil,
+			)
 		}
 	}
 

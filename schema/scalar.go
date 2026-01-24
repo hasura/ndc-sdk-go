@@ -1166,7 +1166,12 @@ func (j ExtractionFunctionDefinition) Type() (ExtractionFunctionDefinitionType, 
 	case ExtractionFunctionDefinitionType:
 		return raw, nil
 	default:
-		return ExtractionFunctionDefinitionType(""), fmt.Errorf("invalid ExtractionFunctionDefinition type: %+v", t)
+		return ExtractionFunctionDefinitionType(
+				"",
+			), fmt.Errorf(
+				"invalid ExtractionFunctionDefinition type: %+v",
+				t,
+			)
 	}
 }
 
@@ -2585,7 +2590,12 @@ func (j ComparisonOperatorDefinition) Type() (ComparisonOperatorDefinitionType, 
 	case ComparisonOperatorDefinitionType:
 		return raw, nil
 	default:
-		return ComparisonOperatorDefinitionType(""), fmt.Errorf("invalid ComparisonOperatorDefinition type: %+v", t)
+		return ComparisonOperatorDefinitionType(
+				"",
+			), fmt.Errorf(
+				"invalid ComparisonOperatorDefinition type: %+v",
+				t,
+			)
 	}
 }
 

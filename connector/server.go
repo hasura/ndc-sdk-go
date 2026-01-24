@@ -63,7 +63,11 @@ func (hsc *HTTPServerConfig) Validate() error {
 	if hsc.ServerDefaultHTTPErrorStatus == 0 {
 		hsc.ServerDefaultHTTPErrorStatus = http.StatusUnprocessableEntity
 	} else if !slices.Contains(allowedHttpErrorCodes, hsc.ServerDefaultHTTPErrorStatus) {
-		return fmt.Errorf("invalid default server http error code, accepted one of %v, got: %d", allowedHttpErrorCodes, hsc.ServerDefaultHTTPErrorStatus)
+		return fmt.Errorf(
+			"invalid default server http error code, accepted one of %v, got: %d",
+			allowedHttpErrorCodes,
+			hsc.ServerDefaultHTTPErrorStatus,
+		)
 	}
 
 	return nil
