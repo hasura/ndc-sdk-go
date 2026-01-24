@@ -363,7 +363,10 @@ func setupOTelMetricsProvider(
 				return nil, err
 			}
 
-			metricOptions = append(metricOptions, metric.WithReader(metric.NewPeriodicReader(metricExporter)))
+			metricOptions = append(
+				metricOptions,
+				metric.WithReader(metric.NewPeriodicReader(metricExporter)),
+			)
 		}
 	default:
 	}

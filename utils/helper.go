@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"maps"
 	"reflect"
 	"slices"
 	"strconv"
@@ -166,9 +167,7 @@ func MergeMap[K comparable, V any](dest map[K]V, src map[K]V) map[K]V {
 		result = map[K]V{}
 	}
 
-	for k, v := range src {
-		result[k] = v
-	}
+	maps.Copy(result, src)
 
 	return result
 }
@@ -182,9 +181,9 @@ func ParseStringMapFromString(input string) (map[string]string, error) {
 		return result, nil
 	}
 
-	rawItems := strings.Split(input, ";")
+	rawItems := strings.SplitSeq(input, ";")
 
-	for _, rawItem := range rawItems {
+	for rawItem := range rawItems {
 		keyValue := strings.Split(rawItem, "=")
 
 		if len(keyValue) != keyValueLength {

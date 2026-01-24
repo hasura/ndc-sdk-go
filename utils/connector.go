@@ -215,7 +215,11 @@ func evalObjectWithColumnSelection(
 		case *schema.ColumnField:
 			if col, ok := data[fi.Column]; ok {
 				if fi.Fields != nil {
-					nestedValue, err := evalNestedColumnFields(fi.Fields, col, fmt.Sprintf("%s.%s", fieldPath, key))
+					nestedValue, err := evalNestedColumnFields(
+						fi.Fields,
+						col,
+						fmt.Sprintf("%s.%s", fieldPath, key),
+					)
 					if err != nil {
 						return nil, err
 					}
@@ -250,6 +254,7 @@ func evalObjectWithColumnSelection(
 }
 
 // ResolveArgumentVariables resolve variables in arguments if exist.
+//
 // Deprecated: use ResolveArguments instead.
 func ResolveArgumentVariables(
 	arguments map[string]schema.Argument,

@@ -503,15 +503,15 @@ func (j *Dimension) UnmarshalJSON(b []byte) error {
 // DimensionColumn represents a dimension column.
 type DimensionColumn struct {
 	// Any (object) relationships to traverse to reach this column. Only non-empty if the 'relationships' capability is supported.
-	Path []PathElement `json:"path"                 mapstructure:"path"        yaml:"path"`
+	Path []PathElement `json:"path" mapstructure:"path" yaml:"path"`
 	// The name of the column
-	ColumnName string `json:"column_name"          mapstructure:"column_name" yaml:"column_name"`
+	ColumnName string `json:"column_name" mapstructure:"column_name" yaml:"column_name"`
 	// Arguments to satisfy the column specified by 'column_name'
-	Arguments map[string]Argument `json:"arguments,omitempty"  mapstructure:"arguments"   yaml:"arguments,omitempty"`
+	Arguments map[string]Argument `json:"arguments,omitempty" mapstructure:"arguments" yaml:"arguments,omitempty"`
 	// Path to a nested field within an object column.
-	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path"  yaml:"field_path,omitempty"`
+	FieldPath []string `json:"field_path,omitempty" mapstructure:"field_path" yaml:"field_path,omitempty"`
 	// The name of the extraction function to apply to the selected value, if any.
-	Extraction string `json:"extraction,omitempty" mapstructure:"extraction"  yaml:"extraction,omitempty"`
+	Extraction string `json:"extraction,omitempty" mapstructure:"extraction" yaml:"extraction,omitempty"`
 }
 
 // NewDimensionColumn creates a DimensionColumn instance.
