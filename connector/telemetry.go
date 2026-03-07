@@ -151,6 +151,10 @@ func SetSpanHeaderAttributes(
 	allowedHeaders ...string,
 ) {
 	headers := otelutils.NewTelemetryHeaders(httpHeaders, allowedHeaders...)
-
 	otelutils.SetSpanHeaderAttributes(span, prefix, headers)
+}
+
+// GetLogger gets the logger instance from context.
+func GetLogger(ctx context.Context) *slog.Logger {
+	return gotel.GetLogger(ctx)
 }

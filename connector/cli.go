@@ -91,7 +91,7 @@ func StartCustom[Configuration any, State any](
 
 		return server.ListenAndServe(serveCLI.Serve.Port)
 	default:
-		ctx := NewContextLogger(context.Background(), logger)
+		ctx := otelutils.NewContextWithLogger(context.Background(), logger)
 
 		return cli.Execute(ctx, command)
 	}

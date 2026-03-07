@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/hasura/gotel"
 	"github.com/hasura/ndc-sdk-go/v2/schema"
 	"go.opentelemetry.io/otel/metric"
 )
@@ -13,7 +14,7 @@ import (
 func (s *Server[Configuration, State]) withNDCVersionCheck(w http.ResponseWriter, r *http.Request) {
 	requestedVersion := r.Header.Get(schema.XHasuraNDCVersion)
 	if requestedVersion != "" {
-		logger := GetLogger(r.Context())
+		logger := gotel.GetLogger(r.Context())
 
 		parsedVersion, err := semver.NewVersion(requestedVersion)
 		if err != nil {
@@ -60,7 +61,7 @@ func (s *Server[Configuration, State]) withNDCVersionCheck(w http.ResponseWriter
 }
 
 func (s *Server[Configuration, State]) withAuth(w http.ResponseWriter, r *http.Request) {
-	logger := GetLogger(r.Context())
+	logger := gotel.GetLogger(r.Context())
 	// authorize the secret token in the request header if exists.
 	if s.options.ServiceTokenSecret != "" &&
 		r.Header.Get("Authorization") != ("Bearer "+s.options.ServiceTokenSecret) {

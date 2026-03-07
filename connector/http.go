@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hasura/gotel/otelutils"
 	"github.com/hasura/ndc-sdk-go/v2/schema"
 	"github.com/hasura/ndc-sdk-go/v2/utils"
 	"go.opentelemetry.io/otel"
@@ -232,7 +233,7 @@ func (rt *router) createHandleFunc( //nolint:gocognit
 		}
 
 		logger := rt.logger.With(slog.String("request_id", requestID))
-		req := r.WithContext(NewContextLogger(ctx, logger))
+		req := r.WithContext(otelutils.NewContextWithLogger(ctx, logger))
 		writer := newCustomResponseWriter(r, w)
 
 		for _, h := range handlers {
