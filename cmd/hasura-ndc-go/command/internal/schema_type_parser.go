@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"go/types"
+	"maps"
 	"strings"
 
 	"github.com/hasura/ndc-sdk-go/v2/schema"
@@ -97,7 +98,10 @@ func (tp *TypeParser) parseArgumentTypes(ty types.Type, fieldPaths []string) (*O
 			typeInfo.TypeAST = inferredType.Underlying()
 		}
 
-		arguments, err := tp.parseArgumentTypes(typeInfo.TypeAST, append(fieldPaths, typeObj.Name()))
+		arguments, err := tp.parseArgumentTypes(
+			typeInfo.TypeAST,
+			append(fieldPaths, typeObj.Name()),
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -186,7 +190,11 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 		case types.String:
 			typeInfo.SchemaName = string(ScalarString)
 		default:
-			return nil, fmt.Errorf("%s: unsupported scalar type <%s>", strings.Join(fieldPaths, "."), inferredType.String())
+			return nil, fmt.Errorf(
+				"%s: unsupported scalar type <%s>",
+				strings.Join(fieldPaths, "."),
+				inferredType.String(),
+			)
 		}
 
 		tp.schemaParser.rawSchema.SetScalar(typeInfo.SchemaName, Scalar{
@@ -225,7 +233,11 @@ func (tp *TypeParser) parseType(ty types.Type, fieldPaths []string) (Type, error
 	case *types.Chan, *types.Signature, *types.Tuple, *types.Union:
 		return nil, nil
 	default:
-		return nil, fmt.Errorf("%s: unsupported type: %s", strings.Join(fieldPaths, "."), ty.String())
+		return nil, fmt.Errorf(
+			"%s: unsupported type: %s",
+			strings.Join(fieldPaths, "."),
+			ty.String(),
+		)
 	}
 }
 
@@ -444,9 +456,7 @@ func (tp *TypeParser) parseStructType(
 		embeddedObject, ok := tp.schemaParser.rawSchema.Objects[field.Type.SchemaName(false)]
 		if field.Embedded && ok {
 			// flatten embedded object fields to the parent object
-			for k, of := range embeddedObject.SchemaFields {
-				objectInfo.SchemaFields[k] = of
-			}
+			maps.Copy(objectInfo.SchemaFields, embeddedObject.SchemaFields)
 		} else {
 			fieldSchema := field.Type.Schema()
 			if tagInfo.OmitEmpty && field.Type.Kind() != schema.TypeNullable {
@@ -501,9 +511,9 @@ func (tp *TypeParser) parseTypeInfoFromComments(
 			if len(enumMatches) == 2 {
 				var enums []string
 
-				rawEnumItems := strings.Split(enumMatches[1], ",")
+				rawEnumItems := strings.SplitSeq(enumMatches[1], ",")
 
-				for _, item := range rawEnumItems {
+				for item := range rawEnumItems {
 					trimmed := strings.TrimSpace(item)
 					if trimmed != "" {
 						enums = append(enums, trimmed)
@@ -610,9 +620,9 @@ func parseTypeParameters(rootType *TypeInfo, input string) error {
 		paramsString = paramsString[:len(paramsString)-1]
 	}
 
-	rawParams := strings.Split(paramsString, ",")
+	rawParams := strings.SplitSeq(paramsString, ",")
 
-	for _, param := range rawParams {
+	for param := range rawParams {
 		param = strings.TrimSpace(param)
 		if param == "" {
 			continue

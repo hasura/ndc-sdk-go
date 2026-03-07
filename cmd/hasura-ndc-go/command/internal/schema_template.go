@@ -18,10 +18,6 @@ import (
   "github.com/hasura/ndc-sdk-go/v2/schema"
 )
 
-func toPtr[V any](value V) *V {
-  return &value
-}
-
 // GetConnectorSchema gets the generated connector schema
 func GetConnectorSchema() *schema.SchemaResponse {
   return &schema.SchemaResponse{
@@ -234,7 +230,7 @@ func (rcs RawConnectorSchema) writeScalarType(
 
 func (rcs RawConnectorSchema) writeDescription(builder *strings.Builder, description *string) {
 	if description != nil {
-		builder.WriteString(`        Description: toPtr(`)
+		builder.WriteString(`        Description: new(`)
 		builder.WriteString(strconv.Quote(*description))
 		builder.WriteString("),\n")
 	}

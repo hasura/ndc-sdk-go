@@ -376,7 +376,10 @@ func (cmd *genTestSnapshotsCommand) genNestFieldAndValueInternal(
 			return nil, nil, false, nil
 		}
 
-		innerType, data, isScalar, err := cmd.genNestFieldAndValueInternal(ty.ElementType, currentDepth+1)
+		innerType, data, isScalar, err := cmd.genNestFieldAndValueInternal(
+			ty.ElementType,
+			currentDepth+1,
+		)
 		if err != nil {
 			return nil, nil, false, err
 		}

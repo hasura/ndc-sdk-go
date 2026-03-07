@@ -48,7 +48,8 @@ func GenRandomScalarValue(random *rand.Rand, name string, scalar *schema.ScalarT
 	case *schema.TypeRepresentationDate:
 		return baseTime.Add(time.Duration(random.Intn(math.MaxInt32))).Format("2006-01-02")
 	case *schema.TypeRepresentationTimestamp:
-		return baseTime.Add(time.Duration(random.Intn(math.MaxInt32))).Format("2006-01-02T15:04:05Z")
+		return baseTime.Add(time.Duration(random.Intn(math.MaxInt32))).
+			Format("2006-01-02T15:04:05Z")
 	case *schema.TypeRepresentationTimestampTZ:
 		return baseTime.Add(time.Duration(random.Intn(math.MaxInt32))).Format(time.RFC3339)
 	case *schema.TypeRepresentationUUID:

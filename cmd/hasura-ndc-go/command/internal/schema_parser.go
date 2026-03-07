@@ -221,6 +221,7 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 		var resultTuple *types.Tuple
 
 		var params *types.Tuple
+
 		switch sig := obj.Type().(type) {
 		case *types.Signature:
 			params = sig.Params()
@@ -230,11 +231,19 @@ func (sp *SchemaParser) parsePackageScope(pkg *types.Package, name string) error
 		}
 
 		if params == nil || (params.Len() < 2 || params.Len() > 3) {
-			return fmt.Errorf("%s: expect 2 or 3 parameters only (ctx context.Context, state *types.State, arguments *[ArgumentType]), got %s", opInfo.OriginName, params)
+			return fmt.Errorf(
+				"%s: expect 2 or 3 parameters only (ctx context.Context, state *types.State, arguments *[ArgumentType]), got %s",
+				opInfo.OriginName,
+				params,
+			)
 		}
 
 		if resultTuple == nil || resultTuple.Len() != 2 {
-			return fmt.Errorf("%s: expect result tuple ([type], error), got %s", opInfo.OriginName, resultTuple)
+			return fmt.Errorf(
+				"%s: expect result tuple ([type], error), got %s",
+				opInfo.OriginName,
+				resultTuple,
+			)
 		}
 
 		if sp.rawSchema.StateType == nil {

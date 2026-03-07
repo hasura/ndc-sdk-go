@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"go/types"
+	"strings"
 
 	"github.com/hasura/ndc-sdk-go/v2/schema"
 	"github.com/hasura/ndc-sdk-go/v2/utils"
@@ -250,19 +251,25 @@ func (ti *TypeInfo) getArgumentName(packagePath string, isAbsolute bool) string 
 	}
 
 	paramLen := len(ti.TypeParameters)
-	if paramLen > 0 {
-		name += "["
-		for i, param := range ti.TypeParameters {
-			name += getTypeArgumentName(param, packagePath, isAbsolute)
-			if i < paramLen-1 {
-				name += ", "
-			}
-		}
-
-		name += "]"
+	if paramLen == 0 {
+		return name
 	}
 
-	return name
+	var nameSb strings.Builder
+	nameSb.WriteString(name)
+	nameSb.WriteRune('[')
+
+	for i, param := range ti.TypeParameters {
+		nameSb.WriteString(getTypeArgumentName(param, packagePath, isAbsolute))
+
+		if i < paramLen-1 {
+			nameSb.WriteString(", ")
+		}
+	}
+
+	nameSb.WriteRune(']')
+
+	return nameSb.String()
 }
 
 // Field represents the serialization information of a field.

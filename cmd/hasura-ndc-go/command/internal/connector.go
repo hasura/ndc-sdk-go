@@ -64,7 +64,7 @@ func (ctb connectorTypeBuilder) String() string {
 				alias += " "
 			}
 
-			bs.WriteString(fmt.Sprintf("  %s\"%s\"\n", alias, pkg))
+			fmt.Fprintf(&bs, "  %s\"%s\"\n", alias, pkg)
 		}
 
 		bs.WriteString(")\n")
@@ -102,6 +102,7 @@ func ParseAndGenerateConnector(args ConnectorGenerationArguments, moduleName str
 		if err = trace.Start(w); err != nil {
 			return fmt.Errorf("failed to start trace: %w", err)
 		}
+
 		defer trace.Stop()
 	}
 
@@ -226,7 +227,7 @@ func (cg *connectorGenerator) generateConnector(name string) error {
 func (cg *connectorGenerator) genConnectorCodeFromTemplate(w io.Writer, packageName string) error {
 	sortedImports := utils.GetSortedKeys(cg.rawSchema.Imports)
 
-	importLines := []string{}
+	importLines := make([]string, 0, len(sortedImports))
 	for _, importPath := range sortedImports {
 		importLines = append(importLines, fmt.Sprintf(`"%s"`, importPath))
 	}
@@ -969,7 +970,8 @@ func (cg *connectorGenerator) writeGetTypeValueDecoder( //nolint:gocyclo,cyclop,
 			sb.builder.WriteString("DecodeObjectValue")
 
 			if len(objectField.Type) > 0 {
-				if typeEnum, err := objectField.Type.Type(); err == nil && typeEnum == schema.TypeNullable {
+				if typeEnum, err := objectField.Type.Type(); err == nil &&
+					typeEnum == schema.TypeNullable {
 					sb.builder.WriteString("Default")
 				}
 			}
@@ -1027,31 +1029,37 @@ func (cg *connectorGenerator) getAnonymousObjectTypeName(
 			result += "*"
 		}
 
-		underlyingName, packagePaths := cg.getAnonymousObjectTypeName(sb, inferredType.Elem(), false)
+		underlyingName, packagePaths := cg.getAnonymousObjectTypeName(
+			sb,
+			inferredType.Elem(),
+			false,
+		)
 
 		return result + underlyingName, packagePaths
 	case *types.Struct:
 		packagePaths := []string{}
 		result := "struct{"
 
+		var resultSb1037 strings.Builder
 		for i := range inferredType.NumFields() {
 			fieldVar := inferredType.Field(i)
 			fieldTag := inferredType.Tag(i)
 
 			if i > 0 {
-				result += "; "
+				resultSb1037.WriteString("; ")
 			}
 
-			result += fieldVar.Name() + " "
+			resultSb1037.WriteString(fieldVar.Name() + " ")
 			underlyingName, pkgPaths := cg.getAnonymousObjectTypeName(sb, fieldVar.Type(), false)
-			result += underlyingName
+			resultSb1037.WriteString(underlyingName)
 
 			packagePaths = append(packagePaths, pkgPaths...)
 
 			if fieldTag != "" {
-				result += " `" + fieldTag + "`"
+				resultSb1037.WriteString(" `" + fieldTag + "`")
 			}
 		}
+		result += resultSb1037.String()
 
 		result += "}"
 
@@ -1086,14 +1094,18 @@ func (cg *connectorGenerator) getAnonymousObjectTypeName(
 			if err := parseTypeParameters(typeInfo, inferredType.String()); err == nil {
 				result += "["
 
+				var resultSb1089 strings.Builder
 				for i, typeParam := range typeInfo.TypeParameters {
 					if i > 0 {
-						result += ", "
+						resultSb1089.WriteString(", ")
 					}
 
-					packagePaths = append(packagePaths, getTypePackagePaths(typeParam, sb.packagePath)...)
-					result += getTypeArgumentName(typeParam, sb.packagePath, false)
+					packagePaths = append(
+						packagePaths,
+						getTypePackagePaths(typeParam, sb.packagePath)...)
+					resultSb1089.WriteString(getTypeArgumentName(typeParam, sb.packagePath, false))
 				}
+				result += resultSb1089.String()
 
 				result += "]"
 			}

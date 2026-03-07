@@ -17,6 +17,8 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/hasura/gotel"
+	"github.com/hasura/gotel/otelutils"
 	"github.com/hasura/ndc-sdk-go/v2/schema"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/otel/attribute"
@@ -27,7 +29,7 @@ import (
 
 // ServerOptions presents the configuration object of the connector http server.
 type ServerOptions struct {
-	OTLPConfig
+	gotel.OTLPConfig
 	HTTPServerConfig
 
 	Configuration      string
@@ -131,7 +133,7 @@ func NewServer[Configuration any, State any](
 		return nil, err
 	}
 
-	ctx = NewContextLogger(ctx, telemetry.Logger)
+	ctx = otelutils.NewContextWithLogger(ctx, telemetry.Logger)
 
 	configuration, err := connector.ParseConfiguration(ctx, options.Configuration)
 	if err != nil {
@@ -164,7 +166,7 @@ func NewServer[Configuration any, State any](
 
 // GetCapabilities get the connector's capabilities. Implement a handler for the /capabilities endpoint, GET method.
 func (s *Server[Configuration, State]) GetCapabilities(w http.ResponseWriter, r *http.Request) {
-	logger := GetLogger(r.Context())
+	logger := gotel.GetLogger(r.Context())
 
 	capabilities := s.connector.GetCapabilities(s.configuration)
 	if capabilities == nil {
@@ -180,7 +182,7 @@ func (s *Server[Configuration, State]) GetCapabilities(w http.ResponseWriter, r 
 
 // Health checks the health of the connector. Implement a handler for the /health endpoint, GET method.
 func (s *Server[Configuration, State]) Health(w http.ResponseWriter, r *http.Request) {
-	logger := GetLogger(r.Context())
+	logger := gotel.GetLogger(r.Context())
 	if err := s.connector.HealthCheck(r.Context(), s.configuration, s.state); err != nil {
 		s.writeError(w, logger, err)
 
@@ -192,7 +194,7 @@ func (s *Server[Configuration, State]) Health(w http.ResponseWriter, r *http.Req
 
 // GetSchema implements a handler for the /schema endpoint, GET method.
 func (s *Server[Configuration, State]) GetSchema(w http.ResponseWriter, r *http.Request) {
-	logger := GetLogger(r.Context())
+	logger := gotel.GetLogger(r.Context())
 
 	schemaResult, err := s.connector.GetSchema(r.Context(), s.configuration, s.state)
 	if err != nil {
@@ -215,7 +217,7 @@ func (s *Server[Configuration, State]) GetSchema(w http.ResponseWriter, r *http.
 // Query implements a handler for the /query endpoint, POST method that executes a query.
 func (s *Server[Configuration, State]) Query(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
-	logger := GetLogger(r.Context())
+	logger := gotel.GetLogger(r.Context())
 	span := trace.SpanFromContext(r.Context())
 
 	var body schema.QueryRequest
@@ -262,7 +264,7 @@ func (s *Server[Configuration, State]) Query(w http.ResponseWriter, r *http.Requ
 // QueryExplain implements a handler for the /query/explain endpoint, POST method that explains a query by creating an execution plan.
 func (s *Server[Configuration, State]) QueryExplain(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
-	logger := GetLogger(r.Context())
+	logger := gotel.GetLogger(r.Context())
 	span := trace.SpanFromContext(r.Context())
 
 	var body schema.QueryRequest
@@ -316,7 +318,7 @@ func (s *Server[Configuration, State]) MutationExplain( //nolint:dupl
 	r *http.Request,
 ) {
 	startTime := time.Now()
-	logger := GetLogger(r.Context())
+	logger := gotel.GetLogger(r.Context())
 	span := trace.SpanFromContext(r.Context())
 
 	var body schema.MutationRequest
@@ -375,7 +377,7 @@ func (s *Server[Configuration, State]) Mutation( //nolint:dupl
 	r *http.Request,
 ) {
 	startTime := time.Now()
-	logger := GetLogger(r.Context())
+	logger := gotel.GetLogger(r.Context())
 	span := trace.SpanFromContext(r.Context())
 
 	var body schema.MutationRequest
@@ -450,12 +452,17 @@ func (s *Server[Configuration, State]) unmarshalBodyJSON(
 
 	err := json.NewDecoder(requestReader).Decode(body)
 	if err != nil {
-		writeJson(w, GetLogger(r.Context()), http.StatusUnprocessableEntity, schema.ErrorResponse{
-			Message: "failed to decode json request body",
-			Details: map[string]any{
-				"cause": err.Error(),
+		writeJson(
+			w,
+			gotel.GetLogger(r.Context()),
+			http.StatusUnprocessableEntity,
+			schema.ErrorResponse{
+				Message: "failed to decode json request body",
+				Details: map[string]any{
+					"cause": err.Error(),
+				},
 			},
-		})
+		)
 
 		counter.Add(r.Context(), 1, metric.WithAttributes(
 			failureStatusAttribute,
@@ -480,7 +487,7 @@ func (s *Server[Configuration, State]) validateMaxBodySize(
 
 	err := fmt.Errorf("request body size exceeded %d MB(s)", s.options.ServerMaxBodyMegabytes)
 
-	writeJson(w, GetLogger(r.Context()), http.StatusUnprocessableEntity, schema.ErrorResponse{
+	writeJson(w, gotel.GetLogger(r.Context()), http.StatusUnprocessableEntity, schema.ErrorResponse{
 		Message: err.Error(),
 		Details: map[string]any{},
 	})
@@ -517,7 +524,7 @@ func (s *Server[Configuration, State]) buildHandler() *http.ServeMux {
 	router.Use(apiPathMutation, http.MethodPost, append(middlewares, s.Mutation)...)
 	router.Use(apiPathHealth, http.MethodGet, s.Health)
 
-	if s.options.MetricsExporter == string(otelMetricsExporterPrometheus) &&
+	if s.options.MetricsExporter == gotel.OTELMetricsExporterPrometheus &&
 		s.options.PrometheusPort == nil {
 		router.Use(apiPathMetrics, http.MethodGet, s.withAuth, promhttp.Handler().ServeHTTP)
 	}
@@ -591,7 +598,7 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 		}
 	}()
 
-	if s.options.MetricsExporter == string(otelMetricsExporterPrometheus) &&
+	if s.options.MetricsExporter == gotel.OTELMetricsExporterPrometheus &&
 		s.options.PrometheusPort != nil {
 		promServer := createPrometheusServer(*s.options.PrometheusPort)
 

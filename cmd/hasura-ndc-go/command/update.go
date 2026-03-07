@@ -30,7 +30,10 @@ func UpdateConnectorSchema(args UpdateArguments, start time.Time) {
 		log.Fatal().Err(err).Msg("")
 	}
 
-	if err = internal.ParseAndGenerateConnector(internal.ConnectorGenerationArguments(args), moduleName); err != nil {
+	if err = internal.ParseAndGenerateConnector(
+		internal.ConnectorGenerationArguments(args),
+		moduleName,
+	); err != nil {
 		log.Fatal().Err(err).Msg("failed to generate connector schema")
 	}
 

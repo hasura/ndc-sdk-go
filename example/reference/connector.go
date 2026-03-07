@@ -261,7 +261,7 @@ func executeUpsertArticle(
 	} else {
 		for i, article := range state.Articles {
 			if article.ID == args.Article.ID {
-				oldRow = utils.ToPtr(article)
+				oldRow = new(article)
 				state.Articles[i] = args.Article
 
 				break

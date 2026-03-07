@@ -88,7 +88,7 @@ func GetSortedValuesByKey[K cmp.Ordered, V any](input map[K]V) []V {
 
 // ToPtr converts a value to its pointer.
 func ToPtr[V any](value V) *V {
-	return &value
+	return new(value)
 }
 
 // ToPtrs converts the value slice to pointer slice.

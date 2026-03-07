@@ -1721,6 +1721,9 @@ type RelationalQueryCapabilities struct {
 	// Sort corresponds to the JSON schema field "sort".
 	Sort *LeafCapability `json:"sort,omitempty" yaml:"sort,omitempty" mapstructure:"sort,omitempty"`
 
+	// Streaming corresponds to the JSON schema field "streaming".
+	Streaming *LeafCapability `json:"streaming,omitempty" yaml:"streaming,omitempty" mapstructure:"streaming,omitempty"`
+
 	// Union corresponds to the JSON schema field "union".
 	Union *LeafCapability `json:"union,omitempty" yaml:"union,omitempty" mapstructure:"union,omitempty"`
 
@@ -1850,6 +1853,33 @@ type RelationalScalarExpressionCapabilities struct {
 
 	// Greatest corresponds to the JSON schema field "greatest".
 	Greatest *LeafCapability `json:"greatest,omitempty" yaml:"greatest,omitempty" mapstructure:"greatest,omitempty"`
+
+	// JsonAsText corresponds to the JSON schema field "json_as_text".
+	JsonAsText *LeafCapability `json:"json_as_text,omitempty" yaml:"json_as_text,omitempty" mapstructure:"json_as_text,omitempty"`
+
+	// JsonContains corresponds to the JSON schema field "json_contains".
+	JsonContains *LeafCapability `json:"json_contains,omitempty" yaml:"json_contains,omitempty" mapstructure:"json_contains,omitempty"`
+
+	// JsonGet corresponds to the JSON schema field "json_get".
+	JsonGet *LeafCapability `json:"json_get,omitempty" yaml:"json_get,omitempty" mapstructure:"json_get,omitempty"`
+
+	// JsonGetBool corresponds to the JSON schema field "json_get_bool".
+	JsonGetBool *LeafCapability `json:"json_get_bool,omitempty" yaml:"json_get_bool,omitempty" mapstructure:"json_get_bool,omitempty"`
+
+	// JsonGetFloat corresponds to the JSON schema field "json_get_float".
+	JsonGetFloat *LeafCapability `json:"json_get_float,omitempty" yaml:"json_get_float,omitempty" mapstructure:"json_get_float,omitempty"`
+
+	// JsonGetInt corresponds to the JSON schema field "json_get_int".
+	JsonGetInt *LeafCapability `json:"json_get_int,omitempty" yaml:"json_get_int,omitempty" mapstructure:"json_get_int,omitempty"`
+
+	// JsonGetJson corresponds to the JSON schema field "json_get_json".
+	JsonGetJson *LeafCapability `json:"json_get_json,omitempty" yaml:"json_get_json,omitempty" mapstructure:"json_get_json,omitempty"`
+
+	// JsonGetStr corresponds to the JSON schema field "json_get_str".
+	JsonGetStr *LeafCapability `json:"json_get_str,omitempty" yaml:"json_get_str,omitempty" mapstructure:"json_get_str,omitempty"`
+
+	// JsonLength corresponds to the JSON schema field "json_length".
+	JsonLength *LeafCapability `json:"json_length,omitempty" yaml:"json_length,omitempty" mapstructure:"json_length,omitempty"`
 
 	// Least corresponds to the JSON schema field "least".
 	Least *LeafCapability `json:"least,omitempty" yaml:"least,omitempty" mapstructure:"least,omitempty"`

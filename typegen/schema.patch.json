@@ -892,6 +892,15 @@
 	},
 	{
 		"op": "remove",
+		"path": "/definitions/RelationalQueryCapabilities/properties/streaming/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalQueryCapabilities/properties/streaming/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
 		"path": "/definitions/RelationalQueryCapabilities/properties/sort/anyOf"
 	},
 	{
@@ -1401,6 +1410,87 @@
 	{
 		"op": "add",
 		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/trunc/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_as_text/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_as_text/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_contains/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_contains/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_get/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_get/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_get_bool/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_get_bool/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_get_float/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_get_float/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_get_int/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_get_int/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_get_json/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_get_json/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_get_str/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_get_str/$ref",
+		"value": "#/definitions/LeafCapability"
+	},
+	{
+		"op": "remove",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_length/anyOf"
+	},
+	{
+		"op": "add",
+		"path": "/definitions/RelationalScalarExpressionCapabilities/properties/json_length/$ref",
 		"value": "#/definitions/LeafCapability"
 	},
 	{

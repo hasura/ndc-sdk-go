@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/hasura/ndc-sdk-go/v2/schema"
-	"github.com/hasura/ndc-sdk-go/v2/utils"
 )
 
 var capabilities = schema.CapabilitiesResponse{
@@ -156,19 +155,19 @@ var ndcSchema = schema.SchemaResponse{
 		"article": schema.NewObjectType(
 			schema.ObjectTypeFields{
 				"author_id": schema.ObjectField{
-					Description: utils.ToPtr("The article's author ID"),
+					Description: new("The article's author ID"),
 					Type:        schema.NewNamedType("Int").Encode(),
 				},
 				"id": {
-					Description: utils.ToPtr("The article's primary key"),
+					Description: new("The article's primary key"),
 					Type:        schema.NewNamedType("Int").Encode(),
 				},
 				"published_date": {
-					Description: utils.ToPtr("The article's date of publication"),
+					Description: new("The article's date of publication"),
 					Type:        schema.NewNamedType("Date").Encode(),
 				},
 				"title": {
-					Description: utils.ToPtr("The article's title"),
+					Description: new("The article's title"),
 					Type:        schema.NewNamedType("String").Encode(),
 				},
 			},
@@ -180,40 +179,40 @@ var ndcSchema = schema.SchemaResponse{
 					ForeignCollection: "authors",
 				},
 			},
-			utils.ToPtr("An article"),
+			new("An article"),
 		),
 		"author": schema.NewObjectType(
 			schema.ObjectTypeFields{
 				"first_name": {
-					Description: utils.ToPtr("The author's first name"),
+					Description: new("The author's first name"),
 					Type:        schema.NewNamedType("String").Encode(),
 				},
 				"id": {
-					Description: utils.ToPtr("The author's primary key"),
+					Description: new("The author's primary key"),
 					Type:        schema.NewNamedType("Int").Encode(),
 				},
 				"last_name": {
-					Description: utils.ToPtr("The author's last name"),
+					Description: new("The author's last name"),
 					Type:        schema.NewNamedType("String").Encode(),
 				},
 			},
 			nil,
-			utils.ToPtr("An author"),
+			new("An author"),
 		),
 		"city": {
-			Description: utils.ToPtr("A city"),
+			Description: new("A city"),
 			Fields: schema.ObjectTypeFields{
 				"name": {
-					Description: utils.ToPtr("The institution's name"),
+					Description: new("The institution's name"),
 					Type:        schema.NewNamedType("String").Encode(),
 				},
 			},
 		},
 		"country": {
-			Description: utils.ToPtr("A country"),
+			Description: new("A country"),
 			Fields: schema.ObjectTypeFields{
 				"area_km2": {
-					Description: utils.ToPtr("The country's area size in square kilometers"),
+					Description: new("The country's area size in square kilometers"),
 					Type:        schema.NewNamedType("Int").Encode(),
 				},
 				"cities": {
@@ -222,15 +221,15 @@ var ndcSchema = schema.SchemaResponse{
 							Type: schema.NewNullableNamedType("Int").Encode(),
 						},
 					},
-					Description: utils.ToPtr("The cities in the country"),
+					Description: new("The cities in the country"),
 					Type:        schema.NewArrayType(schema.NewNamedType("city")).Encode(),
 				},
 				"id": {
-					Description: utils.ToPtr("The country's primary key"),
+					Description: new("The country's primary key"),
 					Type:        schema.NewNamedType("Int").Encode(),
 				},
 				"name": {
-					Description: utils.ToPtr("The country's name"),
+					Description: new("The country's name"),
 					Type:        schema.NewNamedType("String").Encode(),
 				},
 			},
@@ -244,23 +243,23 @@ var ndcSchema = schema.SchemaResponse{
 							Type: schema.NewNullableNamedType("Int").Encode(),
 						},
 					},
-					Description: utils.ToPtr("The institution's departments"),
+					Description: new("The institution's departments"),
 					Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
 				},
 				"id": schema.ObjectField{
-					Description: utils.ToPtr("The institution's primary key"),
+					Description: new("The institution's primary key"),
 					Type:        schema.NewNamedType("Int").Encode(),
 				},
 				"location": schema.ObjectField{
-					Description: utils.ToPtr("The institution's location"),
+					Description: new("The institution's location"),
 					Type:        schema.NewNamedType("location").Encode(),
 				},
 				"name": schema.ObjectField{
-					Description: utils.ToPtr("The institution's name"),
+					Description: new("The institution's name"),
 					Type:        schema.NewNamedType("String").Encode(),
 				},
 				"staff": schema.ObjectField{
-					Description: utils.ToPtr("The institution's staff"),
+					Description: new("The institution's staff"),
 					Type:        schema.NewArrayType(schema.NewNamedType("staff_member")).Encode(),
 					Arguments: schema.ObjectFieldArguments{
 						"limit": {
@@ -270,12 +269,12 @@ var ndcSchema = schema.SchemaResponse{
 				},
 			},
 			nil,
-			utils.ToPtr("An institution"),
+			new("An institution"),
 		),
 		"location": schema.NewObjectType(
 			schema.ObjectTypeFields{
 				"campuses": schema.ObjectField{
-					Description: utils.ToPtr("The location's campuses"),
+					Description: new("The location's campuses"),
 					Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
 					Arguments: schema.ObjectFieldArguments{
 						"limit": {
@@ -284,15 +283,15 @@ var ndcSchema = schema.SchemaResponse{
 					},
 				},
 				"city": schema.ObjectField{
-					Description: utils.ToPtr("The location's city"),
+					Description: new("The location's city"),
 					Type:        schema.NewNamedType("String").Encode(),
 				},
 				"country": schema.ObjectField{
-					Description: utils.ToPtr("The location's country"),
+					Description: new("The location's country"),
 					Type:        schema.NewNamedType("String").Encode(),
 				},
 				"country_id": {
-					Description: utils.ToPtr("The location's country ID"),
+					Description: new("The location's country ID"),
 					Type:        schema.NewNamedType("Int").Encode(),
 				},
 			},
@@ -304,24 +303,24 @@ var ndcSchema = schema.SchemaResponse{
 					ForeignCollection: "countries",
 				},
 			},
-			utils.ToPtr("A location"),
+			new("A location"),
 		),
 		"staff_member": schema.NewObjectType(
 			schema.ObjectTypeFields{
 				"born_country_id": {
-					Description: utils.ToPtr("The ID of the country the staff member was born in"),
+					Description: new("The ID of the country the staff member was born in"),
 					Type:        schema.NewNamedType("Int").Encode(),
 				},
 				"first_name": schema.ObjectField{
-					Description: utils.ToPtr("The staff member's first name"),
+					Description: new("The staff member's first name"),
 					Type:        schema.NewNamedType("String").Encode(),
 				},
 				"last_name": schema.ObjectField{
-					Description: utils.ToPtr("The staff member's last name"),
+					Description: new("The staff member's last name"),
 					Type:        schema.NewNamedType("String").Encode(),
 				},
 				"specialities": schema.ObjectField{
-					Description: utils.ToPtr("The staff member's specialities"),
+					Description: new("The staff member's specialities"),
 					Type:        schema.NewArrayType(schema.NewNamedType("String")).Encode(),
 					Arguments: schema.ObjectFieldArguments{
 						"limit": {
@@ -338,13 +337,13 @@ var ndcSchema = schema.SchemaResponse{
 					ForeignCollection: "countries",
 				},
 			},
-			utils.ToPtr("A staff member"),
+			new("A staff member"),
 		),
 	},
 	Collections: []schema.CollectionInfo{
 		{
 			Name:        "articles",
-			Description: utils.ToPtr("A collection of articles"),
+			Description: new("A collection of articles"),
 			Arguments:   schema.CollectionInfoArguments{},
 			Type:        "article",
 			UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
@@ -355,7 +354,7 @@ var ndcSchema = schema.SchemaResponse{
 		},
 		{
 			Name:        "authors",
-			Description: utils.ToPtr("A collection of authors"),
+			Description: new("A collection of authors"),
 			Arguments:   schema.CollectionInfoArguments{},
 			Type:        "author",
 			UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
@@ -366,7 +365,7 @@ var ndcSchema = schema.SchemaResponse{
 		},
 		{
 			Name:        "institutions",
-			Description: utils.ToPtr("A collection of institutions"),
+			Description: new("A collection of institutions"),
 			Arguments:   schema.CollectionInfoArguments{},
 			Type:        "institution",
 			UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
@@ -377,7 +376,7 @@ var ndcSchema = schema.SchemaResponse{
 		},
 		{
 			Name:        "countries",
-			Description: utils.ToPtr("A collection of countries"),
+			Description: new("A collection of countries"),
 			Arguments:   schema.CollectionInfoArguments{},
 			Type:        "country",
 			UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
@@ -388,7 +387,7 @@ var ndcSchema = schema.SchemaResponse{
 		},
 		{
 			Name:        "articles_by_author",
-			Description: utils.ToPtr("Articles parameterized by author"),
+			Description: new("Articles parameterized by author"),
 			Arguments: schema.CollectionInfoArguments{
 				"author_id": schema.ArgumentInfo{
 					Type: schema.NewNamedType("Int").Encode(),
@@ -401,13 +400,13 @@ var ndcSchema = schema.SchemaResponse{
 	Functions: []schema.FunctionInfo{
 		{
 			Name:        "latest_article_id",
-			Description: utils.ToPtr("Get the ID of the most recent article"),
+			Description: new("Get the ID of the most recent article"),
 			Arguments:   schema.FunctionInfoArguments{},
 			ResultType:  schema.NewNullableNamedType("Int").Encode(),
 		},
 		{
 			Name:        "latest_article",
-			Description: utils.ToPtr("Get the most recent article"),
+			Description: new("Get the most recent article"),
 			Arguments:   schema.FunctionInfoArguments{},
 			ResultType:  schema.NewNullableNamedType("article").Encode(),
 		},
@@ -415,10 +414,10 @@ var ndcSchema = schema.SchemaResponse{
 	Procedures: []schema.ProcedureInfo{
 		{
 			Name:        "upsert_article",
-			Description: utils.ToPtr("Insert or update an article"),
+			Description: new("Insert or update an article"),
 			Arguments: schema.ProcedureInfoArguments{
 				"article": schema.ArgumentInfo{
-					Description: utils.ToPtr("The article to insert or update"),
+					Description: new("The article to insert or update"),
 					Type:        schema.NewNamedType("article").Encode(),
 				},
 			},
@@ -426,10 +425,10 @@ var ndcSchema = schema.SchemaResponse{
 		},
 		{
 			Name:        "delete_articles",
-			Description: utils.ToPtr("Delete articles which match a predicate"),
+			Description: new("Delete articles which match a predicate"),
 			Arguments: schema.ProcedureInfoArguments{
 				"where": schema.ArgumentInfo{
-					Description: utils.ToPtr("The predicate"),
+					Description: new("The predicate"),
 					Type:        schema.NewPredicateType("article").Encode(),
 				},
 			},

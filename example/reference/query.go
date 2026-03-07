@@ -22,7 +22,7 @@ func NewQueryHandler(
 	request *schema.QueryRequest,
 	variables map[string]any,
 ) (*QueryHandler, error) {
-	arguments, err := utils.ResolveArgumentVariables(request.Arguments, variables)
+	arguments, err := utils.ResolveArguments(request.Arguments, variables)
 	if err != nil {
 		return nil, err
 	}
