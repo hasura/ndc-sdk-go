@@ -251,21 +251,25 @@ func (ti *TypeInfo) getArgumentName(packagePath string, isAbsolute bool) string 
 	}
 
 	paramLen := len(ti.TypeParameters)
-	if paramLen > 0 {
-		name += "["
-		var nameSb255 strings.Builder
-		for i, param := range ti.TypeParameters {
-			nameSb255.WriteString(getTypeArgumentName(param, packagePath, isAbsolute))
-			if i < paramLen-1 {
-				nameSb255.WriteString(", ")
-			}
-		}
-		name += nameSb255.String()
-
-		name += "]"
+	if paramLen == 0 {
+		return name
 	}
 
-	return name
+	var nameSb strings.Builder
+	nameSb.WriteString(name)
+	nameSb.WriteRune('[')
+
+	for i, param := range ti.TypeParameters {
+		nameSb.WriteString(getTypeArgumentName(param, packagePath, isAbsolute))
+
+		if i < paramLen-1 {
+			nameSb.WriteString(", ")
+		}
+	}
+
+	nameSb.WriteRune(']')
+
+	return nameSb.String()
 }
 
 // Field represents the serialization information of a field.
