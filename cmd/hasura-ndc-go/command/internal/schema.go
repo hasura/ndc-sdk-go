@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"go/types"
+	"strings"
 
 	"github.com/hasura/ndc-sdk-go/v2/schema"
 	"github.com/hasura/ndc-sdk-go/v2/utils"
@@ -252,12 +253,14 @@ func (ti *TypeInfo) getArgumentName(packagePath string, isAbsolute bool) string 
 	paramLen := len(ti.TypeParameters)
 	if paramLen > 0 {
 		name += "["
+		var nameSb255 strings.Builder
 		for i, param := range ti.TypeParameters {
-			name += getTypeArgumentName(param, packagePath, isAbsolute)
+			nameSb255.WriteString(getTypeArgumentName(param, packagePath, isAbsolute))
 			if i < paramLen-1 {
-				name += ", "
+				nameSb255.WriteString(", ")
 			}
 		}
+		name += nameSb255.String()
 
 		name += "]"
 	}

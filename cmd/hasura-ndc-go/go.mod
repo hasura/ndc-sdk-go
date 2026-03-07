@@ -1,12 +1,12 @@
 module github.com/hasura/ndc-sdk-go/v2/cmd/hasura-ndc-go
 
-go 1.25.0
+go 1.26.1
 
 require (
 	github.com/alecthomas/kong v1.14.0
 	github.com/fatih/structtag v1.2.0
 	github.com/google/uuid v1.6.0
-	github.com/hasura/ndc-sdk-go/v2 v2.2.0
+	github.com/hasura/ndc-sdk-go/v2 v2.2.1-0.20260307071248-52a6e99144c7
 	github.com/huandu/xstrings v1.5.0
 	github.com/rs/zerolog v1.34.0
 	golang.org/x/mod v0.33.0

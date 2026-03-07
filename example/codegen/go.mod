@@ -5,7 +5,7 @@ go 1.26.1
 require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
-	github.com/hasura/ndc-sdk-go/v2 v2.0.0
+	github.com/hasura/ndc-sdk-go/v2 v2.2.0
 	go.opentelemetry.io/otel v1.42.0
 	go.opentelemetry.io/otel/trace v1.42.0
 	golang.org/x/sync v0.19.0

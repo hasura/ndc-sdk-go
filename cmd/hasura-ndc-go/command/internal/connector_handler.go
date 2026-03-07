@@ -190,13 +190,29 @@ func (dch DataConnectorHandler) execQuery(ctx context.Context, state *`,
 
 		switch resultType.(type) {
 		case *ArrayType:
-			chb.writeOperationResult(sb, fn.OriginName, OperationFunction, argumentParamStr, isNullable)
-			sb.WriteString("\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)")
+			chb.writeOperationResult(
+				sb,
+				fn.OriginName,
+				OperationFunction,
+				argumentParamStr,
+				isNullable,
+			)
+			sb.WriteString(
+				"\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)",
+			)
 			writeErrorCheck(sb, 2, 4)
 			sb.WriteString("    return result, nil\n")
 		case *NamedType:
-			chb.writeOperationResult(sb, fn.OriginName, OperationFunction, argumentParamStr, isNullable)
-			sb.WriteString("\n    result, err := utils.EvalNestedColumnObject(selection, rawResult)")
+			chb.writeOperationResult(
+				sb,
+				fn.OriginName,
+				OperationFunction,
+				argumentParamStr,
+				isNullable,
+			)
+			sb.WriteString(
+				"\n    result, err := utils.EvalNestedColumnObject(selection, rawResult)",
+			)
 			writeErrorCheck(sb, 2, 4)
 			sb.WriteString("    return result, nil\n")
 		}
@@ -281,12 +297,28 @@ func (dch DataConnectorHandler) Mutation(ctx context.Context, state *`)
 		} else {
 			switch resultType.(type) {
 			case *ArrayType:
-				chb.writeOperationResult(sb, fn.OriginName, OperationProcedure, argumentParamStr, isNullable)
-				sb.WriteString("\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)\n")
+				chb.writeOperationResult(
+					sb,
+					fn.OriginName,
+					OperationProcedure,
+					argumentParamStr,
+					isNullable,
+				)
+				sb.WriteString(
+					"\n    result, err := utils.EvalNestedColumnArrayIntoSlice(selection, rawResult)\n",
+				)
 				writeErrorCheck(sb, 2, 4)
 			case *NamedType:
-				chb.writeOperationResult(sb, fn.OriginName, OperationProcedure, argumentParamStr, isNullable)
-				sb.WriteString("\n    result, err := utils.EvalNestedColumnObject(selection, rawResult)\n")
+				chb.writeOperationResult(
+					sb,
+					fn.OriginName,
+					OperationProcedure,
+					argumentParamStr,
+					isNullable,
+				)
+				sb.WriteString(
+					"\n    result, err := utils.EvalNestedColumnObject(selection, rawResult)\n",
+				)
 				writeErrorCheck(sb, 2, 4)
 			}
 		}
