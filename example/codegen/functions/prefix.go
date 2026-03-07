@@ -110,7 +110,7 @@ func FunctionGetBool(ctx context.Context, state *types.State) (bool, error) {
 
 // FunctionGetInts return a slice of scalar ints
 func FunctionGetInts(ctx context.Context, state *types.State) ([]*int, error) {
-	return []*int{utils.ToPtr(1), utils.ToPtr(2), utils.ToPtr(3)}, nil
+	return []*int{new(1), new(2), new(3)}, nil
 }
 
 func FunctionGetTypes(

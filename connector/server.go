@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/hasura/gotel"
 	"github.com/hasura/ndc-sdk-go/v2/schema"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/otel/attribute"
@@ -27,7 +28,7 @@ import (
 
 // ServerOptions presents the configuration object of the connector http server.
 type ServerOptions struct {
-	OTLPConfig
+	gotel.OTLPConfig
 	HTTPServerConfig
 
 	Configuration      string
@@ -517,7 +518,7 @@ func (s *Server[Configuration, State]) buildHandler() *http.ServeMux {
 	router.Use(apiPathMutation, http.MethodPost, append(middlewares, s.Mutation)...)
 	router.Use(apiPathHealth, http.MethodGet, s.Health)
 
-	if s.options.MetricsExporter == string(otelMetricsExporterPrometheus) &&
+	if s.options.MetricsExporter == gotel.OTELMetricsExporterPrometheus &&
 		s.options.PrometheusPort == nil {
 		router.Use(apiPathMetrics, http.MethodGet, s.withAuth, promhttp.Handler().ServeHTTP)
 	}
@@ -591,7 +592,7 @@ func (s *Server[Configuration, State]) ListenAndServe(port uint) error {
 		}
 	}()
 
-	if s.options.MetricsExporter == string(otelMetricsExporterPrometheus) &&
+	if s.options.MetricsExporter == gotel.OTELMetricsExporterPrometheus &&
 		s.options.PrometheusPort != nil {
 		promServer := createPrometheusServer(*s.options.PrometheusPort)
 

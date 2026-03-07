@@ -6,11 +6,13 @@ import (
 	"log/slog"
 
 	"github.com/alecthomas/kong"
+	"github.com/hasura/gotel"
+	"github.com/hasura/gotel/otelutils"
 )
 
 // ServeCommandArguments contains argument flags of the serve command.
 type ServeCommandArguments struct {
-	OTLPConfig
+	gotel.OTLPConfig
 	HTTPServerConfig
 
 	Configuration      string `env:"HASURA_CONFIGURATION_DIRECTORY" help:"Configuration directory"`
@@ -66,7 +68,7 @@ func StartCustom[Configuration any, State any](
 	serveCLI := cli.GetServeCLI()
 	command := cmd.Command()
 
-	logger, logLevel, err := NewJSONLogger(serveCLI.LogLevel)
+	logger, logLevel, err := otelutils.NewJSONLogger(serveCLI.LogLevel)
 	if err != nil {
 		return err
 	}

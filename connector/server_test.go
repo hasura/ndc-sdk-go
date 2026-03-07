@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hasura/gotel"
 	"github.com/hasura/ndc-sdk-go/v2/schema"
-	"github.com/hasura/ndc-sdk-go/v2/utils"
 	"github.com/hasura/ndc-sdk-go/v2/utils/compression"
 	"gotest.tools/v3/assert"
 )
@@ -62,18 +62,18 @@ var mockSchema = schema.SchemaResponse{
 	},
 	ObjectTypes: schema.SchemaResponseObjectTypes{
 		"article": schema.ObjectType{
-			Description: utils.ToPtr("An article"),
+			Description: new("An article"),
 			Fields: schema.ObjectTypeFields{
 				"id": schema.ObjectField{
-					Description: utils.ToPtr("The article's primary key"),
+					Description: new("The article's primary key"),
 					Type:        schema.NewNamedType("Int").Encode(),
 				},
 				"title": schema.ObjectField{
-					Description: utils.ToPtr("The article's title"),
+					Description: new("The article's title"),
 					Type:        schema.NewNamedType("String").Encode(),
 				},
 				"author_id": schema.ObjectField{
-					Description: utils.ToPtr("The article's author ID"),
+					Description: new("The article's author ID"),
 					Type:        schema.NewNamedType("Int").Encode(),
 				},
 			},
@@ -84,7 +84,7 @@ var mockSchema = schema.SchemaResponse{
 		{
 			Name:        "articles",
 			Type:        "articles",
-			Description: utils.ToPtr("A collection of articles"),
+			Description: new("A collection of articles"),
 			Arguments:   schema.CollectionInfoArguments{},
 			UniquenessConstraints: schema.CollectionInfoUniquenessConstraints{
 				"ArticleByID": schema.UniquenessConstraint{
@@ -96,7 +96,7 @@ var mockSchema = schema.SchemaResponse{
 	Functions: []schema.FunctionInfo{
 		{
 			Name:        "latest_article_id",
-			Description: utils.ToPtr("Get the ID of the most recent article"),
+			Description: new("Get the ID of the most recent article"),
 			ResultType:  schema.NewNullableNamedType("Int").Encode(),
 			Arguments:   schema.FunctionInfoArguments{},
 		},
@@ -104,10 +104,10 @@ var mockSchema = schema.SchemaResponse{
 	Procedures: []schema.ProcedureInfo{
 		{
 			Name:        "upsert_article",
-			Description: utils.ToPtr("Insert or update an article"),
+			Description: new("Insert or update an article"),
 			Arguments: schema.ProcedureInfoArguments{
 				"article": schema.ArgumentInfo{
-					Description: utils.ToPtr("The article to insert or update"),
+					Description: new("The article to insert or update"),
 					Type:        schema.NewNamedType("article").Encode(),
 				},
 			},
@@ -620,7 +620,6 @@ func TestServerConnector(t *testing.T) {
 				CollectionRelationships: schema.MutationRequestCollectionRelationships{},
 			},
 		)
-
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
@@ -646,7 +645,6 @@ func TestServerConnector(t *testing.T) {
 			},
 			CollectionRelationships: schema.MutationRequestCollectionRelationships{},
 		})
-
 		if err != nil {
 			t.Errorf("expected no error, got %s", err)
 			t.FailNow()
@@ -806,8 +804,8 @@ func TestConnectorWithPrometheusEnabled(t *testing.T) {
 	server, err := NewServer(&mockConnector{}, &ServerOptions{
 		Configuration: "{}",
 		InlineConfig:  true,
-		OTLPConfig: OTLPConfig{
-			MetricsExporter: string(otelMetricsExporterPrometheus),
+		OTLPConfig: gotel.OTLPConfig{
+			MetricsExporter: gotel.OTELMetricsExporterPrometheus,
 		},
 	})
 	if err != nil {

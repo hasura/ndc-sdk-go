@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/hasura/gotel"
 	"github.com/hasura/ndc-sdk-go/v2/connector"
 	"github.com/hasura/ndc-sdk-go/v2/schema"
 	"github.com/hasura/ndc-sdk-go/v2/utils"
@@ -36,7 +37,7 @@ func TestConnector[Configuration any, State any](
 	options TestConnectorOptions,
 ) {
 	server, err := connector.NewServer(ndc, &connector.ServerOptions{
-		OTLPConfig: connector.OTLPConfig{
+		OTLPConfig: gotel.OTLPConfig{
 			MetricsExporter: "prometheus",
 		},
 		Configuration: options.Configuration,

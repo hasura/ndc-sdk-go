@@ -65,11 +65,11 @@ func TestDecodeNullableBooleanSlice(t *testing.T) {
 	assert.NilError(t, err)
 	assert.DeepEqual(t, []bool{true, false}, *value)
 
-	value, err = DecodeNullableBooleanSlice([]*bool{ToPtr(true), ToPtr(false)})
+	value, err = DecodeNullableBooleanSlice([]*bool{new(true), new(false)})
 	assert.NilError(t, err)
 	assert.DeepEqual(t, []bool{true, false}, *value)
 
-	value, err = DecodeNullableBooleanSlice(&[]*bool{ToPtr(true), ToPtr(false)})
+	value, err = DecodeNullableBooleanSlice(&[]*bool{new(true), new(false)})
 	assert.NilError(t, err)
 	assert.DeepEqual(t, []bool{true, false}, *value)
 
@@ -131,11 +131,11 @@ func TestDecodeStringSlice(t *testing.T) {
 	assert.NilError(t, err)
 	assert.DeepEqual(t, []string{"foo", "bar"}, value)
 
-	value, err = DecodeStringSlice([]*string{ToPtr("foo"), ToPtr("bar")})
+	value, err = DecodeStringSlice([]*string{new("foo"), new("bar")})
 	assert.NilError(t, err)
 	assert.DeepEqual(t, []string{"foo", "bar"}, value)
 
-	value, err = DecodeStringSlice(&[]*string{ToPtr("foo")})
+	value, err = DecodeStringSlice(&[]*string{new("foo")})
 	assert.NilError(t, err)
 	assert.DeepEqual(t, []string{"foo"}, value)
 
@@ -167,10 +167,10 @@ func TestDecodeNullableStringSlice(t *testing.T) {
 	_, err := DecodeNullableStringSlice([]string{"foo", "bar"})
 	assert.NilError(t, err)
 
-	_, err = DecodeNullableStringSlice([]*string{ToPtr("foo"), ToPtr("bar")})
+	_, err = DecodeNullableStringSlice([]*string{new("foo"), new("bar")})
 	assert.NilError(t, err)
 
-	_, err = DecodeNullableStringSlice(&[]*string{ToPtr("foo")})
+	_, err = DecodeNullableStringSlice(&[]*string{new("foo")})
 	assert.NilError(t, err)
 
 	_, err = DecodeNullableStringSlice([]any{"bar", "foo"})
@@ -486,8 +486,8 @@ func TestDecodeIntSlice(t *testing.T) {
 		{[]float32{12}, []int{12}},
 		{[]float64{13}, []int{13}},
 
-		{[]*int{ToPtr(1)}, []int{1}},
-		{[]*int8{ToPtr(int8(2))}, []int{2}},
+		{[]*int{new(1)}, []int{1}},
+		{[]*int8{new(int8(2))}, []int{2}},
 		{[]*int16{ToPtr[int16](3)}, []int{3}},
 		{[]*int32{ToPtr[int32](4)}, []int{4}},
 		{[]*int64{ToPtr(int64(5))}, []int{5}},
