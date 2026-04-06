@@ -3,14 +3,14 @@ module github.com/hasura/ndc-sdk-go/v2/cmd/hasura-ndc-go
 go 1.26.1
 
 require (
-	github.com/alecthomas/kong v1.14.0
+	github.com/alecthomas/kong v1.15.0
 	github.com/fatih/structtag v1.2.0
 	github.com/google/uuid v1.6.0
-	github.com/hasura/ndc-sdk-go/v2 v2.2.1-0.20260307094201-0df81321b677
+	github.com/hasura/ndc-sdk-go/v2 v2.3.0
 	github.com/huandu/xstrings v1.5.0
-	github.com/rs/zerolog v1.34.0
-	golang.org/x/mod v0.33.0
-	golang.org/x/tools v0.42.0
+	github.com/rs/zerolog v1.35.0
+	golang.org/x/mod v0.34.0
+	golang.org/x/tools v0.43.0
 	gotest.tools/v3 v3.5.2
 )
 
@@ -22,9 +22,9 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.67.5 // indirect
-	go.opentelemetry.io/otel v1.42.0 // indirect
+	go.opentelemetry.io/otel v1.43.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
-	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
