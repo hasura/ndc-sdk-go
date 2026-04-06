@@ -150,8 +150,8 @@ func SetSpanHeaderAttributes(
 	httpHeaders http.Header,
 	allowedHeaders ...string,
 ) {
-	headers := otelutils.NewTelemetryHeaders(httpHeaders, allowedHeaders...)
-	otelutils.SetSpanHeaderAttributes(span, prefix, headers)
+	headers := otelutils.ExtractTelemetryHeaders(httpHeaders, allowedHeaders...)
+	otelutils.SetSpanHeaderMatrixAttributes(span, prefix, headers)
 }
 
 // GetLogger gets the logger instance from context.
