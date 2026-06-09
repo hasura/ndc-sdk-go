@@ -1041,6 +1041,7 @@ func (cg *connectorGenerator) getAnonymousObjectTypeName(
 		result := "struct{"
 
 		var resultSb1037 strings.Builder
+
 		for i := range inferredType.NumFields() {
 			fieldVar := inferredType.Field(i)
 			fieldTag := inferredType.Tag(i)
@@ -1059,6 +1060,7 @@ func (cg *connectorGenerator) getAnonymousObjectTypeName(
 				resultSb1037.WriteString(" `" + fieldTag + "`")
 			}
 		}
+
 		result += resultSb1037.String()
 
 		result += "}"
@@ -1095,6 +1097,7 @@ func (cg *connectorGenerator) getAnonymousObjectTypeName(
 				result += "["
 
 				var resultSb1089 strings.Builder
+
 				for i, typeParam := range typeInfo.TypeParameters {
 					if i > 0 {
 						resultSb1089.WriteString(", ")
@@ -1105,6 +1108,7 @@ func (cg *connectorGenerator) getAnonymousObjectTypeName(
 						getTypePackagePaths(typeParam, sb.packagePath)...)
 					resultSb1089.WriteString(getTypeArgumentName(typeParam, sb.packagePath, false))
 				}
+
 				result += resultSb1089.String()
 
 				result += "]"

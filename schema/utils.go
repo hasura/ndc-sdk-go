@@ -47,7 +47,7 @@ func isNil(value any) bool {
 
 	v := reflect.ValueOf(value)
 
-	return v.Kind() == reflect.Ptr && v.IsNil()
+	return v.Kind() == reflect.Pointer && v.IsNil()
 }
 
 func isNullJSON(value []byte) bool {

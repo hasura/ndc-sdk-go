@@ -19,6 +19,8 @@ linters:
     - funcorder
     - noinlineerr
     - wsl
+    - gomodguard
+    - goconst
   settings:
     tagliatelle:
       # Checks the struct tag name case.
@@ -127,8 +129,9 @@ linters:
         linters:
           - gocognit
 
-      - path: cmd/hasura-ndc-go/command/internal/
+      - path: cmd/hasura-ndc-go
         linters:
+          - gosec
           - gocognit
 
     # Which file paths to exclude: they will be analyzed, but issues from them won't be reported.

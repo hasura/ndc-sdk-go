@@ -150,7 +150,7 @@ func SetSpanHeaderAttributes(
 	httpHeaders http.Header,
 	allowedHeaders ...string,
 ) {
-	headers := otelutils.ExtractTelemetryHeaders(httpHeaders, allowedHeaders...)
+	headers := otelutils.ExtractTelemetryHeaders(httpHeaders, nil, allowedHeaders...)
 	otelutils.SetSpanHeaderMatrixAttributes(span, prefix, headers)
 }
 
