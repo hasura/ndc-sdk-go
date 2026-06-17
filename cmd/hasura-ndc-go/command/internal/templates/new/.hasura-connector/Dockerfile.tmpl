@@ -1,5 +1,5 @@
 # build context at repo root: docker build -f Dockerfile .
-FROM golang:1.26 AS builder
+FROM us-docker.pkg.dev/hasura-container-images/external-images/docker.io/library/golang:1.26-stable AS builder
 
 WORKDIR /app
 COPY go.mod go.sum ./
