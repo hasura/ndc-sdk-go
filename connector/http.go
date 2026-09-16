@@ -323,7 +323,7 @@ func (rt *router) debugRequestBody(
 }
 
 func getRequestID(r *http.Request, span trace.Span) string {
-	requestID := r.Header.Get("x-request-id")
+	requestID := r.Header.Get("X-Request-ID")
 	if requestID != "" {
 		return requestID
 	}
@@ -382,22 +382,19 @@ func writeJson(w http.ResponseWriter, logger *slog.Logger, statusCode int, body 
 func writeError(w http.ResponseWriter, logger *slog.Logger, err error, defaultHttpStatus int) int {
 	w.Header().Add("Content-Type", "application/json")
 
-	var connectorErrorPtr *schema.ConnectorError
-	if errors.As(err, &connectorErrorPtr) {
+	if connectorErrorPtr, ok := errors.AsType[*schema.ConnectorError](err); ok {
 		writeJson(w, logger, connectorErrorPtr.StatusCode(), connectorErrorPtr)
 
 		return connectorErrorPtr.StatusCode()
 	}
 
-	var errorResponse schema.ErrorResponse
-	if errors.As(err, &errorResponse) {
+	if errorResponse, ok := errors.AsType[schema.ErrorResponse](err); ok {
 		writeJson(w, logger, defaultHttpStatus, errorResponse)
 
 		return http.StatusInternalServerError
 	}
 
-	var errorResponsePtr *schema.ErrorResponse
-	if errors.As(err, &errorResponsePtr) {
+	if errorResponsePtr, ok := errors.AsType[*schema.ErrorResponse](err); ok {
 		writeJson(w, logger, defaultHttpStatus, errorResponsePtr)
 
 		return http.StatusInternalServerError

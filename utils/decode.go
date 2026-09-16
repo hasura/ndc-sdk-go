@@ -2093,7 +2093,7 @@ func decodeValueHookFunc() mapstructure.DecodeHookFunc { //nolint:gocognit
 		}
 
 		if to.CanAddr() {
-			decoder, ok = to.Addr().Interface().(ValueDecoder)
+			decoder, ok = reflect.TypeAssert[ValueDecoder](to.Addr())
 			if ok {
 				if err := decoder.FromValue(fromValue); err != nil {
 					return nil, err
@@ -2107,7 +2107,7 @@ func decodeValueHookFunc() mapstructure.DecodeHookFunc { //nolint:gocognit
 		isObjectPtr := false
 
 		if !ok && to.CanAddr() {
-			objDecoder, ok = to.Addr().Interface().(ObjectDecoder)
+			objDecoder, ok = reflect.TypeAssert[ObjectDecoder](to.Addr())
 			isObjectPtr = true
 		}
 
