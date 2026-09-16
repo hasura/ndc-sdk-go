@@ -21,6 +21,7 @@ linters:
     - wsl
     - gomodguard
     - goconst
+    - exhaustruct_v5
   settings:
     tagliatelle:
       # Checks the struct tag name case.
