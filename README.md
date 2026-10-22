@@ -145,3 +145,7 @@ In order to regenerate the types, download the json schema and run:
 ```
 > cd typegen && ./regenerate-schema.sh
 ```
+
+## TLS security
+
+See [TLS trust requirements](security/README.md) for runtime minimums and consumer rebuild requirements.
